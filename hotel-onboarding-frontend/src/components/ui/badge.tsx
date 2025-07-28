@@ -4,17 +4,24 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border border-zinc-200 px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:border-zinc-800 dark:focus:ring-zinc-300",
+  "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/80 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/80",
+          "border-transparent bg-gradient-to-r from-hotel-primary to-hotel-primary-light text-white hover:from-hotel-primary-dark hover:to-hotel-primary shadow-md hover:shadow-lg",
         secondary:
-          "border-transparent bg-zinc-100 text-zinc-900 hover:bg-zinc-100/80 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-800/80",
+          "border-transparent bg-hotel-neutral-100 text-hotel-neutral-800 hover:bg-hotel-neutral-200 ring-1 ring-hotel-neutral-200",
         destructive:
-          "border-transparent bg-red-500 text-zinc-50 shadow hover:bg-red-500/80 dark:bg-red-900 dark:text-zinc-50 dark:hover:bg-red-900/80",
-        outline: "text-zinc-950 dark:text-zinc-50",
+          "border-transparent bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-md",
+        outline: 
+          "border-2 border-hotel-neutral-300 bg-white text-hotel-neutral-700 hover:border-hotel-primary hover:bg-hotel-primary hover:text-white",
+        success:
+          "border-transparent bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-md",
+        warning:
+          "border-transparent bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 shadow-md",
+        info:
+          "border-transparent bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md",
       },
     },
     defaultVariants: {

@@ -1,115 +1,169 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { ChevronRight, MoreHorizontal } from "lucide-react"
+import React from 'react'
+import { Link } from 'react-router-dom'
+import { ChevronRight, Home } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-import { cn } from "@/lib/utils"
+export interface BreadcrumbItem {
+  label: string
+  path?: string
+  icon?: React.ComponentType<{ className?: string }>
+  ariaLabel?: string
+}
 
-const Breadcrumb = React.forwardRef<
-  HTMLElement,
-  React.ComponentPropsWithoutRef<"nav"> & {
-    separator?: React.ReactNode
-  }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />)
-Breadcrumb.displayName = "Breadcrumb"
+interface BreadcrumbProps {
+  items: BreadcrumbItem[]
+  className?: string
+  maxItems?: number
+  showHomeIcon?: boolean
+}
 
-const BreadcrumbList = React.forwardRef<
-  HTMLOListElement,
-  React.ComponentPropsWithoutRef<"ol">
->(({ className, ...props }, ref) => (
-  <ol
-    ref={ref}
-    className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-sm text-zinc-500 sm:gap-2.5 dark:text-zinc-400",
-      className
-    )}
-    {...props}
-  />
-))
-BreadcrumbList.displayName = "BreadcrumbList"
-
-const BreadcrumbItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentPropsWithoutRef<"li">
->(({ className, ...props }, ref) => (
-  <li
-    ref={ref}
-    className={cn("inline-flex items-center gap-1.5", className)}
-    {...props}
-  />
-))
-BreadcrumbItem.displayName = "BreadcrumbItem"
-
-const BreadcrumbLink = React.forwardRef<
-  HTMLAnchorElement,
-  React.ComponentPropsWithoutRef<"a"> & {
-    asChild?: boolean
-  }
->(({ asChild, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a"
+export function Breadcrumb({ 
+  items, 
+  className, 
+  maxItems = 4,
+  showHomeIcon = true 
+}: BreadcrumbProps) {
+  // Truncate items if too many for mobile
+  const displayItems = items.length > maxItems 
+    ? [items[0], { label: '...', path: undefined }, ...items.slice(-2)]
+    : items
 
   return (
-    <Comp
-      ref={ref}
-      className={cn("transition-colors hover:text-zinc-950 dark:hover:text-zinc-50", className)}
-      {...props}
-    />
+    <nav 
+      className={cn(
+        "flex items-center text-sm text-muted-foreground overflow-hidden",
+        className
+      )} 
+      aria-label="Breadcrumb navigation"
+    >
+      <ol className="flex items-center min-w-0">
+        {displayItems.map((item, index) => {
+          const isLast = index === displayItems.length - 1
+          const isEllipsis = item.label === '...'
+          const Icon = item.icon
+
+          return (
+            <li key={index} className="flex items-center min-w-0">
+              {index > 0 && (
+                <ChevronRight 
+                  className="h-4 w-4 mx-1 text-muted-foreground/50 flex-shrink-0" 
+                  aria-hidden="true"
+                />
+              )}
+              
+              {isEllipsis ? (
+                <span 
+                  className="px-1 text-muted-foreground/70"
+                  aria-label="More breadcrumb items"
+                >
+                  ...
+                </span>
+              ) : item.path && !isLast ? (
+                <Link
+                  to={item.path}
+                  className={cn(
+                    "flex items-center gap-1 hover:text-foreground transition-colors",
+                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-sm",
+                    "truncate min-w-0"
+                  )}
+                  aria-label={item.ariaLabel || `Navigate to ${item.label}`}
+                >
+                  {Icon && showHomeIcon && (
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                  )}
+                  <span className="truncate">{item.label}</span>
+                </Link>
+              ) : (
+                <span 
+                  className={cn(
+                    "flex items-center gap-1 min-w-0",
+                    isLast ? "text-foreground font-medium" : "text-muted-foreground"
+                  )}
+                  aria-current={isLast ? "page" : undefined}
+                >
+                  {Icon && showHomeIcon && (
+                    <Icon className="h-4 w-4 flex-shrink-0" />
+                  )}
+                  <span className="truncate">{item.label}</span>
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
   )
-})
-BreadcrumbLink.displayName = "BreadcrumbLink"
+}
 
-const BreadcrumbPage = React.forwardRef<
-  HTMLSpanElement,
-  React.ComponentPropsWithoutRef<"span">
->(({ className, ...props }, ref) => (
-  <span
-    ref={ref}
-    role="link"
-    aria-disabled="true"
-    aria-current="page"
-    className={cn("font-normal text-zinc-950 dark:text-zinc-50", className)}
-    {...props}
-  />
-))
-BreadcrumbPage.displayName = "BreadcrumbPage"
+// Convenience component for dashboard breadcrumbs
+interface DashboardBreadcrumbProps {
+  role: 'hr' | 'manager'
+  currentSection: string
+  className?: string
+  propertyName?: string
+}
 
-const BreadcrumbSeparator = ({
-  children,
+export function DashboardBreadcrumb({ 
+  role, 
+  currentSection, 
   className,
-  ...props
-}: React.ComponentProps<"li">) => (
-  <li
-    role="presentation"
-    aria-hidden="true"
-    className={cn("[&>svg]:w-3.5 [&>svg]:h-3.5", className)}
-    {...props}
-  >
-    {children ?? <ChevronRight />}
-  </li>
-)
-BreadcrumbSeparator.displayName = "BreadcrumbSeparator"
+  propertyName 
+}: DashboardBreadcrumbProps) {
+  const sectionLabels: Record<string, { label: string; description: string }> = {
+    properties: { 
+      label: 'Properties', 
+      description: 'Manage hotel properties and locations' 
+    },
+    managers: { 
+      label: 'Managers', 
+      description: 'Manage property managers and assignments' 
+    },
+    employees: { 
+      label: 'Employees', 
+      description: 'View and manage employees' 
+    },
+    applications: { 
+      label: 'Applications', 
+      description: 'Review job applications' 
+    },
+    analytics: { 
+      label: 'Analytics', 
+      description: 'View system analytics and reports' 
+    }
+  }
 
-const BreadcrumbEllipsis = ({
-  className,
-  ...props
-}: React.ComponentProps<"span">) => (
-  <span
-    role="presentation"
-    aria-hidden="true"
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
-  </span>
-)
-BreadcrumbEllipsis.displayName = "BreadcrumbElipssis"
+  const sectionInfo = sectionLabels[currentSection] || { 
+    label: currentSection, 
+    description: `Navigate to ${currentSection}` 
+  }
 
-export {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
+  const items: BreadcrumbItem[] = [
+    {
+      label: 'Home',
+      path: '/',
+      icon: Home,
+      ariaLabel: 'Navigate to home page'
+    },
+    {
+      label: role === 'hr' ? 'HR Dashboard' : 'Manager Dashboard',
+      path: `/${role}`,
+      ariaLabel: `Navigate to ${role === 'hr' ? 'HR' : 'Manager'} dashboard`
+    }
+  ]
+
+  // Add property context for managers
+  if (role === 'manager' && propertyName) {
+    items.push({
+      label: propertyName,
+      ariaLabel: `Property: ${propertyName}`
+    })
+  }
+
+  // Add current section
+  items.push({
+    label: sectionInfo.label,
+    ariaLabel: sectionInfo.description
+  })
+
+  return <Breadcrumb items={items} className={className} />
 }

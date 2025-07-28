@@ -4,321 +4,342 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { StatsSkeleton, SkeletonCard } from '@/components/ui/skeleton-loader'
+import { useToast } from '@/hooks/use-toast'
+import { Building2, Users, FileText, BarChart3, MapPin, Phone, AlertTriangle, RefreshCw } from 'lucide-react'
+import { ApplicationsTab } from '@/components/dashboard/ApplicationsTab'
+import { EmployeesTab } from '@/components/dashboard/EmployeesTab'
+import { AnalyticsTab } from '@/components/dashboard/AnalyticsTab'
+import { QRCodeCard } from '@/components/ui/qr-code-display'
 import axios from 'axios'
 
-interface Application {
+interface Property {
   id: string
-  applicant_data: {
-    first_name: string
-    last_name: string
-    email: string
-    phone: string
-    department: string
-    position: string
-    experience: string
-    availability: string
-  }
-  status: string
+  name: string
+  address: string
+  city: string
+  state: string
+  zip_code: string
+  phone?: string
+  qr_code_url: string
+  is_active: boolean
   created_at: string
 }
 
-interface Employee {
-  id: string
-  user_id: string
-  hire_date: string
-  department: string
-  status: string
+interface DashboardStats {
+  total_applications: number
+  pending_applications: number
+  approved_applications: number
+  total_employees: number
+  active_employees: number
 }
 
 export default function ManagerDashboard() {
   const { user, logout } = useAuth()
-  const [applications, setApplications] = useState<Application[]>([])
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
-  const [approvalData, setApprovalData] = useState({
-    job_title: '',
-    start_date: '',
-    start_time: '',
-    pay_rate: '',
-    pay_frequency: 'bi-weekly',
-    benefits_eligible: 'yes',
-    direct_supervisor: '',
-    special_instructions: ''
-  })
+  const { error: showErrorToast, success: showSuccessToast } = useToast()
+  const [property, setProperty] = useState<Property | null>(null)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
-    fetchApplications()
-    fetchEmployees()
-  }, [])
+    if (user?.property_id) {
+      fetchData()
+    }
+  }, [user, retryCount])
 
-  const fetchApplications = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/applications')
-      setApplications(response.data)
+      setLoading(true)
+      setError(null)
+      await Promise.all([fetchPropertyData(), fetchDashboardStats()])
+      if (retryCount > 0) {
+        showSuccessToast('Dashboard refreshed', 'Data has been updated successfully')
+      }
     } catch (error) {
-      console.error('Failed to fetch applications:', error)
+      console.error('Failed to fetch dashboard data:', error)
+      const errorMessage = axios.isAxiosError(error) 
+        ? error.response?.data?.detail || error.message 
+        : 'Failed to load dashboard data'
+      setError(errorMessage)
+      showErrorToast('Failed to load dashboard', errorMessage)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const fetchEmployees = async () => {
-    try {
-      const response = await axios.get('http://127.0.0.1:8000/manager/employees')
-      setEmployees(response.data)
-    } catch (error) {
-      console.error('Failed to fetch employees:', error)
-    }
+  const fetchPropertyData = async () => {
+    const response = await axios.get('http://127.0.0.1:8000/hr/properties')
+    const properties = response.data
+    const userProperty = properties.find((p: Property) => p.id === user?.property_id)
+    setProperty(userProperty || null)
   }
 
-  const approveApplication = async () => {
-    if (!selectedApplication) return
+  const fetchDashboardStats = async () => {
+    // Fetch applications for stats
+    const appsResponse = await axios.get('http://127.0.0.1:8000/hr/applications')
+    const applications = appsResponse.data
     
-    try {
-      await axios.post(`http://127.0.0.1:8000/applications/${selectedApplication.id}/approve`, approvalData)
-      fetchApplications()
-      setSelectedApplication(null)
-      setApprovalData({
-        job_title: '',
-        start_date: '',
-        start_time: '',
-        pay_rate: '',
-        pay_frequency: 'bi-weekly',
-        benefits_eligible: 'yes',
-        direct_supervisor: '',
-        special_instructions: ''
-      })
-    } catch (error) {
-      console.error('Failed to approve application:', error)
-    }
+    // Fetch employees for stats
+    const empResponse = await axios.get('http://127.0.0.1:8000/api/employees')
+    const employees = empResponse.data
+
+    // Calculate stats
+    const totalApplications = applications.length
+    const pendingApplications = applications.filter((app: any) => app.status === 'pending').length
+    const approvedApplications = applications.filter((app: any) => app.status === 'approved').length
+    const totalEmployees = employees.length
+    const activeEmployees = employees.filter((emp: any) => emp.employment_status === 'active').length
+
+    setStats({
+      total_applications: totalApplications,
+      pending_applications: pendingApplications,
+      approved_applications: approvedApplications,
+      total_employees: totalEmployees,
+      active_employees: activeEmployees
+    })
   }
 
-  const rejectApplication = async (applicationId: string) => {
-    try {
-      await axios.post(`http://127.0.0.1:8000/applications/${applicationId}/reject`)
-      fetchApplications()
-    } catch (error) {
-      console.error('Failed to reject application:', error)
-    }
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1)
   }
 
   if (user?.role !== 'manager') {
-    return <div>Access denied. Manager role required.</div>
+    return (
+      <div className="responsive-container padding-lg flex items-center justify-center min-h-screen">
+        <Card className="card-elevated card-rounded-lg max-w-md w-full">
+          <CardContent className="card-padding-lg text-center spacing-sm">
+            <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+            <h2 className="text-heading-lg text-primary mb-2">Access Denied</h2>
+            <p className="text-body-md text-secondary mb-6">Manager role required to access this dashboard.</p>
+            <Button onClick={logout} className="btn-primary btn-size-md">
+              Return to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
-  const pendingApplications = applications.filter(app => app.status === 'pending')
-  const departments = [...new Set(applications.map(app => app.applicant_data.department))]
+  if (!user?.property_id) {
+    return (
+      <div className="responsive-container padding-lg flex items-center justify-center min-h-screen">
+        <Card className="card-elevated card-rounded-lg max-w-md w-full">
+          <CardContent className="card-padding-lg text-center spacing-sm">
+            <Building2 className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+            <h2 className="text-heading-lg text-primary mb-2">No Property Assigned</h2>
+            <p className="text-body-md text-secondary mb-6">
+              You are not currently assigned to a property. Please contact HR for assistance.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={handleRetry} className="btn-primary btn-size-md">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+              <Button onClick={logout} variant="outline" className="btn-secondary btn-size-md">
+                Logout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Manager Dashboard</h1>
-        <Button onClick={logout} variant="outline">Logout</Button>
-      </div>
+    <ErrorBoundary>
+      <div className="responsive-container padding-md">
+        {/* Header Section */}
+        <div className="spacing-lg">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div className="spacing-xs">
+              <h1 className="text-display-md">Manager Dashboard</h1>
+              <p className="text-body-md text-secondary">Welcome back, {user.first_name} {user.last_name}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              {error && (
+                <Button 
+                  onClick={handleRetry} 
+                  variant="outline" 
+                  size="sm"
+                  className="btn-secondary btn-size-sm"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Retry
+                </Button>
+              )}
+              <Button onClick={logout} variant="outline" className="btn-secondary btn-size-md">
+                Logout
+              </Button>
+            </div>
+          </div>
 
-      <Tabs defaultValue="applications" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="applications">
-            Applications 
-            {pendingApplications.length > 0 && (
-              <Badge className="ml-2">{pendingApplications.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="employees">Employees</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-        </TabsList>
+          {/* Error Alert */}
+          {error && (
+            <Alert variant="destructive" className="animate-slide-down">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <TabsContent value="applications" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Applications</CardTitle>
-              <CardDescription>Review and approve job applications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {departments.map(department => {
-                const deptApplications = pendingApplications.filter(app => app.applicant_data.department === department)
-                if (deptApplications.length === 0) return null
-
-                return (
-                  <div key={department} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3">{department}</h3>
-                    <div className="grid gap-4">
-                      {deptApplications.map((application) => (
-                        <div key={application.id} className="border rounded-lg p-4">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-semibold">
-                                {application.applicant_data.first_name} {application.applicant_data.last_name}
-                              </h4>
-                              <p className="text-sm text-gray-600">{application.applicant_data.position}</p>
-                              <p className="text-sm text-gray-600">{application.applicant_data.email}</p>
-                              <p className="text-sm text-gray-600">Experience: {application.applicant_data.experience}</p>
-                              <p className="text-sm text-gray-500">Applied: {new Date(application.created_at).toLocaleDateString()}</p>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button 
-                                    size="sm" 
-                                    onClick={() => {
-                                      setSelectedApplication(application)
-                                      setApprovalData({
-                                        ...approvalData,
-                                        job_title: application.applicant_data.position
-                                      })
-                                    }}
-                                  >
-                                    Approve
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-2xl">
-                                  <DialogHeader>
-                                    <DialogTitle>Approve Application</DialogTitle>
-                                    <DialogDescription>
-                                      Set job details for {application.applicant_data.first_name} {application.applicant_data.last_name}
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                      <Label htmlFor="job_title">Job Title</Label>
-                                      <Input
-                                        id="job_title"
-                                        value={approvalData.job_title}
-                                        onChange={(e) => setApprovalData({...approvalData, job_title: e.target.value})}
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="start_date">Start Date</Label>
-                                      <Input
-                                        id="start_date"
-                                        type="date"
-                                        value={approvalData.start_date}
-                                        onChange={(e) => setApprovalData({...approvalData, start_date: e.target.value})}
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="start_time">Start Time</Label>
-                                      <Input
-                                        id="start_time"
-                                        type="time"
-                                        value={approvalData.start_time}
-                                        onChange={(e) => setApprovalData({...approvalData, start_time: e.target.value})}
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="pay_rate">Pay Rate ($/hour)</Label>
-                                      <Input
-                                        id="pay_rate"
-                                        type="number"
-                                        step="0.01"
-                                        value={approvalData.pay_rate}
-                                        onChange={(e) => setApprovalData({...approvalData, pay_rate: e.target.value})}
-                                      />
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="pay_frequency">Pay Frequency</Label>
-                                      <Select value={approvalData.pay_frequency} onValueChange={(value) => setApprovalData({...approvalData, pay_frequency: value})}>
-                                        <SelectTrigger>
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="weekly">Weekly</SelectItem>
-                                          <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
-                                          <SelectItem value="monthly">Monthly</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label htmlFor="direct_supervisor">Direct Supervisor</Label>
-                                      <Input
-                                        id="direct_supervisor"
-                                        value={approvalData.direct_supervisor}
-                                        onChange={(e) => setApprovalData({...approvalData, direct_supervisor: e.target.value})}
-                                      />
-                                    </div>
-                                    <div className="col-span-2 space-y-2">
-                                      <Label htmlFor="special_instructions">Special Instructions</Label>
-                                      <Textarea
-                                        id="special_instructions"
-                                        value={approvalData.special_instructions}
-                                        onChange={(e) => setApprovalData({...approvalData, special_instructions: e.target.value})}
-                                        rows={3}
-                                      />
-                                    </div>
-                                  </div>
-                                  <div className="flex justify-end space-x-2">
-                                    <Button variant="outline" onClick={() => setSelectedApplication(null)}>Cancel</Button>
-                                    <Button onClick={approveApplication}>Send Onboarding Email</Button>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={() => rejectApplication(application.id)}
-                              >
-                                Reject
-                              </Button>
-                            </div>
-                          </div>
+          {/* Property Information and QR Code */}
+          {loading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <SkeletonCard className="h-32 lg:col-span-2" />
+              <SkeletonCard className="h-32" />
+            </div>
+          ) : property ? (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <Card className="card-elevated card-rounded-md hover-lift lg:col-span-2">
+                <CardHeader className="card-padding-md border-b border-muted">
+                  <CardTitle className="text-heading-lg flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-brand-primary" />
+                    {property.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="card-padding-md">
+                  <div className="responsive-grid-3 gap-md">
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 text-muted mt-1 flex-shrink-0" />
+                      <div className="spacing-xs">
+                        <p className="text-body-sm font-medium text-primary">Address</p>
+                        <p className="text-body-sm text-secondary">
+                          {property.address}, {property.city}, {property.state} {property.zip_code}
+                        </p>
+                      </div>
+                    </div>
+                    {property.phone && (
+                      <div className="flex items-start gap-3">
+                        <Phone className="h-4 w-4 text-muted mt-1 flex-shrink-0" />
+                        <div className="spacing-xs">
+                          <p className="text-body-sm font-medium text-primary">Phone</p>
+                          <p className="text-body-sm text-secondary">{property.phone}</p>
                         </div>
-                      ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Badge className={property.is_active ? "badge-success" : "badge-default"}>
+                        {property.is_active ? "Active" : "Inactive"}
+                      </Badge>
                     </div>
                   </div>
-                )
-              })}
+                </CardContent>
+              </Card>
               
-              {pendingApplications.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No pending applications
-                </div>
+              <QRCodeCard
+                property={property}
+                onRegenerate={fetchPropertyData}
+                showRegenerateButton={true}
+                className="card-elevated card-rounded-md"
+              />
+            </div>
+          ) : null}
+
+          {/* Quick Stats */}
+          {loading ? (
+            <StatsSkeleton count={5} />
+          ) : stats ? (
+            <div className="responsive-grid-5 gap-sm">
+              <Card className="card-elevated card-rounded-md hover-lift">
+                <CardContent className="card-padding-sm">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                    <div className="spacing-xs min-w-0">
+                      <p className="text-body-sm font-medium text-primary">Total Applications</p>
+                      <p className="text-heading-md text-brand-primary">{stats.total_applications}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-elevated card-rounded-md hover-lift">
+                <CardContent className="card-padding-sm">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                    <div className="spacing-xs min-w-0">
+                      <p className="text-body-sm font-medium text-primary">Pending</p>
+                      <p className="text-heading-md text-amber-600">{stats.pending_applications}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-elevated card-rounded-md hover-lift">
+                <CardContent className="card-padding-sm">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <div className="spacing-xs min-w-0">
+                      <p className="text-body-sm font-medium text-primary">Approved</p>
+                      <p className="text-heading-md text-green-600">{stats.approved_applications}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-elevated card-rounded-md hover-lift">
+                <CardContent className="card-padding-sm">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                    <div className="spacing-xs min-w-0">
+                      <p className="text-body-sm font-medium text-primary">Total Employees</p>
+                      <p className="text-heading-md text-brand-primary">{stats.total_employees}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="card-elevated card-rounded-md hover-lift">
+                <CardContent className="card-padding-sm">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <div className="spacing-xs min-w-0">
+                      <p className="text-body-sm font-medium text-primary">Active</p>
+                      <p className="text-heading-md text-green-600">{stats.active_employees}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Main Dashboard Tabs */}
+        <Tabs defaultValue="applications" className="spacing-md">
+          <TabsList className="nav-tabs w-full grid grid-cols-1 sm:grid-cols-3 gap-1 bg-gray-50 p-1 rounded-xl">
+            <TabsTrigger value="applications" className="nav-tab rounded-lg flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Applications</span>
+              <span className="sm:hidden">Apps</span>
+              {stats && stats.pending_applications > 0 && (
+                <Badge className="badge-warning badge-sm ml-1">{stats.pending_applications}</Badge>
               )}
-            </CardContent>
-          </Card>
+            </TabsTrigger>
+            <TabsTrigger value="employees" className="nav-tab rounded-lg flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Employees</span>
+              <span className="sm:hidden">Staff</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="nav-tab rounded-lg flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
+            </TabsTrigger>
+          </TabsList>
+
+        <TabsContent value="applications">
+          <ApplicationsTab userRole="manager" propertyId={user.property_id} />
         </TabsContent>
 
         <TabsContent value="employees">
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Employees</CardTitle>
-              <CardDescription>Manage your property's employees</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                {employees.map((employee) => (
-                  <div key={employee.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h3 className="font-semibold">Employee #{employee.id}</h3>
-                      <p className="text-sm text-gray-600">{employee.department}</p>
-                      <p className="text-sm text-gray-600">Hired: {new Date(employee.hire_date).toLocaleDateString()}</p>
-                    </div>
-                    <Badge variant={employee.status === 'active' ? 'default' : 'secondary'}>
-                      {employee.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <EmployeesTab userRole="manager" propertyId={user.property_id} />
         </TabsContent>
 
-        <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Reviews</CardTitle>
-              <CardDescription>Review employee onboarding documents</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                No documents pending review
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="analytics">
+          <AnalyticsTab userRole="manager" propertyId={user.property_id} />
         </TabsContent>
       </Tabs>
     </div>
+    </ErrorBoundary>
   )
 }

@@ -184,9 +184,46 @@ function useToast() {
     }
   }, [state])
 
+  // Convenience methods for different toast types
+  const success = (title: string, description?: string) => {
+    return toast({
+      title,
+      description,
+      variant: "success" as any,
+    })
+  }
+
+  const error = (title: string, description?: string) => {
+    return toast({
+      title,
+      description,
+      variant: "error" as any,
+    })
+  }
+
+  const warning = (title: string, description?: string) => {
+    return toast({
+      title,
+      description,
+      variant: "warning" as any,
+    })
+  }
+
+  const info = (title: string, description?: string) => {
+    return toast({
+      title,
+      description,
+      variant: "info" as any,
+    })
+  }
+
   return {
     ...state,
     toast,
+    success,
+    error,
+    warning,
+    info,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
