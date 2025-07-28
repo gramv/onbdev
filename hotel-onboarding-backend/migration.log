@@ -1,0 +1,5 @@
+2025-07-28 12:04:28,902 - INFO - 🚀 STARTING ENHANCED SUPABASE MIGRATION
+2025-07-28 12:04:28,902 - INFO - ============================================================
+2025-07-28 12:04:28,902 - ERROR - ❌ Failed to initialize migration service: SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment
+2025-07-28 12:04:28,902 - ERROR - 💥 Migration failed: Initialization failed: SUPABASE_URL and SUPABASE_ANON_KEY must be set in environment
+2025-07-28 12:04:28,902 - ERROR - \n💥 Enhanced Supabase migration failed!

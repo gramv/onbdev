@@ -1,0 +1,1094 @@
+"""
+Enhanced data models for comprehensive onboarding system
+"""
+from pydantic import BaseModel, EmailStr, validator
+from typing import Optional, List, Dict, Any, Union
+from datetime import datetime, date
+from enum import Enum
+
+# Enhanced Enums
+class UserRole(str, Enum):
+    HR = "hr"
+    MANAGER = "manager"
+    EMPLOYEE = "employee"
+
+class ApplicationStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    TALENT_POOL = "talent_pool"
+    WITHDRAWN = "withdrawn"
+
+class ApplicationStatusChange(BaseModel):
+    id: str
+    application_id: str
+    old_status: ApplicationStatus
+    new_status: ApplicationStatus
+    changed_by: str
+    changed_at: datetime
+    reason: Optional[str] = None
+    notes: Optional[str] = None
+
+class OnboardingStatus(str, Enum):
+    NOT_STARTED = "not_started"
+    IN_PROGRESS = "in_progress"
+    EMPLOYEE_COMPLETED = "employee_completed"
+    MANAGER_REVIEW = "manager_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+
+class OnboardingStep(str, Enum):
+    WELCOME = "welcome"
+    PERSONAL_INFO = "personal_info"
+    JOB_DETAILS = "job_details"
+    DOCUMENT_UPLOAD = "document_upload"
+    I9_SECTION1 = "i9_section1"
+    W4_FORM = "w4_form"
+    DIRECT_DEPOSIT = "direct_deposit"
+    EMERGENCY_CONTACTS = "emergency_contacts"
+    HEALTH_INSURANCE = "health_insurance"
+    COMPANY_POLICIES = "company_policies"
+    TRAFFICKING_AWARENESS = "trafficking_awareness"
+    BACKGROUND_CHECK = "background_check"
+    PHOTO_CAPTURE = "photo_capture"
+    EMPLOYEE_SIGNATURE = "employee_signature"
+    MANAGER_REVIEW = "manager_review"
+    I9_SECTION2 = "i9_section2"
+    MANAGER_SIGNATURE = "manager_signature"
+    COMPLETED = "completed"
+
+class DocumentType(str, Enum):
+    DRIVERS_LICENSE = "drivers_license"
+    STATE_ID = "state_id"
+    PASSPORT = "passport"
+    SSN_CARD = "ssn_card"
+    WORK_AUTHORIZATION = "work_authorization"
+    I9_FORM = "i9_form"
+    W4_FORM = "w4_form"
+    DIRECT_DEPOSIT = "direct_deposit"
+    EMERGENCY_CONTACTS = "emergency_contacts"
+    HEALTH_INSURANCE = "health_insurance"
+    COMPANY_POLICIES = "company_policies"
+    BACKGROUND_CHECK = "background_check"
+    PHOTO = "photo"
+    VOIDED_CHECK = "voided_check"
+
+class DocumentStatus(str, Enum):
+    PENDING = "pending"
+    UPLOADED = "uploaded"
+    PROCESSED = "processed"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    NEEDS_REVISION = "needs_revision"
+
+class SignatureType(str, Enum):
+    EMPLOYEE_I9 = "employee_i9"
+    EMPLOYEE_W4 = "employee_w4"
+    EMPLOYEE_POLICIES = "employee_policies"
+    EMPLOYEE_FINAL = "employee_final"
+    MANAGER_I9 = "manager_i9"
+    MANAGER_APPROVAL = "manager_approval"
+
+# Base Models
+class User(BaseModel):
+    id: str
+    email: EmailStr
+    role: UserRole
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    property_id: Optional[str] = None
+    is_active: bool = True
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+class Property(BaseModel):
+    id: str
+    name: str
+    address: str
+    city: str
+    state: str
+    zip_code: str
+    phone: Optional[str] = None
+    manager_ids: List[str] = []
+    qr_code_url: str
+    is_active: bool = True
+    created_at: datetime
+
+# Enhanced Application Model
+class JobApplication(BaseModel):
+    id: str
+    property_id: str
+    department: str
+    position: str
+    applicant_data: Dict[str, Any]
+    status: ApplicationStatus
+    applied_at: datetime
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
+    talent_pool_date: Optional[datetime] = None  # When moved to talent pool
+    
+    # Enhanced applicant data structure
+    @validator('applicant_data')
+    def validate_applicant_data(cls, v):
+        required_fields = [
+            'first_name', 'last_name', 'email', 'phone', 'address',
+            'city', 'state', 'zip_code', 'work_authorized'
+        ]
+        for field in required_fields:
+            if field not in v:
+                raise ValueError(f'Missing required field: {field}')
+        return v
+
+# Comprehensive Onboarding Session Model
+class OnboardingSession(BaseModel):
+    id: str
+    employee_id: str
+    application_id: Optional[str] = None
+    token: str
+    status: OnboardingStatus
+    current_step: OnboardingStep
+    language_preference: str = "en"  # en, es
+    
+    # Progress tracking
+    steps_completed: List[OnboardingStep] = []
+    progress_percentage: float = 0.0
+    
+    # Form data storage
+    form_data: Dict[str, Any] = {}
+    
+    # Timestamps
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    employee_completed_at: Optional[datetime] = None
+    manager_review_started_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    expires_at: datetime
+    
+    # Review information
+    reviewed_by: Optional[str] = None  # Manager ID
+    manager_comments: Optional[str] = None
+    rejection_reason: Optional[str] = None
+
+# Enhanced Employee Model
+class Employee(BaseModel):
+    id: str
+    user_id: str
+    employee_number: Optional[str] = None  # Generated employee number
+    application_id: Optional[str] = None
+    property_id: str
+    manager_id: str
+    
+    # Job information
+    department: str
+    position: str
+    hire_date: date
+    start_date: Optional[date] = None
+    pay_rate: Optional[float] = None
+    pay_frequency: str = "biweekly"
+    employment_type: str = "full_time"
+    
+    # Personal information
+    personal_info: Dict[str, Any] = {}
+    emergency_contacts: List[Dict[str, Any]] = []
+    
+    # Status tracking
+    employment_status: str = "active"
+    onboarding_status: OnboardingStatus = OnboardingStatus.NOT_STARTED
+    
+    # Timestamps
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    onboarding_completed_at: Optional[datetime] = None
+
+# Document Models
+class Document(BaseModel):
+    id: str
+    employee_id: str
+    session_id: str
+    document_type: DocumentType
+    file_name: Optional[str] = None
+    file_path: Optional[str] = None
+    file_size: Optional[int] = None
+    mime_type: Optional[str] = None
+    
+    # OCR and processing
+    ocr_data: Dict[str, Any] = {}
+    processing_status: str = "pending"
+    
+    # Form data (for form-based documents)
+    form_data: Dict[str, Any] = {}
+    
+    # Status and review
+    status: DocumentStatus = DocumentStatus.PENDING
+    version: int = 1
+    
+    # Review information
+    reviewed_by: Optional[str] = None
+    review_comments: Optional[str] = None
+    reviewed_at: Optional[datetime] = None
+    
+    # Timestamps
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+# Digital Signature Model
+class DigitalSignature(BaseModel):
+    id: str
+    session_id: str
+    employee_id: str
+    document_id: Optional[str] = None
+    signature_type: SignatureType
+    
+    # Signature data
+    signature_data: str  # SVG or base64 image data
+    signature_hash: str  # For integrity verification
+    
+    # Metadata
+    signed_by: str  # User ID
+    signed_by_name: str
+    signed_by_role: UserRole
+    
+    # Legal compliance
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    timestamp: datetime
+    
+    # Verification
+    is_verified: bool = False
+    verification_method: Optional[str] = None
+
+# Approval and Review Models
+class ReviewAction(BaseModel):
+    id: str
+    session_id: str
+    document_id: Optional[str] = None
+    reviewer_id: str
+    reviewer_name: str
+    action: str  # "approve", "reject", "request_changes"
+    comments: Optional[str] = None
+    timestamp: datetime
+
+class OnboardingApproval(BaseModel):
+    id: str
+    session_id: str
+    employee_id: str
+    approved_by: str  # Manager ID
+    approved_by_name: str
+    
+    # Approval details
+    approved_at: datetime
+    approval_comments: Optional[str] = None
+    
+    # Final status
+    final_status: OnboardingStatus
+    next_steps: Optional[str] = None
+
+# Form-specific Models
+class PersonalInformation(BaseModel):
+    first_name: str
+    last_name: str
+    middle_initial: Optional[str] = ""
+    preferred_name: Optional[str] = None
+    date_of_birth: date
+    ssn: str
+    phone: str
+    email: EmailStr
+    
+    # Address
+    address: str
+    apt_number: Optional[str] = ""
+    city: str
+    state: str
+    zip_code: str
+    
+    # Demographics
+    gender: Optional[str] = None
+    marital_status: Optional[str] = None
+    emergency_contact_relationship: Optional[str] = None
+
+class EmergencyContact(BaseModel):
+    name: str
+    relationship: str
+    phone: str
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
+    is_primary: bool = False
+
+class HealthInsuranceElection(BaseModel):
+    # Medical coverage
+    medical_plan: Optional[str] = None  # "hra_6k", "hra_4k", "hra_2k", "minimum_essential", "declined"
+    medical_tier: Optional[str] = None  # "employee", "employee_spouse", "employee_children", "family"
+    medical_cost: Optional[float] = 0.0
+    
+    # Additional coverage
+    dental_coverage: bool = False
+    dental_tier: Optional[str] = None
+    dental_cost: Optional[float] = 0.0
+    
+    vision_coverage: bool = False
+    vision_tier: Optional[str] = None
+    vision_cost: Optional[float] = 0.0
+    
+    # Dependents
+    dependents: List[Dict[str, Any]] = []
+    
+    # Total costs
+    total_biweekly_cost: float = 0.0
+    
+    # Waiver information
+    is_waived: bool = False
+    waiver_reason: Optional[str] = None
+    other_coverage_details: Optional[str] = None
+
+class DirectDepositInfo(BaseModel):
+    # Bank information
+    bank_name: str
+    bank_address: Optional[str] = None
+    routing_number: str
+    account_number: str
+    account_type: str  # "checking", "savings"
+    
+    # Deposit allocation
+    deposit_type: str = "full"  # "full", "partial", "split"
+    deposit_amount: Optional[float] = None
+    
+    # Additional accounts (for split deposits)
+    additional_accounts: List[Dict[str, Any]] = []
+    
+    # Verification
+    voided_check_uploaded: bool = False
+    bank_letter_uploaded: bool = False
+
+# Form-specific data models aligned with UI components
+
+class I9Section1Data(BaseModel):
+    """I-9 Section 1 form data matching I9Section1Form.tsx field structure"""
+    # Personal Information (exact field names from UI)
+    employee_last_name: str
+    employee_first_name: str
+    employee_middle_initial: Optional[str] = ""
+    other_last_names: Optional[str] = ""
+    
+    # Address fields (exact field names from UI)
+    address_street: str
+    address_apt: Optional[str] = ""
+    address_city: str
+    address_state: str
+    address_zip: str
+    
+    # Personal details (exact field names from UI)
+    date_of_birth: str  # YYYY-MM-DD format from UI
+    ssn: str
+    email: EmailStr
+    phone: str
+    
+    # Citizenship status (exact values from UI)
+    citizenship_status: str  # 'us_citizen', 'noncitizen_national', 'permanent_resident', 'authorized_alien'
+    
+    # Additional fields for non-citizens (exact field names from UI)
+    uscis_number: Optional[str] = ""
+    i94_admission_number: Optional[str] = ""
+    passport_number: Optional[str] = ""
+    passport_country: Optional[str] = ""
+    work_authorization_expiration: Optional[str] = ""
+    
+    # Completion metadata
+    section_1_completed_at: Optional[str] = None
+    employee_signature_date: Optional[str] = None
+    
+    @validator('citizenship_status')
+    def validate_citizenship_status(cls, v):
+        valid_statuses = ['us_citizen', 'noncitizen_national', 'permanent_resident', 'authorized_alien']
+        if v not in valid_statuses:
+            raise ValueError(f'FEDERAL IMMIGRATION COMPLIANCE: Invalid citizenship status. Must be one of USCIS-approved categories: {valid_statuses}')
+        return v
+    
+    @validator('date_of_birth')
+    def validate_date_of_birth(cls, v):
+        try:
+            from datetime import datetime, date
+            birth_date = datetime.strptime(v, '%Y-%m-%d').date()
+            
+            # CRITICAL: Federal age validation - must be 18 or older
+            today = date.today()
+            age = today.year - birth_date.year
+            if today.month < birth_date.month or (today.month == birth_date.month and today.day < birth_date.day):
+                age -= 1
+            
+            if age < 18:
+                raise ValueError(f'FEDERAL COMPLIANCE VIOLATION: Employee must be at least 18 years old. Current age: {age}. Reference: Fair Labor Standards Act (FLSA) Section 203.')
+            
+        except ValueError as e:
+            if 'FEDERAL COMPLIANCE' in str(e):
+                raise e
+            raise ValueError('Date of birth must be in YYYY-MM-DD format')
+        return v
+    
+    @validator('address_zip')
+    def validate_zip_code(cls, v):
+        import re
+        if not re.match(r'^\d{5}(-\d{4})?$', v):
+            raise ValueError('FEDERAL COMPLIANCE: ZIP code must be in valid US Postal Service format 12345 or 12345-6789')
+        return v
+    
+    @validator('ssn')
+    def validate_ssn(cls, v):
+        import re
+        # Remove dashes for validation
+        ssn_clean = v.replace('-', '').replace(' ', '')
+        
+        # Must be exactly 9 digits
+        if not re.match(r'^\d{9}$', ssn_clean):
+            raise ValueError('FEDERAL COMPLIANCE: SSN must be exactly 9 digits in format XXX-XX-XXXX')
+        
+        # Federal prohibited SSN patterns
+        area = ssn_clean[:3]
+        group = ssn_clean[3:5]
+        serial = ssn_clean[5:9]
+        
+        # Invalid area numbers (000, 666, 900-999)
+        if area == '000' or area == '666' or int(area) >= 900:
+            raise ValueError(f'FEDERAL COMPLIANCE: Invalid SSN area number {area}. This SSN format is not issued by the Social Security Administration.')
+        
+        # Invalid group number (00)
+        if group == '00':
+            raise ValueError('FEDERAL COMPLIANCE: Invalid SSN group number 00. Group number cannot be 00.')
+        
+        # Invalid serial number (0000)
+        if serial == '0000':
+            raise ValueError('FEDERAL COMPLIANCE: Invalid SSN serial number 0000. Serial number cannot be 0000.')
+        
+        # Known advertising/placeholder SSNs
+        known_invalid = [
+            '123456789', '111111111', '222222222', '333333333', '444444444',
+            '555555555', '777777777', '888888888', '999999999', '078051120',
+            '219099999', '457555462'
+        ]
+        
+        if ssn_clean in known_invalid:
+            raise ValueError('FEDERAL COMPLIANCE: This SSN is a known invalid/placeholder number and cannot be used for employment.')
+        
+        return v
+
+class W4FormData(BaseModel):
+    """W-4 form data matching W4Form.tsx field structure"""
+    # Personal Information (exact field names from UI)
+    first_name: str
+    middle_initial: Optional[str] = ""
+    last_name: str
+    address: str
+    city: str
+    state: str
+    zip_code: str
+    ssn: str
+    
+    # Filing Status (exact field names from UI)
+    filing_status: str  # "Single", "Married filing jointly", "Head of household"
+    
+    # Step 2: Multiple Jobs (exact field names from UI)
+    multiple_jobs_checkbox: bool = False
+    spouse_works_checkbox: bool = False
+    
+    # Step 3: Dependents (exact field names from UI)
+    dependents_amount: float = 0.0  # Number of qualifying children × $2,000
+    other_credits: float = 0.0      # Number of other dependents × $500
+    
+    # Step 4: Other Adjustments (exact field names from UI)
+    other_income: float = 0.0
+    deductions: float = 0.0
+    extra_withholding: float = 0.0
+    
+    # Signature (exact field names from UI)
+    signature: str = ""
+    signature_date: str
+    
+    @validator('filing_status')
+    def validate_filing_status(cls, v):
+        valid_statuses = ["Single", "Married filing jointly", "Head of household"]
+        if v not in valid_statuses:
+            raise ValueError(f'FEDERAL TAX COMPLIANCE: Invalid filing status. Must be one of IRS-approved categories: {valid_statuses}')
+        return v
+    
+    @validator('signature_date')
+    def validate_signature_date(cls, v):
+        try:
+            from datetime import datetime, date
+            signature_date = datetime.strptime(v, '%Y-%m-%d').date()
+            today = date.today()
+            
+            if signature_date > today:
+                raise ValueError('FEDERAL TAX COMPLIANCE: Signature date cannot be in the future')
+            
+            # Warn if signature is more than 30 days old (but don't block)
+            days_old = (today - signature_date).days
+            if days_old > 30:
+                # This is logged as a warning but doesn't block processing
+                pass
+                
+        except ValueError as e:
+            if 'FEDERAL TAX COMPLIANCE' in str(e):
+                raise e
+            raise ValueError('Signature date must be in YYYY-MM-DD format')
+        return v
+    
+    @validator('zip_code')
+    def validate_zip_code(cls, v):
+        import re
+        if not re.match(r'^\d{5}(-\d{4})?$', v):
+            raise ValueError('FEDERAL TAX COMPLIANCE: ZIP code must be in valid US Postal Service format 12345 or 12345-6789')
+        return v
+
+class I9Section2Data(BaseModel):
+    """I-9 Section 2 employer verification data"""
+    # Employee's first day of employment
+    first_day_employment: str  # YYYY-MM-DD format
+    
+    # Document verification (List A, B, or C)
+    document_title_1: Optional[str] = ""
+    issuing_authority_1: Optional[str] = ""
+    document_number_1: Optional[str] = ""
+    expiration_date_1: Optional[str] = ""
+    
+    document_title_2: Optional[str] = ""
+    issuing_authority_2: Optional[str] = ""
+    document_number_2: Optional[str] = ""
+    expiration_date_2: Optional[str] = ""
+    
+    document_title_3: Optional[str] = ""
+    issuing_authority_3: Optional[str] = ""
+    document_number_3: Optional[str] = ""
+    expiration_date_3: Optional[str] = ""
+    
+    # Additional information
+    additional_info: Optional[str] = ""
+    
+    # Employer signature information
+    employer_name: str
+    employer_title: str = "Manager"
+    employer_signature_date: str
+    
+    # Business information
+    business_name: str = "Grand Hotel & Resort"
+    business_address: str
+    business_city: str
+    business_state: str
+    business_zip: str
+
+# Request/Response Models
+class OnboardingTokenRequest(BaseModel):
+    employee_id: str
+    expires_hours: Optional[int] = 72
+    language_preference: Optional[str] = "en"
+
+class OnboardingTokenResponse(BaseModel):
+    token: str
+    onboarding_url: str
+    expires_at: datetime
+    employee_info: Dict[str, Any]
+
+class OnboardingProgressUpdate(BaseModel):
+    step: OnboardingStep
+    form_data: Optional[Dict[str, Any]] = None
+    language_preference: Optional[str] = None
+
+class ManagerReviewRequest(BaseModel):
+    action: str  # "approve", "reject", "request_changes"
+    comments: Optional[str] = None
+    specific_documents: Optional[List[str]] = None  # Document IDs that need attention
+
+# PDF Generation Request Models
+class I9PDFGenerationRequest(BaseModel):
+    employee_data: I9Section1Data
+    employer_data: Optional[I9Section2Data] = None
+
+class W4PDFGenerationRequest(BaseModel):
+    employee_data: W4FormData
+
+# Federal Compliance Validation Models
+class FederalValidationError(BaseModel):
+    field: str
+    message: str
+    legal_code: str
+    severity: str  # "error", "warning", "info"
+    compliance_note: Optional[str] = None
+
+class FederalValidationResult(BaseModel):
+    is_valid: bool
+    errors: List[FederalValidationError] = []
+    warnings: List[FederalValidationError] = []
+    compliance_notes: List[str] = []
+
+class ComplianceAuditEntry(BaseModel):
+    timestamp: str
+    form_type: str
+    user_id: str
+    user_email: str
+    compliance_status: str  # "COMPLIANT", "NON_COMPLIANT"
+    error_count: int
+    warning_count: int
+    legal_codes: List[str]
+    compliance_notes: List[str]
+    audit_id: str
+
+# API Request/Response Models for Federal Validation
+class PersonalInfoValidationRequest(BaseModel):
+    date_of_birth: str
+    ssn: str
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    address: str
+    city: str
+    state: str
+    zip_code: str
+
+class I9ValidationRequest(BaseModel):
+    form_data: I9Section1Data
+
+class W4ValidationRequest(BaseModel):
+    form_data: W4FormData
+
+class ComprehensiveValidationRequest(BaseModel):
+    personal_info: Optional[PersonalInfoValidationRequest] = None
+    i9_data: Optional[I9Section1Data] = None
+    w4_data: Optional[W4FormData] = None
+
+# =====================================
+# PHASE 1: DOCUMENT-SPECIFIC MODELS FOR OFFICIAL FORMS INTEGRATION
+# =====================================
+
+# Document Types from Employee Hire Packet
+class DocumentCategory(str, Enum):
+    EMPLOYEE_NEW_HIRE_FORM = "employee_new_hire_form"
+    EMPLOYEE_NEW_HIRE_NOTIFICATION = "employee_new_hire_notification"
+    I9_EMPLOYMENT_ELIGIBILITY = "i9_employment_eligibility"
+    I9_SUPPLEMENT_A = "i9_supplement_a"
+    I9_SUPPLEMENT_B = "i9_supplement_b"
+    W4_TAX_WITHHOLDING = "w4_tax_withholding"
+    DIRECT_DEPOSIT_AUTH = "direct_deposit_authorization"
+    COMPANY_POLICIES_ACK = "company_policies_acknowledgment"
+    HUMAN_TRAFFICKING_AWARENESS = "human_trafficking_awareness"
+    WEAPONS_POLICY_ACK = "weapons_policy_acknowledgment"
+    HEALTH_INSURANCE_ENROLLMENT = "health_insurance_enrollment"
+    PTO_POLICY_ACK = "pto_policy_acknowledgment"
+
+class AutoFillPermission(str, Enum):
+    ALLOWED = "allowed"
+    RESTRICTED = "restricted"
+    PROHIBITED = "prohibited"
+
+class DocumentFieldMapping(BaseModel):
+    """Maps form fields to PDF template fields with auto-fill permissions"""
+    field_name: str
+    pdf_field_name: str
+    auto_fill_permission: AutoFillPermission
+    data_source: Optional[str] = None  # Source of auto-fill data
+    validation_required: bool = True
+    legal_requirement: Optional[str] = None
+
+# Employee New Hire Form (Manager fills)
+class EmployeeNewHireFormData(BaseModel):
+    """Manager-completed form for new employee setup"""
+    # Employee identification
+    employee_name: str
+    position_title: str
+    department: str
+    employee_id: Optional[str] = None
+    hire_date: str  # YYYY-MM-DD
+    start_date: str  # YYYY-MM-DD
+    
+    # Employment details
+    employment_type: str  # "full_time", "part_time", "temporary"
+    pay_rate: float
+    pay_frequency: str  # "hourly", "salary", "biweekly"
+    work_schedule: str
+    supervisor_name: str
+    reporting_location: str
+    
+    # Benefits eligibility
+    benefits_eligible: bool
+    health_insurance_eligible: bool
+    pto_eligible: bool
+    
+    # Manager information
+    manager_name: str
+    manager_signature: str
+    manager_signature_date: str
+    
+    # Special instructions
+    special_instructions: Optional[str] = ""
+    orientation_date: Optional[str] = None
+    uniform_size: Optional[str] = None
+    
+    @validator('hire_date', 'start_date')
+    def validate_dates(cls, v):
+        try:
+            from datetime import datetime
+            datetime.strptime(v, '%Y-%m-%d')
+            return v
+        except ValueError:
+            raise ValueError('Date must be in YYYY-MM-DD format')
+    
+    @validator('pay_rate')
+    def validate_pay_rate(cls, v):
+        if v <= 0:
+            raise ValueError('Pay rate must be greater than 0')
+        # Minimum wage validation could be added here
+        return v
+
+# Enhanced I-9 Supplement A (Preparer/Translator) - CRITICAL: No auto-fill allowed
+class I9SupplementAData(BaseModel):
+    """I-9 Supplement A: Preparer and/or Translator Certification - FEDERAL COMPLIANCE: NO AUTO-FILL"""
+    # CRITICAL COMPLIANCE NOTE: This form MUST be filled manually by the preparer/translator
+    # Auto-fill is PROHIBITED by federal law for this supplement
+    
+    # Preparer/Translator information (MANUAL ENTRY ONLY)
+    preparer_last_name: str = ""
+    preparer_first_name: str = ""
+    preparer_address: str = ""
+    preparer_city: str = ""
+    preparer_state: str = ""
+    preparer_zip_code: str = ""
+    
+    # Certification checkboxes (MANUAL SELECTION ONLY)
+    prepared_section1: bool = False  # I prepared Section 1 of this form
+    translated_section1: bool = False  # I translated the instructions and responses to Section 1
+    
+    # Attestation and signature (MANUAL ONLY)
+    preparer_signature: str = ""  # Digital signature data
+    preparer_signature_date: str = ""
+    
+    # Legal attestation text (read-only)
+    attestation_text: str = "I attest, under penalty of perjury, that I have assisted in the completion and/or translation of Section 1 of this form and that to the best of my knowledge the information is true and correct."
+    
+    # Compliance metadata
+    auto_fill_disabled: bool = True  # System flag to prevent auto-fill
+    manual_entry_required: bool = True
+    federal_compliance_note: str = "Federal law prohibits auto-filling this form. Must be completed manually by preparer/translator."
+    
+    @validator('preparer_signature_date')
+    def validate_signature_date(cls, v):
+        if v:
+            try:
+                from datetime import datetime, date
+                sig_date = datetime.strptime(v, '%Y-%m-%d').date()
+                if sig_date > date.today():
+                    raise ValueError('FEDERAL COMPLIANCE: Signature date cannot be in the future')
+            except ValueError as e:
+                if 'FEDERAL COMPLIANCE' in str(e):
+                    raise e
+                raise ValueError('Signature date must be in YYYY-MM-DD format')
+        return v
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "preparer_last_name": "",
+                "preparer_first_name": "",
+                "auto_fill_disabled": True,
+                "federal_compliance_note": "This form must be completed manually by the preparer or translator. Auto-fill is prohibited by federal immigration law."
+            }
+        }
+
+# Enhanced I-9 Supplement B (Reverification) - LIMITED auto-fill
+class I9SupplementBData(BaseModel):
+    """I-9 Supplement B: Reverification and Rehires - MANAGER USE ONLY"""
+    # Employee information (auto-fill from employee data allowed)
+    employee_last_name: str
+    employee_first_name: str
+    employee_middle_initial: Optional[str] = ""
+    
+    # Employment dates (manager provides)
+    date_of_hire: str  # Original hire date
+    date_of_rehire: Optional[str] = ""  # If applicable
+    date_of_termination: Optional[str] = ""  # If applicable
+    
+    # Name change (if applicable)
+    new_name_last: Optional[str] = ""
+    new_name_first: Optional[str] = ""
+    new_name_middle: Optional[str] = ""
+    
+    # Document reverification (List A or C only)
+    reverify_document_title: str
+    reverify_document_number: str
+    reverify_expiration_date: Optional[str] = ""
+    
+    # Employer information (auto-fill allowed from business data)
+    employer_business_name: str
+    employer_name: str
+    employer_title: str = "Manager"
+    employer_signature: str
+    employer_signature_date: str
+    
+    # Compliance tracking
+    reverification_reason: str  # "expiration", "rehire", "name_change"
+    three_day_rule_compliant: bool = True  # Must reverify within 3 days
+    
+    @validator('date_of_hire', 'date_of_rehire', 'date_of_termination', 'reverify_expiration_date', 'employer_signature_date')
+    def validate_dates(cls, v):
+        if v and v.strip():
+            try:
+                from datetime import datetime
+                datetime.strptime(v, '%Y-%m-%d')
+                return v
+            except ValueError:
+                raise ValueError('Date must be in YYYY-MM-DD format')
+        return v
+    
+    @validator('three_day_rule_compliant')
+    def validate_three_day_rule(cls, v, values):
+        # If this is a reverification due to expiration, check 3-day rule
+        if values.get('reverification_reason') == 'expiration':
+            # Implementation would check if reverification is within 3 business days
+            pass
+        return v
+
+# Direct Deposit Authorization Form
+class DirectDepositAuthorizationData(BaseModel):
+    """Direct Deposit Authorization Form with banking compliance"""
+    # Employee information (auto-fill allowed)
+    employee_name: str
+    employee_ssn: str
+    employee_email: str
+    employee_address: str
+    
+    # Bank account information (manual entry required for security)
+    bank_name: str
+    bank_address: Optional[str] = ""
+    bank_city: Optional[str] = ""
+    bank_state: Optional[str] = ""
+    bank_zip: Optional[str] = ""
+    
+    # Account details
+    routing_number: str
+    account_number: str
+    account_type: str  # "checking", "savings"
+    
+    # Deposit allocation
+    deposit_type: str = "full"  # "full", "partial", "split"
+    deposit_amount: Optional[float] = None  # For partial deposits
+    remaining_amount_method: Optional[str] = "check"  # "check", "other_account"
+    
+    # Additional accounts for split deposits
+    secondary_bank_name: Optional[str] = ""
+    secondary_routing_number: Optional[str] = ""
+    secondary_account_number: Optional[str] = ""
+    secondary_account_type: Optional[str] = ""
+    secondary_deposit_amount: Optional[float] = None
+    
+    # Authorization and signatures
+    employee_signature: str
+    employee_signature_date: str
+    
+    # Verification documents
+    voided_check_uploaded: bool = False
+    bank_verification_letter: bool = False
+    
+    @validator('routing_number')
+    def validate_routing_number(cls, v):
+        import re
+        routing = v.replace('-', '').replace(' ', '')
+        if not re.match(r'^\d{9}$', routing):
+            raise ValueError('BANKING COMPLIANCE: Routing number must be exactly 9 digits')
+        return v
+    
+    @validator('account_number')
+    def validate_account_number(cls, v):
+        import re
+        account = v.replace('-', '').replace(' ', '')
+        if not re.match(r'^\d{4,17}$', account):
+            raise ValueError('BANKING COMPLIANCE: Account number must be 4-17 digits')
+        return v
+    
+    @validator('deposit_amount', 'secondary_deposit_amount')
+    def validate_amounts(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError('Deposit amount must be greater than 0')
+        return v
+
+# Job Application Submission Models
+class JobApplicationData(BaseModel):
+    """Data model for job application submission via QR code"""
+    # Personal Information
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone: str
+    address: str
+    city: str
+    state: str
+    zip_code: str
+    
+    # Position Information
+    department: str
+    position: str
+    
+    # Work Authorization
+    work_authorized: str  # "yes", "no"
+    sponsorship_required: str  # "yes", "no"
+    
+    # Availability
+    start_date: str  # YYYY-MM-DD format
+    shift_preference: str  # "morning", "afternoon", "evening", "night", "flexible"
+    employment_type: str  # "full_time", "part_time", "temporary"
+    
+    # Experience
+    experience_years: str  # "0-1", "2-5", "6-10", "10+"
+    hotel_experience: str  # "yes", "no"
+    
+    # Optional fields
+    previous_employer: Optional[str] = ""
+    reason_for_leaving: Optional[str] = ""
+    additional_comments: Optional[str] = ""
+    
+    @validator('email')
+    def validate_email_format(cls, v):
+        # Additional email validation beyond EmailStr
+        if not v or len(v.strip()) == 0:
+            raise ValueError('Email address is required')
+        return v.strip().lower()
+    
+    @validator('phone')
+    def validate_phone_format(cls, v):
+        import re
+        # Remove all non-digit characters
+        phone_digits = re.sub(r'\D', '', v)
+        if len(phone_digits) != 10:
+            raise ValueError('Phone number must be 10 digits')
+        return v
+    
+    @validator('start_date')
+    def validate_start_date(cls, v):
+        try:
+            from datetime import datetime, date
+            start_date = datetime.strptime(v, '%Y-%m-%d').date()
+            today = date.today()
+            if start_date < today:
+                raise ValueError('Start date cannot be in the past')
+        except ValueError as e:
+            if 'Start date cannot be in the past' in str(e):
+                raise e
+            raise ValueError('Start date must be in YYYY-MM-DD format')
+        return v
+    
+    @validator('work_authorized')
+    def validate_work_authorized(cls, v):
+        if v not in ['yes', 'no']:
+            raise ValueError('Work authorization must be "yes" or "no"')
+        return v
+    
+    @validator('sponsorship_required')
+    def validate_sponsorship_required(cls, v):
+        if v not in ['yes', 'no']:
+            raise ValueError('Sponsorship requirement must be "yes" or "no"')
+        return v
+
+class JobApplicationResponse(BaseModel):
+    """Response model for successful job application submission"""
+    success: bool
+    message: str
+    application_id: str
+    property_name: str
+    position_applied: str
+    next_steps: str
+
+# Document metadata and tracking
+class DocumentMetadata(BaseModel):
+    """Metadata for document tracking and compliance"""
+    document_id: str
+    document_category: DocumentCategory
+    document_version: str = "1.0"
+    
+    # Auto-fill configuration
+    auto_fill_fields: List[DocumentFieldMapping] = []
+    restricted_fields: List[str] = []  # Fields that cannot be auto-filled
+    
+    # Compliance tracking
+    federal_compliance_required: bool = True
+    state_compliance_required: bool = False
+    legal_retention_years: int = 7  # Default I-9 retention period
+    
+    # Status tracking
+    creation_timestamp: datetime
+    last_modified: Optional[datetime] = None
+    completion_status: str = "draft"  # "draft", "completed", "approved", "archived"
+    
+    # Approval workflow
+    requires_manager_approval: bool = True
+    requires_hr_approval: bool = False
+    approval_deadline: Optional[datetime] = None
+    
+    # Digital signature requirements
+    employee_signature_required: bool = True
+    manager_signature_required: bool = False
+    witness_signature_required: bool = False
+    
+    # Audit trail
+    created_by: str  # User ID
+    modified_by: Optional[str] = None
+    approved_by: Optional[str] = None
+    audit_trail: List[Dict[str, Any]] = []
+
+# Document processing status
+class DocumentProcessingStatus(BaseModel):
+    """Status tracking for document processing"""
+    document_id: str
+    processing_stage: str  # "received", "processing", "validation", "approval", "complete"
+    
+    # Processing timestamps
+    received_at: datetime
+    processing_started_at: Optional[datetime] = None
+    validation_completed_at: Optional[datetime] = None
+    approval_completed_at: Optional[datetime] = None
+    
+    # Validation results
+    validation_passed: Optional[bool] = None
+    validation_errors: List[str] = []
+    validation_warnings: List[str] = []
+    
+    # Approval status
+    approval_status: str = "pending"  # "pending", "approved", "rejected", "changes_requested"
+    approval_comments: Optional[str] = None
+    approver_id: Optional[str] = None
+    
+    # Error handling
+    processing_errors: List[str] = []
+    retry_count: int = 0
+    max_retries: int = 3
+    
+    # Compliance deadlines
+    i9_three_day_deadline: Optional[datetime] = None  # For I-9 Section 2
+    compliance_deadline_met: Optional[bool] = None
+# Job Offer Data Model for Enhanced Application Approval
+class JobOfferData(BaseModel):
+    """Job offer details for application approval"""
+    job_title: str
+    start_date: date
+    pay_rate: float
+    pay_frequency: str  # "hourly", "weekly", "biweekly", "monthly"
+    employment_type: str  # "full_time", "part_time", "temporary"
+    supervisor: str
+    benefits_eligible: bool = False
+    
+    @validator('pay_rate')
+    def validate_pay_rate(cls, v):
+        if v <= 0:
+            raise ValueError('Pay rate must be greater than 0')
+        return v
+    
+    @validator('pay_frequency')
+    def validate_pay_frequency(cls, v):
+        valid_frequencies = ["hourly", "weekly", "biweekly", "monthly"]
+        if v not in valid_frequencies:
+            raise ValueError(f'Pay frequency must be one of: {valid_frequencies}')
+        return v
+    
+    @validator('employment_type')
+    def validate_employment_type(cls, v):
+        valid_types = ["full_time", "part_time", "temporary"]
+        if v not in valid_types:
+            raise ValueError(f'Employment type must be one of: {valid_types}')
+        return v
