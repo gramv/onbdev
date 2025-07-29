@@ -2631,6 +2631,581 @@ async def create_manager_user(email: str, password: str, property_name: str, sec
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create manager: {str(e)}")
 
+# ===== EMPLOYEE ONBOARDING APIs =====
+
+@app.get("/onboard/verify")
+async def verify_onboarding_token(
+    token: str = Query(..., description="Onboarding token")
+):
+    """
+    Verify onboarding token and return session data
+    """
+    try:
+        # Get session by token
+        session = await onboarding_orchestrator.get_session_by_token(token)
+        
+        if not session:
+            return error_response(
+                message="Invalid or expired token",
+                error_code=ErrorCode.AUTHENTICATION_ERROR,
+                status_code=401,
+                detail="The onboarding token is invalid or has expired"
+            )
+        
+        # Get employee and property data
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        
+        if not employee:
+            return error_response(
+                message="Employee not found",
+                error_code=ErrorCode.RESOURCE_NOT_FOUND,
+                status_code=404
+            )
+        
+        return success_response(
+            data={
+                "valid": True,
+                "session": {
+                    "id": session.id,
+                    "status": session.status,
+                    "phase": session.phase,
+                    "current_step": session.current_step,
+                    "expires_at": session.expires_at.isoformat() if session.expires_at else None,
+                    "completed_steps": session.completed_steps or [],
+                    "requested_changes": session.requested_changes
+                },
+                "employee": {
+                    "id": employee.id,
+                    "first_name": employee.first_name,
+                    "last_name": employee.last_name,
+                    "email": employee.email,
+                    "position": employee.position,
+                    "department": employee.department,
+                    "start_date": employee.start_date.isoformat() if employee.start_date else None
+                },
+                "property": {
+                    "id": property_obj.id,
+                    "name": property_obj.name,
+                    "address": property_obj.address
+                } if property_obj else None
+            },
+            message="Token verified successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to verify token: {e}")
+        return error_response(
+            message="Failed to verify token",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/onboard/update-progress")
+async def update_onboarding_progress(
+    session_id: str = Form(...),
+    step_id: str = Form(...),
+    form_data: Optional[str] = Form(None),  # JSON string
+    signature_data: Optional[str] = Form(None),  # JSON string
+    token: str = Form(...)
+):
+    """
+    Update onboarding progress for a specific step
+    """
+    try:
+        # Verify token and get session
+        session = await onboarding_orchestrator.get_session_by_token(token)
+        
+        if not session or session.id != session_id:
+            return error_response(
+                message="Invalid session or token",
+                error_code=ErrorCode.AUTHENTICATION_ERROR,
+                status_code=401
+            )
+        
+        # Parse form data if provided
+        parsed_form_data = None
+        if form_data:
+            try:
+                parsed_form_data = json.loads(form_data)
+            except json.JSONDecodeError:
+                return error_response(
+                    message="Invalid form data format",
+                    error_code=ErrorCode.VALIDATION_ERROR,
+                    status_code=400
+                )
+        
+        # Parse signature data if provided
+        parsed_signature_data = None
+        if signature_data:
+            try:
+                parsed_signature_data = json.loads(signature_data)
+            except json.JSONDecodeError:
+                return error_response(
+                    message="Invalid signature data format",
+                    error_code=ErrorCode.VALIDATION_ERROR,
+                    status_code=400
+                )
+        
+        # Convert step_id to OnboardingStep enum
+        try:
+            step = OnboardingStep(step_id)
+        except ValueError:
+            return error_response(
+                message="Invalid step ID",
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400,
+                detail=f"Unknown step: {step_id}"
+            )
+        
+        # Update progress
+        success = await onboarding_orchestrator.update_step_progress(
+            session_id,
+            step,
+            parsed_form_data,
+            parsed_signature_data
+        )
+        
+        if not success:
+            return error_response(
+                message="Failed to update progress",
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+                status_code=500
+            )
+        
+        # Get updated session
+        updated_session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        return success_response(
+            data={
+                "success": True,
+                "current_step": updated_session.current_step if updated_session else step_id,
+                "phase": updated_session.phase if updated_session else None,
+                "status": updated_session.status if updated_session else None
+            },
+            message="Progress updated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to update progress: {e}")
+        return error_response(
+            message="Failed to update progress",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/api/onboarding/start")
+async def start_onboarding_session(
+    application_id: str,
+    property_id: str,
+    manager_id: str,
+    expires_hours: int = 72,
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """
+    Start new onboarding session for an approved application
+    """
+    try:
+        # Get application
+        application = await supabase_service.get_application_by_id(application_id)
+        
+        if not application:
+            return not_found_response("Application not found")
+        
+        if application.status != ApplicationStatus.APPROVED:
+            return error_response(
+                message="Application must be approved before starting onboarding",
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400
+            )
+        
+        # Create employee record from application
+        employee_id = str(uuid.uuid4())
+        employee = Employee(
+            id=employee_id,
+            first_name=application.first_name,
+            last_name=application.last_name,
+            email=application.email,
+            phone=application.phone,
+            property_id=property_id,
+            position=application.position,
+            department=application.department,
+            start_date=application.start_date,
+            employment_type=application.employment_type,
+            onboarding_status=OnboardingStatus.IN_PROGRESS,
+            created_at=datetime.utcnow()
+        )
+        
+        # Store employee in Supabase
+        await supabase_service.create_employee(employee)
+        
+        # Initiate onboarding session
+        session = await onboarding_orchestrator.initiate_onboarding(
+            application_id=application_id,
+            employee_id=employee_id,
+            property_id=property_id,
+            manager_id=manager_id,
+            expires_hours=expires_hours
+        )
+        
+        # Send onboarding email to employee
+        property_obj = await supabase_service.get_property_by_id(property_id)
+        
+        if employee.email and property_obj:
+            onboarding_url = f"http://localhost:3000/onboard/welcome/{session.token}"
+            
+            await email_service.send_email(
+                employee.email,
+                f"Welcome to {property_obj.name} - Start Your Onboarding",
+                f"""
+                <h2>Welcome to {property_obj.name}, {employee.first_name}!</h2>
+                <p>Congratulations on your new position as <strong>{employee.position}</strong>!</p>
+                <p>Please click the link below to begin your onboarding process:</p>
+                <p><a href="{onboarding_url}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Start Onboarding</a></p>
+                <p>This link will expire in {expires_hours} hours.</p>
+                <p>If you have any questions, please contact HR.</p>
+                """,
+                f"Welcome to {property_obj.name}! Click here to start your onboarding: {onboarding_url}"
+            )
+        
+        return success_response(
+            data={
+                "session_id": session.id,
+                "employee_id": employee_id,
+                "token": session.token,
+                "expires_at": session.expires_at.isoformat() if session.expires_at else None,
+                "onboarding_url": f"http://localhost:3000/onboard/welcome/{session.token}"
+            },
+            message="Onboarding session started successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to start onboarding: {e}")
+        return error_response(
+            message="Failed to start onboarding",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.get("/api/onboarding/welcome/{token}")
+async def get_onboarding_welcome_data(token: str):
+    """
+    Get welcome page data for onboarding
+    """
+    try:
+        # Get session by token
+        session = await onboarding_orchestrator.get_session_by_token(token)
+        
+        if not session:
+            return error_response(
+                message="Invalid or expired token",
+                error_code=ErrorCode.AUTHENTICATION_ERROR,
+                status_code=401
+            )
+        
+        # Get employee and property data
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        manager = await supabase_service.get_user_by_id(session.manager_id)
+        
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        return success_response(
+            data={
+                "session": {
+                    "id": session.id,
+                    "status": session.status,
+                    "phase": session.phase,
+                    "current_step": session.current_step,
+                    "completed_steps": session.completed_steps or [],
+                    "total_steps": onboarding_orchestrator.total_onboarding_steps,
+                    "expires_at": session.expires_at.isoformat() if session.expires_at else None
+                },
+                "employee": {
+                    "id": employee.id,
+                    "first_name": employee.first_name,
+                    "last_name": employee.last_name,
+                    "email": employee.email,
+                    "position": employee.position,
+                    "department": employee.department,
+                    "start_date": employee.start_date.isoformat() if employee.start_date else None,
+                    "employment_type": employee.employment_type
+                },
+                "property": {
+                    "id": property_obj.id,
+                    "name": property_obj.name,
+                    "address": property_obj.address,
+                    "city": property_obj.city,
+                    "state": property_obj.state,
+                    "zip_code": property_obj.zip_code
+                } if property_obj else None,
+                "manager": {
+                    "id": manager.id,
+                    "name": f"{manager.first_name} {manager.last_name}",
+                    "email": manager.email
+                } if manager else None
+            },
+            message="Welcome data retrieved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get welcome data: {e}")
+        return error_response(
+            message="Failed to get welcome data",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/api/onboarding/{session_id}/step/{step_id}")
+async def submit_onboarding_step(
+    session_id: str,
+    step_id: str,
+    step_data: Dict[str, Any],
+    token: str = Query(...)
+):
+    """
+    Submit data for a specific onboarding step
+    """
+    try:
+        # Verify token and session
+        session = await onboarding_orchestrator.get_session_by_token(token)
+        
+        if not session or session.id != session_id:
+            return unauthorized_response("Invalid session or token")
+        
+        # Convert step_id to OnboardingStep enum
+        try:
+            step = OnboardingStep(step_id)
+        except ValueError:
+            return validation_error_response(f"Invalid step ID: {step_id}")
+        
+        # Extract form data and signature data
+        form_data = step_data.get("form_data", {})
+        signature_data = step_data.get("signature_data")
+        
+        # Update step progress
+        success = await onboarding_orchestrator.update_step_progress(
+            session_id,
+            step,
+            form_data,
+            signature_data
+        )
+        
+        if not success:
+            return error_response(
+                message="Failed to submit step data",
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+                status_code=500
+            )
+        
+        # Get updated session
+        updated_session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        # Check if employee phase is complete
+        if (updated_session and 
+            updated_session.phase == OnboardingPhase.EMPLOYEE and 
+            step == OnboardingStep.EMPLOYEE_SIGNATURE):
+            await onboarding_orchestrator.complete_employee_phase(session_id)
+            
+            # Send notification to manager
+            manager = await supabase_service.get_user_by_id(updated_session.manager_id)
+            employee = await supabase_service.get_employee_by_id(updated_session.employee_id)
+            
+            if manager and manager.email and employee:
+                await email_service.send_email(
+                    manager.email,
+                    f"Onboarding Ready for Review - {employee.first_name} {employee.last_name}",
+                    f"""
+                    <h2>Onboarding Ready for Manager Review</h2>
+                    <p>{employee.first_name} {employee.last_name} has completed their onboarding forms.</p>
+                    <p>Please review and complete I-9 Section 2 verification.</p>
+                    <p><a href="http://localhost:3000/manager/onboarding/{session_id}/review">Review Onboarding</a></p>
+                    """,
+                    f"{employee.first_name} {employee.last_name} has completed onboarding forms. Please review."
+                )
+        
+        return success_response(
+            data={
+                "success": True,
+                "current_step": updated_session.current_step if updated_session else step_id,
+                "phase": updated_session.phase if updated_session else None,
+                "status": updated_session.status if updated_session else None,
+                "next_step": _get_next_step(step, updated_session) if updated_session else None
+            },
+            message="Step submitted successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to submit step: {e}")
+        return error_response(
+            message="Failed to submit step",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.get("/api/onboarding/{session_id}/progress")
+async def get_onboarding_progress(
+    session_id: str,
+    token: str = Query(...)
+):
+    """
+    Get current onboarding progress
+    """
+    try:
+        # Verify token and session
+        session = await onboarding_orchestrator.get_session_by_token(token)
+        
+        if not session or session.id != session_id:
+            return unauthorized_response("Invalid session or token")
+        
+        # Get all form data for the session
+        form_data = await supabase_service.get_onboarding_form_data(session_id)
+        
+        # Calculate progress percentage
+        completed_steps = len(session.completed_steps) if session.completed_steps else 0
+        total_steps = onboarding_orchestrator.total_onboarding_steps
+        progress_percentage = (completed_steps / total_steps) * 100
+        
+        return success_response(
+            data={
+                "session_id": session_id,
+                "status": session.status,
+                "phase": session.phase,
+                "current_step": session.current_step,
+                "completed_steps": session.completed_steps or [],
+                "total_steps": total_steps,
+                "progress_percentage": round(progress_percentage, 2),
+                "expires_at": session.expires_at.isoformat() if session.expires_at else None,
+                "requested_changes": session.requested_changes,
+                "form_data": form_data
+            },
+            message="Progress retrieved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get progress: {e}")
+        return error_response(
+            message="Failed to get progress",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/api/onboarding/{session_id}/complete")
+async def complete_onboarding(
+    session_id: str,
+    token: str = Query(...)
+):
+    """
+    Complete employee phase of onboarding
+    """
+    try:
+        # Verify token and session
+        session = await onboarding_orchestrator.get_session_by_token(token)
+        
+        if not session or session.id != session_id:
+            return unauthorized_response("Invalid session or token")
+        
+        # Check if all employee steps are completed
+        employee_steps = onboarding_orchestrator.employee_steps
+        completed_steps = session.completed_steps or []
+        
+        missing_steps = [step for step in employee_steps if step not in completed_steps]
+        
+        if missing_steps:
+            return error_response(
+                message="Cannot complete onboarding - missing required steps",
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400,
+                detail=f"Missing steps: {', '.join(missing_steps)}"
+            )
+        
+        # Complete employee phase
+        success = await onboarding_orchestrator.complete_employee_phase(session_id)
+        
+        if not success:
+            return error_response(
+                message="Failed to complete onboarding",
+                error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+                status_code=500
+            )
+        
+        # Send notification to manager
+        manager = await supabase_service.get_user_by_id(session.manager_id)
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        
+        if manager and manager.email and employee:
+            await email_service.send_email(
+                manager.email,
+                f"Onboarding Ready for Review - {employee.first_name} {employee.last_name}",
+                f"""
+                <h2>Onboarding Ready for Manager Review</h2>
+                <p>{employee.first_name} {employee.last_name} has completed their onboarding forms.</p>
+                <p>Property: {property_obj.name if property_obj else 'N/A'}</p>
+                <p>Position: {employee.position}</p>
+                <p>Please review and complete I-9 Section 2 verification within 3 business days.</p>
+                <p><a href="http://localhost:3000/manager/onboarding/{session_id}/review" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Review Onboarding</a></p>
+                """,
+                f"{employee.first_name} {employee.last_name} has completed onboarding. Please review and complete I-9 verification."
+            )
+        
+        return success_response(
+            data={
+                "success": True,
+                "new_status": OnboardingStatus.MANAGER_REVIEW,
+                "new_phase": OnboardingPhase.MANAGER,
+                "message": "Thank you for completing your onboarding forms. Your manager will review and complete the verification process."
+            },
+            message="Onboarding completed successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to complete onboarding: {e}")
+        return error_response(
+            message="Failed to complete onboarding",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+def _get_next_step(current_step: OnboardingStep, session: OnboardingSession) -> Optional[str]:
+    """
+    Helper function to determine the next step in the onboarding process
+    """
+    if session.phase == OnboardingPhase.EMPLOYEE:
+        steps = onboarding_orchestrator.employee_steps
+        try:
+            current_index = steps.index(current_step)
+            if current_index < len(steps) - 1:
+                return steps[current_index + 1]
+        except ValueError:
+            pass
+    elif session.phase == OnboardingPhase.MANAGER:
+        steps = onboarding_orchestrator.manager_steps
+        try:
+            current_index = steps.index(current_step)
+            if current_index < len(steps) - 1:
+                return steps[current_index + 1]
+        except ValueError:
+            pass
+    elif session.phase == OnboardingPhase.HR:
+        steps = onboarding_orchestrator.hr_steps
+        try:
+            current_index = steps.index(current_step)
+            if current_index < len(steps) - 1:
+                return steps[current_index + 1]
+        except ValueError:
+            pass
+    
+    return None
+
 # ===== MANAGER REVIEW APIs =====
 
 @app.get("/api/manager/onboarding/{session_id}/review")
