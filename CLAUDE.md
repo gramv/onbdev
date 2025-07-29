@@ -10,6 +10,12 @@ This is a comprehensive hotel employee onboarding system built with a FastAPI ba
 
 **MODULAR FORM ARCHITECTURE**: The system is designed with complete modularity where individual forms (W-4, I-9, health insurance, etc.) can be sent independently to employees for updates at any time. When an employee's situation changes (marriage, dependents, address), HR can send just the specific form needed for update without requiring a complete onboarding process.
 
+## Three-Phase Onboarding Workflow
+
+1. **Employee Phase**: Complete required forms and documentation
+2. **Manager Phase**: Review employee submissions and complete I-9 Section 2
+3. **HR Phase**: Final approval and compliance verification
+
 ## Brick-by-Brick Implementation Plan
 
 ### Phase 1: Foundation & Cleanup (CURRENT FOCUS)
@@ -326,6 +332,8 @@ The system expects the following environment variables:
 - `GROQ_MODEL`: Model to use (default: llama-3.3-70b-versatile)
 - `GROQ_MAX_TOKENS`: Token limit for API calls
 - `GROQ_TEMPERATURE`: Temperature for API responses
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`: Email configuration
+- `EMAIL_FROM`: Sender email address for notifications
 
 ## Development Notes
 
@@ -337,3 +345,43 @@ The system expects the following environment variables:
 - **CRITICAL**: Always test each component individually before integrating into the full workflow
 - **CRITICAL**: Follow the brick-by-brick approach - build one page, test it, then move to the next
 - **CRITICAL**: Never attempt to build the entire onboarding experience at once
+
+## Testing Individual Components
+
+### Running a Single Test
+```bash
+# Backend
+cd hotel-onboarding-backend
+poetry run pytest tests/test_specific_file.py::test_function_name -v
+
+# Frontend
+cd hotel-onboarding-frontend
+npm test -- --testNamePattern="specific test name"
+```
+
+### Utility Scripts
+- `start_backend.sh`: Starts backend server in background
+- `stop_servers.sh`: Stops all running servers
+- `restart_servers.sh`: Restarts both frontend and backend
+
+## Key Backend Services
+
+### OnboardingOrchestrator (`app/services/onboarding_orchestrator.py`)
+Manages the complete onboarding workflow state machine, handling transitions between employee, manager, and HR phases.
+
+### FormUpdateService (`app/services/form_update_service.py`)
+Enables individual form updates outside the full onboarding flow, critical for the modular architecture.
+
+### Email Service (`app/email_service.py`)
+Handles all notification emails including onboarding invitations, approval notifications, and form update requests.
+
+### PDF Forms (`app/pdf_forms.py`)
+Generates official government-compliant PDFs for I-9, W-4, and other federal forms with exact field mapping.
+
+## Common Gotchas
+
+1. **Component Props**: All step components must use direct props, not `useOutletContext()`
+2. **File Paths**: Always use absolute paths when working with file operations
+3. **Testing**: The `/test-steps` route is crucial for testing components in isolation
+4. **Enhanced vs Basic**: Use `main_enhanced.py` for full onboarding features, `main.py` for basic HR functionality
+5. **Form IDs**: Each form component expects consistent IDs for progress tracking (e.g., 'welcome', 'personal-info', 'i9-section1')

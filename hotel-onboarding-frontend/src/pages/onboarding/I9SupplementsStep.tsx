@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,15 +7,18 @@ import { Label } from '@/components/ui/label'
 import I9SupplementA from '@/components/I9SupplementA'
 import { CheckCircle, FileText, Info, Users, Globe } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
+  language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
-export default function I9SupplementsStep() {
-  const { currentStep, progress, markStepComplete, saveProgress } = useOutletContext<OnboardingContext>()
+export default function I9SupplementsStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress } = props
   
   const [needsSupplements, setNeedsSupplements] = useState<'none' | 'translator'>('none')
   const [supplementAData, setSupplementAData] = useState(null)

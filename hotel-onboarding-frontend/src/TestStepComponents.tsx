@@ -6,6 +6,18 @@ import WelcomeStep from './pages/onboarding/WelcomeStep'
 import PersonalInfoStep from './pages/onboarding/PersonalInfoStep'
 import I9Section1Step from './pages/onboarding/I9Section1Step'
 import JobDetailsStep from './pages/onboarding/JobDetailsStep'
+import DocumentUploadStep from './pages/onboarding/DocumentUploadStep'
+import W4FormStep from './pages/onboarding/W4FormStep'
+import DirectDepositStep from './pages/onboarding/DirectDepositStep'
+import HealthInsuranceStep from './pages/onboarding/HealthInsuranceStep'
+import EmergencyContactsStep from './pages/onboarding/EmergencyContactsStep'
+import CompanyPoliciesStep from './pages/onboarding/CompanyPoliciesStep'
+import BackgroundCheckStep from './pages/onboarding/BackgroundCheckStep'
+import PhotoCaptureStep from './pages/onboarding/PhotoCaptureStep'
+import I9SupplementsStep from './pages/onboarding/I9SupplementsStep'
+import TraffickingAwarenessStep from './pages/onboarding/TraffickingAwarenessStep'
+import WeaponsPolicyStep from './pages/onboarding/WeaponsPolicyStep'
+import FinalReviewStep from './pages/onboarding/FinalReviewStep'
 
 interface TestStepData {
   [key: string]: {
@@ -69,7 +81,19 @@ export default function TestStepComponents() {
     { id: 'welcome', title: 'Welcome & Language' },
     { id: 'job_details', title: 'Job Details' },
     { id: 'personal-info', title: 'Personal Info' },
-    { id: 'i9-section1', title: 'I-9 Section 1' }
+    { id: 'i9-section1', title: 'I-9 Section 1' },
+    { id: 'i9-supplements', title: 'I-9 Supplements' },
+    { id: 'document-upload', title: 'Document Upload' },
+    { id: 'w4-form', title: 'W-4 Tax Form' },
+    { id: 'direct-deposit', title: 'Direct Deposit' },
+    { id: 'health-insurance', title: 'Health Insurance' },
+    { id: 'emergency-contacts', title: 'Emergency Contacts' },
+    { id: 'company-policies', title: 'Company Policies' },
+    { id: 'trafficking-awareness', title: 'Human Trafficking Awareness' },
+    { id: 'weapons-policy', title: 'Weapons Policy' },
+    { id: 'background-check', title: 'Background Check' },
+    { id: 'photo-capture', title: 'Photo Capture' },
+    { id: 'final-review', title: 'Final Review' }
   ]
 
   const renderCurrentStep = () => {
@@ -92,6 +116,30 @@ export default function TestStepComponents() {
         return <PersonalInfoStep {...commonProps} />
       case 'i9-section1':
         return <I9Section1Step {...commonProps} />
+      case 'i9-supplements':
+        return <I9SupplementsStep {...commonProps} />
+      case 'document-upload':
+        return <DocumentUploadStep {...commonProps} />
+      case 'w4-form':
+        return <W4FormStep {...commonProps} />
+      case 'direct-deposit':
+        return <DirectDepositStep {...commonProps} />
+      case 'health-insurance':
+        return <HealthInsuranceStep {...commonProps} />
+      case 'emergency-contacts':
+        return <EmergencyContactsStep {...commonProps} />
+      case 'company-policies':
+        return <CompanyPoliciesStep {...commonProps} />
+      case 'trafficking-awareness':
+        return <TraffickingAwarenessStep {...commonProps} />
+      case 'weapons-policy':
+        return <WeaponsPolicyStep {...commonProps} />
+      case 'background-check':
+        return <BackgroundCheckStep {...commonProps} />
+      case 'photo-capture':
+        return <PhotoCaptureStep {...commonProps} />
+      case 'final-review':
+        return <FinalReviewStep {...commonProps} />
       default:
         return <div>Unknown step: {currentStep}</div>
     }

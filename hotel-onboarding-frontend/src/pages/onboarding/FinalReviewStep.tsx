@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,16 +7,18 @@ import { Checkbox } from '@/components/ui/checkbox'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
 import { CheckCircle, FileText, AlertTriangle, Users, Shield, Clock } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
   language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
-export default function FinalReviewStep() {
-  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = useOutletContext<OnboardingContext>()
+export default function FinalReviewStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = props
   
   const [isComplete, setIsComplete] = useState(false)
   const [finalAcknowledgments, setFinalAcknowledgments] = useState<boolean[]>([false, false, false, false])
