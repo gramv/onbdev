@@ -381,16 +381,13 @@ class OnboardingOrchestrator:
         Create audit trail entry
         """
         try:
-            audit_entry = AuditEntry(
-                id=str(uuid.uuid4()),
-                session_id=session_id,
+            await self.supabase_service.create_audit_entry(
                 action=action,
+                entity_type="onboarding_session",
+                entity_id=session_id,
                 user_id=user_id,
-                details=details or {},
-                timestamp=datetime.utcnow()
+                details=details
             )
-            
-            await self.supabase_service.create_audit_entry(audit_entry)
             
         except Exception as e:
             logger.error(f"Failed to create audit entry: {e}")

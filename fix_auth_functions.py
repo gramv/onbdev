@@ -1,217 +1,190 @@
 #!/usr/bin/env python3
-
 """
-Fix authentication functions to be properly async
+Fix authentication by creating proper test accounts with password hashes
 """
 
-def fix_authentication_functions():
-    """Fix the authentication functions in main_enhanced.py"""
-    
-    filepath = "hotel-onboarding-backend/app/main_enhanced.py"
-    
-    with open(filepath, 'r') as f:
-        content = f.read()
-    
-    # Fix get_current_user function signature
-    content = content.replace(
-        'async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:',
-        'def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:'
-    )
-    
-    # Fix get_current_user_optional function
-    content = content.replace(
-        'def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[User]:',
-        'def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[User]:'
-    )
-    
-    # Remove await from synchronous functions - we'll use sync methods for now
-    content = content.replace(
-        'user = await supabase_service.get_user_by_id(manager_id)',
-        'user = supabase_service.get_user_by_id_sync(manager_id)'
-    )
-    
-    content = content.replace(
-        'user = await supabase_service.get_user_by_id(user_id)',
-        'user = supabase_service.get_user_by_id_sync(user_id)'
-    )
-    
-    # Fix login endpoint
-    content = content.replace(
-        'existing_user = await supabase_service.get_user_by_email(email)',
-        'existing_user = supabase_service.get_user_by_email_sync(email)'
-    )
-    
-    # Fix property lookups
-    content = content.replace(
-        'manager_properties = await supabase_service.get_manager_properties(existing_user.id)',
-        'manager_properties = supabase_service.get_manager_properties_sync(existing_user.id)'
-    )
-    
-    # Fix property info endpoint
-    content = content.replace(
-        'property_obj = await supabase_service.get_property_by_id(property_id)',
-        'property_obj = supabase_service.get_property_by_id_sync(property_id)'
-    )
-    
-    # Fix application submission
-    content = content.replace(
-        'existing_applications = await supabase_service.get_applications_by_email_and_property(',
-        'existing_applications = supabase_service.get_applications_by_email_and_property_sync('
-    )
-    
-    content = content.replace(
-        'created_application = await supabase_service.create_application(job_application)',
-        'created_application = supabase_service.create_application_sync(job_application)'
-    )
-    
-    with open(filepath, 'w') as f:
-        f.write(content)
-    
-    print("✅ Fixed authentication functions")
+import sys
+import os
+import asyncio
+import requests
+from datetime import datetime, timezone
 
-def add_sync_methods_to_supabase():
-    """Add synchronous wrapper methods to Supabase service"""
+# Add the backend path
+sys.path.append('hotel-onboarding-backend')
+
+from app.supabase_service_enhanced import EnhancedSupabaseService
+
+async def create_proper_test_accounts():
+    """Create the test accounts that the system expects"""
+    print("🔐 Creating proper test accounts...")
     
-    filepath = "hotel-onboarding-backend/app/supabase_service_enhanced.py"
-    
-    with open(filepath, 'r') as f:
-        content = f.read()
-    
-    # Add sync wrapper methods at the end of the class
-    sync_methods = '''
-    # Synchronous wrapper methods for compatibility
-    def get_user_by_email_sync(self, email: str) -> Optional[User]:
-        """Synchronous wrapper for get_user_by_email"""
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(self.get_user_by_email(email))
-        except RuntimeError:
-            # Create new event loop if none exists
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(self.get_user_by_email(email))
-            finally:
-                loop.close()
-    
-    def get_user_by_id_sync(self, user_id: str) -> Optional[User]:
-        """Synchronous wrapper for get_user_by_id"""
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(self.get_user_by_id(user_id))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(self.get_user_by_id(user_id))
-            finally:
-                loop.close()
-    
-    def get_property_by_id_sync(self, property_id: str) -> Optional[Property]:
-        """Synchronous wrapper for get_property_by_id"""
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(self.get_property_by_id(property_id))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(self.get_property_by_id(property_id))
-            finally:
-                loop.close()
-    
-    def get_manager_properties_sync(self, manager_id: str) -> List[Property]:
-        """Synchronous wrapper for get_manager_properties"""
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(self.get_manager_properties(manager_id))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(self.get_manager_properties(manager_id))
-            finally:
-                loop.close()
-    
-    def get_applications_by_email_and_property_sync(self, email: str, property_id: str) -> List[JobApplication]:
-        """Synchronous wrapper for get_applications_by_email_and_property"""
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(self.get_applications_by_email_and_property(email, property_id))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(self.get_applications_by_email_and_property(email, property_id))
-            finally:
-                loop.close()
-    
-    def create_application_sync(self, application: JobApplication) -> JobApplication:
-        """Synchronous wrapper for create_application"""
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            return loop.run_until_complete(self.create_application(application))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(self.create_application(application))
-            finally:
-                loop.close()
-'''
-    
-    # Add the sync methods before the last closing of the class
-    content = content.rstrip() + sync_methods + '\n'
-    
-    with open(filepath, 'w') as f:
-        f.write(content)
-    
-    print("✅ Added synchronous wrapper methods to Supabase service")
+    try:
+        # Load environment variables
+        from dotenv import load_dotenv
+        load_dotenv('hotel-onboarding-backend/.env')
+        
+        # Initialize service
+        service = EnhancedSupabaseService()
+        
+        # Hash passwords
+        hr_password_hash = service.hash_password("admin123")
+        manager_password_hash = service.hash_password("manager123")
+        
+        print("✅ Passwords hashed successfully")
+        
+        # Create HR test user
+        import uuid
+        hr_user_data = {
+            "id": str(uuid.uuid4()),
+            "email": "hr@hoteltest.com",
+            "first_name": "Sarah",
+            "last_name": "Johnson",
+            "role": "hr",
+            "password_hash": hr_password_hash,
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Delete existing user if exists
+        service.client.table('users').delete().eq('email', 'hr@hoteltest.com').execute()
+        
+        # Create new user
+        result = service.client.table('users').insert(hr_user_data).execute()
+        if result.data:
+            print("✅ HR test user created: hr@hoteltest.com")
+        else:
+            print("❌ Failed to create HR user")
+            print(f"Error: {result}")
+        
+        # Create Manager test user
+        manager_user_id = str(uuid.uuid4())
+        manager_user_data = {
+            "id": manager_user_id,
+            "email": "manager@hoteltest.com",
+            "first_name": "Mike",
+            "last_name": "Wilson",
+            "role": "manager",
+            "password_hash": manager_password_hash,
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Delete existing user if exists
+        service.client.table('users').delete().eq('email', 'manager@hoteltest.com').execute()
+        
+        # Create new user
+        result = service.client.table('users').insert(manager_user_data).execute()
+        if result.data:
+            print("✅ Manager test user created: manager@hoteltest.com")
+        else:
+            print("❌ Failed to create Manager user")
+            print(f"Error: {result}")
+        
+        # Create test property
+        property_id = str(uuid.uuid4())
+        property_data = {
+            "id": property_id,
+            "name": "Grand Plaza Hotel",
+            "address": "123 Main Street",
+            "city": "Downtown",
+            "state": "CA",
+            "zip_code": "90210",
+            "phone": "(555) 123-4567",
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Delete existing property if exists
+        service.client.table('properties').delete().eq('id', 'prop_test_001').execute()
+        
+        # Create new property
+        result = service.client.table('properties').insert(property_data).execute()
+        if result.data:
+            print("✅ Test property created: Grand Plaza Hotel")
+        else:
+            print("❌ Failed to create test property")
+        
+        # Assign manager to property
+        assignment_data = {
+            "manager_id": "mgr_test_001",
+            "property_id": "prop_test_001",
+            "assigned_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Delete existing assignment if exists
+        service.client.table('manager_properties').delete().eq('manager_id', 'mgr_test_001').execute()
+        
+        # Create new assignment
+        result = service.client.table('manager_properties').insert(assignment_data).execute()
+        if result.data:
+            print("✅ Manager assigned to property")
+        else:
+            print("❌ Failed to assign manager to property")
+        
+        # Verify the accounts work
+        print("\n🔍 Verifying accounts...")
+        
+        # Test HR login
+        hr_login_data = {
+            "email": "hr@hoteltest.com",
+            "password": "admin123"
+        }
+        
+        response = requests.post("http://localhost:8000/auth/login", json=hr_login_data)
+        if response.status_code == 200:
+            print("✅ HR login test successful")
+            hr_data = response.json()
+            print(f"   User: {hr_data['user']['first_name']} {hr_data['user']['last_name']}")
+        else:
+            print(f"❌ HR login test failed: {response.status_code}")
+            print(f"   Response: {response.text}")
+        
+        # Test Manager login
+        manager_login_data = {
+            "email": "manager@hoteltest.com",
+            "password": "manager123"
+        }
+        
+        response = requests.post("http://localhost:8000/auth/login", json=manager_login_data)
+        if response.status_code == 200:
+            print("✅ Manager login test successful")
+            manager_data = response.json()
+            print(f"   User: {manager_data['user']['first_name']} {manager_data['user']['last_name']}")
+        else:
+            print(f"❌ Manager login test failed: {response.status_code}")
+            print(f"   Response: {response.text}")
+        
+        print("\n🎉 Test accounts created and verified!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 def main():
     """Main function"""
+    print("🏨 Hotel Onboarding System - Authentication Fix")
+    print("=" * 60)
     
-    print("🔧 Fixing Authentication Functions")
-    print("=" * 40)
+    success = asyncio.run(create_proper_test_accounts())
     
-    try:
-        # Fix authentication functions
-        fix_authentication_functions()
+    if success:
+        print("\n✅ Authentication system fixed!")
+        print("\n📋 Test Credentials:")
+        print("HR Account:")
+        print("  Email: hr@hoteltest.com")
+        print("  Password: admin123")
         
-        # Add sync methods
-        add_sync_methods_to_supabase()
+        print("\nManager Account:")
+        print("  Email: manager@hoteltest.com")
+        print("  Password: manager123")
         
-        # Test import
-        import subprocess
-        import os
-        
-        os.chdir("hotel-onboarding-backend")
-        result = subprocess.run([
-            "python3", "-c", 
-            "from app.main_enhanced import app; print('✅ Backend imports successfully')"
-        ], capture_output=True, text=True)
-        
-        if result.returncode == 0:
-            print("✅ Backend imports successfully")
-            print("✅ Authentication functions fixed")
-            return True
-        else:
-            print(f"❌ Import still failed: {result.stderr}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Fix failed: {e}")
-        return False
+        print("\n🚀 Run the full test suite:")
+        print("  python3 test_authentication_fix.py")
+    else:
+        print("\n❌ Authentication fix failed!")
 
 if __name__ == "__main__":
-    success = main()
-    if success:
-        print("\n🎉 Authentication functions fixed!")
-    else:
-        print("\n💥 Fix failed!")
+    main()

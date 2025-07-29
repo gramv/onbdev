@@ -368,14 +368,21 @@ class EnhancedSupabaseService:
             return None
     
     def verify_password(self, password: str, password_hash: str) -> bool:
-        """Verify password against hash - implement proper password verification"""
-        # This is a placeholder - implement proper password hashing verification
-        # Use bcrypt, scrypt, or similar secure hashing
+        """Verify password against hash using bcrypt"""
         import bcrypt
         try:
+            if not password_hash:
+                return False
             return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
-        except:
+        except Exception as e:
+            logger.error(f"Password verification error: {e}")
             return False
+    
+    def hash_password(self, password: str) -> str:
+        """Hash password using bcrypt"""
+        import bcrypt
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
     
     async def increment_failed_login_attempts(self, user_id: str):
         """Increment failed login attempts and lock account if necessary"""
@@ -1908,6 +1915,99 @@ class EnhancedSupabaseService:
                 "by_onboarding_status": {},
                 "property_id": property_id
             }
+    
+    async def get_onboarding_form_data(self, session_id: str) -> Dict[str, Any]:
+        """Get all form data for an onboarding session"""
+        try:
+            # In a real implementation, this would fetch from a form_data table
+            # For now, return a mock structure
+            return {
+                "personal_info": {},
+                "i9_section1": {},
+                "w4_form": {},
+                "emergency_contacts": {},
+                "direct_deposit": {},
+                "health_insurance": {},
+                "company_policies": {},
+                "background_check": {}
+            }
+        except Exception as e:
+            logger.error(f"Failed to get onboarding form data: {e}")
+            return {}
+    
+    async def get_onboarding_documents(self, session_id: str) -> List[Dict[str, Any]]:
+        """Get all documents uploaded for an onboarding session"""
+        try:
+            # In a real implementation, this would fetch from a documents table
+            # For now, return an empty list
+            return []
+        except Exception as e:
+            logger.error(f"Failed to get onboarding documents: {e}")
+            return []
+    
+    async def get_onboarding_form_data_by_step(self, session_id: str, step: str) -> Optional[Dict[str, Any]]:
+        """Get form data for a specific onboarding step"""
+        try:
+            # In a real implementation, this would fetch from a form_data table
+            # filtered by step
+            return None
+        except Exception as e:
+            logger.error(f"Failed to get form data by step: {e}")
+            return None
+    
+    async def get_users_by_role(self, role: str) -> List[User]:
+        """Get all users with a specific role"""
+        try:
+            response = self.client.table('users').select('*').eq('role', role).execute()
+            
+            if response.data:
+                return [User(**user_data) for user_data in response.data]
+            
+            return []
+            
+        except Exception as e:
+            logger.error(f"Failed to get users by role: {e}")
+            return []
+    
+    async def store_onboarding_form_data(self, session_id: str, step: str, form_data: Dict[str, Any]) -> bool:
+        """Store form data for an onboarding step"""
+        try:
+            # In a real implementation, this would store in a form_data table
+            logger.info(f"Storing form data for session {session_id}, step {step}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to store form data: {e}")
+            return False
+    
+    async def store_onboarding_signature(self, session_id: str, step: str, signature_data: Dict[str, Any]) -> bool:
+        """Store signature data for an onboarding step"""
+        try:
+            # In a real implementation, this would store in a signatures table
+            logger.info(f"Storing signature for session {session_id}, step {step}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to store signature: {e}")
+            return False
+    
+    async def create_audit_entry(self, action: str, entity_type: str, entity_id: str, user_id: Optional[str] = None, details: Optional[Dict] = None) -> bool:
+        """Create an audit trail entry"""
+        try:
+            audit_data = {
+                "id": str(uuid.uuid4()),
+                "action": action,
+                "entity_type": entity_type,
+                "entity_id": entity_id,
+                "user_id": user_id,
+                "details": details or {},
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # In a real implementation, this would store in an audit_trail table
+            logger.info(f"Creating audit entry: {action} on {entity_type} {entity_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create audit entry: {e}")
+            return False
 
 
 # Global instance

@@ -125,6 +125,9 @@ class OnboardingSession(BaseModel):
     progress_percentage: float = 0.0
     total_steps: int = 18  # Total number of onboarding steps
     
+    # Change requests
+    requested_changes: Optional[List[Dict[str, str]]] = None
+    
     # Form completion tracking
     completed_forms: Dict[FormType, Dict[str, Any]] = Field(default_factory=dict)
     required_signatures: Dict[SignatureType, Optional[str]] = Field(default_factory=dict)
@@ -145,6 +148,9 @@ class OnboardingSession(BaseModel):
     manager_comments: Optional[str] = None
     hr_comments: Optional[str] = None
     rejection_reason: Optional[str] = None
+    approved_by: Optional[str] = None
+    rejected_by: Optional[str] = None
+    rejected_at: Optional[datetime] = None
     
     # Notifications and communication
     notifications_sent: List[Dict[str, Any]] = Field(default_factory=list)
