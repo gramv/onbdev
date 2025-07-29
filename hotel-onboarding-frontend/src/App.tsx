@@ -115,7 +115,9 @@ function App() {
               </Route>
               
               {/* Onboarding welcome/entry point */}
+              <Route path="/onboarding/:token" element={<OnboardingWelcome />} />
               <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
+              <Route path="/onboarding-welcome/:employeeId" element={<OnboardingWelcome />} />
               <Route path="/onboarding-complete" element={<OnboardingComplete />} />
               
               {/* Legacy onboarding routes */}

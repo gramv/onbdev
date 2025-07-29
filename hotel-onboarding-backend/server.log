@@ -1,55 +1,260 @@
-/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/venv/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
 * 'schema_extra' has been renamed to 'json_schema_extra'
   warnings.warn(message, UserWarning)
-(trapped) error reading bcrypt version
-Traceback (most recent call last):
-  File "/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/venv/lib/python3.13/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
-    version = _bcrypt.__about__.__version__
-              ^^^^^^^^^^^^^^^^^
-AttributeError: module 'bcrypt' has no attribute '__about__'
-INFO:     Started server process [70601]
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/main_enhanced.py:55: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+INFO:     Started server process [43300]
 INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-✅ Test data initialized:
-   HR: hr@hoteltest.com (Token: hr_test_001)
-   Manager: manager@hoteltest.com (Token: mgr_test_001)
-   Property: Grand Plaza Hotel (ID: prop_test_001)
-   Application: John Doe - Front Desk Agent (ID: app_test_001)
-   Employees: 5 test employees created
-   Application URL: http://localhost:8000/apply/prop_test_001
-INFO:     127.0.0.1:60551 - "POST /auth/login HTTP/1.1" 200 OK
-DEBUG: talent-pool endpoint called by user mgr_test_001
-INFO:     127.0.0.1:60553 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60609 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60611 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60613 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60615 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60617 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60619 - "POST /applications/73f31a69-6bf1-4cc3-a6c5-5e0aaf4f8b27/approve HTTP/1.1" 200 OK
-DEBUG: talent-pool endpoint called by user mgr_test_001
-INFO:     127.0.0.1:60621 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60623 - "GET /hr/applications?status=pending HTTP/1.1" 200 OK
-DEBUG: talent-pool endpoint called by user mgr_test_001
-INFO:     127.0.0.1:60625 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60627 - "POST /hr/applications/app_test_001/reactivate HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60629 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64384 - "GET /health HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:64404 - "GET /docs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64456 - "POST /hr/properties/test-property-1/qr-code HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:64631 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:64658 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:64934 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:64936 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65102 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:65104 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65197 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:65199 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65314 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65316 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [70601]
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr.final.working%40hotel.com "HTTP/2 200 OK"
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:60492 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60499 - "GET /hr/users HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr.final.working%40hotel.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60562 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties "HTTP/2 401 Unauthorized"
+WARNING:app.supabase_service_enhanced:Admin client failed: {'message': 'new row violates row-level security policy for table "properties"', 'code': '42501', 'hint': None, 'details': None}, trying alternative approach
+INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/rpc/create_property_bypass_rls "HTTP/2 404 Not Found"
+WARNING:app.supabase_service_enhanced:RPC method failed: {'message': 'Could not find the function public.create_property_bypass_rls(property_data) in the schema cache', 'code': 'PGRST202', 'hint': None, 'details': 'Searched for the function public.create_property_bypass_rls with parameter property_data or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.'}, trying direct insert
+INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties "HTTP/2 401 Unauthorized"
+ERROR:app.supabase_service_enhanced:RLS policy blocking property creation: {'message': 'new row violates row-level security policy for table "properties"', 'code': '42501', 'hint': None, 'details': None}
+WARNING:app.supabase_service_enhanced:Bypassing RLS error for development - property may not be actually created
+INFO:     127.0.0.1:60570 - "POST /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60624 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:     127.0.0.1:60626 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60625 - "GET /hr/users HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60633 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:     127.0.0.1:60624 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60626 - "GET /hr/users HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties "HTTP/2 401 Unauthorized"
+WARNING:app.supabase_service_enhanced:Admin client failed: {'message': 'new row violates row-level security policy for table "properties"', 'code': '42501', 'hint': None, 'details': None}, trying alternative approach
+INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/rpc/create_property_bypass_rls "HTTP/2 404 Not Found"
+WARNING:app.supabase_service_enhanced:RPC method failed: {'message': 'Could not find the function public.create_property_bypass_rls(property_data) in the schema cache', 'code': 'PGRST202', 'hint': None, 'details': 'Searched for the function public.create_property_bypass_rls with parameter property_data or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.'}, trying direct insert
+INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties "HTTP/2 401 Unauthorized"
+ERROR:app.supabase_service_enhanced:RLS policy blocking property creation: {'message': 'new row violates row-level security policy for table "properties"', 'code': '42501', 'hint': None, 'details': None}
+WARNING:app.supabase_service_enhanced:Bypassing RLS error for development - property may not be actually created
+INFO:     127.0.0.1:60679 - "POST /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60679 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60712 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60714 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60713 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60715 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60715 - "OPTIONS /hr/managers/24159b27-c40e-4f47-8403-de9916ab3ead/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60721 - "OPTIONS /hr/managers/645cf5b6-9fbb-487f-85eb-0473845ca9ae/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60722 - "OPTIONS /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60723 - "OPTIONS /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60714 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60713 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60721 - "GET /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.24159b27-c40e-4f47-8403-de9916ab3ead&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:     127.0.0.1:60715 - "GET /hr/managers/24159b27-c40e-4f47-8403-de9916ab3ead/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:     127.0.0.1:60722 - "GET /hr/managers/645cf5b6-9fbb-487f-85eb-0473845ca9ae/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.b0695348-c475-414a-b1b9-5733055bad75&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60723 - "GET /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 200 OK
+ERROR:app.supabase_service_enhanced:Failed to get user by ID 274b3359-d9d1-42e4-aadd-facd69291ab9: [Errno 35] Resource temporarily unavailable
+ERROR:app.supabase_service_enhanced:Failed to get user by ID 274b3359-d9d1-42e4-aadd-facd69291ab9: [Errno 35] Resource temporarily unavailable
+ERROR:app.supabase_service_enhanced:Failed to get user by ID 274b3359-d9d1-42e4-aadd-facd69291ab9: [Errno 35] Resource temporarily unavailable
+INFO:     127.0.0.1:60715 - "GET /hr/managers/645cf5b6-9fbb-487f-85eb-0473845ca9ae/performance HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60722 - "GET /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60713 - "GET /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.24159b27-c40e-4f47-8403-de9916ab3ead&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:     127.0.0.1:60721 - "GET /hr/managers/24159b27-c40e-4f47-8403-de9916ab3ead/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr.final.working%40hotel.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60790 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60798 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.f98fb5f6-4bdc-451d-b6dc-e142f7f61f29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61555 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.f98fb5f6-4bdc-451d-b6dc-e142f7f61f29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61557 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61972 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr.final.working%40hotel.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:61972 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:61989 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61979 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:     127.0.0.1:61990 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:61991 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.24159b27-c40e-4f47-8403-de9916ab3ead&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:     127.0.0.1:61979 - "GET /hr/managers/24159b27-c40e-4f47-8403-de9916ab3ead/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61996 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61990 - "GET /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.b0695348-c475-414a-b1b9-5733055bad75&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+ERROR:app.supabase_service_enhanced:Failed to get user by ID 274b3359-d9d1-42e4-aadd-facd69291ab9: [Errno 35] Resource temporarily unavailable
+ERROR:app.supabase_service_enhanced:Failed to get manager properties for b0695348-c475-414a-b1b9-5733055bad75: [Errno 35] Resource temporarily unavailable
+INFO:     127.0.0.1:61998 - "GET /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:     127.0.0.1:61991 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:     127.0.0.1:61997 - "GET /hr/managers/645cf5b6-9fbb-487f-85eb-0473845ca9ae/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61979 - "GET /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.24159b27-c40e-4f47-8403-de9916ab3ead&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.274b3359-d9d1-42e4-aadd-facd69291ab9 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:     127.0.0.1:61996 - "GET /hr/managers/24159b27-c40e-4f47-8403-de9916ab3ead/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.b0695348-c475-414a-b1b9-5733055bad75&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61990 - "GET /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:     127.0.0.1:61991 - "GET /hr/managers/645cf5b6-9fbb-487f-85eb-0473845ca9ae/performance HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.f98fb5f6-4bdc-451d-b6dc-e142f7f61f29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52175 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.f98fb5f6-4bdc-451d-b6dc-e142f7f61f29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52183 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.f98fb5f6-4bdc-451d-b6dc-e142f7f61f29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:65100 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.f98fb5f6-4bdc-451d-b6dc-e142f7f61f29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:65111 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60410 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60417 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60418 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.manager%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60423 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.prop_test_001 "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to get property by ID prop_test_001: {'message': 'invalid input syntax for type uuid: "prop_test_001"', 'code': '22P02', 'hint': None, 'details': None}
+INFO:     127.0.0.1:60424 - "GET /properties/prop_test_001/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60426 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.manager%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60428 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60429 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60430 - "GET /invalid/endpoint HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60431 - "GET /hr/dashboard-stats HTTP/1.1" 403 Forbidden
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61251 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:61253 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.manager%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:61254 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.prop_test_001 "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to get property by ID prop_test_001: {'message': 'invalid input syntax for type uuid: "prop_test_001"', 'code': '22P02', 'hint': None, 'details': None}
+INFO:     127.0.0.1:61259 - "GET /properties/prop_test_001/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61260 - "POST /apply/prop_test_001 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:61261 - "GET /hr/dashboard-stats HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:61262 - "GET /invalid/endpoint HTTP/1.1" 404 Not Found

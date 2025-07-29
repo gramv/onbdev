@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,17 +7,17 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { CheckCircle, Briefcase, Calendar, DollarSign, Building } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
   language: 'en' | 'es'
   employee?: any
   property?: any
 }
 
-export default function JobDetailsStep() {
+export default function JobDetailsStep(props: StepProps) {
   const { 
     currentStep, 
     progress, 
@@ -27,7 +26,7 @@ export default function JobDetailsStep() {
     language = 'en',
     employee,
     property
-  } = useOutletContext<OnboardingContext>()
+  } = props
   
   const [isComplete, setIsComplete] = useState(false)
   const [jobDetails, setJobDetails] = useState({

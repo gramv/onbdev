@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,11 +17,14 @@ import {
   Car
 } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
+  language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
 interface DocumentOption {
@@ -96,8 +98,8 @@ const DOCUMENT_OPTIONS: DocumentOption[] = [
   }
 ]
 
-export default function DocumentUploadStep() {
-  const { currentStep, progress, markStepComplete, saveProgress } = useOutletContext<OnboardingContext>()
+export default function DocumentUploadStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress } = props
   
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File>>({})
