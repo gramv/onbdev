@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,17 +19,35 @@ import {
   PartyPopper
 } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
-  ONBOARDING_STEPS: any[]
+  saveProgress: (stepId: string, data?: any) => void
+  language: 'en' | 'es'
+  employee?: any
+  property?: any
+  ONBOARDING_STEPS?: any[]
 }
 
-export default function EmployeeReviewStep() {
-  const { currentStep, progress, markStepComplete, saveProgress, ONBOARDING_STEPS } = useOutletContext<OnboardingContext>()
+export default function EmployeeReviewStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress } = props
   const navigate = useNavigate()
+  
+  // Default onboarding steps if not provided
+  const ONBOARDING_STEPS = props.ONBOARDING_STEPS || [
+    { id: 'personal-info', title: 'Personal Information', description: 'Basic personal details', estimatedTime: '5' },
+    { id: 'i9-section1', title: 'I-9 Section 1', description: 'Employment eligibility', estimatedTime: '10' },
+    { id: 'i9-supplements', title: 'I-9 Supplements', description: 'Additional I-9 forms', estimatedTime: '5' },
+    { id: 'document-upload', title: 'Document Upload', description: 'Required documents', estimatedTime: '5' },
+    { id: 'w4-form', title: 'W-4 Form', description: 'Tax withholding', estimatedTime: '10' },
+    { id: 'direct-deposit', title: 'Direct Deposit', description: 'Banking information', estimatedTime: '5' },
+    { id: 'health-insurance', title: 'Health Insurance', description: 'Benefits enrollment', estimatedTime: '10' },
+    { id: 'company-policies', title: 'Company Policies', description: 'Policy acknowledgments', estimatedTime: '5' },
+    { id: 'trafficking-awareness', title: 'Human Trafficking', description: 'Required training', estimatedTime: '5' },
+    { id: 'weapons-policy', title: 'Weapons Policy', description: 'Security policy', estimatedTime: '5' },
+    { id: 'employee-review', title: 'Final Review', description: 'Review and sign', estimatedTime: '5' }
+  ]
   
   const [finalSignature, setFinalSignature] = useState(null)
   const [onboardingComplete, setOnboardingComplete] = useState(false)
@@ -85,7 +103,7 @@ export default function EmployeeReviewStep() {
     }
     
     markStepComplete('employee-review', stepData)
-    saveProgress()
+    saveProgress('employee-review', stepData)
   }
 
   const handleCompleteOnboarding = () => {
