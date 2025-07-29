@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, RefreshCw, Info } from 'lucide-react';
+import { FileText, RefreshCw, Info, AlertCircle, Shield, Lock } from 'lucide-react';
 import DigitalSignatureCapture from './DigitalSignatureCapture';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface I9SupplementBData {
   // Employee Information (from Section 1)
@@ -41,6 +43,7 @@ interface I9SupplementBProps {
   onComplete: (data: I9SupplementBData) => void;
   onSkip: () => void;
   onBack: () => void;
+  currentUserRole?: 'hr' | 'manager' | 'employee';
 }
 
 // Common I-9 acceptable documents
@@ -64,8 +67,11 @@ export default function I9SupplementB({
   language,
   onComplete,
   onSkip,
-  onBack
+  onBack,
+  currentUserRole
 }: I9SupplementBProps) {
+  const { user } = useAuth();
+  const userRole = currentUserRole || user?.role || 'employee';
   const [formData, setFormData] = useState<I9SupplementBData>({
     // CRITICAL FIX: Use employeeData for display ONLY, not for form input auto-fill
     // Employee information should be read-only display from Section 1, not editable
@@ -87,6 +93,7 @@ export default function I9SupplementB({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showSignature, setShowSignature] = useState(false);
+  const [showAccessDenied, setShowAccessDenied] = useState(false);
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -121,7 +128,15 @@ export default function I9SupplementB({
         'back': 'Back',
         'skip': 'Skip This Supplement',
         'sign_document': 'Sign Document',
-        'complete': 'Complete Supplement B'
+        'complete': 'Complete Supplement B',
+        'access_denied': 'Access Denied',
+        'employee_access_denied': 'Employees cannot complete Form I-9 Supplement B. This form must be completed by your employer (HR or Manager).',
+        'federal_requirement': 'Federal law requires that reverification and rehire documentation be completed by the employer only.',
+        'contact_hr': 'Please contact your HR department or manager if work authorization reverification is needed.',
+        'role_restriction': 'Role Restriction: {role} access',
+        'manager_only': 'Manager/HR Use Only',
+        'compliance_notice': 'Federal Compliance Notice',
+        'reverification_notice': 'This form is used for reverifying employee work authorization. Only authorized employer representatives may complete this form.'
       },
       es: {
         'supplement_b_title': 'Formulario I-9 Suplemento B',
@@ -184,22 +199,59 @@ export default function I9SupplementB({
     onComplete(updatedData);
   };
 
+  // Show access denied screen for employees
+  if (userRole === 'employee') {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8">
+        <Alert className="max-w-2xl border-red-200 bg-red-50">
+          <div className="flex items-start space-x-3">
+            <Lock className="h-5 w-5 text-red-600 mt-0.5" />
+            <AlertDescription className="text-red-900">
+              <div className="space-y-4">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  {t('access_denied')}
+                </h3>
+                <p className="font-medium">{t('employee_access_denied')}</p>
+                <div className="bg-red-100 p-3 rounded-md border border-red-300">
+                  <p className="text-sm">
+                    <strong>{t('federal_requirement')}</strong>
+                  </p>
+                </div>
+                <p className="text-sm">{t('contact_hr')}</p>
+                <div className="flex justify-end space-x-3 mt-6">
+                  <Button variant="outline" onClick={onBack}>
+                    {t('back')}
+                  </Button>
+                  <Button variant="outline" onClick={onSkip}>
+                    {t('skip')}
+                  </Button>
+                </div>
+              </div>
+            </AlertDescription>
+          </div>
+        </Alert>
+      </div>
+    );
+  }
+
   if (showSignature) {
     return (
       <div className="space-y-6">
         <div className="text-center mb-6">
           <FileText className="h-12 w-12 text-blue-600 mx-auto mb-3" />
           <h2 className="text-2xl font-bold text-gray-900">{t('supplement_b_title')}</h2>
-          <p className="text-gray-600 mt-2">Employee Signature Required</p>
+          <p className="text-gray-600 mt-2">Employer Representative Signature Required</p>
         </div>
 
         <DigitalSignatureCapture
-          signatureType="employee_i9"
+          signatureType="manager_i9"
           documentName="Form I-9 Supplement B - Reverification and Rehire"
-          signerName={`${formData.employeeFirstName} ${formData.employeeLastName}`}
-          signerTitle="Employee"
+          signerName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Employer Representative'}
+          signerTitle={userRole === 'hr' ? 'HR Representative' : 'Manager'}
           acknowledgments={[
-            t('certification_statement')
+            'I attest, under penalty of perjury, that I have examined the document(s) presented by the above-named employee, that the document(s) reasonably appear to be genuine and to relate to the employee named, and that the employee is authorized to work in the United States.',
+            'I am aware that federal law provides for imprisonment and/or fines for false statements or use of false documents in connection with the completion of this form.'
           ]}
           requireIdentityVerification={true}
           language={language}
@@ -216,7 +268,23 @@ export default function I9SupplementB({
         <RefreshCw className="h-8 w-8 text-blue-600 mx-auto mb-2" />
         <h2 className="text-xl font-bold text-gray-900">{t('supplement_b_title')}</h2>
         <p className="text-gray-600 text-sm mt-1">{t('supplement_b_subtitle')}</p>
+        {/* Role Badge */}
+        <div className="mt-2">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Shield className="h-3 w-3 mr-1" />
+            {t('manager_only')}
+          </Badge>
+        </div>
       </div>
+      
+      {/* Compliance Notice */}
+      <Alert className="border-yellow-200 bg-yellow-50">
+        <Info className="h-4 w-4 text-yellow-700" />
+        <AlertDescription className="text-yellow-900">
+          <p className="text-sm font-medium">{t('compliance_notice')}</p>
+          <p className="text-xs mt-1">{t('reverification_notice')}</p>
+        </AlertDescription>
+      </Alert>
 
       <details className="group">
         <summary className="cursor-pointer bg-blue-50 border border-blue-200 rounded p-2 hover:bg-blue-100">

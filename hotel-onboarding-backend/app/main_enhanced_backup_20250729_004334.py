@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 """
 Hotel Employee Onboarding System API - Supabase Only Version
-Enhanced with standardized API response formats
+Minimal working version with Supabase integration
 """
 from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, timedelta, timezone
 import uuid
@@ -30,24 +29,13 @@ from .services.form_update_service import FormUpdateService
 from .supabase_service_enhanced import EnhancedSupabaseService
 from .email_service import email_service
 
-# Import standardized response system
-from .response_models import *
-from .response_utils import (
-    ResponseFormatter, ResponseMiddleware, success_response, error_response,
-    not_found_response, unauthorized_response, forbidden_response,
-    validation_error_response, standardize_response, ErrorCode
-)
-
 load_dotenv()
 
 app = FastAPI(
     title="Hotel Employee Onboarding System",
-    description="Supabase-powered onboarding system with standardized API responses",
+    description="Supabase-powered onboarding system",
     version="3.0.0"
 )
-
-# Add response standardization middleware
-app.add_middleware(ResponseMiddleware)
 
 # CORS Configuration
 app.add_middleware(
@@ -151,63 +139,39 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             manager_id = payload.get("manager_id")
             user = supabase_service.get_user_by_id_sync(manager_id)
             if not user or user.role != "manager":
-                raise HTTPException(
-                    status_code=401, 
-                    detail="Manager not found"
-                )
+                raise HTTPException(status_code=401, detail="Manager not found")
             return user
             
         elif token_type == "hr_auth":
             user_id = payload.get("user_id")
             user = supabase_service.get_user_by_id_sync(user_id)
             if not user or user.role != "hr":
-                raise HTTPException(
-                    status_code=401, 
-                    detail="HR user not found"
-                )
+                raise HTTPException(status_code=401, detail="HR user not found")
             return user
         
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid token type"
-        )
+        raise HTTPException(status_code=401, detail="Invalid token type")
         
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=401, 
-            detail="Token expired"
-        )
+        raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid token"
-        )
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 def require_manager_role(current_user: User = Depends(get_current_user)) -> User:
     """Require manager role"""
     if current_user.role != "manager":
-        raise HTTPException(
-            status_code=403, 
-            detail="Manager access required"
-        )
+        raise HTTPException(status_code=403, detail="Manager access required")
     return current_user
 
 def require_hr_role(current_user: User = Depends(get_current_user)) -> User:
     """Require HR role"""
     if current_user.role != "hr":
-        raise HTTPException(
-            status_code=403, 
-            detail="HR access required"
-        )
+        raise HTTPException(status_code=403, detail="HR access required")
     return current_user
 
 def require_hr_or_manager_role(current_user: User = Depends(get_current_user)) -> User:
     """Require HR or Manager role"""
     if current_user.role not in ["hr", "manager"]:
-        raise HTTPException(
-            status_code=403, 
-            detail="HR or Manager access required"
-        )
+        raise HTTPException(status_code=403, detail="HR or Manager access required")
     return current_user
 
 @app.get("/healthz")
@@ -215,24 +179,23 @@ async def healthz():
     """Health check with Supabase status"""
     try:
         connection_status = await supabase_service.health_check()
-        health_data = HealthCheckData(
-            status="healthy",
-            timestamp=datetime.now(timezone.utc),
-            version="3.0.0",
-            database="supabase",
-            connection=connection_status
-        )
-        return success_response(data=health_data.dict())
+        return {
+            "status": "ok",
+            "timestamp": datetime.now(timezone.utc),
+            "version": "3.0.0",
+            "database": "supabase",
+            "connection": connection_status
+        }
     except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return error_response(
-            message="Health check failed",
-            error_code=ErrorCode.EXTERNAL_SERVICE_ERROR,
-            status_code=503,
-            detail=str(e)
-        )
+        return {
+            "status": "error",
+            "timestamp": datetime.now(timezone.utc),
+            "version": "3.0.0",
+            "database": "supabase",
+            "error": str(e)
+        }
 
-@app.post("/auth/login", response_model=LoginResponse)
+@app.post("/auth/login")
 async def login(request: Request):
     """Login with Supabase user lookup"""
     try:
@@ -241,51 +204,26 @@ async def login(request: Request):
         password = body.get("password", "")
         
         if not email or not password:
-            return error_response(
-                message="Email and password are required",
-                error_code=ErrorCode.VALIDATION_ERROR,
-                status_code=400,
-                detail="Both email and password fields must be provided"
-            )
+            raise HTTPException(status_code=400, detail="Email and password required")
         
         # Find user in Supabase
         existing_user = supabase_service.get_user_by_email_sync(email)
         if not existing_user:
-            return error_response(
-                message="Invalid credentials",
-                error_code=ErrorCode.AUTHENTICATION_ERROR,
-                status_code=401,
-                detail="Email or password is incorrect"
-            )
+            raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Verify password from Supabase stored hash
         if not existing_user.password_hash:
-            return error_response(
-                message="Invalid credentials",
-                error_code=ErrorCode.AUTHENTICATION_ERROR,
-                status_code=401,
-                detail="Account not properly configured"
-            )
+            raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Use the enhanced supabase service password verification
         if not supabase_service.verify_password(password, existing_user.password_hash):
-            return error_response(
-                message="Invalid credentials",
-                error_code=ErrorCode.AUTHENTICATION_ERROR,
-                status_code=401,
-                detail="Email or password is incorrect"
-            )
+            raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Generate token
         if existing_user.role == "manager":
             manager_properties = supabase_service.get_manager_properties_sync(existing_user.id)
             if not manager_properties:
-                return error_response(
-                    message="Manager not configured",
-                    error_code=ErrorCode.AUTHORIZATION_ERROR,
-                    status_code=403,
-                    detail="Manager account is not assigned to any property"
-                )
+                raise HTTPException(status_code=403, detail="Manager not configured")
             
             expire = datetime.now(timezone.utc) + timedelta(hours=24)
             payload = {
@@ -306,39 +244,26 @@ async def login(request: Request):
             }
             token = jwt.encode(payload, os.getenv("JWT_SECRET_KEY", "fallback-secret"), algorithm="HS256")
         else:
-            return error_response(
-                message="Role not authorized",
-                error_code=ErrorCode.AUTHORIZATION_ERROR,
-                status_code=403,
-                detail=f"Role '{existing_user.role}' is not authorized for login"
-            )
+            raise HTTPException(status_code=403, detail="Role not authorized")
         
-        login_data = LoginResponseData(
-            token=token,
-            user={
+        return {
+            "success": True,
+            "token": token,
+            "user": {
                 "id": existing_user.id,
                 "email": existing_user.email,
                 "role": existing_user.role,
                 "first_name": existing_user.first_name,
                 "last_name": existing_user.last_name
             },
-            expires_at=expire.isoformat(),
-            token_type="Bearer"
-        )
+            "expires_at": expire.isoformat(),
+            "token_type": "Bearer"
+        }
         
-        return success_response(
-            data=login_data.dict(),
-            message="Login successful"
-        )
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Login error: {e}")
-        return error_response(
-            message="Login failed",
-            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
-            status_code=500,
-            detail="An unexpected error occurred during login"
-        )
+        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
 
 @app.post("/auth/refresh")
 async def refresh_token(current_user: User = Depends(get_current_user)):
@@ -348,12 +273,7 @@ async def refresh_token(current_user: User = Depends(get_current_user)):
         if current_user.role == "manager":
             manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
             if not manager_properties:
-                return error_response(
-                    message="Manager not configured",
-                    error_code=ErrorCode.AUTHORIZATION_ERROR,
-                    status_code=403,
-                    detail="Manager account is not assigned to any property"
-                )
+                raise HTTPException(status_code=403, detail="Manager not configured")
             
             expire = datetime.now(timezone.utc) + timedelta(hours=24)
             payload = {
@@ -374,59 +294,41 @@ async def refresh_token(current_user: User = Depends(get_current_user)):
             }
             token = jwt.encode(payload, os.getenv("JWT_SECRET_KEY", "fallback-secret"), algorithm="HS256")
         else:
-            return error_response(
-                message="Role not authorized",
-                error_code=ErrorCode.AUTHORIZATION_ERROR,
-                status_code=403,
-                detail=f"Role '{current_user.role}' is not authorized for token refresh"
-            )
+            raise HTTPException(status_code=403, detail="Role not authorized")
         
-        refresh_data = {
+        return {
+            "success": True,
             "token": token,
             "expires_at": expire.isoformat(),
             "token_type": "Bearer"
         }
         
-        return success_response(
-            data=refresh_data,
-            message="Token refreshed successfully"
-        )
-        
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Token refresh error: {e}")
-        return error_response(
-            message="Token refresh failed",
-            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
-            status_code=500,
-            detail="An unexpected error occurred during token refresh"
-        )
+        raise HTTPException(status_code=500, detail=f"Token refresh error: {str(e)}")
 
 @app.post("/auth/logout")
 async def logout(current_user: User = Depends(get_current_user)):
     """Logout user (token invalidation handled client-side)"""
-    return success_response(
-        message="Logged out successfully"
-    )
+    return {
+        "success": True,
+        "message": "Logged out successfully"
+    }
 
-@app.get("/auth/me", response_model=UserInfoResponse)
+@app.get("/auth/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user information"""
-    user_data = UserInfoData(
-        id=current_user.id,
-        email=current_user.email,
-        role=current_user.role,
-        first_name=current_user.first_name,
-        last_name=current_user.last_name,
-        is_active=current_user.is_active,
-        property_id=current_user.property_id
-    )
-    
-    return success_response(
-        data=user_data.dict(),
-        message="User information retrieved successfully"
-    )
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "role": current_user.role,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "is_active": current_user.is_active
+    }
 
-@app.get("/manager/applications", response_model=ApplicationsResponse)
+@app.get("/manager/applications")
 async def get_manager_applications(
     search: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -438,10 +340,7 @@ async def get_manager_applications(
         # Get manager's properties from Supabase
         manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
         if not manager_properties:
-            return success_response(
-                data=[],
-                message="No applications found - manager not assigned to any property"
-            )
+            return []
         
         property_id = manager_properties[0].id
         
@@ -462,37 +361,27 @@ async def get_manager_applications(
         if department and department != 'all':
             applications = [app for app in applications if app.department == department]
         
-        # Convert to standardized format
+        # Convert to dict format for frontend compatibility
         result = []
         for app in applications:
-            app_data = ApplicationData(
-                id=app.id,
-                property_id=app.property_id,
-                department=app.department,
-                position=app.position,
-                applicant_data=app.applicant_data,
-                status=app.status,
-                applied_at=app.applied_at.isoformat(),
-                reviewed_by=getattr(app, 'reviewed_by', None),
-                reviewed_at=getattr(app, 'reviewed_at', None).isoformat() if getattr(app, 'reviewed_at', None) else None
-            )
-            result.append(app_data.dict())
+            result.append({
+                "id": app.id,
+                "property_id": app.property_id,
+                "department": app.department,
+                "position": app.position,
+                "applicant_data": app.applicant_data,
+                "status": app.status,
+                "applied_at": app.applied_at.isoformat(),
+                "reviewed_by": getattr(app, 'reviewed_by', None),
+                "reviewed_at": getattr(app, 'reviewed_at', None).isoformat() if getattr(app, 'reviewed_at', None) else None
+            })
         
-        return success_response(
-            data=result,
-            message=f"Retrieved {len(result)} applications for manager"
-        )
+        return result
         
     except Exception as e:
-        logger.error(f"Failed to retrieve manager applications: {e}")
-        return error_response(
-            message="Failed to retrieve applications",
-            error_code=ErrorCode.DATABASE_ERROR,
-            status_code=500,
-            detail="An error occurred while fetching applications data"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve applications: {str(e)}")
 
-@app.get("/hr/dashboard-stats", response_model=DashboardStatsResponse)
+@app.get("/hr/dashboard-stats")
 async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
     """Get dashboard statistics for HR using Supabase"""
     try:
@@ -502,26 +391,15 @@ async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
         total_employees = await supabase_service.get_employees_count()
         pending_applications = await supabase_service.get_pending_applications_count()
         
-        stats_data = DashboardStatsData(
-            totalProperties=total_properties,
-            totalManagers=total_managers,
-            totalEmployees=total_employees,
-            pendingApplications=pending_applications
-        )
-        
-        return success_response(
-            data=stats_data.dict(),
-            message="Dashboard statistics retrieved successfully"
-        )
+        return {
+            "totalProperties": total_properties,
+            "totalManagers": total_managers,
+            "totalEmployees": total_employees,
+            "pendingApplications": pending_applications
+        }
         
     except Exception as e:
-        logger.error(f"Failed to retrieve HR dashboard stats: {e}")
-        return error_response(
-            message="Failed to retrieve dashboard statistics",
-            error_code=ErrorCode.DATABASE_ERROR,
-            status_code=500,
-            detail="An error occurred while fetching dashboard data"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve dashboard stats: {str(e)}")
 
 @app.get("/hr/properties")
 async def get_hr_properties(current_user: User = Depends(require_hr_role)):
@@ -3213,310 +3091,6 @@ async def send_phase_completion_email(
     except Exception as e:
         logger.error(f"Failed to send phase completion email: {e}")
         return {"success": False, "message": str(e)}
-
-# ===== COMPLIANCE ENDPOINTS =====
-
-@app.post("/api/compliance/validate-i9-supplement-a")
-async def validate_i9_supplement_a(
-    form_data: dict,
-    auto_filled_fields: List[str],
-    current_user=Depends(get_current_user)
-):
-    """Validate I-9 Supplement A compliance requirements"""
-    try:
-        # Get user role
-        user_role = UserRole(current_user.role)
-        
-        # Validate auto-fill compliance
-        is_valid, violations = compliance_engine.validate_auto_fill_compliance(
-            DocumentCategory.I9_SUPPLEMENT_A,
-            form_data,
-            auto_filled_fields,
-            user_role,
-            current_user.id,
-            form_data.get('document_id', '')
-        )
-        
-        # Validate supplement A restrictions
-        is_valid_supplement, supplement_violations = compliance_engine.validate_i9_supplement_a_restrictions(
-            form_data,
-            user_role,
-            current_user.id,
-            form_data.get('document_id', '')
-        )
-        
-        all_violations = violations + supplement_violations
-        
-        return {
-            "is_compliant": is_valid and is_valid_supplement,
-            "violations": all_violations,
-            "user_role": user_role.value,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Compliance validation error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/compliance/validate-i9-supplement-b-access")
-async def validate_i9_supplement_b_access(
-    current_user=Depends(get_current_user)
-):
-    """Validate I-9 Supplement B access control"""
-    try:
-        user_role = UserRole(current_user.role)
-        
-        is_valid, violations = compliance_engine.validate_i9_supplement_b_access(
-            user_role,
-            current_user.id,
-            'supplement-b-check'
-        )
-        
-        return {
-            "has_access": is_valid,
-            "violations": violations,
-            "user_role": user_role.value,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Access validation error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/compliance/validate-digital-signature")
-async def validate_digital_signature(
-    signature_data: dict,
-    document_category: str,
-    current_user=Depends(get_current_user)
-):
-    """Validate digital signature ESIGN Act compliance"""
-    try:
-        user_role = UserRole(current_user.role)
-        doc_category = DocumentCategory(document_category)
-        
-        is_valid, violations = compliance_engine.validate_digital_signature_compliance(
-            doc_category,
-            signature_data,
-            user_role,
-            current_user.id,
-            signature_data.get('document_id', '')
-        )
-        
-        return {
-            "is_compliant": is_valid,
-            "violations": violations,
-            "esign_metadata_present": all([
-                signature_data.get('signature_hash'),
-                signature_data.get('timestamp'),
-                signature_data.get('ip_address'),
-                signature_data.get('user_agent')
-            ]),
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Signature validation error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/compliance/i9-deadlines/{employee_id}")
-async def get_i9_deadlines(
-    employee_id: str,
-    current_user=Depends(get_current_user)
-):
-    """Get I-9 Section 2 deadline information for an employee"""
-    try:
-        # Get employee hire date
-        employee = await supabase_service.get_employee_by_id(employee_id)
-        if not employee:
-            raise HTTPException(status_code=404, detail="Employee not found")
-        
-        hire_date = datetime.strptime(employee.hire_date, "%Y-%m-%d").date()
-        
-        # Check if I-9 Section 2 is completed
-        onboarding_session = await supabase_service.get_active_onboarding_by_employee(employee_id)
-        section2_completed = False
-        section2_date = None
-        
-        if onboarding_session and onboarding_session.get('i9_section2_data'):
-            section2_completed = True
-            section2_date = onboarding_session['i9_section2_data'].get('verification_date')
-            if section2_date:
-                section2_date = datetime.strptime(section2_date, "%Y-%m-%d").date()
-        
-        # Validate compliance
-        is_compliant, deadline, warnings = compliance_engine.validate_i9_three_day_compliance(
-            employee_id,
-            f"i9-{employee_id}",
-            hire_date,
-            section2_date
-        )
-        
-        return {
-            "employee_id": employee_id,
-            "employee_name": f"{employee.first_name} {employee.last_name}",
-            "hire_date": hire_date.isoformat(),
-            "deadline_date": deadline.deadline_date.isoformat(),
-            "business_days_remaining": deadline.business_days_remaining,
-            "is_compliant": is_compliant,
-            "section2_completed": section2_completed,
-            "section2_completion_date": section2_date.isoformat() if section2_date else None,
-            "warnings": warnings,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to get I-9 deadlines: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/compliance/dashboard")
-async def get_compliance_dashboard(
-    current_user=Depends(get_current_user)
-):
-    """Get compliance dashboard data"""
-    try:
-        user_role = UserRole(current_user.role)
-        property_id = current_user.property_id if hasattr(current_user, 'property_id') else None
-        
-        dashboard = compliance_engine.get_compliance_dashboard(user_role, property_id)
-        
-        return {
-            "dashboard": dashboard,
-            "user_role": user_role.value,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to get compliance dashboard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/compliance/audit-trail")
-async def get_compliance_audit_trail(
-    employee_id: Optional[str] = None,
-    document_id: Optional[str] = None,
-    limit: int = 100,
-    current_user=Depends(get_current_user)
-):
-    """Get compliance audit trail entries"""
-    try:
-        # In production, this would query from database
-        # For now, return mock data structure
-        entries = [
-            {
-                "id": str(uuid.uuid4()),
-                "timestamp": datetime.now().isoformat(),
-                "action": "I-9 Section 1 Completed",
-                "documentType": "I-9 Form",
-                "documentId": document_id or "i9-001",
-                "userId": employee_id or "emp-123",
-                "userName": "John Doe",
-                "userRole": "employee",
-                "ipAddress": "192.168.1.100",
-                "details": "Employee completed I-9 Section 1 with citizenship attestation",
-                "complianceType": "i9",
-                "severity": "info",
-                "federalReference": "Immigration and Nationality Act Section 274A"
-            }
-        ]
-        
-        return {
-            "entries": entries,
-            "total": len(entries),
-            "limit": limit,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to get audit trail: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-# Document Retention Endpoints
-
-@app.post("/api/retention/calculate")
-async def calculate_retention_date(
-    document_type: str,
-    hire_date: str,
-    termination_date: Optional[str] = None,
-    current_user=Depends(get_current_user)
-):
-    """Calculate document retention date based on federal requirements"""
-    try:
-        doc_type = DocumentType(document_type)
-        hire_dt = datetime.strptime(hire_date, "%Y-%m-%d").date()
-        term_dt = datetime.strptime(termination_date, "%Y-%m-%d").date() if termination_date else None
-        
-        if doc_type == DocumentType.I9_FORM:
-            retention_date, method = retention_service.calculate_i9_retention_date(hire_dt, term_dt)
-        elif doc_type == DocumentType.W4_FORM:
-            retention_date, method = retention_service.calculate_w4_retention_date(hire_dt.year)
-        else:
-            # Default 3-year retention
-            retention_date = hire_dt + timedelta(days=3*365)
-            method = "3 years from hire date (default)"
-        
-        return {
-            "document_type": document_type,
-            "hire_date": hire_date,
-            "termination_date": termination_date,
-            "retention_end_date": retention_date.isoformat(),
-            "calculation_method": method,
-            "days_until_expiration": (retention_date - date.today()).days
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to calculate retention: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/retention/dashboard")
-async def get_retention_dashboard(
-    current_user=Depends(get_current_user)
-):
-    """Get document retention dashboard"""
-    try:
-        user_role = UserRole(current_user.role)
-        dashboard = retention_service.get_retention_dashboard(user_role)
-        
-        return {
-            "dashboard": dashboard,
-            "user_role": user_role.value,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Failed to get retention dashboard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/retention/legal-hold/{document_id}")
-async def place_legal_hold(
-    document_id: str,
-    reason: str,
-    current_user=Depends(get_current_user)
-):
-    """Place legal hold on a document"""
-    try:
-        if current_user.role != 'hr':
-            raise HTTPException(status_code=403, detail="Only HR can place legal holds")
-        
-        success = retention_service.place_legal_hold(document_id, reason)
-        
-        if not success:
-            raise HTTPException(status_code=404, detail="Document not found")
-        
-        return {
-            "success": True,
-            "document_id": document_id,
-            "action": "legal_hold_placed",
-            "reason": reason,
-            "placed_by": current_user.email,
-            "timestamp": datetime.now().isoformat()
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to place legal hold: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

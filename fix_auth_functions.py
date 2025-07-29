@@ -95,7 +95,7 @@ async def create_proper_test_accounts():
         }
         
         # Delete existing property if exists
-        service.client.table('properties').delete().eq('id', 'prop_test_001').execute()
+        service.client.table('properties').delete().eq('name', 'Grand Plaza Hotel').execute()
         
         # Create new property
         result = service.client.table('properties').insert(property_data).execute()
@@ -106,13 +106,13 @@ async def create_proper_test_accounts():
         
         # Assign manager to property
         assignment_data = {
-            "manager_id": "mgr_test_001",
-            "property_id": "prop_test_001",
+            "manager_id": manager_user_id,
+            "property_id": property_id,
             "assigned_at": datetime.now(timezone.utc).isoformat()
         }
         
         # Delete existing assignment if exists
-        service.client.table('manager_properties').delete().eq('manager_id', 'mgr_test_001').execute()
+        service.client.table('manager_properties').delete().eq('manager_id', manager_user_id).execute()
         
         # Create new assignment
         result = service.client.table('manager_properties').insert(assignment_data).execute()
