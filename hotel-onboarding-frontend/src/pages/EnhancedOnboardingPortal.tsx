@@ -13,6 +13,7 @@ import axios from 'axios'
 import { GovernmentFormMappingService } from '@/utils/governmentFormMapping'
 import { OfficialPacketMappingService, ONBOARDING_WORKFLOW_STEPS } from '@/utils/officialPacketMapping'
 import { autoFillManager } from '@/utils/autoFillManager'
+import { ONBOARDING_STEPS as UNIFIED_STEPS, normalizeStepId } from '@/config/onboardingSteps.config'
 
 // Import form components
 import PersonalInformationForm from '../components/PersonalInformationForm'
@@ -42,22 +43,8 @@ import I9SupplementsStep from './onboarding/I9SupplementsStep'
 // Import enhanced PDF viewer
 import PDFDocumentViewer from '@/components/ui/pdf-document-viewer'
 
-// Use the official packet workflow steps
-const ONBOARDING_STEPS = ONBOARDING_WORKFLOW_STEPS.map(step => ({
-  id: step.id,
-  title: step.title,
-  titleEs: step.title, // TODO: Add Spanish translations
-  description: step.description,
-  estimatedMinutes: step.estimatedTime,
-  mandatory: step.required,
-  governmentRequired: step.federalCompliance,
-  conditional: !step.required,
-  component: step.component,
-  documentType: step.documentType,
-  packetPages: step.packetPages,
-  dependencies: step.dependencies,
-  userActions: step.userActions
-}))
+// Use the unified onboarding steps configuration
+const ONBOARDING_STEPS = UNIFIED_STEPS
 
 interface OnboardingSession {
   id: string
@@ -1134,6 +1121,7 @@ export default function EnhancedOnboardingPortal() {
 
     switch (currentStep.id) {
       case 'language_welcome':
+      case 'welcome':
         return <WelcomeStep {...stepProps} />
         
       case 'job_details_confirmation':
@@ -1216,129 +1204,6 @@ export default function EnhancedOnboardingPortal() {
     }
   }
 
-  function renderWelcomeStep() {
-    return (
-      <div className="space-y-8">
-        {/* Hero Section */}
-        <div className="text-center py-12 bg-gradient-to-br from-hotel-primary/5 to-blue-50 rounded-2xl border border-hotel-primary/10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-hotel-primary to-hotel-primary-dark rounded-full mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v10.586l4.293-4.293a1 1 0 011.414 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 011.414-1.414L11 13.586V3a1 1 0 012 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 16v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2" />
-            </svg>
-          </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-            Welcome to {onboardingData?.property.name}!
-          </h2>
-          <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto leading-relaxed">
-            {language === 'es' 
-              ? '¡Felicidades por unirse a nuestro equipo! Este proceso de incorporación le ayudará a completar todo el papeleo necesario y prepararse para su primer día.'
-              : 'Congratulations on joining our team! This onboarding process will help you complete all necessary paperwork and get you ready for your first day.'
-            }
-          </p>
-          <div className="inline-flex items-center px-4 py-2 bg-white rounded-full shadow-sm border border-gray-200">
-            <div className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>Secure & Confidential Process</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Requirements Card */}
-        <div className="card-elevated">
-          <div className="p-8">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="h-10 w-10 bg-hotel-primary/10 rounded-lg flex items-center justify-center">
-                <svg className="h-6 w-6 text-hotel-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                {language === 'es' ? 'Lo que necesitará:' : 'What you\'ll need:'}
-              </h3>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
-              {[
-                { icon: '🆔', text: 'Driver\'s License or State ID', textEs: 'Licencia de Conducir o ID Estatal' },
-                { icon: '📄', text: 'Social Security Card or qualifying document', textEs: 'Tarjeta de Seguro Social o documento calificado' },
-                { icon: '🏦', text: 'Bank account information for direct deposit', textEs: 'Información de cuenta bancaria para depósito directo' },
-                { icon: '📞', text: 'Emergency contact information', textEs: 'Información de contacto de emergencia' },
-                { icon: '🧾', text: 'Voided check or bank letter', textEs: 'Cheque anulado o carta bancaria' }
-              ].map((item, index) => (
-                <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
-                  <div className="flex items-center justify-center w-10 h-10 bg-white rounded-lg shadow-sm">
-                    <span className="text-lg">{item.icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-gray-900">
-                      {language === 'es' ? item.textEs : item.text}
-                    </span>
-                  </div>
-                  <CheckCircle className="h-5 w-5 text-green-500 opacity-60" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Process Information */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-              <Clock className="h-6 w-6 text-green-600" />
-            </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === 'es' ? 'Tiempo Estimado' : 'Estimated Time'}
-            </h4>
-            <p className="text-sm text-gray-600">
-              {language === 'es' ? '60-75 minutos' : '60-75 minutes'}
-            </p>
-          </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
-              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === 'es' ? 'Progreso Guardado' : 'Progress Saved'}
-            </h4>
-            <p className="text-sm text-gray-600">
-              {language === 'es' ? 'Automáticamente' : 'Automatically'}
-            </p>
-          </div>
-          
-          <div className="text-center p-6 bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl border border-purple-200">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-4">
-              <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === 'es' ? 'Seguro' : 'Secure'}
-            </h4>
-            <p className="text-sm text-gray-600">
-              {language === 'es' ? 'Datos Protegidos' : 'Data Protected'}
-            </p>
-          </div>
-        </div>
-
-        {/* Important Notice */}
-        <Alert className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200">
-          <AlertCircle className="h-5 w-5 text-amber-600" />
-          <AlertDescription className="text-base text-amber-800">
-            <strong className="font-semibold">Important: </strong>
-            {language === 'es'
-              ? 'Este proceso debería tomar aproximadamente 60-75 minutos para completar. Puede guardar su progreso y regresar más tarde si es necesario. Todos sus datos se guardan automáticamente.'
-              : 'This process should take about 60-75 minutes to complete. You can save your progress and return later if needed. All your data is saved automatically.'
-            }
-          </AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
 
   function renderPlaceholderStep() {
     return (
@@ -1590,4 +1455,191 @@ export default function EnhancedOnboardingPortal() {
   function renderPhotoCaptureStep() { return renderPlaceholderStep() }
   function renderEmployeeSignatureStep() { return renderPlaceholderStep() }
   function renderManagerReviewStep() { return renderPlaceholderStep() }
+
+  // Render current step based on step ID
+  function renderCurrentStep() {
+    const currentStep = ONBOARDING_STEPS[currentStepIndex]
+    const normalizedId = normalizeStepId(currentStep.id)
+    
+    // Map step IDs to render functions
+    switch (normalizedId) {
+      case 'welcome':
+        return <WelcomeStep {...getStepProps()} />
+      case 'personal-info':
+        return renderPersonalInfoStep()
+      case 'job-details':
+        return <JobDetailsStep {...getStepProps()} />
+      case 'i9-section1':
+        return renderI9Section1Step()
+      case 'i9-supplements':
+        return <I9SupplementsStep {...getStepProps()} />
+      case 'document-upload':
+        return renderPlaceholderStep()
+      case 'w4-form':
+        return renderW4FormStep()
+      case 'direct-deposit':
+        return renderDirectDepositStep()
+      case 'health-insurance':
+        return renderHealthInsuranceStep()
+      case 'emergency-contacts':
+        return renderEmergencyContactsStep()
+      case 'company-policies':
+        return renderCompanyPoliciesStep()
+      case 'trafficking-awareness':
+        return renderTrafficingAwarenessStep()
+      case 'weapons-policy':
+        return renderCompanyPoliciesStep()
+      case 'background-check':
+        return <BackgroundCheckStep {...getStepProps()} />
+      case 'photo-capture':
+        return <PhotoCaptureStep {...getStepProps()} />
+      case 'final-review':
+        return <FinalReviewStep {...getStepProps()} />
+      default:
+        return renderPlaceholderStep()
+    }
+  }
+
+  // Get props for step components
+  function getStepProps() {
+    return {
+      currentStep: ONBOARDING_STEPS[currentStepIndex],
+      progress: {
+        currentStepIndex,
+        totalSteps: ONBOARDING_STEPS.length,
+        completedSteps,
+        stepData: formData
+      },
+      markStepComplete: (stepId: string, data?: any) => {
+        setCompletedSteps(prev => [...new Set([...prev, stepId])])
+        if (data) {
+          setFormData(prev => ({ ...prev, [stepId]: data }))
+        }
+      },
+      saveProgress: async (stepId: string, data?: any) => {
+        if (data) {
+          setFormData(prev => ({ ...prev, [stepId]: data }))
+        }
+        await updateProgress(stepId, { ...formData, [stepId]: data })
+      },
+      language,
+      employee: onboardingData?.employee,
+      property: onboardingData?.property
+    }
+  }
+
+  // Check if user can proceed to next step
+  function canProceedToNextStep(): boolean {
+    const currentStep = ONBOARDING_STEPS[currentStepIndex]
+    // Check if current step is completed
+    return completedSteps.includes(currentStep.id) || !currentStep.required
+  }
+
+  // Main render
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center space-y-4">
+          <RefreshCw className="h-8 w-8 text-blue-600 animate-spin mx-auto" />
+          <p className="text-gray-600">Loading onboarding session...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !onboardingData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Onboarding Error</h2>
+            <p className="text-gray-600 mb-6">{error || 'Unable to load onboarding session'}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="w-full"
+            >
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const currentStep = ONBOARDING_STEPS[currentStepIndex]
+  const progressPercentage = ((completedSteps.length / ONBOARDING_STEPS.length) * 100)
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <h1 className="text-xl font-semibold text-gray-900">Employee Onboarding</h1>
+              <span className="ml-4 text-sm text-gray-500">
+                {onboardingData.property.name}
+              </span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => changeLanguage(language === 'en' ? 'es' : 'en')}
+                className="flex items-center space-x-2"
+              >
+                <Globe className="h-4 w-4" />
+                <span>{language === 'en' ? 'Español' : 'English'}</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Progress Bar */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-medium text-gray-900">
+              {language === 'es' ? currentStep.titleEs : currentStep.title}
+            </h2>
+            <span className="text-sm text-gray-500">
+              Step {currentStepIndex + 1} of {ONBOARDING_STEPS.length}
+            </span>
+          </div>
+          <Progress value={progressPercentage} className="h-2" />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Step Content */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            {renderCurrentStep()}
+          </div>
+
+          {/* Navigation */}
+          <div className="flex justify-between mt-6">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStepIndex === 0}
+              className="flex items-center space-x-2"
+            >
+              <span>Previous</span>
+            </Button>
+            <Button
+              onClick={nextStep}
+              disabled={!canProceedToNextStep()}
+              className="flex items-center space-x-2"
+            >
+              <span>Next</span>
+            </Button>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
 }

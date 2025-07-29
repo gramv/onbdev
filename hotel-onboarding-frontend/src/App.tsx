@@ -15,16 +15,8 @@ import HRDashboard from './pages/HRDashboard'
 import ManagerDashboard from './pages/ManagerDashboard'
 import EnhancedManagerDashboard from './pages/EnhancedManagerDashboard'
 import JobApplicationForm from './pages/JobApplicationForm'
-import OnboardingPortal from './pages/OnboardingPortal'
 import EnhancedOnboardingPortal from './pages/EnhancedOnboardingPortal'
 import OnboardingWelcome from './pages/OnboardingWelcome'
-import SecretPortal from './pages/SecretPortal'
-import TestComponents from './TestComponents'
-import SimpleTest from './SimpleTest'
-import TestStatus from './TestStatus'
-import TestStepComponents from './TestStepComponents'
-import TestOnboardingFlow from './pages/TestOnboardingFlow'
-import WelcomePage from './pages/WelcomePage'
 // Onboarding step components
 import PersonalInfoStep from './pages/onboarding/PersonalInfoStep'
 import I9Section1Step from './pages/onboarding/I9Section1Step'
@@ -118,16 +110,8 @@ function App() {
               <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
               <Route path="/onboarding-complete" element={<OnboardingComplete />} />
               
-              {/* Legacy onboarding routes */}
+              {/* Main onboarding route */}
               <Route path="/onboard" element={<EnhancedOnboardingPortal />} />
-              <Route path="/onboard/:employeeId" element={<OnboardingPortal />} />
-              <Route path="/secret" element={<SecretPortal />} />
-              <Route path="/test" element={<TestComponents />} />
-              <Route path="/simple-test" element={<SimpleTest />} />
-              <Route path="/test-status" element={<TestStatus />} />
-              <Route path="/test-steps" element={<TestStepComponents />} />
-              <Route path="/test-onboarding-flow" element={<TestOnboardingFlow />} />
-              <Route path="/welcome" element={<WelcomePage />} />
             </Routes>
             <Toaster />
           </div>
