@@ -49,6 +49,52 @@ app = FastAPI(
 # Add response standardization middleware
 app.add_middleware(ResponseMiddleware)
 
+# Add custom exception handlers
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """Handle HTTP exceptions with standardized response format"""
+    error_code_map = {
+        400: ErrorCode.VALIDATION_ERROR,
+        401: ErrorCode.AUTHENTICATION_ERROR,
+        403: ErrorCode.AUTHORIZATION_ERROR,
+        404: ErrorCode.RESOURCE_NOT_FOUND,
+        409: ErrorCode.RESOURCE_CONFLICT,
+        422: ErrorCode.VALIDATION_ERROR,
+        429: ErrorCode.RATE_LIMIT_EXCEEDED,
+        500: ErrorCode.INTERNAL_SERVER_ERROR
+    }
+    
+    error_code = error_code_map.get(exc.status_code, ErrorCode.INTERNAL_SERVER_ERROR)
+    
+    return error_response(
+        message=exc.detail,
+        error_code=error_code,
+        status_code=exc.status_code,
+        detail=exc.detail
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle request validation errors with standardized response format"""
+    field_errors = {}
+    for error in exc.errors():
+        field_name = ".".join(str(loc) for loc in error["loc"][1:])  # Skip 'body' prefix
+        error_msg = error["msg"]
+        
+        if field_name not in field_errors:
+            field_errors[field_name] = []
+        field_errors[field_name].append(error_msg)
+    
+    return error_response(
+        message="Request validation failed",
+        error_code=ErrorCode.VALIDATION_ERROR,
+        status_code=422,
+        detail="One or more request fields are invalid"
+    )
+
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
@@ -215,14 +261,14 @@ async def healthz():
     """Health check with Supabase status"""
     try:
         connection_status = await supabase_service.health_check()
-        health_data = HealthCheckData(
-            status="healthy",
-            timestamp=datetime.now(timezone.utc),
-            version="3.0.0",
-            database="supabase",
-            connection=connection_status
-        )
-        return success_response(data=health_data.dict())
+        health_data = {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "version": "3.0.0",
+            "database": "supabase",
+            "connection": connection_status
+        }
+        return success_response(data=health_data)
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return error_response(
@@ -327,7 +373,7 @@ async def login(request: Request):
         )
         
         return success_response(
-            data=login_data.dict(),
+            data=login_data.model_dump(),
             message="Login successful"
         )
         
@@ -422,7 +468,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     )
     
     return success_response(
-        data=user_data.dict(),
+        data=user_data.model_dump(),
         message="User information retrieved successfully"
     )
 
@@ -476,7 +522,7 @@ async def get_manager_applications(
                 reviewed_by=getattr(app, 'reviewed_by', None),
                 reviewed_at=getattr(app, 'reviewed_at', None).isoformat() if getattr(app, 'reviewed_at', None) else None
             )
-            result.append(app_data.dict())
+            result.append(app_data.model_dump())
         
         return success_response(
             data=result,
@@ -510,7 +556,7 @@ async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
         )
         
         return success_response(
-            data=stats_data.dict(),
+            data=stats_data.model_dump(),
             message="Dashboard statistics retrieved successfully"
         )
         
