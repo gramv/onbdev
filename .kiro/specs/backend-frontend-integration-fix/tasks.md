@@ -21,7 +21,7 @@
   - Test all endpoint parameter passing
   - _Requirements: 2.1, 2.4_
 
-- [ ] 4. Implement Missing API Endpoints
+- [x] 4. Implement Missing API Endpoints
   - Add missing /manager/dashboard-stats endpoint
   - Implement /properties/{id}/info public endpoint
   - Add /hr/applications/{id}/history endpoint
