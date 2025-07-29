@@ -12,7 +12,11 @@ import uuid
 import json
 import os
 import jwt
+import logging
 from dotenv import load_dotenv
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Import our enhanced models and authentication
 from .models import *
@@ -72,24 +76,30 @@ async def initialize_test_data():
         if len(existing_users) >= 2:
             return
         
-        # Create HR user
+        # Hash passwords properly
+        hr_password_hash = supabase_service.hash_password("admin123")
+        manager_password_hash = supabase_service.hash_password("manager123")
+        
+        # Create HR user with hashed password
         hr_user_data = {
             "id": "hr_test_001",
             "email": "hr@hoteltest.com",
             "first_name": "Sarah",
             "last_name": "Johnson",
             "role": "hr",
+            "password_hash": hr_password_hash,
             "is_active": True
         }
         await supabase_service.create_user(hr_user_data)
         
-        # Create manager user
+        # Create manager user with hashed password
         manager_user_data = {
             "id": "mgr_test_001", 
             "email": "manager@hoteltest.com",
             "first_name": "Mike",
             "last_name": "Wilson",
             "role": "manager",
+            "password_hash": manager_password_hash,
             "is_active": True
         }
         await supabase_service.create_user(manager_user_data)
@@ -108,12 +118,14 @@ async def initialize_test_data():
         await supabase_service.create_property(property_data)
         await supabase_service.assign_manager_to_property("mgr_test_001", "prop_test_001")
         
-        # Store passwords
+        # Store passwords in memory manager for backward compatibility
         password_manager.store_password("hr@hoteltest.com", "admin123")
         password_manager.store_password("manager@hoteltest.com", "manager123")
         
+        logger.info("✅ Test data initialized with proper password hashing")
+        
     except Exception as e:
-        print(f"Test data initialization error: {e}")
+        logger.error(f"Test data initialization error: {e}")
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
     """JWT token validation with Supabase lookup"""
@@ -203,13 +215,8 @@ async def login(request: Request):
         if not existing_user.password_hash:
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
-        import bcrypt
-        try:
-            # Verify hashed password
-            if not bcrypt.checkpw(password.encode('utf-8'), existing_user.password_hash.encode('utf-8')):
-                raise HTTPException(status_code=401, detail="Invalid credentials")
-        except Exception as e:
-            logger.error(f"Password verification error: {e}")
+        # Use the enhanced supabase service password verification
+        if not supabase_service.verify_password(password, existing_user.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Generate token
@@ -2435,6 +2442,655 @@ async def create_manager_user(email: str, password: str, property_name: str, sec
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create manager: {str(e)}")
+
+# ===== MANAGER REVIEW APIs =====
+
+@app.get("/api/manager/onboarding/{session_id}/review")
+async def get_onboarding_for_manager_review(
+    session_id: str,
+    current_user: User = Depends(require_manager_role)
+):
+    """Get onboarding session for manager review"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Verify manager has access to this session
+        if session.manager_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied to this onboarding session")
+        
+        # Verify session is in manager review phase
+        if session.status != OnboardingStatus.MANAGER_REVIEW:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Session is not ready for manager review. Current status: {session.status}"
+            )
+        
+        # Get employee data
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        if not employee:
+            raise HTTPException(status_code=404, detail="Employee not found")
+        
+        # Get all form data submitted by employee
+        form_data = await supabase_service.get_onboarding_form_data(session_id)
+        
+        # Get documents uploaded by employee
+        documents = await supabase_service.get_onboarding_documents(session_id)
+        
+        return {
+            "session": session,
+            "employee": employee,
+            "form_data": form_data,
+            "documents": documents,
+            "next_steps": {
+                "required": ["i9_section2", "manager_signature"],
+                "optional": ["request_changes"]
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get onboarding for review: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve onboarding session: {str(e)}")
+
+@app.post("/api/manager/onboarding/{session_id}/i9-section2")
+async def complete_i9_section2(
+    session_id: str,
+    form_data: Dict[str, Any],
+    signature_data: Dict[str, Any],
+    current_user: User = Depends(require_manager_role)
+):
+    """Complete I-9 Section 2 verification"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Verify manager has access
+        if session.manager_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied to this onboarding session")
+        
+        # Verify session is in correct state
+        if session.status != OnboardingStatus.MANAGER_REVIEW:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Session is not ready for I-9 Section 2. Current status: {session.status}"
+            )
+        
+        # Validate I-9 Section 2 data
+        required_fields = [
+            "document_title_list_a",
+            "issuing_authority_list_a",
+            "document_number_list_a",
+            "expiration_date_list_a"
+        ]
+        
+        # Check if using List B + C instead
+        if not form_data.get("document_title_list_a"):
+            required_fields = [
+                "document_title_list_b",
+                "issuing_authority_list_b",
+                "document_number_list_b",
+                "expiration_date_list_b",
+                "document_title_list_c",
+                "issuing_authority_list_c",
+                "document_number_list_c",
+                "expiration_date_list_c"
+            ]
+        
+        missing_fields = [field for field in required_fields if not form_data.get(field)]
+        if missing_fields:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required I-9 Section 2 fields: {', '.join(missing_fields)}"
+            )
+        
+        # Store I-9 Section 2 data
+        await onboarding_orchestrator.update_step_progress(
+            session_id,
+            OnboardingStep.I9_SECTION2,
+            form_data,
+            signature_data
+        )
+        
+        # Create audit entry
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "I9_SECTION2_COMPLETED",
+            current_user.id,
+            {
+                "completed_by": f"{current_user.first_name} {current_user.last_name}",
+                "verification_date": datetime.utcnow().isoformat()
+            }
+        )
+        
+        return {
+            "success": True,
+            "message": "I-9 Section 2 completed successfully",
+            "next_step": "manager_signature"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to complete I-9 Section 2: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to complete I-9 Section 2: {str(e)}")
+
+@app.post("/api/manager/onboarding/{session_id}/approve")
+async def manager_approve_onboarding(
+    session_id: str,
+    signature_data: Dict[str, Any],
+    notes: Optional[str] = None,
+    current_user: User = Depends(require_manager_role)
+):
+    """Manager approves onboarding and sends to HR"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Verify manager has access
+        if session.manager_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied to this onboarding session")
+        
+        # Verify I-9 Section 2 is completed
+        i9_section2_data = await supabase_service.get_onboarding_form_data_by_step(
+            session_id, 
+            OnboardingStep.I9_SECTION2
+        )
+        
+        if not i9_section2_data:
+            raise HTTPException(
+                status_code=400,
+                detail="I-9 Section 2 must be completed before approval"
+            )
+        
+        # Store manager signature
+        await onboarding_orchestrator.update_step_progress(
+            session_id,
+            OnboardingStep.MANAGER_SIGNATURE,
+            {"approval_notes": notes} if notes else None,
+            signature_data
+        )
+        
+        # Complete manager phase
+        success = await onboarding_orchestrator.complete_manager_phase(session_id)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to complete manager phase")
+        
+        # Create audit entry
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "MANAGER_APPROVED",
+            current_user.id,
+            {
+                "approved_by": f"{current_user.first_name} {current_user.last_name}",
+                "approval_notes": notes,
+                "approved_at": datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Send email notification to HR
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        
+        if employee and property_obj:
+            # Get HR users for notification
+            hr_users = await supabase_service.get_users_by_role("hr")
+            
+            for hr_user in hr_users:
+                await email_service.send_email(
+                    hr_user.email,
+                    f"Onboarding Ready for HR Approval - {employee.first_name} {employee.last_name}",
+                    f"""
+                    <h2>Onboarding Ready for HR Approval</h2>
+                    <p>Manager has completed review and approved the onboarding for:</p>
+                    <ul>
+                        <li><strong>Employee:</strong> {employee.first_name} {employee.last_name}</li>
+                        <li><strong>Position:</strong> {employee.position}</li>
+                        <li><strong>Property:</strong> {property_obj.name}</li>
+                        <li><strong>Manager:</strong> {current_user.first_name} {current_user.last_name}</li>
+                    </ul>
+                    <p>Please log in to the HR dashboard to complete the final approval.</p>
+                    """,
+                    f"Onboarding ready for HR approval: {employee.first_name} {employee.last_name}"
+                )
+        
+        return {
+            "success": True,
+            "message": "Onboarding approved and sent to HR",
+            "new_status": OnboardingStatus.HR_APPROVAL
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to approve onboarding: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to approve onboarding: {str(e)}")
+
+@app.post("/api/manager/onboarding/{session_id}/request-changes")
+async def manager_request_changes(
+    session_id: str,
+    requested_changes: List[Dict[str, str]],  # [{"form": "personal_info", "reason": "..."}]
+    current_user: User = Depends(require_manager_role)
+):
+    """Request changes from employee"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Verify manager has access
+        if session.manager_id != current_user.id:
+            raise HTTPException(status_code=403, detail="Access denied to this onboarding session")
+        
+        # Update session status
+        session.status = OnboardingStatus.IN_PROGRESS
+        session.phase = OnboardingPhase.EMPLOYEE
+        session.requested_changes = requested_changes
+        session.updated_at = datetime.utcnow()
+        
+        await supabase_service.update_onboarding_session(session)
+        
+        # Create audit entry
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "CHANGES_REQUESTED",
+            current_user.id,
+            {
+                "requested_by": f"{current_user.first_name} {current_user.last_name}",
+                "changes": requested_changes
+            }
+        )
+        
+        # Send email to employee
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        
+        if employee and employee.email:
+            changes_list = "\n".join([
+                f"- {change['form']}: {change['reason']}" 
+                for change in requested_changes
+            ])
+            
+            await email_service.send_email(
+                employee.email,
+                "Changes Required - Your Onboarding Application",
+                f"""
+                <h2>Changes Required</h2>
+                <p>Your manager has requested the following changes to your onboarding application:</p>
+                <ul>
+                {"".join([f"<li><strong>{change['form']}:</strong> {change['reason']}</li>" for change in requested_changes])}
+                </ul>
+                <p>Please log back in to your onboarding portal to make these updates.</p>
+                <p><a href="{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/onboard?token={session.token}">Update My Information</a></p>
+                """,
+                f"Changes required for your onboarding:\n{changes_list}"
+            )
+        
+        return {
+            "success": True,
+            "message": "Changes requested from employee",
+            "requested_changes": requested_changes
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to request changes: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to request changes: {str(e)}")
+
+# ===== HR APPROVAL APIs =====
+
+@app.get("/api/hr/onboarding/pending")
+async def get_pending_hr_approvals(
+    current_user: User = Depends(require_hr_role)
+):
+    """Get all onboarding sessions pending HR approval"""
+    try:
+        # Get sessions pending HR approval
+        sessions = await onboarding_orchestrator.get_pending_hr_approvals()
+        
+        # Enrich with employee and property data
+        enriched_sessions = []
+        
+        for session in sessions:
+            employee = await supabase_service.get_employee_by_id(session.employee_id)
+            property_obj = await supabase_service.get_property_by_id(session.property_id)
+            manager = await supabase_service.get_user_by_id(session.manager_id)
+            
+            enriched_sessions.append({
+                "session": session,
+                "employee": employee,
+                "property": property_obj,
+                "manager": manager,
+                "days_since_submission": (datetime.utcnow() - session.created_at).days
+            })
+        
+        return {
+            "pending_count": len(enriched_sessions),
+            "sessions": enriched_sessions
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get pending HR approvals: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve pending approvals: {str(e)}")
+
+@app.post("/api/hr/onboarding/{session_id}/approve")
+async def hr_approve_onboarding(
+    session_id: str,
+    signature_data: Dict[str, Any],
+    notes: Optional[str] = None,
+    current_user: User = Depends(require_hr_role)
+):
+    """Final HR approval for onboarding"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Verify session is in HR approval phase
+        if session.status != OnboardingStatus.HR_APPROVAL:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Session is not ready for HR approval. Current status: {session.status}"
+            )
+        
+        # Create audit entry for compliance check
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "COMPLIANCE_CHECK_PASSED",
+            current_user.id,
+            {
+                "check_type": "final_approval",
+                "checked_by": f"{current_user.first_name} {current_user.last_name}",
+                "notes": notes,
+                "checked_at": datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Store HR signature
+        await onboarding_orchestrator.update_step_progress(
+            session_id,
+            OnboardingStep.HR_APPROVAL,
+            {"approval_notes": notes} if notes else None,
+            signature_data
+        )
+        
+        # Approve onboarding
+        success = await onboarding_orchestrator.approve_onboarding(
+            session_id,
+            current_user.id
+        )
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to approve onboarding")
+        
+        # Create audit entry
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "HR_APPROVED",
+            current_user.id,
+            {
+                "approved_by": f"{current_user.first_name} {current_user.last_name}",
+                "approval_notes": notes,
+                "approved_at": datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Send congratulations email to employee
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        
+        if employee and employee.email and property_obj:
+            await email_service.send_email(
+                employee.email,
+                f"Welcome to {property_obj.name} - Onboarding Complete!",
+                f"""
+                <h2>🎉 Congratulations, {employee.first_name}!</h2>
+                <p>Your onboarding has been approved and you're officially part of the {property_obj.name} team!</p>
+                <h3>What's Next:</h3>
+                <ul>
+                    <li>Your start date: <strong>{employee.start_date}</strong></li>
+                    <li>Report to: <strong>{property_obj.address}</strong></li>
+                    <li>Your position: <strong>{employee.position}</strong></li>
+                </ul>
+                <p>If you have any questions, please contact HR or your manager.</p>
+                <p>We're excited to have you on the team!</p>
+                """,
+                f"Welcome to {property_obj.name}! Your onboarding is complete."
+            )
+        
+        return {
+            "success": True,
+            "message": "Onboarding approved successfully",
+            "new_status": OnboardingStatus.APPROVED,
+            "employee": employee
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to approve onboarding: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to approve onboarding: {str(e)}")
+
+@app.post("/api/hr/onboarding/{session_id}/reject")
+async def hr_reject_onboarding(
+    session_id: str,
+    rejection_reason: str,
+    current_user: User = Depends(require_hr_role)
+):
+    """HR rejection of onboarding"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Reject onboarding
+        success = await onboarding_orchestrator.reject_onboarding(
+            session_id,
+            current_user.id,
+            rejection_reason
+        )
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to reject onboarding")
+        
+        # Create audit entry
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "HR_REJECTED",
+            current_user.id,
+            {
+                "rejected_by": f"{current_user.first_name} {current_user.last_name}",
+                "rejection_reason": rejection_reason,
+                "rejected_at": datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Send email to employee and manager
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        manager = await supabase_service.get_user_by_id(session.manager_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        
+        if employee and employee.email:
+            await email_service.send_email(
+                employee.email,
+                "Update on Your Onboarding Application",
+                f"""
+                <h2>Onboarding Application Update</h2>
+                <p>Dear {employee.first_name},</p>
+                <p>After careful review, we are unable to proceed with your onboarding at this time.</p>
+                <p><strong>Reason:</strong> {rejection_reason}</p>
+                <p>If you have questions or would like to discuss this decision, please contact HR.</p>
+                """,
+                f"Your onboarding application has been updated. Reason: {rejection_reason}"
+            )
+        
+        if manager and manager.email:
+            await email_service.send_email(
+                manager.email,
+                f"Onboarding Rejected - {employee.first_name if employee else 'Employee'}",
+                f"""
+                <h2>Onboarding Rejected by HR</h2>
+                <p>The onboarding for {employee.first_name} {employee.last_name} has been rejected.</p>
+                <p><strong>Reason:</strong> {rejection_reason}</p>
+                <p><strong>Property:</strong> {property_obj.name if property_obj else 'N/A'}</p>
+                """,
+                f"Onboarding rejected for {employee.first_name if employee else 'employee'}. Reason: {rejection_reason}"
+            )
+        
+        return {
+            "success": True,
+            "message": "Onboarding rejected",
+            "new_status": OnboardingStatus.REJECTED
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to reject onboarding: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to reject onboarding: {str(e)}")
+
+@app.post("/api/hr/onboarding/{session_id}/request-changes")
+async def hr_request_changes(
+    session_id: str,
+    requested_changes: List[Dict[str, str]],  # [{"form": "w4_form", "reason": "..."}]
+    request_from: str = "employee",  # "employee" or "manager"
+    current_user: User = Depends(require_hr_role)
+):
+    """HR requests specific form updates"""
+    try:
+        # Get session
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        
+        if not session:
+            raise HTTPException(status_code=404, detail="Onboarding session not found")
+        
+        # Determine who should make changes
+        if request_from == "manager":
+            # Send back to manager review
+            session.status = OnboardingStatus.MANAGER_REVIEW
+            session.phase = OnboardingPhase.MANAGER
+        else:
+            # Send back to employee
+            session.status = OnboardingStatus.IN_PROGRESS
+            session.phase = OnboardingPhase.EMPLOYEE
+        
+        session.requested_changes = requested_changes
+        session.updated_at = datetime.utcnow()
+        
+        await supabase_service.update_onboarding_session(session)
+        
+        # Create audit entry
+        await onboarding_orchestrator.create_audit_entry(
+            session_id,
+            "HR_REQUESTED_CHANGES",
+            current_user.id,
+            {
+                "requested_by": f"{current_user.first_name} {current_user.last_name}",
+                "request_from": request_from,
+                "changes": requested_changes
+            }
+        )
+        
+        # Send appropriate email
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        manager = await supabase_service.get_user_by_id(session.manager_id)
+        
+        changes_html = "".join([
+            f"<li><strong>{change['form']}:</strong> {change['reason']}</li>" 
+            for change in requested_changes
+        ])
+        
+        if request_from == "manager" and manager and manager.email:
+            await email_service.send_email(
+                manager.email,
+                "HR Review - Changes Required",
+                f"""
+                <h2>HR has requested changes</h2>
+                <p>Please review and update the following items:</p>
+                <ul>{changes_html}</ul>
+                <p>Log in to the manager dashboard to make these updates.</p>
+                """,
+                f"HR has requested changes to the onboarding"
+            )
+        elif employee and employee.email:
+            await email_service.send_email(
+                employee.email,
+                "Update Required - Your Onboarding Application",
+                f"""
+                <h2>Updates Required</h2>
+                <p>HR has requested the following updates to your onboarding:</p>
+                <ul>{changes_html}</ul>
+                <p><a href="{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/onboard?token={session.token}">Update My Information</a></p>
+                """,
+                f"HR has requested updates to your onboarding"
+            )
+        
+        return {
+            "success": True,
+            "message": f"Changes requested from {request_from}",
+            "requested_changes": requested_changes,
+            "new_phase": session.phase
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to request changes: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to request changes: {str(e)}")
+
+# ===== EMAIL NOTIFICATION HELPERS =====
+
+@app.post("/api/internal/send-phase-completion-email")
+async def send_phase_completion_email(
+    session_id: str,
+    phase_completed: str
+):
+    """Internal endpoint to send phase completion emails"""
+    try:
+        session = await onboarding_orchestrator.get_session_by_id(session_id)
+        if not session:
+            return {"success": False, "message": "Session not found"}
+        
+        employee = await supabase_service.get_employee_by_id(session.employee_id)
+        property_obj = await supabase_service.get_property_by_id(session.property_id)
+        manager = await supabase_service.get_user_by_id(session.manager_id)
+        
+        if phase_completed == "employee" and manager and manager.email:
+            await email_service.send_email(
+                manager.email,
+                f"Onboarding Ready for Review - {employee.first_name} {employee.last_name}",
+                f"""
+                <h2>Employee Onboarding Completed</h2>
+                <p>{employee.first_name} {employee.last_name} has completed their onboarding forms.</p>
+                <p><strong>Position:</strong> {employee.position}</p>
+                <p><strong>Property:</strong> {property_obj.name}</p>
+                <p>Please log in to complete I-9 Section 2 verification within 3 business days.</p>
+                """,
+                f"{employee.first_name} {employee.last_name} has completed onboarding"
+            )
+        
+        return {"success": True}
+        
+    except Exception as e:
+        logger.error(f"Failed to send phase completion email: {e}")
+        return {"success": False, "message": str(e)}
 
 if __name__ == "__main__":
     import uvicorn
