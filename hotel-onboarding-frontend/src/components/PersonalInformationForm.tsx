@@ -77,8 +77,6 @@ export default function PersonalInformationForm({
   const [warnings, setWarnings] = useState<Record<string, string>>({})
   const [isValid, setIsValid] = useState(false)
   const [formValidator] = useState(() => FormValidator.getInstance())
-  const [federalComplianceErrors, setFederalComplianceErrors] = useState<string[]>([])
-  const [ageValidationBlocked, setAgeValidationBlocked] = useState(false)
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [showErrors, setShowErrors] = useState(false)
 
@@ -186,51 +184,35 @@ export default function PersonalInformationForm({
     
     const newErrors = { ...result.errors }
     const newWarnings = { ...result.warnings }
-    const federalErrors: string[] = []
-    let federalValid = true
-
-    // CRITICAL: Federal age validation - must be 18 or older
+    
+    // Basic age validation - must be 18 or older for employment
     if (formData.dateOfBirth) {
-      const ageValidation = validateAge(formData.dateOfBirth)
-      if (!ageValidation.isValid) {
-        federalValid = false
-        setAgeValidationBlocked(true)
-        for (const error of ageValidation.errors) {
-          newErrors[error.field] = error.message
-          federalErrors.push(`${error.legalCode}: ${error.message}`)
-          if (error.complianceNote) {
-            federalErrors.push(`Compliance Note: ${error.complianceNote}`)
-          }
-        }
-      } else {
-        setAgeValidationBlocked(false)
-        // Add any warnings
-        for (const warning of ageValidation.warnings) {
-          newWarnings[warning.field] = warning.message
-        }
+      const birthDate = new Date(formData.dateOfBirth)
+      const today = new Date()
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age
+      
+      if (actualAge < 18) {
+        newErrors.dateOfBirth = 'Must be at least 18 years old for employment'
       }
     }
-
-    // Federal SSN validation
+    
+    // Basic SSN format validation
     if (formData.ssn) {
-      const ssnValidation = validateSSN(formData.ssn)
-      if (!ssnValidation.isValid) {
-        federalValid = false
-        for (const error of ssnValidation.errors) {
-          newErrors[error.field] = error.message
-          federalErrors.push(`${error.legalCode}: ${error.message}`)
-        }
+      const ssnClean = formData.ssn.replace(/-/g, '')
+      if (ssnClean.length !== 9 || !/^\d{9}$/.test(ssnClean)) {
+        newErrors.ssn = 'SSN must be 9 digits (XXX-XX-XXXX)'
       }
     }
     
     setErrors(newErrors)
     setWarnings(newWarnings)
-    setFederalComplianceErrors(federalErrors)
-    setIsValid(result.isValid && federalValid)
+    setIsValid(result.isValid && Object.keys(newErrors).length === 0)
     
     // Notify parent of validation state changes
     if (onValidationChange) {
-      onValidationChange(result.isValid && federalValid, { ...newErrors, ...newWarnings })
+      onValidationChange(result.isValid && Object.keys(newErrors).length === 0, { ...newErrors, ...newWarnings })
     }
   }
 
@@ -262,16 +244,6 @@ export default function PersonalInformationForm({
 
   const handleSubmit = () => {
     setShowErrors(true) // Show all errors when user tries to submit
-    
-    if (ageValidationBlocked) {
-      alert('FEDERAL COMPLIANCE ERROR: Cannot proceed due to age requirement violations. Employees must be at least 18 years old for hotel positions under federal labor laws.')
-      return
-    }
-    
-    if (federalComplianceErrors.length > 0) {
-      alert('FEDERAL COMPLIANCE ERRORS DETECTED:\n\n' + federalComplianceErrors.join('\n\n') + '\n\nPlease correct all errors before proceeding.')
-      return
-    }
     
     if (isValid) {
       // Extract and save data for auto-fill in other forms
@@ -367,18 +339,7 @@ export default function PersonalInformationForm({
                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
               />
               {shouldShowError('dateOfBirth') && errors.dateOfBirth && (
-                <div className="mt-1">
-                  <p className="text-red-500 text-xs sm:text-sm font-semibold">{errors.dateOfBirth}</p>
-                  {ageValidationBlocked && (
-                    <div className="bg-red-50 border border-red-200 rounded p-2 mt-1">
-                      <p className="text-red-800 text-xs font-bold">⚠️ FEDERAL COMPLIANCE VIOLATION</p>
-                      <p className="text-red-700 text-xs mt-1">
-                        Under the Fair Labor Standards Act (FLSA), employees must be at least 18 years old for most hotel positions. 
-                        Employment of minors may violate federal child labor laws.
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
               )}
             </div>
             <div className="input-group">
@@ -393,17 +354,7 @@ export default function PersonalInformationForm({
                 maxLength={11}
               />
               {shouldShowError('ssn') && errors.ssn && (
-                <div className="mt-1">
-                  <p className="text-red-500 text-xs sm:text-sm font-semibold">{errors.ssn}</p>
-                  {errors.ssn.includes('FEDERAL') && (
-                    <div className="bg-red-50 border border-red-200 rounded p-2 mt-1">
-                      <p className="text-red-800 text-xs font-bold">⚠️ FEDERAL TAX COMPLIANCE ERROR</p>
-                      <p className="text-red-700 text-xs mt-1">
-                        A valid Social Security Number is required under federal tax law (IRC Section 3401) for payroll processing.
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <p className="text-red-500 text-xs mt-1">{errors.ssn}</p>
               )}
             </div>
             <div className="input-group">
@@ -567,22 +518,6 @@ export default function PersonalInformationForm({
         </CardContent>
       </Card>
 
-      {/* Federal Compliance Errors Display */}
-      {federalComplianceErrors.length > 0 && (
-        <Alert className="bg-red-50 border-red-500 py-2">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-xs">
-            <div className="font-bold text-red-800 mb-1">🚨 FEDERAL COMPLIANCE VIOLATIONS DETECTED</div>
-            {federalComplianceErrors.map((error, index) => (
-              <div key={index} className="text-red-700 text-xs mb-1 pl-2 border-l-2 border-red-300">{error}</div>
-            ))}
-            <div className="text-red-800 text-xs font-semibold mt-1">
-              ⚖️ These violations must be resolved before employment can proceed to avoid legal liability.
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Warnings Display */}
       {Object.keys(warnings).length > 0 && (
         <Alert className="bg-yellow-50 border-yellow-200 py-1">
@@ -594,19 +529,6 @@ export default function PersonalInformationForm({
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Federal Compliance Notice - Collapsible */}
-      <details className="group">
-        <summary className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1">
-          <span>🛡️ Federal Employment Compliance Notice</span>
-          <svg className="h-3 w-3 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </summary>
-        <div className="mt-1 text-xs text-blue-800 pl-4 border-l-2 border-blue-200">
-          This information is validated against federal employment laws including the Fair Labor Standards Act (FLSA), Immigration and Nationality Act (INA), and Internal Revenue Code (IRC). All data is securely encrypted and used only for legal employment verification purposes.
-        </div>
-      </details>
 
       {/* Privacy Notice - Compact */}
       <div className="text-xs text-gray-500 flex items-center space-x-1">

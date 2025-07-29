@@ -788,14 +788,14 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 USCIS Number
               </label>
               <input
                 type="text"
                 value={formData.uscis_number}
                 onChange={(e) => handleInputChange('uscis_number', e.target.value)}
-                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                className={`w-full p-2 sm:p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm ${
                   shouldShowError('uscis_number') && errors.uscis_number ? 'border-red-500' : 'border-gray-300'
                 }`}
                 placeholder=""
@@ -803,14 +803,14 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 I-94 Admission Number
               </label>
               <input
                 type="text"
                 value={formData.i94_admission_number}
                 onChange={(e) => handleInputChange('i94_admission_number', e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                 placeholder=""
               />
             </div>
@@ -818,40 +818,40 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
             {formData.citizenship_status === 'authorized_alien' && (
               <>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                     Foreign Passport Number
                   </label>
                   <input
                     type="text"
                     value={formData.passport_number}
                     onChange={(e) => handleInputChange('passport_number', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                     placeholder=""
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                     Country of Issuance
                   </label>
                   <input
                     type="text"
                     value={formData.passport_country}
                     onChange={(e) => handleInputChange('passport_country', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
                     placeholder=""
                   />
                 </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                     Work Authorization Expiration Date *
                   </label>
                   <input
                     type="date"
                     value={formData.work_authorization_expiration}
                     onChange={(e) => handleInputChange('work_authorization_expiration', e.target.value)}
-                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    className={`w-full p-2 sm:p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm ${
                       shouldShowError('work_authorization_expiration') && errors.work_authorization_expiration ? 'border-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -931,7 +931,7 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
           <h5 className="font-bold text-green-900 text-base mb-3">Employee Signature Date</h5>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 Date of Signature (mm/dd/yyyy) *
               </label>
               <input
@@ -954,7 +954,7 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1 sm:mb-2">
                 Today's Date (Reference)
               </label>
               <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm text-gray-700 font-medium">
@@ -1020,34 +1020,34 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
       
       {/* Enhanced Header - Compact */}
       <div className="flex-shrink-0 bg-white shadow-sm border-b">
-        <div className="max-w-5xl mx-auto p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 bg-gradient-to-br from-hotel-primary to-hotel-primary-dark rounded-lg flex items-center justify-center shadow-sm">
-              <FileText className="w-5 h-5 text-white" />
+        <div className="max-w-5xl mx-auto p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+            <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-hotel-primary to-hotel-primary-dark rounded-lg flex items-center justify-center shadow-sm">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 leading-tight">{currentContent.title}</h1>
-              <p className="text-sm text-gray-600">{currentContent.subtitle}</p>
+              <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">{currentContent.title}</h1>
+              <p className="text-xs sm:text-sm text-gray-600">{currentContent.subtitle}</p>
             </div>
           </div>
 
           {/* Enhanced Progress - Compact */}
-          <div className="mt-3">
-            <div className="flex justify-between items-center mb-2">
-              <div>
-                <h3 className="text-base font-semibold text-gray-900">{currentContent.sections[currentSection].title}</h3>
-                <p className="text-xs text-gray-600">{currentContent.sections[currentSection].description}</p>
+          <div className="mt-2 sm:mt-3">
+            <div className="flex justify-between items-center mb-1 sm:mb-2">
+              <div className="flex-1 min-w-0 mr-2">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{currentContent.sections[currentSection].title}</h3>
+                <p className="text-xs text-gray-600 hidden sm:block">{currentContent.sections[currentSection].description}</p>
               </div>
-              <div className="text-right">
-                <div className="text-xs font-medium text-gray-500">Step {currentSection + 1} of {currentContent.sections.length}</div>
-                <div className="text-lg font-bold text-hotel-primary">
+              <div className="text-right flex-shrink-0">
+                <div className="text-xs font-medium text-gray-500 hidden sm:block">Step {currentSection + 1} of {currentContent.sections.length}</div>
+                <div className="text-sm sm:text-lg font-bold text-hotel-primary">
                   {Math.round(((currentSection + 1) / currentContent.sections.length) * 100)}%
                 </div>
               </div>
             </div>
-            <div className="relative w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div className="relative w-full bg-gray-200 rounded-full h-1.5 sm:h-2 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-hotel-primary to-hotel-primary-light h-2 rounded-full transition-all duration-500 ease-out"
+                className="bg-gradient-to-r from-hotel-primary to-hotel-primary-light h-full rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${((currentSection + 1) / currentContent.sections.length) * 100}%` }}
               />
             </div>
@@ -1059,16 +1059,16 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
       <div className="flex-1 max-w-5xl mx-auto p-4 overflow-auto">
         <div className="h-full flex flex-col card-elevated animate-fade-in">
           <div className="flex-1 p-6 overflow-auto">
-            <div className="mb-4">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="h-8 w-8 bg-hotel-primary text-white rounded-full flex items-center justify-center text-sm font-bold">
+            <div className="mb-3 sm:mb-4">
+              <div className="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+                <div className="h-6 w-6 sm:h-8 sm:w-8 bg-hotel-primary text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">
                   {currentSection + 1}
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                <div className="min-w-0">
+                  <h2 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
                     {currentContent.sections[currentSection].title}
                   </h2>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
                     {currentContent.sections[currentSection].description}
                   </p>
                 </div>
