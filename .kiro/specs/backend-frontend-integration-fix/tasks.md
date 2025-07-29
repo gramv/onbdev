@@ -1,13 +1,13 @@
 # Implementation Plan
 
-- [-] 1. Fix Critical Authentication Issues
+- [x] 1. Fix Critical Authentication Issues
   - Implement proper password hashing and storage in Supabase
   - Fix login endpoint to handle bcrypt password verification correctly
   - Update test account creation to use proper password hashing
   - Test authentication flow with both HR and Manager accounts
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 2. Standardize API Response Formats
+- [-] 2. Standardize API Response Formats
   - Create standardized response wrapper for all API endpoints
   - Implement consistent error response format with 'detail' field
   - Update all endpoints to return proper HTTP status codes

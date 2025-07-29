@@ -20,6 +20,22 @@ interface DigitalSignatureData {
   acknowledgments: string[]
   termsAccepted: boolean
   identityVerified: boolean
+  // ESIGN Act Required Metadata
+  userAgent: string
+  browserInfo: {
+    platform: string
+    language: string
+    timezone: string
+    screenResolution: string
+  }
+  signatureMethod: 'draw' | 'type'
+  signatureHash: string
+  consentTimestamp: string
+  auditTrail: {
+    action: string
+    timestamp: string
+    details: string
+  }[]
 }
 
 interface DigitalSignatureCaptureProps {
@@ -57,6 +73,9 @@ export default function DigitalSignatureCapture({
   )
   const [ipAddress, setIpAddress] = useState('')
   const [canSign, setCanSign] = useState(false)
+  const [auditTrail, setAuditTrail] = useState<any[]>([])
+  const [browserInfo, setBrowserInfo] = useState<any>({})
+  const [consentTimestamp, setConsentTimestamp] = useState<string>('')
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -86,7 +105,10 @@ export default function DigitalSignatureCapture({
         'signature_verification': 'Signature Verification',
         'all_acknowledgments_required': 'All acknowledgments must be checked to proceed.',
         'signature_required_error': 'A signature is required to complete this document.',
-        'processing': 'Processing signature...'
+        'processing': 'Processing signature...',
+        'metadata_captured': 'Compliance metadata captured',
+        'audit_trail': 'Audit Trail',
+        'compliance_status': 'Compliance Status: Active'
       },
       es: {
         'digital_signature': 'Firma Digital',
@@ -113,6 +135,19 @@ export default function DigitalSignatureCapture({
       .then(response => response.json())
       .then(data => setIpAddress(data.ip))
       .catch(() => setIpAddress('Unknown'))
+    
+    // Capture browser information for ESIGN Act compliance
+    const capturedBrowserInfo = {
+      platform: navigator.platform || 'Unknown',
+      language: navigator.language || 'en-US',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown',
+      screenResolution: `${window.screen.width}x${window.screen.height}`,
+      userAgent: navigator.userAgent
+    }
+    setBrowserInfo(capturedBrowserInfo)
+    
+    // Add initial audit trail entry
+    addAuditTrailEntry('Signature capture initiated', 'User opened digital signature interface')
   }, [])
 
   useEffect(() => {
@@ -204,10 +239,40 @@ export default function DigitalSignatureCapture({
     return 'data:image/svg+xml;base64,' + btoa(svg)
   }
 
+  const generateSignatureHash = (data: string): string => {
+    // Simple hash function for demo - in production use crypto.subtle.digest
+    let hash = 0
+    for (let i = 0; i < data.length; i++) {
+      const char = data.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash // Convert to 32-bit integer
+    }
+    return Math.abs(hash).toString(16).padStart(8, '0')
+  }
+  
+  const addAuditTrailEntry = (action: string, details: string) => {
+    const entry = {
+      action,
+      timestamp: new Date().toISOString(),
+      details
+    }
+    setAuditTrail(prev => [...prev, entry])
+  }
+  
   const handleSubmitSignature = async () => {
+    // Record consent timestamp
+    const currentConsentTimestamp = new Date().toISOString()
+    setConsentTimestamp(currentConsentTimestamp)
+    addAuditTrailEntry('Consent provided', 'User consented to electronic signature')
+    
     const finalSignatureData = signatureMethod === 'draw' 
       ? signatureData 
       : generateTypedSignature(typedName)
+    
+    // Generate signature hash for integrity verification
+    const signatureHash = generateSignatureHash(finalSignatureData + currentConsentTimestamp)
+    
+    addAuditTrailEntry('Signature captured', `Signature method: ${signatureMethod}, Hash: ${signatureHash}`)
 
     const signatureDataToSubmit: DigitalSignatureData = {
       signatureType,
@@ -219,7 +284,23 @@ export default function DigitalSignatureCapture({
       documentName,
       acknowledgments,
       termsAccepted,
-      identityVerified: requireIdentityVerification ? identityVerified : true
+      identityVerified: requireIdentityVerification ? identityVerified : true,
+      // ESIGN Act metadata
+      userAgent: navigator.userAgent,
+      browserInfo: {
+        platform: browserInfo.platform,
+        language: browserInfo.language,
+        timezone: browserInfo.timezone,
+        screenResolution: browserInfo.screenResolution
+      },
+      signatureMethod,
+      signatureHash,
+      consentTimestamp: currentConsentTimestamp,
+      auditTrail: [...auditTrail, {
+        action: 'Signature submitted',
+        timestamp: new Date().toISOString(),
+        details: 'Digital signature successfully captured and submitted'
+      }]
     }
 
     onSignatureComplete(signatureDataToSubmit)
@@ -229,6 +310,11 @@ export default function DigitalSignatureCapture({
     const newChecked = [...acknowledgementsChecked]
     newChecked[index] = checked
     setAcknowledgementsChecked(newChecked)
+    
+    addAuditTrailEntry(
+      checked ? 'Acknowledgment checked' : 'Acknowledgment unchecked',
+      `Item ${index + 1}: ${acknowledgments[index].substring(0, 50)}...`
+    )
   }
 
   return (
@@ -266,6 +352,7 @@ export default function DigitalSignatureCapture({
                 {new Date().toLocaleString()}
               </div>
               {ipAddress && <div>{t('ip_address').replace('{ip}', ipAddress)}</div>}
+              {browserInfo.platform && <div className="text-xs">Platform: {browserInfo.platform}</div>}
             </div>
           </div>
         </CardContent>
@@ -308,7 +395,12 @@ export default function DigitalSignatureCapture({
             <Checkbox
               id="esign-consent"
               checked={termsAccepted}
-              onCheckedChange={(checked) => setTermsAccepted(!!checked)}
+              onCheckedChange={(checked) => {
+                setTermsAccepted(!!checked)
+                if (checked) {
+                  addAuditTrailEntry('ESIGN consent provided', 'User agreed to electronic signature terms')
+                }
+              }}
             />
             <Label htmlFor="esign-consent" className="text-sm leading-relaxed">
               {t('electronic_signature_consent')}
@@ -331,7 +423,19 @@ export default function DigitalSignatureCapture({
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              {t('esign_act_notice')}
+              <div className="space-y-2">
+                <p>{t('esign_act_notice')}</p>
+                <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-600">
+                  <p className="font-semibold mb-1">ESIGN Act Compliance Metadata:</p>
+                  <ul className="space-y-1">
+                    <li>• IP Address: {ipAddress || 'Capturing...'}</li>
+                    <li>• Browser: {browserInfo.userAgent ? browserInfo.userAgent.split(' ')[0] : 'Unknown'}</li>
+                    <li>• Timezone: {browserInfo.timezone || 'Unknown'}</li>
+                    <li>• Language: {browserInfo.language || 'Unknown'}</li>
+                    <li>• Device: {browserInfo.platform || 'Unknown'}</li>
+                  </ul>
+                </div>
+              </div>
             </AlertDescription>
           </Alert>
         </CardContent>

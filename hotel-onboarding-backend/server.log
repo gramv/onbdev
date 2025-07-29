@@ -266,3 +266,70 @@ INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/us
 INFO:     127.0.0.1:65017 - "POST /auth/login HTTP/1.1" 401 Unauthorized
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
 INFO:     127.0.0.1:65053 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49273 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49276 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.manager%40hoteltest.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:     127.0.0.1:49282 - "POST /auth/login HTTP/1.1" 403 Forbidden
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49330 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49362 - "POST /auth/login HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49605 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49612 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.manager%40hoteltest.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:     127.0.0.1:49614 - "POST /auth/login HTTP/1.1" 403 Forbidden
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49812 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49819 - "POST /auth/login HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.nonexistent%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:49822 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49824 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49826 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49828 - "GET /auth/me HTTP/1.1" 403 Forbidden
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:     127.0.0.1:49830 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:50107 - "POST /auth/login HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50425 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:50453 - "POST /auth/login HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:50489 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:50492 - "POST /auth/login HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.nonexistent%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:50498 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50500 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50502 - "POST /auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50504 - "GET /auth/me HTTP/1.1" 403 Forbidden
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:     127.0.0.1:50506 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53558 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:53558 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.manager%40hoteltest.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:     127.0.0.1:53558 - "POST /auth/login HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:53558 - "GET /nonexistent-endpoint HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53558 - "POST /auth/login HTTP/1.1" 400 Bad Request
