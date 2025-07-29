@@ -4,8 +4,7 @@ Test script for Task 4: Implement Missing API Endpoints
 Verifies all required endpoints are working correctly
 """
 
-import asyncio
-import aiohttp
+import requests
 import json
 import sys
 from datetime import datetime
@@ -16,21 +15,11 @@ TEST_PROPERTY_ID = "prop_test_001"
 
 class EndpointTester:
     def __init__(self):
-        self.session = None
         self.hr_token = None
         self.manager_token = None
         self.test_results = []
 
-    async def setup_session(self):
-        """Setup HTTP session"""
-        self.session = aiohttp.ClientSession()
-
-    async def cleanup_session(self):
-        """Cleanup HTTP session"""
-        if self.session:
-            await self.session.close()
-
-    async def login_as_hr(self):
+    def login_as_hr(self):
         """Login as HR user to get token"""
         try:
             login_data = {
@@ -38,25 +27,24 @@ class EndpointTester:
                 "password": "admin123"
             }
             
-            async with self.session.post(f"{BASE_URL}/auth/login", json=login_data) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    if data.get("success") and data.get("data", {}).get("token"):
-                        self.hr_token = data["data"]["token"]
-                        print("✅ HR login successful")
-                        return True
-                    else:
-                        print(f"❌ HR login failed: {data}")
-                        return False
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and data.get("data", {}).get("token"):
+                    self.hr_token = data["data"]["token"]
+                    print("✅ HR login successful")
+                    return True
                 else:
-                    text = await response.text()
-                    print(f"❌ HR login failed with status {response.status}: {text}")
+                    print(f"❌ HR login failed: {data}")
                     return False
+            else:
+                print(f"❌ HR login failed with status {response.status_code}: {response.text}")
+                return False
         except Exception as e:
             print(f"❌ HR login error: {e}")
             return False
 
-    async def login_as_manager(self):
+    def login_as_manager(self):
         """Login as Manager user to get token"""
         try:
             login_data = {
@@ -64,40 +52,41 @@ class EndpointTester:
                 "password": "manager123"
             }
             
-            async with self.session.post(f"{BASE_URL}/auth/login", json=login_data) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    if data.get("success") and data.get("data", {}).get("token"):
-                        self.manager_token = data["data"]["token"]
-                        print("✅ Manager login successful")
-                        return True
-                    else:
-                        print(f"❌ Manager login failed: {data}")
-                        return False
+            response = requests.post(f"{BASE_URL}/auth/login", json=login_data)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") and data.get("data", {}).get("token"):
+                    self.manager_token = data["data"]["token"]
+                    print("✅ Manager login successful")
+                    return True
                 else:
-                    text = await response.text()
-                    print(f"❌ Manager login failed with status {response.status}: {text}")
+                    print(f"❌ Manager login failed: {data}")
                     return False
+            else:
+                print(f"❌ Manager login failed with status {response.status_code}: {response.text}")
+                return False
         except Exception as e:
             print(f"❌ Manager login error: {e}")
             return False
 
-    async def test_endpoint(self, method, endpoint, headers=None, data=None, expected_status=200, description=""):
+    def test_endpoint(self, method, endpoint, headers=None, data=None, expected_status=200, description=""):
         """Test a specific endpoint"""
         try:
             url = f"{BASE_URL}{endpoint}"
             
             if method.upper() == "GET":
-                async with self.session.get(url, headers=headers) as response:
-                    status = response.status
-                    response_data = await response.json() if response.content_type == 'application/json' else await response.text()
+                response = requests.get(url, headers=headers)
             elif method.upper() == "POST":
-                async with self.session.post(url, headers=headers, json=data) as response:
-                    status = response.status
-                    response_data = await response.json() if response.content_type == 'application/json' else await response.text()
+                response = requests.post(url, headers=headers, json=data)
             else:
                 print(f"❌ Unsupported method: {method}")
                 return False
+
+            status = response.status_code
+            try:
+                response_data = response.json()
+            except:
+                response_data = response.text
 
             success = status == expected_status
             result = {

@@ -174,71 +174,70 @@ export default function EnhancedOnboardingPortal() {
     try {
       setLoading(true)
       
-      // For testing purposes, bypass backend verification and use mock data
-      // Allow access with any token or no token (demo mode)
-      if (tokenToVerify === 'test-token' || tokenToVerify === 'demo-token' || tokenToVerify) {
-        const mockOnboardingData = {
-          valid: true,
-          session: {
-            id: 'test-session-1',
-            status: 'in_progress',
-            current_step: 'welcome',
-            progress_percentage: 0,
-            language_preference: 'en',
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
-          },
-          employee: {
-            id: 'demo-emp-1',
-            name: 'Demo Employee',
-            email: 'demo.employee@hoteltest.com',
-            position: 'Front Desk Agent',
-            department: 'Front Desk',
-            hire_date: '2025-01-25',
-            personal_info: {}
-          },
-          property: {
-            name: 'Grand Hotel & Resort',
-            address: '123 Hotel Street, City, State 12345'
-          },
-          onboarding_steps: ONBOARDING_STEPS.map(step => step.id)
-        }
+      // Try to verify token with backend
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/onboard/verify?token=${tokenToVerify}`)
         
-        setOnboardingData(mockOnboardingData)
-        setLanguage((mockOnboardingData.session.language_preference as 'en' | 'es') || 'en')
-        
-        // Load persisted data if available
-        const persistedData = localStorage.getItem(`onboarding_${token}`)
-        if (persistedData) {
-          const parsed = JSON.parse(persistedData)
-          setFormData(parsed.form_data || {})
-          setCurrentStepIndex(parsed.currentStepIndex || 0)
-          setLanguage(parsed.language_preference || 'en')
-          console.log('Loaded persisted data:', parsed)
+        if (response.data.success) {
+          const onboardingData = response.data.data
+          setOnboardingData(onboardingData)
+          setLanguage(onboardingData.session.language_preference || 'en')
+          
+          // Load any saved progress from localStorage
+          const savedSession = autoFillManager.getSessionData()
+          if (savedSession.formData) {
+            setFormData(savedSession.formData)
+          }
+          
+          // Set current step index based on session data
+          const stepIndex = ONBOARDING_STEPS.findIndex(step => step.id === onboardingData.session.current_step)
+          if (stepIndex >= 0) {
+            setCurrentStepIndex(stepIndex)
+          }
         } else {
-          setCurrentStepIndex(0) // Start at welcome step
+          setError(response.data.message || 'Invalid or expired onboarding link.')
         }
-        
-      } else {
-        setError('Invalid or expired onboarding link.')
+      } catch (apiError) {
+        // Fallback to demo mode for testing if API fails
+        if (tokenToVerify === 'test-token' || tokenToVerify === 'demo-token' || !token) {
+          const mockOnboardingData = {
+            valid: true,
+            session: {
+              id: 'test-session-1',
+              status: 'in_progress',
+              current_step: 'welcome',
+              progress_percentage: 0,
+              language_preference: 'en',
+              expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            employee: {
+              id: 'demo-emp-1',
+              name: 'Demo Employee',
+              email: 'demo.employee@hoteltest.com',
+              position: 'Front Desk Agent',
+              department: 'Guest Services',
+              hire_date: new Date().toISOString(),
+              personal_info: {}
+            },
+            property: {
+              name: 'Grand Vista Hotel',
+              address: '123 Main Street, Demo City, DC 12345'
+            },
+            onboarding_steps: ONBOARDING_STEPS.map(s => s.id)
+          }
+          
+          setOnboardingData({
+            session: mockOnboardingData.session,
+            employee: mockOnboardingData.employee,
+            property: mockOnboardingData.property,
+            onboarding_steps: mockOnboardingData.onboarding_steps
+          })
+          setLanguage('en')
+        } else {
+          console.error('Token verification error:', apiError)
+          setError('Unable to verify onboarding link. Please try again later.')
+        }
       }
-      
-      // Uncomment below for real backend integration:
-      /*
-      const response = await axios.get(`http://127.0.0.1:8000/onboard/verify?token=${token}`)
-      
-      if (response.data.valid) {
-        setOnboardingData(response.data)
-        setLanguage(response.data.session.language_preference || 'en')
-        
-        // Set current step index based on backend data
-        const stepIndex = ONBOARDING_STEPS.findIndex(
-          step => step.id === response.data.session.current_step
-        )
-        setCurrentStepIndex(stepIndex >= 0 ? stepIndex : 0)
-      } else {
-        setError('Invalid or expired onboarding link.')
-      }
-      */
     } catch (error: any) {
       console.error('Token verification failed:', error)
       if (error.response?.status === 401) {
