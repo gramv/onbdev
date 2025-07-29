@@ -7,21 +7,21 @@
   - Test authentication flow with both HR and Manager accounts
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [-] 2. Standardize API Response Formats
+- [x] 2. Standardize API Response Formats
   - Create standardized response wrapper for all API endpoints
   - Implement consistent error response format with 'detail' field
   - Update all endpoints to return proper HTTP status codes
   - Add response validation middleware
   - _Requirements: 2.1, 2.2, 2.3, 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 3. Fix URL Parameter Inconsistencies
+- [x] 3. Fix URL Parameter Inconsistencies
   - Update backend endpoints to use consistent {id} parameter format
   - Ensure frontend API calls match backend endpoint patterns
   - Fix template literal usage in frontend for dynamic URLs
   - Test all endpoint parameter passing
   - _Requirements: 2.1, 2.4_
 
-- [ ] 4. Implement Missing API Endpoints
+- [-] 4. Implement Missing API Endpoints
   - Add missing /manager/dashboard-stats endpoint
   - Implement /properties/{id}/info public endpoint
   - Add /hr/applications/{id}/history endpoint

@@ -569,13 +569,13 @@ async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
             detail="An error occurred while fetching dashboard data"
         )
 
-@app.get("/hr/properties")
+@app.get("/hr/properties", response_model=PropertiesResponse)
 async def get_hr_properties(current_user: User = Depends(require_hr_role)):
     """Get all properties for HR using Supabase"""
     try:
         properties = await supabase_service.get_all_properties()
         
-        # Convert to dict format for frontend compatibility with manager info
+        # Convert to standardized format
         result = []
         for prop in properties:
             # Get manager assignments for this property
@@ -589,24 +589,34 @@ async def get_hr_properties(current_user: User = Depends(require_hr_role)):
             base_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
             qr_code_url = f"{base_url}/apply/{prop.id}"
             
-            result.append({
-                "id": prop.id,
-                "name": prop.name,
-                "address": prop.address,
-                "city": prop.city,
-                "state": prop.state,
-                "zip_code": prop.zip_code,
-                "phone": prop.phone,
-                "manager_ids": manager_ids,
-                "qr_code_url": qr_code_url,
-                "is_active": prop.is_active,
-                "created_at": prop.created_at.isoformat() if prop.created_at else None
-            })
+            property_data = PropertyData(
+                id=prop.id,
+                name=prop.name,
+                address=prop.address,
+                city=prop.city,
+                state=prop.state,
+                zip_code=prop.zip_code,
+                phone=prop.phone,
+                manager_ids=manager_ids,
+                qr_code_url=qr_code_url,
+                is_active=prop.is_active,
+                created_at=prop.created_at.isoformat() if prop.created_at else None
+            )
+            result.append(property_data.model_dump())
         
-        return result
+        return success_response(
+            data=result,
+            message=f"Retrieved {len(result)} properties"
+        )
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve properties: {str(e)}")
+        logger.error(f"Failed to retrieve HR properties: {e}")
+        return error_response(
+            message="Failed to retrieve properties",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500,
+            detail="An error occurred while fetching properties data"
+        )
 
 @app.post("/hr/properties")
 async def create_property(
@@ -642,9 +652,9 @@ async def create_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create property: {str(e)}")
 
-@app.put("/hr/properties/{property_id}")
+@app.put("/hr/properties/{id}")
 async def update_property(
-    property_id: str,
+    id: str,
     name: str = Form(...),
     address: str = Form(...), 
     city: str = Form(...),
@@ -656,7 +666,7 @@ async def update_property(
     """Update an existing property (HR only) using Supabase"""
     try:
         # Check if property exists
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
         
@@ -670,11 +680,11 @@ async def update_property(
             "phone": phone
         }
         
-        result = supabase_service.client.table('properties').update(update_data).eq('id', property_id).execute()
+        result = supabase_service.client.table('properties').update(update_data).eq('id', id).execute()
         
         return {
             "message": "Property updated successfully",
-            "property": {**update_data, "id": property_id}
+            "property": {**update_data, "id": id}
         }
         
     except HTTPException:
@@ -682,21 +692,21 @@ async def update_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update property: {str(e)}")
 
-@app.delete("/hr/properties/{property_id}")
+@app.delete("/hr/properties/{id}")
 async def delete_property(
-    property_id: str,
+    id: str,
     current_user: User = Depends(require_hr_role)
 ):
     """Delete a property (HR only) using Supabase"""
     try:
         # Check if property exists
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
         
         # Check for active applications or employees
-        applications = await supabase_service.get_applications_by_property(property_id)
-        employees = await supabase_service.get_employees_by_property(property_id)
+        applications = await supabase_service.get_applications_by_property(id)
+        employees = await supabase_service.get_employees_by_property(id)
         
         active_applications = [app for app in applications if app.status == "pending"]
         active_employees = [emp for emp in employees if emp.employment_status == "active"]
@@ -708,7 +718,7 @@ async def delete_property(
             )
         
         # Delete property
-        result = supabase_service.client.table('properties').delete().eq('id', property_id).execute()
+        result = supabase_service.client.table('properties').delete().eq('id', id).execute()
         
         return {"message": "Property deleted successfully"}
         
@@ -717,20 +727,20 @@ async def delete_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete property: {str(e)}")
 
-@app.get("/hr/properties/{property_id}/managers")
+@app.get("/hr/properties/{id}/managers")
 async def get_property_managers(
-    property_id: str,
+    id: str,
     current_user: User = Depends(require_hr_or_manager_role)
 ):
     """Get all managers assigned to a property using Supabase"""
     try:
         # Verify property exists
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
         
         # Get manager assignments for this property
-        response = supabase_service.client.table('manager_properties').select('manager_id').eq('property_id', property_id).execute()
+        response = supabase_service.client.table('manager_properties').select('manager_id').eq('property_id', id).execute()
         
         manager_ids = [row['manager_id'] for row in response.data]
         
@@ -755,16 +765,16 @@ async def get_property_managers(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get property managers: {str(e)}")
 
-@app.post("/hr/properties/{property_id}/managers")
+@app.post("/hr/properties/{id}/managers")
 async def assign_manager_to_property(
-    property_id: str,
+    id: str,
     manager_id: str = Form(...),
     current_user: User = Depends(require_hr_role)
 ):
     """Assign a manager to a property (HR only) using Supabase"""
     try:
         # Verify property exists
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
         
@@ -780,7 +790,7 @@ async def assign_manager_to_property(
             raise HTTPException(status_code=400, detail="Cannot assign inactive manager")
         
         # Check if already assigned
-        existing = supabase_service.client.table('manager_properties').select('*').eq('manager_id', manager_id).eq('property_id', property_id).execute()
+        existing = supabase_service.client.table('manager_properties').select('*').eq('manager_id', manager_id).eq('property_id', id).execute()
         
         if existing.data:
             return {
@@ -791,7 +801,7 @@ async def assign_manager_to_property(
         # Create assignment
         assignment_data = {
             "manager_id": manager_id,
-            "property_id": property_id,
+            "property_id": id,
             "assigned_at": datetime.now(timezone.utc).isoformat()
         }
         
@@ -807,16 +817,16 @@ async def assign_manager_to_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to assign manager: {str(e)}")
 
-@app.delete("/hr/properties/{property_id}/managers/{manager_id}")
+@app.delete("/hr/properties/{id}/managers/{manager_id}")
 async def remove_manager_from_property(
-    property_id: str,
+    id: str,
     manager_id: str,
     current_user: User = Depends(require_hr_role)
 ):
     """Remove a manager from a property (HR only) using Supabase"""
     try:
         # Verify property and manager exist
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
         
@@ -825,7 +835,7 @@ async def remove_manager_from_property(
             raise HTTPException(status_code=404, detail="Manager not found")
         
         # Remove assignment
-        result = supabase_service.client.table('manager_properties').delete().eq('manager_id', manager_id).eq('property_id', property_id).execute()
+        result = supabase_service.client.table('manager_properties').delete().eq('manager_id', manager_id).eq('property_id', id).execute()
         
         if not result.data:
             raise HTTPException(status_code=404, detail="Manager assignment not found")
@@ -840,7 +850,7 @@ async def remove_manager_from_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to remove manager: {str(e)}")
 
-@app.get("/hr/applications")
+@app.get("/hr/applications", response_model=ApplicationsResponse)
 async def get_hr_applications(
     property_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -916,27 +926,37 @@ async def get_hr_applications(
         if limit:
             applications = applications[:limit]
         
-        # Convert to dict format for frontend compatibility
+        # Convert to standardized format
         result = []
         for app in applications:
-            result.append({
-                "id": app.id,
-                "property_id": app.property_id,
-                "department": app.department,
-                "position": app.position,
-                "applicant_data": app.applicant_data,
-                "status": app.status,
-                "applied_at": app.applied_at.isoformat(),
-                "reviewed_by": getattr(app, 'reviewed_by', None),
-                "reviewed_at": getattr(app, 'reviewed_at', None).isoformat() if getattr(app, 'reviewed_at', None) else None
-            })
+            app_data = ApplicationData(
+                id=app.id,
+                property_id=app.property_id,
+                department=app.department,
+                position=app.position,
+                applicant_data=app.applicant_data,
+                status=app.status,
+                applied_at=app.applied_at.isoformat(),
+                reviewed_by=getattr(app, 'reviewed_by', None),
+                reviewed_at=getattr(app, 'reviewed_at', None).isoformat() if getattr(app, 'reviewed_at', None) else None
+            )
+            result.append(app_data.model_dump())
         
-        return result
+        return success_response(
+            data=result,
+            message=f"Retrieved {len(result)} applications"
+        )
         
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve applications: {str(e)}")
+        logger.error(f"Failed to retrieve HR applications: {e}")
+        return error_response(
+            message="Failed to retrieve applications",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500,
+            detail="An error occurred while fetching applications data"
+        )
 
 @app.get("/manager/property")
 async def get_manager_property(current_user: User = Depends(require_manager_role)):
@@ -1003,16 +1023,16 @@ async def get_manager_dashboard_stats(current_user: User = Depends(require_manag
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve manager dashboard stats: {str(e)}")
 
-@app.get("/api/employees/{employee_id}/welcome-data")
+@app.get("/api/employees/{id}/welcome-data")
 async def get_employee_welcome_data(
-    employee_id: str,
+    id: str,
     token: Optional[str] = Query(None),
     current_user: Optional[User] = Depends(get_current_user)
 ):
     """Get comprehensive welcome data for the onboarding welcome page using Supabase"""
     try:
         # For now, implement basic functionality to get employee data
-        employee = await supabase_service.get_employee_by_id(employee_id)
+        employee = await supabase_service.get_employee_by_id(id)
         if not employee:
             raise HTTPException(status_code=404, detail="Employee not found")
         
@@ -1114,9 +1134,9 @@ async def get_employees(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve employees: {str(e)}")
 
-@app.post("/applications/{application_id}/approve")
+@app.post("/applications/{id}/approve")
 async def approve_application(
-    application_id: str,
+    id: str,
     job_title: str = Form(...),
     start_date: str = Form(...),
     start_time: str = Form(...),
@@ -1130,7 +1150,7 @@ async def approve_application(
     """Approve application using Supabase"""
     try:
         # Get application from Supabase
-        application = await supabase_service.get_application_by_id(application_id)
+        application = await supabase_service.get_application_by_id(id)
         if not application:
             raise HTTPException(status_code=404, detail="Application not found")
         
@@ -1142,11 +1162,11 @@ async def approve_application(
             raise HTTPException(status_code=403, detail="Access denied")
         
         # Update application status
-        await supabase_service.update_application_status(application_id, "approved", current_user.id)
+        await supabase_service.update_application_status(id, "approved", current_user.id)
         
         # Create employee record
         employee_data = {
-            "application_id": application_id,
+            "application_id": id,
             "property_id": application.property_id,
             "manager_id": current_user.id,
             "department": application.department,
@@ -1169,7 +1189,7 @@ async def approve_application(
         
         # Create onboarding session
         onboarding_session = await onboarding_orchestrator.initiate_onboarding(
-            application_id=application_id,
+            application_id=id,
             employee_id=employee.id,
             property_id=application.property_id,
             manager_id=current_user.id,
@@ -1178,7 +1198,7 @@ async def approve_application(
         
         # Move competing applications to talent pool
         talent_pool_count = await supabase_service.move_competing_applications_to_talent_pool(
-            application.property_id, application.position, application_id, current_user.id
+            application.property_id, application.position, id, current_user.id
         )
         
         # Generate onboarding URL
@@ -1249,16 +1269,16 @@ async def approve_application(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Approval failed: {str(e)}")
 
-@app.post("/applications/{application_id}/reject")
+@app.post("/applications/{id}/reject")
 async def reject_application(
-    application_id: str,
+    id: str,
     rejection_reason: str = Form(...),
     current_user: User = Depends(require_manager_role)
 ):
     """Reject application with reason (Manager only) using Supabase"""
     try:
         # Get application
-        application = await supabase_service.get_application_by_id(application_id)
+        application = await supabase_service.get_application_by_id(id)
         if not application:
             raise HTTPException(status_code=404, detail="Application not found")
         
@@ -1276,14 +1296,14 @@ async def reject_application(
             raise HTTPException(status_code=400, detail="Rejection reason is required")
         
         # Move to talent pool instead of reject
-        await supabase_service.update_application_status(application_id, "talent_pool", current_user.id)
+        await supabase_service.update_application_status(id, "talent_pool", current_user.id)
         
         # Update rejection reason
         update_data = {
             "rejection_reason": rejection_reason.strip(),
             "talent_pool_date": datetime.now(timezone.utc).isoformat()
         }
-        supabase_service.client.table('job_applications').update(update_data).eq('id', application_id).execute()
+        supabase_service.client.table('job_applications').update(update_data).eq('id', id).execute()
         
         return {
             "message": "Application moved to talent pool successfully",
@@ -1351,15 +1371,15 @@ async def get_talent_pool(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve talent pool: {str(e)}")
 
-@app.post("/hr/applications/{application_id}/reactivate")
+@app.post("/hr/applications/{id}/reactivate")
 async def reactivate_application(
-    application_id: str,
+    id: str,
     current_user: User = Depends(require_hr_or_manager_role)
 ):
     """Reactivate application from talent pool using Supabase"""
     try:
         # Get application
-        application = await supabase_service.get_application_by_id(application_id)
+        application = await supabase_service.get_application_by_id(id)
         if not application:
             raise HTTPException(status_code=404, detail="Application not found")
         
@@ -1374,14 +1394,14 @@ async def reactivate_application(
                 raise HTTPException(status_code=403, detail="Access denied")
         
         # Reactivate application
-        await supabase_service.update_application_status(application_id, "pending", current_user.id)
+        await supabase_service.update_application_status(id, "pending", current_user.id)
         
         # Clear talent pool data
         update_data = {
             "rejection_reason": None,
             "talent_pool_date": None
         }
-        supabase_service.client.table('job_applications').update(update_data).eq('id', application_id).execute()
+        supabase_service.client.table('job_applications').update(update_data).eq('id', id).execute()
         
         return {
             "message": "Application reactivated successfully",
@@ -1572,14 +1592,14 @@ async def get_hr_employees(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve HR employees: {str(e)}")
 
-@app.get("/hr/employees/{employee_id}")
+@app.get("/hr/employees/{id}")
 async def get_hr_employee_detail(
-    employee_id: str,
+    id: str,
     current_user: User = Depends(require_hr_role)
 ):
     """Get detailed employee information for HR using Supabase"""
     try:
-        employee = await supabase_service.get_employee_by_id(employee_id)
+        employee = await supabase_service.get_employee_by_id(id)
         if not employee:
             raise HTTPException(status_code=404, detail="Employee not found")
         
@@ -1688,12 +1708,12 @@ async def get_application_stats(current_user: User = Depends(require_hr_or_manag
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve application stats: {str(e)}")
 
-@app.post("/apply/{property_id}")
-async def submit_job_application(property_id: str, application_data: JobApplicationData):
+@app.post("/apply/{id}")
+async def submit_job_application(id: str, application_data: JobApplicationData):
     """Submit job application to Supabase"""
     try:
         # Validate property exists
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
         
@@ -1702,7 +1722,7 @@ async def submit_job_application(property_id: str, application_data: JobApplicat
         
         # Check for duplicates
         existing_applications = supabase_service.get_applications_by_email_and_property_sync(
-            application_data.email.lower(), property_id
+            application_data.email.lower(), id
         )
         
         for app in existing_applications:
@@ -1714,7 +1734,7 @@ async def submit_job_application(property_id: str, application_data: JobApplicat
         
         job_application = JobApplication(
             id=application_id,
-            property_id=property_id,
+            property_id=id,
             department=application_data.department,
             position=application_data.position,
             applicant_data={
@@ -1758,11 +1778,11 @@ async def submit_job_application(property_id: str, application_data: JobApplicat
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Application submission failed: {str(e)}")
 
-@app.get("/properties/{property_id}/info")
-async def get_property_public_info(property_id: str):
+@app.get("/properties/{id}/info")
+async def get_property_public_info(id: str):
     """Get property info using Supabase"""
     try:
-        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj or not property_obj.is_active:
             raise HTTPException(status_code=404, detail="Property not found")
         
@@ -1784,7 +1804,7 @@ async def get_property_public_info(property_id: str):
                 "phone": property_obj.phone
             },
             "departments_and_positions": departments_and_positions,
-            "application_url": f"/apply/{property_id}",
+            "application_url": f"/apply/{id}",
             "is_accepting_applications": True
         }
         
@@ -2014,15 +2034,15 @@ async def bulk_talent_pool_notify(
 # APPLICATION HISTORY & ENHANCED WORKFLOW (Phase 1.2)
 # ==========================================
 
-@app.get("/hr/applications/{application_id}/history")
+@app.get("/hr/applications/{id}/history")
 async def get_application_history(
-    application_id: str,
+    id: str,
     current_user: User = Depends(require_hr_or_manager_role)
 ):
     """Get status change history for a specific application"""
     try:
         # Check if application exists
-        application = await supabase_service.get_application_by_id(application_id)
+        application = await supabase_service.get_application_by_id(id)
         if not application:
             raise HTTPException(status_code=404, detail="Application not found")
         
@@ -2034,7 +2054,7 @@ async def get_application_history(
                 raise HTTPException(status_code=403, detail="Access denied")
         
         # Get application history
-        history = await supabase_service.get_application_history(application_id)
+        history = await supabase_service.get_application_history(id)
         
         # Enrich history with user details
         enriched_history = []
@@ -2057,7 +2077,7 @@ async def get_application_history(
             enriched_history.append(enriched_record)
         
         return {
-            "application_id": application_id,
+            "application_id": id,
             "history": enriched_history,
             "total_entries": len(enriched_history)
         }
@@ -2099,19 +2119,19 @@ async def check_duplicate_application(
 # MANAGER CRUD OPERATIONS (Phase 1.3)
 # ==========================================
 
-@app.get("/hr/managers/{manager_id}")
+@app.get("/hr/managers/{id}")
 async def get_manager_details(
-    manager_id: str,
+    id: str,
     current_user: User = Depends(require_hr_role)
 ):
     """Get manager details by ID (HR only)"""
     try:
-        manager = await supabase_service.get_manager_by_id(manager_id)
+        manager = await supabase_service.get_manager_by_id(id)
         if not manager:
             raise HTTPException(status_code=404, detail="Manager not found")
         
         # Get manager's properties
-        properties = supabase_service.get_manager_properties_sync(manager_id)
+        properties = supabase_service.get_manager_properties_sync(id)
         
         return {
             "id": manager.id,
@@ -2138,9 +2158,9 @@ async def get_manager_details(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get manager details: {str(e)}")
 
-@app.put("/hr/managers/{manager_id}")
+@app.put("/hr/managers/{id}")
 async def update_manager(
-    manager_id: str,
+    id: str,
     first_name: str = Form(...),
     last_name: str = Form(...),
     email: str = Form(...),
@@ -2150,7 +2170,7 @@ async def update_manager(
     """Update manager details (HR only)"""
     try:
         # Check if manager exists
-        existing_manager = await supabase_service.get_manager_by_id(manager_id)
+        existing_manager = await supabase_service.get_manager_by_id(id)
         if not existing_manager:
             raise HTTPException(status_code=404, detail="Manager not found")
         
@@ -2168,7 +2188,7 @@ async def update_manager(
             "is_active": is_active
         }
         
-        updated_manager = await supabase_service.update_manager(manager_id, update_data)
+        updated_manager = await supabase_service.update_manager(id, update_data)
         if not updated_manager:
             raise HTTPException(status_code=500, detail="Failed to update manager")
         
@@ -2190,20 +2210,20 @@ async def update_manager(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update manager: {str(e)}")
 
-@app.delete("/hr/managers/{manager_id}")
+@app.delete("/hr/managers/{id}")
 async def delete_manager(
-    manager_id: str,
+    id: str,
     current_user: User = Depends(require_hr_role)
 ):
     """Delete manager (soft delete) (HR only)"""
     try:
         # Check if manager exists
-        manager = await supabase_service.get_manager_by_id(manager_id)
+        manager = await supabase_service.get_manager_by_id(id)
         if not manager:
             raise HTTPException(status_code=404, detail="Manager not found")
         
         # Check if manager has any assigned properties
-        properties = supabase_service.get_manager_properties_sync(manager_id)
+        properties = supabase_service.get_manager_properties_sync(id)
         if properties:
             property_names = [prop.name for prop in properties]
             raise HTTPException(
@@ -2212,7 +2232,7 @@ async def delete_manager(
             )
         
         # Soft delete the manager
-        success = await supabase_service.delete_manager(manager_id)
+        success = await supabase_service.delete_manager(id)
         if not success:
             raise HTTPException(status_code=500, detail="Failed to delete manager")
         
@@ -2226,16 +2246,16 @@ async def delete_manager(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete manager: {str(e)}")
 
-@app.post("/hr/managers/{manager_id}/reset-password")
+@app.post("/hr/managers/{id}/reset-password")
 async def reset_manager_password(
-    manager_id: str,
+    id: str,
     new_password: str = Form(...),
     current_user: User = Depends(require_hr_role)
 ):
     """Reset manager password (HR only)"""
     try:
         # Check if manager exists
-        manager = await supabase_service.get_manager_by_id(manager_id)
+        manager = await supabase_service.get_manager_by_id(id)
         if not manager:
             raise HTTPException(status_code=404, detail="Manager not found")
         
@@ -2244,7 +2264,7 @@ async def reset_manager_password(
             raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
         
         # Reset password
-        success = await supabase_service.reset_manager_password(manager_id, new_password)
+        success = await supabase_service.reset_manager_password(id, new_password)
         if not success:
             raise HTTPException(status_code=500, detail="Failed to reset password")
         
@@ -2262,23 +2282,23 @@ async def reset_manager_password(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reset manager password: {str(e)}")
 
-@app.get("/hr/managers/{manager_id}/performance")
+@app.get("/hr/managers/{id}/performance")
 async def get_manager_performance(
-    manager_id: str,
+    id: str,
     current_user: User = Depends(require_hr_role)
 ):
     """Get manager performance metrics (HR only)"""
     try:
         # Check if manager exists
-        manager = await supabase_service.get_manager_by_id(manager_id)
+        manager = await supabase_service.get_manager_by_id(id)
         if not manager:
             raise HTTPException(status_code=404, detail="Manager not found")
         
         # Get performance data
-        performance_data = await supabase_service.get_manager_performance(manager_id)
+        performance_data = await supabase_service.get_manager_performance(id)
         
         return {
-            "manager_id": manager_id,
+            "manager_id": id,
             "manager_name": f"{manager.first_name} {manager.last_name}",
             "manager_email": manager.email,
             "performance": performance_data
@@ -3364,22 +3384,22 @@ async def validate_digital_signature(
         logger.error(f"Signature validation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/compliance/i9-deadlines/{employee_id}")
+@app.get("/api/compliance/i9-deadlines/{id}")
 async def get_i9_deadlines(
-    employee_id: str,
+    id: str,
     current_user=Depends(get_current_user)
 ):
     """Get I-9 Section 2 deadline information for an employee"""
     try:
         # Get employee hire date
-        employee = await supabase_service.get_employee_by_id(employee_id)
+        employee = await supabase_service.get_employee_by_id(id)
         if not employee:
             raise HTTPException(status_code=404, detail="Employee not found")
         
         hire_date = datetime.strptime(employee.hire_date, "%Y-%m-%d").date()
         
         # Check if I-9 Section 2 is completed
-        onboarding_session = await supabase_service.get_active_onboarding_by_employee(employee_id)
+        onboarding_session = await supabase_service.get_active_onboarding_by_employee(id)
         section2_completed = False
         section2_date = None
         
@@ -3391,8 +3411,8 @@ async def get_i9_deadlines(
         
         # Validate compliance
         is_compliant, deadline, warnings = compliance_engine.validate_i9_three_day_compliance(
-            employee_id,
-            f"i9-{employee_id}",
+            id,
+            f"i9-{id}",
             hire_date,
             section2_date
         )
@@ -3533,9 +3553,9 @@ async def get_retention_dashboard(
         logger.error(f"Failed to get retention dashboard: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/retention/legal-hold/{document_id}")
+@app.post("/api/retention/legal-hold/{id}")
 async def place_legal_hold(
-    document_id: str,
+    id: str,
     reason: str,
     current_user=Depends(get_current_user)
 ):
@@ -3544,14 +3564,14 @@ async def place_legal_hold(
         if current_user.role != 'hr':
             raise HTTPException(status_code=403, detail="Only HR can place legal holds")
         
-        success = retention_service.place_legal_hold(document_id, reason)
+        success = retention_service.place_legal_hold(id, reason)
         
         if not success:
             raise HTTPException(status_code=404, detail="Document not found")
         
         return {
             "success": True,
-            "document_id": document_id,
+            "document_id": id,
             "action": "legal_hold_placed",
             "reason": reason,
             "placed_by": current_user.email,

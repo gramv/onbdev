@@ -18,6 +18,9 @@ import I9SupplementsStep from './pages/onboarding/I9SupplementsStep'
 import TraffickingAwarenessStep from './pages/onboarding/TraffickingAwarenessStep'
 import WeaponsPolicyStep from './pages/onboarding/WeaponsPolicyStep'
 import FinalReviewStep from './pages/onboarding/FinalReviewStep'
+import W4ReviewSignStep from './pages/onboarding/W4ReviewSignStep'
+import I9ReviewSignStep from './pages/onboarding/I9ReviewSignStep'
+import EmployeeReviewStep from './pages/onboarding/EmployeeReviewStep'
 
 interface TestStepData {
   [key: string]: {
@@ -52,7 +55,8 @@ export default function TestStepComponents() {
   }
 
   const mockProgress = {
-    stepData: progress
+    stepData: progress,
+    completedSteps: Object.keys(progress).filter(key => progress[key]?.completed)
   }
 
   const markStepComplete = (stepId: string, data?: any) => {
@@ -93,7 +97,10 @@ export default function TestStepComponents() {
     { id: 'weapons-policy', title: 'Weapons Policy' },
     { id: 'background-check', title: 'Background Check' },
     { id: 'photo-capture', title: 'Photo Capture' },
-    { id: 'final-review', title: 'Final Review' }
+    { id: 'final-review', title: 'Final Review' },
+    { id: 'w4-review-sign', title: 'W-4 Review & Sign' },
+    { id: 'i9-review-sign', title: 'I-9 Review & Sign' },
+    { id: 'employee-review', title: 'Employee Review' }
   ]
 
   const renderCurrentStep = () => {
@@ -140,6 +147,12 @@ export default function TestStepComponents() {
         return <PhotoCaptureStep {...commonProps} />
       case 'final-review':
         return <FinalReviewStep {...commonProps} />
+      case 'w4-review-sign':
+        return <W4ReviewSignStep {...commonProps} />
+      case 'i9-review-sign':
+        return <I9ReviewSignStep {...commonProps} />
+      case 'employee-review':
+        return <EmployeeReviewStep {...commonProps} ONBOARDING_STEPS={steps} />
       default:
         return <div>Unknown step: {currentStep}</div>
     }
