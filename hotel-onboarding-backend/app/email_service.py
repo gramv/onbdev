@@ -29,7 +29,7 @@ class EmailService:
         self.smtp_use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
         self.from_email = os.getenv("FROM_EMAIL", "noreply@hotelonboarding.com")
         self.from_name = os.getenv("FROM_NAME", "Hotel Onboarding System")
-        self.frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        self.frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
         
         # Check if email is configured (skip default placeholder values)
         self.is_configured = bool(
@@ -400,6 +400,213 @@ class EmailService:
         subject = f"You're in Our Talent Pool - {property_name}"
         
         return await self.send_email(applicant_email, subject, html_content, text_content)
+    
+    async def send_onboarding_welcome_email(self, employee_email: str, employee_name: str,
+                                          property_name: str, position: str,
+                                          onboarding_link: str, manager_name: str) -> bool:
+        """Send onboarding welcome email with secure link"""
+        
+        subject = f"Welcome to {property_name} - Complete Your Onboarding"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #16a34a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+                .content {{ padding: 20px; background-color: #f9fafb; }}
+                .button {{ display: inline-block; background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }}
+                .footer {{ background-color: #e5e7eb; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }}
+                .highlight {{ background-color: #dbeafe; padding: 15px; border-radius: 5px; margin: 15px 0; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🎉 Welcome to {property_name}!</h1>
+                </div>
+                <div class="content">
+                    <p>Dear {employee_name},</p>
+                    
+                    <p>Congratulations on joining our team as a <strong>{position}</strong>! We're excited to have you aboard.</p>
+                    
+                    <div class="highlight">
+                        <h3>🚀 Next Step: Complete Your Onboarding</h3>
+                        <p>To get started, please complete your onboarding process by clicking the button below. This secure link will guide you through all the necessary forms and information.</p>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <a href="{onboarding_link}" class="button">Start My Onboarding</a>
+                    </div>
+                    
+                    <p><strong>What to expect:</strong></p>
+                    <ul>
+                        <li>📋 Personal information and emergency contacts</li>
+                        <li>🆔 I-9 employment eligibility verification</li>
+                        <li>💰 W-4 tax withholding information</li>
+                        <li>🏥 Health insurance and benefits selection</li>
+                        <li>📝 Company policies and acknowledgments</li>
+                        <li>✅ Digital signatures and final review</li>
+                    </ul>
+                    
+                    <div class="highlight">
+                        <p><strong>⏰ Important:</strong> Please complete your onboarding within 72 hours. The process takes approximately 45 minutes.</p>
+                    </div>
+                    
+                    <p>If you have any questions during the onboarding process, please don't hesitate to contact your manager:</p>
+                    <p><strong>{manager_name}</strong></p>
+                    
+                    <p>We look forward to working with you!</p>
+                    
+                    <p>Best regards,<br>
+                    The {property_name} Team</p>
+                </div>
+                <div class="footer">
+                    <p>🔒 This is a secure onboarding link. Please do not share it with others.</p>
+                    <p>This is an automated message from the Hotel Onboarding System.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Welcome to {property_name}!
+        
+        Dear {employee_name},
+        
+        Congratulations on joining our team as a {position}! We're excited to have you aboard.
+        
+        Next Step: Complete Your Onboarding
+        To get started, please complete your onboarding process by visiting the secure link below:
+        
+        {onboarding_link}
+        
+        What to expect:
+        - Personal information and emergency contacts
+        - I-9 employment eligibility verification
+        - W-4 tax withholding information
+        - Health insurance and benefits selection
+        - Company policies and acknowledgments
+        - Digital signatures and final review
+        
+        Important: Please complete your onboarding within 72 hours. The process takes approximately 45 minutes.
+        
+        If you have any questions during the onboarding process, please contact your manager:
+        {manager_name}
+        
+        We look forward to working with you!
+        
+        Best regards,
+        The {property_name} Team
+        
+        ---
+        🔒 This is a secure onboarding link. Please do not share it with others.
+        This is an automated message from the Hotel Onboarding System.
+        """
+        
+        return await self.send_email(employee_email, subject, html_content, text_content)
+    
+    async def send_form_update_notification(self, employee_email: str, employee_name: str,
+                                          form_type: str, update_link: str, 
+                                          reason: str = "Information update required") -> bool:
+        """Send form update notification email"""
+        
+        subject = f"Action Required: Update Your {form_type} Information"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+                .content {{ padding: 20px; background-color: #f9fafb; }}
+                .button {{ display: inline-block; background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }}
+                .footer {{ background-color: #e5e7eb; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }}
+                .alert {{ background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #f59e0b; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📝 Form Update Required</h1>
+                </div>
+                <div class="content">
+                    <p>Dear {employee_name},</p>
+                    
+                    <p>We need you to update your <strong>{form_type}</strong> information in our system.</p>
+                    
+                    <div class="alert">
+                        <p><strong>Reason:</strong> {reason}</p>
+                    </div>
+                    
+                    <p>Please click the button below to access the secure form and make the necessary updates:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="{update_link}" class="button">Update My Information</a>
+                    </div>
+                    
+                    <p><strong>What you need to know:</strong></p>
+                    <ul>
+                        <li>🔒 This is a secure, time-limited link</li>
+                        <li>📝 Your current information will be pre-filled</li>
+                        <li>✅ Digital signature will be required</li>
+                        <li>⏰ Please complete within 48 hours</li>
+                    </ul>
+                    
+                    <p>If you have any questions about this update, please contact HR or your manager.</p>
+                    
+                    <p>Thank you for keeping your information current!</p>
+                    
+                    <p>Best regards,<br>
+                    HR Department</p>
+                </div>
+                <div class="footer">
+                    <p>🔒 This is a secure update link. Please do not share it with others.</p>
+                    <p>This is an automated message from the Hotel Onboarding System.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Form Update Required
+        
+        Dear {employee_name},
+        
+        We need you to update your {form_type} information in our system.
+        
+        Reason: {reason}
+        
+        Please visit the secure link below to make the necessary updates:
+        {update_link}
+        
+        What you need to know:
+        - This is a secure, time-limited link
+        - Your current information will be pre-filled
+        - Digital signature will be required
+        - Please complete within 48 hours
+        
+        If you have any questions about this update, please contact HR or your manager.
+        
+        Thank you for keeping your information current!
+        
+        Best regards,
+        HR Department
+        
+        ---
+        🔒 This is a secure update link. Please do not share it with others.
+        This is an automated message from the Hotel Onboarding System.
+        """
+        
+        return await self.send_email(employee_email, subject, html_content, text_content)
 
 # Create global email service instance
 email_service = EmailService()

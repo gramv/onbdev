@@ -101,7 +101,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
 
   const fetchProperties = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/hr/properties', axiosConfig)
+      const response = await axios.get('http://127.0.0.1:8000/hr/properties', axiosConfig)
       setProperties(response.data)
       onStatsUpdate()
     } catch (error) {
@@ -120,7 +120,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
     try {
       // This would be a separate endpoint to get all managers
       // For now, we'll extract managers from users endpoint if available
-      const response = await axios.get('http://localhost:8000/hr/users', axiosConfig)
+      const response = await axios.get('http://127.0.0.1:8000/hr/users', axiosConfig)
       const managerUsers = response.data.filter((user: any) => user.role === 'manager')
       setManagers(managerUsers)
     } catch (error) {
@@ -143,7 +143,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
       params.append('zip_code', formData.zip_code)
       params.append('phone', formData.phone)
 
-      await axios.post('http://localhost:8000/hr/properties', params, {
+      await axios.post('http://127.0.0.1:8000/hr/properties', params, {
         ...axiosConfig,
         headers: {
           ...axiosConfig.headers,
@@ -199,7 +199,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
       params.append('zip_code', formData.zip_code)
       params.append('phone', formData.phone)
 
-      await axios.put(`http://localhost:8000/hr/properties/${editingProperty.id}`, params, {
+      await axios.put(`http://127.0.0.1:8000/hr/properties/${editingProperty.id}`, params, {
         ...axiosConfig,
         headers: {
           ...axiosConfig.headers,
@@ -242,7 +242,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
 
   const handleDeleteProperty = async (propertyId: string) => {
     try {
-      await axios.delete(`http://localhost:8000/hr/properties/${propertyId}`, axiosConfig)
+      await axios.delete(`http://127.0.0.1:8000/hr/properties/${propertyId}`, axiosConfig)
 
       toast({
         title: "Success",

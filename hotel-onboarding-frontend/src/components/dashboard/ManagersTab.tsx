@@ -392,7 +392,9 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
                 <p className="text-sm text-gray-600">Avg Approval Rate</p>
                 <p className="text-2xl font-bold">
                   {Object.values(performanceData).length > 0 
-                    ? Math.round(Object.values(performanceData).reduce((sum, p) => sum + p.metrics.approval_rate, 0) / Object.values(performanceData).length)
+                    ? Math.round(Object.values(performanceData).reduce((sum, p) => {
+                        return sum + (p?.metrics?.approval_rate ?? 0)
+                      }, 0) / Object.values(performanceData).length)
                     : 0}%
                 </p>
               </div>
@@ -603,18 +605,18 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
                       </TableCell>
                       
                       <TableCell>
-                        {performance ? (
+                        {performance?.metrics ? (
                           <div className="space-y-1">
                             <div className="flex items-center space-x-2 text-sm">
                               <CheckCircle className="h-3 w-3 text-green-500" />
-                              <span>{performance.metrics.approved_applications} approved</span>
+                              <span>{performance.metrics.approved_applications || 0} approved</span>
                             </div>
                             <div className="flex items-center space-x-2 text-sm">
                               <Clock className="h-3 w-3 text-yellow-500" />
-                              <span>{performance.metrics.pending_applications} pending</span>
+                              <span>{performance.metrics.pending_applications || 0} pending</span>
                             </div>
                             <div className="text-sm font-medium">
-                              {performance.metrics.approval_rate}% approval rate
+                              {performance.metrics.approval_rate || 0}% approval rate
                             </div>
                           </div>
                         ) : (

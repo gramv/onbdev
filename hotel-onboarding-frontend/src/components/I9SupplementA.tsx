@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileText, Users, Info } from 'lucide-react';
+import { FileText, Users, Info, AlertCircle, Shield } from 'lucide-react';
 import DigitalSignatureCapture from './DigitalSignatureCapture';
 
 interface I9SupplementAData {
@@ -44,6 +44,12 @@ interface I9SupplementAProps {
   onComplete: (data: I9SupplementAData) => void;
   onSkip: () => void;
   onBack: () => void;
+  employeeData?: {
+    firstName: string;
+    lastName: string;
+    employeeId: string;
+  };
+  currentUserRole?: 'hr' | 'manager' | 'employee';
 }
 
 export default function I9SupplementA({
@@ -51,7 +57,9 @@ export default function I9SupplementA({
   language,
   onComplete,
   onSkip,
-  onBack
+  onBack,
+  employeeData,
+  currentUserRole = 'employee'
 }: I9SupplementAProps) {
   const [formData, setFormData] = useState<I9SupplementAData>({
     // CRITICAL FIX: Supplement A should ALWAYS start completely blank
@@ -83,6 +91,8 @@ export default function I9SupplementA({
   const [currentStep, setCurrentStep] = useState(0);
   const [showSignature, setShowSignature] = useState(false);
   const [isTranslatorDifferent, setIsTranslatorDifferent] = useState(false);
+  const [showComplianceWarning, setShowComplianceWarning] = useState(false);
+  const [preparerValidationError, setPreparerValidationError] = useState<string>('');
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -114,7 +124,12 @@ export default function I9SupplementA({
         'back': 'Back',
         'skip': 'Skip This Supplement',
         'sign_document': 'Sign Document',
-        'complete': 'Complete Supplement A'
+        'complete': 'Complete Supplement A',
+        'compliance_warning': 'Federal Compliance Warning',
+        'preparer_cannot_be_employee': 'The preparer/translator cannot be the employee themselves. A third party must complete this form.',
+        'auto_fill_disabled': 'Auto-fill is disabled for federal compliance. All fields must be entered manually.',
+        'role_restriction': 'This form should only be completed by the person who helped prepare or translate Section 1.',
+        'employee_warning': 'Employees cannot complete their own Supplement A. Please have your preparer/translator complete this form.'
       },
       es: {
         'supplement_a_title': 'Formulario I-9 Suplemento A',
@@ -136,6 +151,17 @@ export default function I9SupplementA({
     const newErrors: Record<string, string> = {};
 
     if (currentStep === 0) {
+      // FEDERAL COMPLIANCE: Validate preparer is not the employee
+      if (employeeData && 
+          formData.preparerFirstName.toLowerCase().trim() === employeeData.firstName.toLowerCase().trim() &&
+          formData.preparerLastName.toLowerCase().trim() === employeeData.lastName.toLowerCase().trim()) {
+        setPreparerValidationError(t('preparer_cannot_be_employee'));
+        return false;
+      }
+      
+      // Clear previous validation error
+      setPreparerValidationError('');
+      
       // Validate preparer information
       if (!formData.preparerFirstName.trim()) {
         newErrors.preparerFirstName = t('required');
@@ -330,6 +356,16 @@ export default function I9SupplementA({
           </div>
         </CardContent>
       </Card>
+      
+      {/* Preparer Validation Error */}
+      {preparerValidationError && (
+        <Alert className="border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-900">
+            {preparerValidationError}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
@@ -450,6 +486,32 @@ export default function I9SupplementA({
     </Card>
   );
 
+  // Show compliance warning for employees
+  if (currentUserRole === 'employee' && !showComplianceWarning) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8">
+        <Alert className="max-w-2xl border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-900">
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">{t('compliance_warning')}</h3>
+              <p>{t('employee_warning')}</p>
+              <p className="text-sm">{t('role_restriction')}</p>
+              <div className="flex justify-end space-x-3 mt-4">
+                <Button variant="outline" onClick={onBack}>
+                  {t('back')}
+                </Button>
+                <Button variant="outline" onClick={onSkip}>
+                  {t('skip')}
+                </Button>
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   if (showSignature) {
     return (
       <div className="space-y-6">
@@ -484,6 +546,14 @@ export default function I9SupplementA({
         <h2 className="text-xl font-bold text-gray-900">{t('supplement_a_title')}</h2>
         <p className="text-gray-600 text-sm mt-1">{t('supplement_a_subtitle')}</p>
       </div>
+      
+      {/* Federal Compliance Notice */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <Shield className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-900">
+          <p className="text-sm font-medium">{t('auto_fill_disabled')}</p>
+        </AlertDescription>
+      </Alert>
 
       <div className="flex-1 overflow-auto">
         {currentStep === 0 && renderPreparerInfo()}

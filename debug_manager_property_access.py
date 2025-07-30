@@ -1,206 +1,182 @@
 #!/usr/bin/env python3
-"""
-Debug manager property access for the specific application
-"""
 
 import requests
 import json
 
-BACKEND_URL = "http://localhost:8000"
-
 def debug_manager_property_access():
+    """Debug manager property access and find the correct property"""
+    
     print("🔍 DEBUGGING MANAGER PROPERTY ACCESS")
-    print("=" * 60)
+    print("=" * 50)
     
-    # The problematic application and property
-    app_id = "9aa3fcd8-3c53-43e4-88b8-556a97536071"
-    property_id = "8611833c-8b4d-4edc-8770-34a84d0955ec"
+    base_url = "http://localhost:8000"
     
-    print(f"🎯 Target Application: {app_id}")
-    print(f"🏨 Target Property: {property_id}")
-    
-    # Login as HR to get full system view
-    print("\n1️⃣  HR SYSTEM ANALYSIS")
-    hr_login = {
-        "email": "hr@hoteltest.com",
-        "password": "admin123"
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/auth/login", json=hr_login)
-    if response.status_code != 200:
-        print("❌ HR login failed")
-        return False
-    
-    hr_auth = response.json()
-    hr_token = hr_auth["token"]
-    hr_headers = {"Authorization": f"Bearer {hr_token}"}
-    print("✅ HR logged in successfully")
-    
-    # Get property details
-    print(f"\n🏨 PROPERTY ANALYSIS: {property_id}")
-    response = requests.get(f"{BACKEND_URL}/hr/properties", headers=hr_headers)
-    if response.status_code != 200:
-        print("❌ Could not get properties")
-        return False
-    
-    properties = response.json()
-    target_property = None
-    for prop in properties:
-        if prop["id"] == property_id:
-            target_property = prop
-            break
-    
-    if target_property:
-        print(f"✅ Property found: {target_property['name']}")
-        print(f"   Address: {target_property['address']}")
-        print(f"   Manager IDs: {target_property.get('manager_ids', [])}")
-        print(f"   Is Active: {target_property.get('is_active', 'unknown')}")
-    else:
-        print(f"❌ Property {property_id} not found")
-        return False
-    
-    # Get application details
-    print(f"\n📋 APPLICATION ANALYSIS: {app_id}")
-    response = requests.get(f"{BACKEND_URL}/hr/applications", headers=hr_headers)
-    if response.status_code != 200:
-        print("❌ Could not get applications")
-        return False
-    
-    applications = response.json()
-    target_application = None
-    for app in applications:
-        if app["id"] == app_id:
-            target_application = app
-            break
-    
-    if target_application:
-        print(f"✅ Application found")
-        print(f"   Applicant: {target_application['applicant_data']['first_name']} {target_application['applicant_data']['last_name']}")
-        print(f"   Status: {target_application['status']}")
-        print(f"   Property ID: {target_application['property_id']}")
-        print(f"   Position: {target_application['position']}")
-        print(f"   Applied At: {target_application['applied_at']}")
-        
-        # Verify property linkage
-        if target_application['property_id'] == property_id:
-            print("✅ Application correctly linked to target property")
-        else:
-            print(f"❌ Application linked to wrong property: {target_application['property_id']}")
-    else:
-        print(f"❌ Application {app_id} not found")
-        return False
-    
-    # Get all managers and find who should have access
-    print(f"\n👥 MANAGER ANALYSIS")
-    response = requests.get(f"{BACKEND_URL}/hr/managers", headers=hr_headers)
-    if response.status_code != 200:
-        print("❌ Could not get managers")
-        return False
-    
-    managers = response.json()
-    print(f"✅ Found {len(managers)} total managers")
-    
-    # Find managers assigned to this property
-    assigned_managers = []
-    for manager in managers:
-        if manager["id"] in target_property.get('manager_ids', []):
-            assigned_managers.append(manager)
-    
-    print(f"📊 Managers assigned to property '{target_property['name']}':")
-    if assigned_managers:
-        for manager in assigned_managers:
-            print(f"   ✅ {manager['first_name']} {manager['last_name']} ({manager['email']})")
-            print(f"      Manager ID: {manager['id']}")
-            print(f"      Property ID: {manager.get('property_id', 'Not set')}")
-    else:
-        print("   ❌ No managers assigned to this property")
-    
-    # Test with each assigned manager
-    for manager in assigned_managers:
-        print(f"\n🧪 TESTING MANAGER ACCESS: {manager['email']}")
-        
-        # Login as this manager
-        manager_login = {
-            "email": manager["email"],
-            "password": "manager123"  # Assuming default password
+    # Step 1: Login as manager
+    print("\n1️⃣ Logging in as manager...")
+    try:
+        login_data = {
+            "email": "vgoutamram@gmail.com",
+            "password": "Gouthi321@"
         }
         
-        response = requests.post(f"{BACKEND_URL}/auth/login", json=manager_login)
-        if response.status_code != 200:
-            print(f"   ❌ Login failed for {manager['email']}")
-            continue
+        response = requests.post(f"{base_url}/auth/login", json=login_data)
+        if response.status_code == 200:
+            auth_result = response.json()
+            token = auth_result['token']
+            user_info = auth_result['user']
+            print(f"✅ Login successful")
+            print(f"   User: {user_info['first_name']} {user_info['last_name']}")
+            print(f"   Email: {user_info['email']}")
+            print(f"   Role: {user_info['role']}")
+            print(f"   User ID: {user_info['id']}")
+        else:
+            print(f"❌ Login failed: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"❌ Login error: {e}")
+        return False
+    
+    # Step 2: Get manager's applications to see what property they manage
+    print(f"\n2️⃣ Getting manager's applications to find their property...")
+    try:
+        headers = {"Authorization": f"Bearer {token}"}
+        response = requests.get(f"{base_url}/manager/applications", headers=headers)
         
-        manager_auth = response.json()
-        manager_token = manager_auth["token"]
-        manager_headers = {"Authorization": f"Bearer {manager_token}"}
-        print(f"   ✅ Logged in as {manager['email']}")
-        print(f"   Manager Property ID: {manager_auth['user'].get('property_id', 'Not set')}")
-        
-        # Get manager's applications
-        response = requests.get(f"{BACKEND_URL}/manager/applications", headers=manager_headers)
-        if response.status_code != 200:
-            print(f"   ❌ Could not get applications: {response.status_code}")
-            continue
-        
-        manager_applications = response.json()
-        print(f"   ✅ Manager can see {len(manager_applications)} applications")
-        
-        # Check if target application is visible
-        target_visible = any(app["id"] == app_id for app in manager_applications)
-        if target_visible:
-            print(f"   ✅ Target application IS visible to this manager")
+        if response.status_code == 200:
+            applications = response.json()
+            print(f"✅ Found {len(applications)} applications")
             
-            # Try to reject the application
-            print(f"   🧪 Testing rejection...")
-            rejection_data = {
-                "rejection_reason": "Debug test rejection"
-            }
-            
-            response = requests.post(f"{BACKEND_URL}/applications/{app_id}/reject", 
-                                   data=rejection_data, headers=manager_headers)
-            
-            print(f"   Rejection Status: {response.status_code}")
-            if response.status_code == 200:
-                result = response.json()
-                print(f"   ✅ Rejection successful: {result.get('status', 'unknown')}")
-            elif response.status_code == 422:
-                print(f"   ❌ 422 Validation Error: {response.text}")
-                try:
-                    error_detail = response.json()
-                    print(f"   Error Details: {json.dumps(error_detail, indent=6)}")
-                except:
-                    pass
+            if applications:
+                # Get the property ID from existing applications
+                property_id = applications[0]['property_id']
+                print(f"✅ Manager's property ID: {property_id}")
+                return property_id, token
             else:
-                print(f"   ❌ Rejection failed: {response.status_code} - {response.text}")
+                print("❌ No applications found for this manager")
+                # Let's try to get all properties to see what's available
+                print("\n🔍 Checking available properties...")
+                
+                # Try to get property info for common property IDs
+                test_properties = ["prop_test_001", "prop_001", "rci_hotel_001"]
+                
+                for prop_id in test_properties:
+                    try:
+                        prop_response = requests.get(f"{base_url}/properties/{prop_id}/info")
+                        if prop_response.status_code == 200:
+                            prop_data = prop_response.json()
+                            print(f"✅ Found property: {prop_id} - {prop_data['property']['name']}")
+                            return prop_id, token
+                    except:
+                        continue
+                
+                print("❌ Could not find manager's property")
+                return None, token
+                
         else:
-            print(f"   ❌ Target application NOT visible to this manager")
-            print(f"   Available applications:")
-            for app in manager_applications[:3]:  # Show first 3
-                print(f"      - {app['applicant_data']['first_name']} {app['applicant_data']['last_name']} ({app['id']})")
+            print(f"❌ Failed to get applications: {response.status_code}")
+            print(f"   Response: {response.text}")
+            return None, token
+    except Exception as e:
+        print(f"❌ Error getting applications: {e}")
+        return None, token
+
+def test_approval_with_correct_property():
+    """Test approval with the correct property for the manager"""
     
-    # Summary
-    print(f"\n" + "=" * 60)
-    print("🎯 DIAGNOSIS SUMMARY")
-    print("=" * 60)
+    property_id, token = debug_manager_property_access()
     
-    if target_property and target_application:
-        print(f"✅ Property and Application exist")
-        print(f"✅ Application linked to correct property")
+    if not property_id or not token:
+        print("❌ Could not determine manager's property")
+        return False
+    
+    print(f"\n3️⃣ Creating test application for property {property_id}...")
+    
+    base_url = "http://localhost:8000"
+    
+    try:
+        import time
+        test_app = {
+            "first_name": "Manager",
+            "last_name": "PropertyTest",
+            "email": f"property.test.{int(time.time())}@example.com",
+            "phone": "5550123456",
+            "address": "123 Test St",
+            "city": "Test City",
+            "state": "CA",
+            "zip_code": "90210",
+            "department": "Front Desk",
+            "position": "Front Desk Agent",
+            "work_authorized": "yes",
+            "sponsorship_required": "no",
+            "start_date": "2025-08-01",
+            "shift_preference": "Day",
+            "employment_type": "full_time",
+            "experience_years": "2",
+            "hotel_experience": "yes",
+            "previous_employer": "Test Hotel",
+            "reason_for_leaving": "Career advancement",
+            "additional_comments": "Test application for correct property"
+        }
         
-        if assigned_managers:
-            print(f"✅ {len(assigned_managers)} managers assigned to property")
-            print(f"\n🔧 NEXT STEPS:")
-            print(f"   1. Login as one of the assigned managers")
-            print(f"   2. Check if the application appears in their dashboard")
-            print(f"   3. If visible, try rejection again")
-            print(f"   4. If not visible, there's a filtering issue")
+        create_response = requests.post(f"{base_url}/apply/{property_id}", json=test_app)
+        if create_response.status_code == 200:
+            app_data = create_response.json()
+            app_id = app_data['application_id']
+            print(f"✅ Created test application: {app_id}")
+            print(f"   Property: {property_id}")
         else:
-            print(f"❌ No managers assigned to property")
-            print(f"\n🔧 FIX REQUIRED:")
-            print(f"   1. Assign a manager to property {property_id}")
-            print(f"   2. Use: POST /hr/properties/{property_id}/managers")
+            print(f"❌ Failed to create application: {create_response.status_code}")
+            print(f"   Response: {create_response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error creating application: {e}")
+        return False
     
-    return True
+    # Step 4: Test approval with proper data
+    print(f"\n4️⃣ Testing approval with proper form data...")
+    try:
+        form_data = {
+            'job_title': 'Front Desk Agent',
+            'start_date': '2025-08-01',
+            'start_time': '09:00',
+            'pay_rate': '18.50',
+            'pay_frequency': 'hourly',
+            'benefits_eligible': 'yes',
+            'supervisor': 'Sarah Manager',
+            'special_instructions': 'Complete onboarding by start date'
+        }
+        
+        headers = {"Authorization": f"Bearer {token}"}
+        response = requests.post(f"{base_url}/applications/{app_id}/approve", data=form_data, headers=headers)
+        
+        print(f"📤 Approval request status: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ Approval successful!")
+            print(f"   Message: {result.get('message')}")
+            print(f"   Employee ID: {result.get('employee_id')}")
+            print(f"   Onboarding URL: {result.get('onboarding', {}).get('onboarding_url', 'Not provided')}")
+            return True
+        else:
+            print(f"❌ Approval failed: {response.status_code}")
+            print(f"   Response: {response.text}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Error during approval: {e}")
+        return False
 
 if __name__ == "__main__":
-    debug_manager_property_access()
+    success = test_approval_with_correct_property()
+    
+    print(f"\n📊 RESULT:")
+    print("=" * 30)
+    if success:
+        print("✅ Manager approval working correctly!")
+        print("✅ Frontend validation fix should prevent 422 errors")
+        print("✅ Proper form data results in successful approval")
+    else:
+        print("❌ Issues found with manager approval process")
+        print("🔧 Check manager property assignment and permissions")

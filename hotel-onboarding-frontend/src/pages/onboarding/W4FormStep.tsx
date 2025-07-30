@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -7,15 +6,18 @@ import W4Form from '@/components/W4Form'
 import ReviewPlaceholder from '@/components/ReviewPlaceholder'
 import { CheckCircle, CreditCard, FileText, AlertTriangle } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
+  language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
-export default function W4FormStep() {
-  const { currentStep, progress, markStepComplete, saveProgress } = useOutletContext<OnboardingContext>()
+export default function W4FormStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress } = props
   
   const [formData, setFormData] = useState(null)
   const [isValid, setIsValid] = useState(false)

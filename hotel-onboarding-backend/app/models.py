@@ -98,6 +98,7 @@ class User(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     property_id: Optional[str] = None
+    password_hash: Optional[str] = None  # For HR users stored in Supabase
     is_active: bool = True
     created_at: datetime
     updated_at: Optional[datetime] = None
