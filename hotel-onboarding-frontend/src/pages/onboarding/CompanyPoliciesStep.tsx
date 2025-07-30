@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,11 +7,14 @@ import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
 import ReviewPlaceholder from '@/components/ReviewPlaceholder'
 import { CheckCircle, Building, FileText, Shield } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
+  language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
 const COMPANY_POLICIES = [
@@ -42,8 +44,8 @@ const COMPANY_POLICIES = [
   }
 ]
 
-export default function CompanyPoliciesStep() {
-  const { currentStep, progress, markStepComplete, saveProgress } = useOutletContext<OnboardingContext>()
+export default function CompanyPoliciesStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress } = props
   
   const [acknowledgedPolicies, setAcknowledgedPolicies] = useState<string[]>([])
   const [isSigned, setIsSigned] = useState(false)

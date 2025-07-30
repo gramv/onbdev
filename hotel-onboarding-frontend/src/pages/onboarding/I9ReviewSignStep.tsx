@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import I9ReviewAndSign from '@/components/I9ReviewAndSign'
@@ -7,16 +6,18 @@ import PDFDocumentViewer from '@/components/ui/pdf-document-viewer'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
 import { CheckCircle, FileText, AlertTriangle, Shield, Eye } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
   language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
-export default function I9ReviewSignStep() {
-  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = useOutletContext<OnboardingContext>()
+export default function I9ReviewSignStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = props
   
   const [isComplete, setIsComplete] = useState(false)
   const [reviewData, setReviewData] = useState(null)
@@ -48,7 +49,7 @@ export default function I9ReviewSignStep() {
       legallyBinding: true
     }
     markStepComplete('i9_review_sign', stepData)
-    saveProgress()
+    saveProgress('i9_review_sign', stepData)
   }
 
   const handleBack = () => {

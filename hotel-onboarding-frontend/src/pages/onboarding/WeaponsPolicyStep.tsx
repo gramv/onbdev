@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import WeaponsPolicyAcknowledgment from '@/components/WeaponsPolicyAcknowledgment'
 import { CheckCircle, Shield, AlertTriangle } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
+  language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
-export default function WeaponsPolicyStep() {
-  const { currentStep, progress, markStepComplete, saveProgress } = useOutletContext<OnboardingContext>()
+export default function WeaponsPolicyStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress } = props
   
   const [acknowledged, setAcknowledged] = useState(false)
   const [signatureData, setSignatureData] = useState(null)

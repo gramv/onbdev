@@ -1,0 +1,42 @@
+'
+/api/employees', {
+/api/employees', axiosConfig)
+/api/employees')
+/api/employees//DYNAMIC`, {
+/api/employees//DYNAMIC`, formData, {
+/api/forms/i9/generate', {
+/api/forms/w4/generate', {
+/applications', {
+/applications//DYNAMICapprove`, formData, {
+/applications//DYNAMICapprove`)
+/applications//DYNAMICreject`, formData, {
+/applications/check-duplicate`, {
+/apply//DYNAMIC`, formData)
+/auth/login', {
+/auth/login', expect.any(Object))
+/DYNAMIC`, {
+/hr/analytics/export
+/hr/applications'
+/hr/applications', axiosConfig)
+/hr/applications')
+/hr/applications//DYNAMIChistory`, {
+/hr/applications/bulk-reactivate', {
+/hr/applications/bulk-status-update', formData, {
+/hr/applications/bulk-talent-pool-notify', {
+/hr/applications/talent-pool'
+/hr/dashboard-stats', axiosConfig)
+/hr/dashboard-stats')
+/hr/managers', {
+/hr/managers', formDataToSend, {
+/hr/managers//DYNAMIC`, {
+/hr/managers//DYNAMIC`, formDataToSend, {
+/hr/managers//DYNAMICperformance`, {
+/hr/properties', {
+/hr/properties')
+/manager/analytics/export
+/manager/applications'
+/manager/property', axiosConfig)
+/onboard/update-progress', {
+/onboard/verify
+/properties//DYNAMICinfo`)
+/secret/create-hr

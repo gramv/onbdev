@@ -1,0 +1,13 @@
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [49133]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+ERROR:    [Errno 48] error while attempting to bind on address ('0.0.0.0', 8000): [errno 48] address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+✅ Supabase-enabled backend started successfully

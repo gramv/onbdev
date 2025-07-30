@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import W4ReviewAndSign from '@/components/W4ReviewAndSign'
@@ -7,16 +6,18 @@ import PDFDocumentViewer from '@/components/ui/pdf-document-viewer'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
 import { CheckCircle, CreditCard, AlertTriangle, DollarSign, Eye } from 'lucide-react'
 
-interface OnboardingContext {
+interface StepProps {
   currentStep: any
   progress: any
   markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: () => void
+  saveProgress: (stepId: string, data?: any) => void
   language: 'en' | 'es'
+  employee?: any
+  property?: any
 }
 
-export default function W4ReviewSignStep() {
-  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = useOutletContext<OnboardingContext>()
+export default function W4ReviewSignStep(props: StepProps) {
+  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = props
   
   const [isComplete, setIsComplete] = useState(false)
   const [reviewData, setReviewData] = useState(null)
@@ -44,7 +45,7 @@ export default function W4ReviewSignStep() {
       legallyBinding: true
     }
     markStepComplete('w4_review_sign', stepData)
-    saveProgress()
+    saveProgress('w4_review_sign', stepData)
   }
 
   const handleBack = () => {

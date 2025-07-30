@@ -16,7 +16,7 @@ import { ExportColumn } from '@/components/ui/data-export'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw } from 'lucide-react'
+import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw, RefreshCw } from 'lucide-react'
 import axios from 'axios'
 
 interface JobApplication {
@@ -118,14 +118,24 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
     pay_rate: '',
     pay_frequency: 'bi-weekly',
     benefits_eligible: 'yes',
-    direct_supervisor: '',
+    supervisor: '',
     special_instructions: ''
   })
 
   const fetchApplications = async () => {
     try {
       setLoading(true)
-      const endpoint = 'http://127.0.0.1:8000/hr/applications'
+      // Use different endpoints based on user role
+      const endpoint = userRole === 'hr' 
+        ? 'http://127.0.0.1:8000/hr/applications'
+        : 'http://127.0.0.1:8000/manager/applications'
+      
+      console.log('🔍 Fetching applications:', {
+        userRole,
+        endpoint,
+        token: token ? `${token.substring(0, 20)}...` : 'No token'
+      })
+      
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
@@ -134,6 +144,11 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
           department: departmentFilter !== 'all' ? departmentFilter : undefined,
           property_id: userRole === 'hr' && propertyFilter !== 'all' ? propertyFilter : undefined
         }
+      })
+
+      console.log('✅ Applications fetched:', {
+        count: response.data.length,
+        pending: response.data.filter((app: any) => app.status === 'pending').length
       })
       
       let sortedApplications = [...response.data]
@@ -218,6 +233,15 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
     }
   }, [searchQuery, statusFilter, departmentFilter, propertyFilter, sortBy, sortOrder])
 
+  // Auto-refresh applications every 30 seconds to prevent stale data
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchApplications()
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [])
+
   useEffect(() => {
     if (activeTab === 'talent-pool') {
       fetchTalentPoolCandidates()
@@ -250,16 +274,67 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const handleApproveApplication = async () => {
     if (!selectedApplication) return
 
+    console.log('🔍 DEBUG: Starting approval process')
+    console.log('Selected application:', selectedApplication)
+    console.log('Job offer data:', jobOfferData)
+    console.log('User role:', userRole)
+    console.log('Token:', token ? `${token.substring(0, 20)}...` : 'No token')
+
+    // Check if the application is still pending before attempting approval
+    if (selectedApplication.status !== 'pending') {
+      console.log('❌ Application is not pending:', selectedApplication.status)
+      alert('This application is no longer pending and cannot be approved. Refreshing the list...')
+      fetchApplications()
+      setIsApproveModalOpen(false)
+      setSelectedApplication(null)
+      return
+    }
+
+    // Validate required fields before submission
+    const requiredFields = {
+      job_title: 'Job Title',
+      start_date: 'Start Date',
+      start_time: 'Start Time',
+      pay_rate: 'Pay Rate',
+      pay_frequency: 'Pay Frequency',
+      benefits_eligible: 'Benefits Eligible',
+      supervisor: 'Supervisor'
+    }
+
+    const missingFields = []
+    for (const [field, label] of Object.entries(requiredFields)) {
+      if (!jobOfferData[field] || jobOfferData[field].toString().trim() === '') {
+        missingFields.push(label)
+      }
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following required fields:\n• ${missingFields.join('\n• ')}`)
+      return
+    }
+
+    // Validate pay_rate is a valid number
+    const payRate = parseFloat(jobOfferData.pay_rate)
+    if (isNaN(payRate) || payRate <= 0) {
+      alert('Please enter a valid pay rate (must be a positive number)')
+      return
+    }
+
     try {
       setActionLoading(true)
       const formData = new FormData()
       Object.entries(jobOfferData).forEach(([key, value]) => {
+        console.log(`Adding to FormData: ${key} = "${value}"`)
         formData.append(key, value)
       })
 
-      await axios.post(`http://127.0.0.1:8000/applications/${selectedApplication.id}/approve`, formData, {
+      console.log('🚀 Making approval request to:', `http://127.0.0.1:8000/applications/${selectedApplication.id}/approve`)
+      
+      const response = await axios.post(`http://127.0.0.1:8000/applications/${selectedApplication.id}/approve`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
+
+      console.log('✅ Approval successful:', response.data)
 
       setIsApproveModalOpen(false)
       setJobOfferData({
@@ -269,20 +344,39 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         pay_rate: '',
         pay_frequency: 'bi-weekly',
         benefits_eligible: 'yes',
-        direct_supervisor: '',
+        supervisor: '',
         special_instructions: ''
       })
       setSelectedApplication(null)
       fetchApplications()
       if (onStatsUpdate) onStatsUpdate()
     } catch (error: any) {
-      console.error('Error approving application:', error)
+      console.error('❌ Error approving application:', error)
+      console.log('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers,
+        config: error.config
+      })
+      
       let errorMessage = 'Error approving application. Please try again.'
       
       if (error.response?.status === 422) {
+        console.log('422 Validation Error Details:', error.response.data)
         errorMessage = 'Invalid application data. Please check all required fields are filled.'
+        
+        // Log specific validation errors
+        if (error.response.data?.detail && Array.isArray(error.response.data.detail)) {
+          console.log('Validation errors:')
+          error.response.data.detail.forEach((err: any) => {
+            console.log(`  - ${err.loc?.join(' -> ')}: ${err.msg} (input: ${err.input})`)
+          })
+        }
       } else if (error.response?.status === 404) {
-        errorMessage = 'Application not found. It may have been deleted or processed by another user.'
+        errorMessage = 'Application not found. It may have been deleted or processed by another user. Refreshing the list...'
+        // Refresh the applications list when application is not found
+        fetchApplications()
       } else if (error.response?.status === 403) {
         errorMessage = 'Access denied. You may not have permission to approve this application.'
       } else if (error.response?.data?.detail) {
@@ -854,6 +948,17 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
                 />
               </div>
             </div>
+
+            {/* Refresh Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchApplications()}
+              disabled={loading}
+              className="h-9"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
             
             {/* Compact Filters */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -1393,34 +1498,37 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="job_title">Job Title</Label>
+                    <Label htmlFor="job_title">Job Title <span className="text-red-500">*</span></Label>
                     <Input
                       id="job_title"
                       value={jobOfferData.job_title}
                       onChange={(e) => setJobOfferData({...jobOfferData, job_title: e.target.value})}
                       placeholder="Enter job title"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date</Label>
+                    <Label htmlFor="start_date">Start Date <span className="text-red-500">*</span></Label>
                     <Input
                       id="start_date"
                       type="date"
                       value={jobOfferData.start_date}
                       onChange={(e) => setJobOfferData({...jobOfferData, start_date: e.target.value})}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="start_time">Start Time</Label>
+                    <Label htmlFor="start_time">Start Time <span className="text-red-500">*</span></Label>
                     <Input
                       id="start_time"
                       type="time"
                       value={jobOfferData.start_time}
                       onChange={(e) => setJobOfferData({...jobOfferData, start_time: e.target.value})}
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pay_rate">Pay Rate ($/hour)</Label>
+                    <Label htmlFor="pay_rate">Pay Rate ($/hour) <span className="text-red-500">*</span></Label>
                     <Input
                       id="pay_rate"
                       type="number"
@@ -1429,10 +1537,11 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
                       value={jobOfferData.pay_rate}
                       onChange={(e) => setJobOfferData({...jobOfferData, pay_rate: e.target.value})}
                       placeholder="15.00"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="pay_frequency">Pay Frequency</Label>
+                    <Label htmlFor="pay_frequency">Pay Frequency <span className="text-red-500">*</span></Label>
                     <Select value={jobOfferData.pay_frequency} onValueChange={(value) => setJobOfferData({...jobOfferData, pay_frequency: value})}>
                       <SelectTrigger>
                         <SelectValue />
@@ -1445,7 +1554,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="benefits_eligible">Benefits Eligible</Label>
+                    <Label htmlFor="benefits_eligible">Benefits Eligible <span className="text-red-500">*</span></Label>
                     <Select value={jobOfferData.benefits_eligible} onValueChange={(value) => setJobOfferData({...jobOfferData, benefits_eligible: value})}>
                       <SelectTrigger>
                         <SelectValue />
@@ -1457,12 +1566,13 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
                     </Select>
                   </div>
                   <div className="col-span-2 space-y-2">
-                    <Label htmlFor="direct_supervisor">Direct Supervisor</Label>
+                    <Label htmlFor="supervisor">Direct Supervisor <span className="text-red-500">*</span></Label>
                     <Input
-                      id="direct_supervisor"
-                      value={jobOfferData.direct_supervisor}
-                      onChange={(e) => setJobOfferData({...jobOfferData, direct_supervisor: e.target.value})}
+                      id="supervisor"
+                      value={jobOfferData.supervisor}
+                      onChange={(e) => setJobOfferData({...jobOfferData, supervisor: e.target.value})}
                       placeholder="Enter supervisor name"
+                      required
                     />
                   </div>
                   <div className="col-span-2 space-y-2">
@@ -1490,7 +1600,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
                   </Button>
                   <Button
                     onClick={handleApproveApplication}
-                    disabled={actionLoading || !jobOfferData.job_title || !jobOfferData.start_date || !jobOfferData.pay_rate}
+                    disabled={actionLoading || !jobOfferData.job_title || !jobOfferData.start_date || !jobOfferData.start_time || !jobOfferData.pay_rate || !jobOfferData.pay_frequency || !jobOfferData.benefits_eligible || !jobOfferData.supervisor}
                     className="bg-green-600 hover:bg-green-700"
                   >
                     {actionLoading ? 'Sending Offer...' : 'Send Job Offer'}
