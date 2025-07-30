@@ -249,8 +249,10 @@ export default function StepName(props: StepProps) {
 ```bash
 cd hotel-onboarding-backend
 poetry install                    # Install dependencies
-poetry run python app/main.py     # Run development server
-poetry run python app/main_enhanced.py  # Run enhanced server
+poetry run python app/main.py     # Run development server on port 8000
+poetry run python app/main_enhanced.py  # Run enhanced server on port 8000
+poetry run pytest tests/        # Run backend tests
+poetry run python -m pytest tests/test_integration.py  # Run integration tests
 ```
 
 ### Frontend
@@ -262,12 +264,39 @@ npm run build                    # Build for production
 npm run test                     # Run Jest tests
 npm run test:watch              # Run tests in watch mode
 npm run lint                    # Run ESLint
+npm run test -- --coverage      # Run tests with coverage report
+```
+
+### Testing Individual Components
+```bash
+# Backend: Run specific test file
+cd hotel-onboarding-backend
+poetry run python test_<filename>.py
+
+# Frontend: Run specific test file
+cd hotel-onboarding-frontend
+npm test src/__tests__/<filename>.test.tsx
+```
+
+### Common Test Scripts
+```bash
+# Backend test data setup
+poetry run python create_test_data.py
+poetry run python setup_test_accounts.py
+
+# Testing specific features
+poetry run python test_job_application_submission.py
+poetry run python test_manager_access_control.py
+poetry run python test_email_service.py
 ```
 
 ### Testing Routes
 - `/test-steps` - Test individual step components in isolation
 - `/onboard` - Main enhanced onboarding portal (under development)
 - `/manager` - Manager dashboard for reviews and approvals
+- `/job-application` - Public job application form
+- `/login` - Authentication page
+- `/hr-dashboard` - HR management interface
 
 ## Architecture
 
@@ -276,10 +305,15 @@ npm run lint                    # Run ESLint
 - **Database**: In-memory database (dictionary-based) for development
 - **Key Files**:
   - `app/main.py`: Core FastAPI application with basic functionality
-  - `app/main_enhanced.py`: Enhanced version with additional features
+  - `app/main_enhanced.py`: Enhanced version with additional features (primary implementation)
   - `app/models.py`: Comprehensive Pydantic models for all data structures
   - `app/auth.py`: Authentication and authorization logic
-  - `app/pdf_forms.py`: PDF form generation and processing
+  - `app/pdf_forms.py`: PDF form generation and processing with government templates
+  - `app/i9_section2.py`: I-9 Section 2 employer verification logic
+  - `app/email_service.py`: Email notification service for onboarding workflows
+  - `app/qr_service.py`: QR code generation for job application links
+  - `app/document_service.py`: Document upload and OCR processing
+  - `app/compliance_engine.py`: Federal compliance validation engine
 - **External Services**: Groq API for OCR/vision processing of documents
 - **Dependencies**: Managed via Poetry (`pyproject.toml`)
 
@@ -288,20 +322,26 @@ npm run lint                    # Run ESLint
 - **Build Tool**: Vite
 - **UI Library**: Radix UI components with Tailwind CSS
 - **State Management**: React Context API (AuthContext, LanguageContext)
+- **Routing**: React Router v7 with navigation hooks
+- **Internationalization**: i18next for EN/ES language support
 - **Key Pages**:
   - `HomePage.tsx`: Landing page
   - `LoginPage.tsx`: Authentication
   - `HRDashboard.tsx`: HR management interface
   - `ManagerDashboard.tsx`: Manager review interface
-  - `JobApplicationForm.tsx`: Public job application
+  - `JobApplicationFormV2.tsx`: Public job application (enhanced version)
   - `EnhancedOnboardingPortal.tsx`: Primary employee onboarding workflow with government compliance
+  - `OnboardingWelcome.tsx`: Employee onboarding welcome page
+  - `OnboardingComplete.tsx`: Completion confirmation page
 - **Components**: Modular form components in `components/` including:
   - `I9Section1Form.tsx`: Federal-compliant I-9 Section 1 with validation
   - `W4Form.tsx`: IRS-compliant W-4 Employee's Withholding Certificate
   - `HealthInsuranceForm.tsx`: Health insurance enrollment
   - `DirectDepositForm.tsx`: Banking information setup
   - `EmergencyContactsForm.tsx`: Emergency contact information
-  - Digital signature capture and verification components
+  - `DigitalSignatureCapture.tsx`: Legal signature capture component
+  - `PDFViewer.tsx`: Document preview component
+- **Testing**: Comprehensive Jest test suite with React Testing Library
 
 ## Data Models
 
@@ -337,3 +377,86 @@ The system expects the following environment variables:
 - **CRITICAL**: Always test each component individually before integrating into the full workflow
 - **CRITICAL**: Follow the brick-by-brick approach - build one page, test it, then move to the next
 - **CRITICAL**: Never attempt to build the entire onboarding experience at once
+
+## API Endpoints Structure
+
+### Public Endpoints (No Auth Required)
+- `GET /api/properties/{property_id}/public-info` - Public property information
+- `POST /api/job-application` - Submit job application
+- `GET /api/qr/{qr_id}` - Redirect from QR code scan
+
+### HR Endpoints (HR Role Required)
+- `POST /api/hr/create` - Create HR user with secret key
+- `GET /api/hr/dashboard` - HR dashboard data
+- `POST /api/properties` - Create new property
+- `GET /api/analytics/*` - Analytics endpoints
+
+### Manager Endpoints (Manager Role Required)
+- `GET /api/managers/dashboard` - Manager dashboard data
+- `POST /api/managers/complete-i9-section2` - Complete I-9 Section 2
+- `PUT /api/applications/{app_id}/status` - Update application status
+- `GET /api/managers/talent-pool` - View talent pool
+
+### Employee Endpoints (Employee Role Required)
+- `GET /api/onboarding/session` - Get onboarding session
+- `POST /api/onboarding/step/{step_id}` - Submit step data
+- `POST /api/documents/upload` - Upload documents
+- `GET /api/forms/pdf/*` - Generate PDF forms
+
+## Key Implementation Patterns
+
+### Navigation Hook Pattern
+```typescript
+// Use the simplified navigation hook
+import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
+
+function Component() {
+  const { navigateToStep, navigateBack } = useSimpleNavigation();
+  // Use for step navigation
+}
+```
+
+### Form Validation Pattern
+```typescript
+// All forms use Zod schemas with React Hook Form
+const schema = z.object({
+  field: z.string().min(1, "Required"),
+  // Federal compliance validations
+});
+```
+
+### API Request Pattern
+```typescript
+// Consistent error handling and auth headers
+const response = await axios.post('/api/endpoint', data, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+```
+
+## Common Issues & Solutions
+
+### Port Conflicts
+- Backend runs on port 8000
+- Frontend runs on port 3000
+- Kill existing processes: `lsof -ti:8000 | xargs kill -9`
+
+### Component Props Issues
+- All step components use direct props, not useOutletContext
+- Follow the StepProps interface pattern
+
+### Navigation Issues
+- Use the simplified navigation hook (use-simple-navigation.ts)
+- Avoid complex routing libraries for step navigation
+
+### Testing Failed Imports
+- Ensure all test files import from correct paths
+- Use `@/` alias for src directory imports
+
+## Security Considerations
+
+- All sensitive data encrypted in transit
+- Authentication tokens stored securely
+- File uploads validated for type and size
+- SQL injection prevented via Pydantic models
+- XSS protection through React's built-in escaping
+- CSRF protection via token-based auth
