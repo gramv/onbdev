@@ -910,14 +910,73 @@ class DirectDepositAuthorizationData(BaseModel):
         return v
 
 # Job Application Submission Models
+
+# Supporting models for complex sections
+class EducationEntry(BaseModel):
+    """Model for education history entries"""
+    school_name: str
+    location: str
+    years_attended: str
+    graduated: bool
+    degree_received: Optional[str] = None
+
+class EmploymentHistoryEntry(BaseModel):
+    """Model for employment history entries"""
+    company_name: str
+    phone: str
+    address: str
+    supervisor: str
+    job_title: str
+    starting_salary: str
+    ending_salary: str
+    from_date: str  # MM/YYYY format
+    to_date: str    # MM/YYYY format or "Present"
+    reason_for_leaving: str
+    may_contact: bool
+
+class PersonalReference(BaseModel):
+    """Model for personal reference"""
+    name: str
+    years_known: str
+    phone: str
+    relationship: str
+
+class ConvictionRecord(BaseModel):
+    """Model for conviction record details"""
+    has_conviction: bool
+    explanation: Optional[str] = None
+
+class MilitaryService(BaseModel):
+    """Model for military service information"""
+    branch: Optional[str] = None
+    from_date: Optional[str] = None  # MM/YYYY format
+    to_date: Optional[str] = None    # MM/YYYY format
+    rank_at_discharge: Optional[str] = None
+    type_of_discharge: Optional[str] = None
+    disabilities_related: Optional[str] = None
+
+class VoluntarySelfIdentification(BaseModel):
+    """Model for voluntary self-identification information"""
+    gender: Optional[str] = None  # "male", "female", "i_do_not_wish_to_disclose"
+    ethnicity: Optional[str] = None  # Various options per EEOC including "i_do_not_wish_to_disclose"
+    veteran_status: Optional[str] = None
+    disability_status: Optional[str] = None
+
 class JobApplicationData(BaseModel):
-    """Data model for job application submission via QR code"""
+    """Comprehensive data model for job application submission matching PDF form"""
     # Personal Information
     first_name: str
+    middle_initial: Optional[str] = None
     last_name: str
     email: EmailStr
     phone: str
+    phone_is_cell: bool = False  # Checkbox for cell phone
+    phone_is_home: bool = False  # Checkbox for home phone
+    secondary_phone: Optional[str] = None
+    secondary_phone_is_cell: bool = False  # Checkbox for secondary cell phone
+    secondary_phone_is_home: bool = False  # Checkbox for secondary home phone
     address: str
+    apartment_unit: Optional[str] = None
     city: str
     state: str
     zip_code: str
@@ -925,23 +984,52 @@ class JobApplicationData(BaseModel):
     # Position Information
     department: str
     position: str
+    salary_desired: Optional[str] = None
     
-    # Work Authorization
+    # Work Authorization & Legal
     work_authorized: str  # "yes", "no"
     sponsorship_required: str  # "yes", "no"
+    age_verification: bool  # Confirms applicant is 18+ or will be by start date
+    conviction_record: ConvictionRecord
     
     # Availability
     start_date: str  # YYYY-MM-DD format
     shift_preference: str  # "morning", "afternoon", "evening", "night", "flexible"
-    employment_type: str  # "full_time", "part_time", "temporary"
+    employment_type: str  # "full_time", "part_time", "on_call", "seasonal_temporary"
+    seasonal_start_date: Optional[str] = None  # For seasonal/temporary positions
+    seasonal_end_date: Optional[str] = None    # For seasonal/temporary positions
     
-    # Experience
+    # Previous Hotel Employment
+    previous_hotel_employment: bool
+    previous_hotel_details: Optional[str] = None  # Location and dates if applicable
+    
+    # How did you hear about us?
+    how_heard: str  # Main category
+    how_heard_detailed: Optional[str] = None  # Specific details (employee name, website, etc.)
+    
+    # References
+    personal_reference: PersonalReference
+    
+    # Military Service
+    military_service: MilitaryService
+    
+    # Education History
+    education_history: List[EducationEntry]
+    
+    # Employment History (Last 3 employers)
+    employment_history: List[EmploymentHistoryEntry]
+    
+    # Skills, Languages, and Certifications
+    skills_languages_certifications: Optional[str] = None
+    
+    # Voluntary Self-Identification
+    voluntary_self_identification: Optional[VoluntarySelfIdentification] = None
+    
+    # Experience (simplified from original)
     experience_years: str  # "0-1", "2-5", "6-10", "10+"
     hotel_experience: str  # "yes", "no"
     
-    # Optional fields
-    previous_employer: Optional[str] = ""
-    reason_for_leaving: Optional[str] = ""
+    # Additional Information
     additional_comments: Optional[str] = ""
     
     @validator('email')
@@ -951,8 +1039,10 @@ class JobApplicationData(BaseModel):
             raise ValueError('Email address is required')
         return v.strip().lower()
     
-    @validator('phone')
+    @validator('phone', 'secondary_phone')
     def validate_phone_format(cls, v):
+        if v is None:
+            return v
         import re
         # Remove all non-digit characters
         phone_digits = re.sub(r'\D', '', v)
@@ -960,18 +1050,21 @@ class JobApplicationData(BaseModel):
             raise ValueError('Phone number must be 10 digits')
         return v
     
-    @validator('start_date')
-    def validate_start_date(cls, v):
+    @validator('middle_initial')
+    def validate_middle_initial(cls, v):
+        if v is not None and len(v) > 1:
+            raise ValueError('Middle initial must be a single character')
+        return v.upper() if v else v
+    
+    @validator('start_date', 'seasonal_start_date', 'seasonal_end_date')
+    def validate_date_format(cls, v):
+        if v is None:
+            return v
         try:
             from datetime import datetime, date
-            start_date = datetime.strptime(v, '%Y-%m-%d').date()
-            today = date.today()
-            if start_date < today:
-                raise ValueError('Start date cannot be in the past')
-        except ValueError as e:
-            if 'Start date cannot be in the past' in str(e):
-                raise e
-            raise ValueError('Start date must be in YYYY-MM-DD format')
+            datetime.strptime(v, '%Y-%m-%d').date()
+        except ValueError:
+            raise ValueError('Date must be in YYYY-MM-DD format')
         return v
     
     @validator('work_authorized')
@@ -984,6 +1077,32 @@ class JobApplicationData(BaseModel):
     def validate_sponsorship_required(cls, v):
         if v not in ['yes', 'no']:
             raise ValueError('Sponsorship requirement must be "yes" or "no"')
+        return v
+    
+    @validator('employment_type')
+    def validate_employment_type(cls, v):
+        valid_types = ['full_time', 'part_time', 'on_call', 'seasonal_temporary']
+        if v not in valid_types:
+            raise ValueError(f'Employment type must be one of: {", ".join(valid_types)}')
+        return v
+    
+    @validator('shift_preference')
+    def validate_shift_preference(cls, v):
+        valid_shifts = ['morning', 'afternoon', 'evening', 'night', 'flexible']
+        if v not in valid_shifts:
+            raise ValueError(f'Shift preference must be one of: {", ".join(valid_shifts)}')
+        return v
+    
+    @validator('employment_history')
+    def validate_employment_history(cls, v):
+        if len(v) > 3:
+            raise ValueError('Please provide information for your last 3 employers only')
+        return v
+    
+    @validator('education_history')
+    def validate_education_history(cls, v):
+        if len(v) > 4:
+            raise ValueError('Please provide information for up to 4 educational institutions')
         return v
 
 class JobApplicationResponse(BaseModel):

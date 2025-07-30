@@ -1,14 +1,13 @@
 /opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
 * 'schema_extra' has been renamed to 'json_schema_extra'
   warnings.warn(message, UserWarning)
-WARNING:app.email_service:Email service not configured. Email notifications will be logged only.
 WARNING:passlib.handlers.bcrypt:(trapped) error reading bcrypt version
 Traceback (most recent call last):
   File "/opt/homebrew/lib/python3.13/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
     version = _bcrypt.__about__.__version__
               ^^^^^^^^^^^^^^^^^
 AttributeError: module 'bcrypt' has no attribute '__about__'
-INFO:     Started server process [76413]
+INFO:     Started server process [70282]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
@@ -21,501 +20,412 @@ INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
    Application: John Doe - Front Desk Agent (ID: app_test_001)
    Employees: 5 test employees created
    Application URL: http://localhost:8000/apply/prop_test_001
-INFO:     127.0.0.1:54316 - "GET /health HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54518 - "GET /health HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54641 - "GET /health HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54681 - "GET /health HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54710 - "GET /docs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54746 - "GET /api/properties/prop_test_001/qr-code HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54820 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:54953 - "OPTIONS /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54953 - "POST /auth/login HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:54975 - "POST /auth/login HTTP/1.1" 401 Unauthorized
-INFO:     127.0.0.1:56131 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56131 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56136 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56138 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56141 - "OPTIONS /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56142 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56144 - "OPTIONS /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56136 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56138 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56141 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56131 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56138 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56144 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56175 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56176 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56177 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56178 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56176 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56175 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56178 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56176 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56176 - "OPTIONS /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56176 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56176 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56187 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56189 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56187 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56188 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56189 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56187 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56209 - "OPTIONS /api/employees/emp_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56209 - "GET /api/employees/emp_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56292 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56293 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56292 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56295 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56332 - "OPTIONS /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56332 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56332 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58646 - "HEAD /docs HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58776 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:58777 - "OPTIONS /properties/%7BpropertyId%7D/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58777 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:59419 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59533 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59534 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59536 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59540 - "OPTIONS /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59541 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59542 - "OPTIONS /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59533 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59541 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59542 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59534 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59540 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59541 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59541 - "OPTIONS /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59541 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59541 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59571 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59572 - "OPTIONS /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59572 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59711 - "POST /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59711 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59745 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59746 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59825 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61037 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61039 - "POST /hr/properties HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:61245 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61248 - "POST /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61250 - "POST /hr/properties/d6815b2f-82d2-4bdb-84f9-59c33334d720/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61252 - "GET /properties/d6815b2f-82d2-4bdb-84f9-59c33334d720/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61254 - "POST /apply/d6815b2f-82d2-4bdb-84f9-59c33334d720 HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:61303 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61305 - "POST /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61307 - "POST /hr/properties/30b71cd2-b59e-4135-a2d2-406bcc555cf9/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61309 - "GET /properties/30b71cd2-b59e-4135-a2d2-406bcc555cf9/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61311 - "POST /apply/30b71cd2-b59e-4135-a2d2-406bcc555cf9 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61313 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61315 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61317 - "POST /hr/properties/30b71cd2-b59e-4135-a2d2-406bcc555cf9/managers HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:61319 - "POST /apply/30b71cd2-b59e-4135-a2d2-406bcc555cf9 HTTP/1.1" 400 Bad Request
-INFO:     127.0.0.1:61459 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61457 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61460 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61461 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61457 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61463 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61480 - "OPTIONS /hr/properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61480 - "POST /hr/properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61480 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61510 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61511 - "OPTIONS /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61511 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61558 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61559 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61560 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61561 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61558 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61560 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61558 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61561 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61561 - "OPTIONS /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61561 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61558 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61583 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61585 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61587 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61589 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61591 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61593 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61676 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61678 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61676 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61677 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61678 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61676 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61735 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61736 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61735 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61738 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61738 - "OPTIONS /hr/properties/d6815b2f-82d2-4bdb-84f9-59c33334d720 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61738 - "DELETE /hr/properties/d6815b2f-82d2-4bdb-84f9-59c33334d720 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61738 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61768 - "OPTIONS /hr/properties/30b71cd2-b59e-4135-a2d2-406bcc555cf9 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61768 - "DELETE /hr/properties/30b71cd2-b59e-4135-a2d2-406bcc555cf9 HTTP/1.1" 400 Bad Request
-INFO:     127.0.0.1:61796 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61798 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61797 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61796 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61798 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61797 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61828 - "OPTIONS /hr/applications/c6724695-40e8-4901-bc4e-b907a422e596/history HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61828 - "GET /hr/applications/c6724695-40e8-4901-bc4e-b907a422e596/history HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61862 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61863 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61862 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61865 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61881 - "POST /hr/properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61881 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61903 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61904 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61941 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61942 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61941 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61943 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61943 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61943 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62040 - "POST /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62040 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62040 - "OPTIONS /hr/managers/74c38652-4aa6-4f4c-beb4-ffc34f4822ea/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62046 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62040 - "GET /hr/managers/74c38652-4aa6-4f4c-beb4-ffc34f4822ea/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62088 - "OPTIONS /hr/managers/74c38652-4aa6-4f4c-beb4-ffc34f4822ea HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62088 - "PUT /hr/managers/74c38652-4aa6-4f4c-beb4-ffc34f4822ea HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62088 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62088 - "GET /hr/managers/74c38652-4aa6-4f4c-beb4-ffc34f4822ea/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62089 - "GET /hr/managers/mgr_test_001/performance HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62107 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62109 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62111 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62107 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62142 - "POST /hr/properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62142 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62154 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62154 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62290 - "OPTIONS /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62291 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62291 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62290 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62294 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62295 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62296 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62297 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62291 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:62290 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62290 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:62291 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62290 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62297 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62291 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62296 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62296 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62297 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62341 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62342 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:62341 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62342 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:62341 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62341 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62341 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62341 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62341 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:62342 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62342 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62533 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62534 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62610 - "OPTIONS /applications/check-duplicate?property_id=d9f1e97a-fe66-4636-a10a-014adc9c85da&email=vgoutamram%40gmail.com&position=Front+Desk+Agent HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62610 - "GET /applications/check-duplicate?property_id=d9f1e97a-fe66-4636-a10a-014adc9c85da&email=vgoutamram%40gmail.com&position=Front+Desk+Agent HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:62982 - "OPTIONS /apply/d9f1e97a-fe66-4636-a10a-014adc9c85da HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62982 - "POST /apply/d9f1e97a-fe66-4636-a10a-014adc9c85da HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63021 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63022 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63021 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63022 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63021 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63021 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63021 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63021 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63151 - "OPTIONS /hr/applications/90a433e0-49dd-4903-874c-c29191320194/history HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63151 - "GET /hr/applications/90a433e0-49dd-4903-874c-c29191320194/history HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63179 - "OPTIONS /hr/applications/talent-pool HTTP/1.1" 200 OK
-DEBUG: talent-pool endpoint called by user 74c38652-4aa6-4f4c-beb4-ffc34f4822ea
-INFO:     127.0.0.1:63179 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-DEBUG: talent-pool endpoint called by user 74c38652-4aa6-4f4c-beb4-ffc34f4822ea
-INFO:     127.0.0.1:63205 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63273 - "OPTIONS /applications/90a433e0-49dd-4903-874c-c29191320194/reject HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63273 - "POST /applications/90a433e0-49dd-4903-874c-c29191320194/reject HTTP/1.1" 404 Not Found
-DEBUG: talent-pool endpoint called by user 74c38652-4aa6-4f4c-beb4-ffc34f4822ea
-INFO:     127.0.0.1:63374 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63434 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63435 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63434 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63435 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63445 - "OPTIONS /manager/analytics/overview HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63446 - "OPTIONS /manager/analytics/employee-trends HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63447 - "OPTIONS /manager/analytics/overview HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63448 - "OPTIONS /manager/analytics/employee-trends HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63445 - "GET /manager/analytics/overview HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63445 - "GET /manager/analytics/overview HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63449 - "GET /manager/analytics/employee-trends HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63449 - "GET /manager/analytics/employee-trends HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63449 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63449 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63571 - "OPTIONS /applications/90a433e0-49dd-4903-874c-c29191320194/approve HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63571 - "POST /applications/90a433e0-49dd-4903-874c-c29191320194/approve HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:63867 - "GET /manager/analytics/overview HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63868 - "GET /manager/analytics/employee-trends HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63867 - "GET /manager/analytics/overview HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63868 - "GET /manager/analytics/employee-trends HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63877 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63878 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63877 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63878 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63878 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63878 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63907 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63926 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63907 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63926 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63942 - "GET /manager/analytics/overview HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63943 - "GET /manager/analytics/employee-trends HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63942 - "GET /manager/analytics/overview HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63943 - "GET /manager/analytics/employee-trends HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:63983 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63983 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63984 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63984 - "GET /hr/properties HTTP/1.1" 403 Forbidden
-INFO:     127.0.0.1:63984 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63984 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64055 - "OPTIONS /manager/property HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64055 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:64056 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64056 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64552 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64554 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64556 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64558 - "POST /hr/properties/prop_test_001/managers HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:64560 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64562 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65050 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65052 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65054 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65056 - "POST /hr/properties/prop_test_001/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65058 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65060 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65062 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:app.email_service:📧 [DEV MODE] Email would be sent to test.candidate@example.com
-INFO:app.email_service:📧 [DEV MODE] Subject: Application Update - Grand Plaza Hotel
-INFO:app.email_service:📧 [DEV MODE] Content preview: 
-        Dear Test Candidate,
-        
-        Thank you for your interest in the Front Desk Agent position at Grand Plaza Hotel.
-        
-        After careful consideration, we have decided to move ...
-INFO:     127.0.0.1:65064 - "POST /hr/applications/7836013a-8761-45b5-b3a2-6cb0b0a631d0/reject HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65246 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65252 - "GET /manager/applications HTTP/1.1" 200 OK
-INFO:app.email_service:📧 [DEV MODE] Email would be sent to jane.candidate@example.com
-INFO:app.email_service:📧 [DEV MODE] Subject: Application Update - Grand Plaza Hotel
-INFO:app.email_service:📧 [DEV MODE] Content preview: 
-        Dear Jane Candidate,
-        
-        Thank you for your interest in the Front Desk Agent position at Grand Plaza Hotel.
-        
-        After careful consideration, we have decided to move ...
-INFO:     127.0.0.1:65254 - "POST /hr/applications/6b7edcf2-c0ac-41c8-9f2d-c8ec6f64d6d6/reject HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49263 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49264 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49265 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49266 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49267 - "OPTIONS /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49264 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49263 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49263 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49263 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49263 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49263 - "OPTIONS /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49264 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49264 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49277 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49278 - "OPTIONS /properties/%7BpropertyId%7D/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49277 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49343 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "OPTIONS /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49356 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49358 - "OPTIONS /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49360 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49362 - "OPTIONS /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49358 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49356 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49358 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49362 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "OPTIONS /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49343 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49344 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49413 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49413 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49412 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49412 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49412 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49412 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49412 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49412 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49475 - "OPTIONS /applications/app_test_001/reject HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49476 - "POST /applications/app_test_001/reject HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:49697 - "OPTIONS /applications/app_test_001/approve HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49698 - "POST /applications/app_test_001/approve HTTP/1.1" 422 Unprocessable Content
-INFO:     127.0.0.1:50017 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50017 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50016 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50016 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50016 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50017 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50019 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50019 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50126 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50126 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50125 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50126 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50126 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50125 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50126 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50126 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50255 - "OPTIONS /hr/applications/6b7edcf2-c0ac-41c8-9f2d-c8ec6f64d6d6/history HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50256 - "GET /hr/applications/6b7edcf2-c0ac-41c8-9f2d-c8ec6f64d6d6/history HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50270 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50272 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50274 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50276 - "POST /hr/properties/prop_test_001/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50278 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50284 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50286 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:app.email_service:📧 [DEV MODE] Email would be sent to test.candidate@example.com
-INFO:app.email_service:📧 [DEV MODE] Subject: Application Update - Grand Plaza Hotel
-INFO:app.email_service:📧 [DEV MODE] Content preview: 
-        Dear Test Candidate,
-        
-        Thank you for your interest in the Front Desk Agent position at Grand Plaza Hotel.
-        
-        After careful consideration, we have decided to move ...
-INFO:     127.0.0.1:50288 - "POST /hr/applications/301235d4-3afa-45a6-bbc2-b61d46c79b03/reject HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50323 - "OPTIONS /hr/applications/talent-pool HTTP/1.1" 200 OK
-DEBUG: talent-pool endpoint called by user 74c38652-4aa6-4f4c-beb4-ffc34f4822ea
-INFO:     127.0.0.1:50324 - "GET /hr/applications/talent-pool HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50364 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50366 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50368 - "GET /hr/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50370 - "POST /hr/properties/prop_test_001/managers HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50372 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50374 - "POST /hr/properties/prop_test_001/qr-code HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50376 - "POST /apply/prop_test_001 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50378 - "POST /applications/e355b2bd-8330-4bc4-a119-8fc50897c5f6/reject HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50398 - "POST /applications/app_test_001/reject HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50483 - "POST /auth/login HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50486 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:50488 - "GET /manager/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50490 - "POST /applications/e355b2bd-8330-4bc4-a119-8fc50897c5f6/reject HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51164 - "OPTIONS /manager/property HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51165 - "OPTIONS /manager/property HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51167 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51163 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51167 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51163 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51163 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51163 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51167 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51167 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51170 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51172 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51300 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51301 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51301 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51301 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51301 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51301 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51301 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51324 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51326 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51300 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51324 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51328 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51544 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51544 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51544 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51544 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51544 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51544 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51543 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51544 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51574 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51574 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:51573 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51574 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51573 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51573 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51573 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51573 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52966 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:52967 - "GET /properties/%7BpropertyId%7D/info HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53000 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53000 - "GET /manager/property HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:52999 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52999 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52999 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53000 - "GET /hr/applications HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52999 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52999 - "GET /api/employees HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /properties/d9f1e97a-fe66-4636-a10a-014adc9c85da/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53006 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53017 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53019 - "GET /hr/users HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53007 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53017 - "GET /hr/properties HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53021 - "GET /hr/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56592 - "GET /properties/1/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56593 - "GET /properties/1/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57043 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57044 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57534 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57535 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57640 - "GET /applications/check-duplicate?property_id=prop_test_001&email=gvemula%40mail.yu.edu&position=Groundskeeper HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57865 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57866 - "GET /properties/f98fb5f6-4bdc-451d-b6dc-e142f7f61f29/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58150 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58151 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58738 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58739 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53351 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53352 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56762 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56763 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57950 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57951 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62359 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62359 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62582 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62899 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62900 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63876 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63877 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64591 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65415 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65416 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65480 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49405 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49437 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49438 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49490 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49491 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49691 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49692 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49692 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49691 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49729 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49730 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49940 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50003 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50081 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50082 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50121 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50122 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50261 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50262 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50294 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50295 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50346 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50347 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50347 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50346 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50346 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50347 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50347 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50346 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50346 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50347 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50369 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50370 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51023 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51024 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51199 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51200 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51807 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51808 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51832 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51833 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52697 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52698 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52868 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53026 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53027 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53874 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53875 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54562 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54563 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55003 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55004 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56687 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56688 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60572 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60573 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60574 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60575 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60574 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60572 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60575 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60573 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60885 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60886 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60887 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60888 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60928 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60929 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60929 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60928 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60973 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60974 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61267 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61268 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61269 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61270 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61408 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61409 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61529 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61534 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61586 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61587 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61598 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61599 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61649 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61650 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61660 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61661 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61799 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61800 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62420 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62420 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62427 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62428 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63330 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63331 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64511 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64512 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64762 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64763 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64853 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64853 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65170 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65170 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65186 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65187 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65195 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65195 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65195 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65196 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65327 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65327 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65352 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65352 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65354 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65355 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65352 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65356 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49497 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49498 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49504 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49504 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49527 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49528 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49498 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49497 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49628 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49629 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49667 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49667 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49629 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49628 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49670 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49671 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50878 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50878 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50891 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50891 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50893 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50894 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50878 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50878 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51022 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51023 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51036 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51036 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51042 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51043 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51023 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51023 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51696 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51696 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51700 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51700 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51701 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51702 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51696 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51696 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51890 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51890 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51894 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51894 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51890 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51899 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51900 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51901 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52504 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52510 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52513 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52513 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52514 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52515 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52515 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52514 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52616 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52617 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52630 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52631 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52637 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52638 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52637 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52638 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53402 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53403 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53404 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53405 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53416 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53417 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53416 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53416 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53600 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53601 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53602 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53602 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53608 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53609 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53609 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53608 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54721 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54722 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56849 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56849 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56850 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56851 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56851 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56850 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56938 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56938 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56949 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56950 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56950 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56949 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57087 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57087 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57096 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57097 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57097 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57097 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57173 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57173 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57183 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57183 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57183 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57184 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57288 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57288 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57295 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57300 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57300 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57295 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57360 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57289 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57289 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57365 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57365 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57360 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57485 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57485 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57492 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57492 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57492 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57493 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57730 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57730 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57732 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57733 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57733 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57732 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57984 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57985 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59400 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59400 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59401 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59401 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59401 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59406 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59828 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59828 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59839 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59840 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59840 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59839 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59830 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59830 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59924 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59925 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59925 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59924 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60003 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60003 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60120 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60120 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60120 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60120 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60162 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60163 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60162 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60163 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60223 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60223 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60223 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60223 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60265 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60266 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60266 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60265 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60342 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60342 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60363 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60364 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60364 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60363 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60552 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60552 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60577 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60578 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60577 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60578 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60850 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60850 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61144 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61145 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61869 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61869 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62376 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62377 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62378 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62499 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62499 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62665 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62665 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62858 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62859 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53018 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53018 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53130 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53130 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53224 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53224 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53328 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53328 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53375 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53375 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53399 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53400 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53449 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53449 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53471 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53471 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53549 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53549 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53556 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53557 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53612 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53612 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53628 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53628 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53902 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53902 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54738 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54738 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55025 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55025 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55146 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55166 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55166 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55471 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55471 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55501 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55502 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55690 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55691 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55940 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55940 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56420 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56420 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56452 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56916 - "GET /properties/test_property_123/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56960 - "GET /properties/test_property_123/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56984 - "GET /properties/test_property_123/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57376 - "GET /api/hr-users HTTP/1.1" 404 Not Found

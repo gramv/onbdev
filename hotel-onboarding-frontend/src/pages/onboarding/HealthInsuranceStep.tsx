@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import HealthInsuranceForm from '@/components/HealthInsuranceForm'
+import ReviewPlaceholder from '@/components/ReviewPlaceholder'
 import { CheckCircle, Heart, Users, AlertTriangle } from 'lucide-react'
 
 interface OnboardingContext {
@@ -17,6 +19,7 @@ export default function HealthInsuranceStep() {
   
   const [formData, setFormData] = useState(null)
   const [isValid, setIsValid] = useState(false)
+  const [showReview, setShowReview] = useState(false)
 
   useEffect(() => {
     const existingData = progress.stepData?.['health-insurance']
@@ -27,12 +30,67 @@ export default function HealthInsuranceStep() {
 
   const handleFormSave = (data: any) => {
     setFormData(data)
+    // Save progress but don't mark complete yet (wait for review and sign)
     const stepData = {
       formData: data,
       completedAt: new Date().toISOString()
     }
+    // Don't mark complete until reviewed and signed
+    saveProgress()
+  }
+
+  const handleProceedToReview = () => {
+    if (isValid && formData) {
+      setShowReview(true)
+    }
+  }
+
+  const handleBackFromReview = () => {
+    setShowReview(false)
+  }
+
+  const handleComplete = () => {
+    const stepData = {
+      formData,
+      reviewed: true,
+      completedAt: new Date().toISOString()
+    }
     markStepComplete('health-insurance', stepData)
     saveProgress()
+    setShowReview(false)
+  }
+
+  // Show review placeholder if form is valid and review is requested
+  if (showReview && formData) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <Heart className="h-6 w-6 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Review Health Insurance</h1>
+          </div>
+        </div>
+        
+        <ReviewPlaceholder
+          formType="health_insurance"
+          formTitle="Health Insurance Enrollment"
+          description="Review your health insurance selections and dependent information"
+          isReady={isValid}
+          onEdit={handleBackFromReview}
+          onReview={handleComplete}
+          language="en"
+        />
+        
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={handleBackFromReview}>
+            Back to Form
+          </Button>
+          <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700">
+            Complete Enrollment
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -77,6 +135,19 @@ export default function HealthInsuranceStep() {
             onSave={handleFormSave}
             onValidationChange={setIsValid}
           />
+          
+          {/* Review and Complete Button */}
+          {isValid && formData && (
+            <div className="mt-6 flex justify-end">
+              <Button 
+                onClick={handleProceedToReview}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Review Enrollment
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

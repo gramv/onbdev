@@ -444,28 +444,26 @@ async def get_property_public_info(property_id: str):
     
     # Define available departments and positions based on hotel operations
     departments_and_positions = {
+        "Management": [
+            "General Manager",
+            "Assistant General Manager"
+        ],
         "Front Desk": [
             "Front Desk Agent",
             "Night Auditor",
-            "Guest Services Representative",
-            "Concierge"
+            "Manager on Duty"
         ],
         "Housekeeping": [
             "Housekeeper",
             "Housekeeping Supervisor",
             "Laundry Attendant",
-            "Public Area Attendant"
+            "Groundskeeper"
         ],
         "Food & Beverage": [
-            "Server",
-            "Bartender",
-            "Host/Hostess",
-            "Kitchen Staff",
-            "Banquet Server"
+            "Breakfast Attendant"
         ],
         "Maintenance": [
             "Maintenance Technician",
-            "Engineering Assistant",
             "Groundskeeper"
         ]
     }
@@ -503,28 +501,26 @@ async def submit_job_application(property_id: str, application_data: JobApplicat
     
     # Validate department and position are available for this property
     departments_and_positions = {
+        "Management": [
+            "General Manager",
+            "Assistant General Manager"
+        ],
         "Front Desk": [
             "Front Desk Agent",
             "Night Auditor", 
-            "Guest Services Representative",
-            "Concierge"
+            "Manager on Duty"
         ],
         "Housekeeping": [
             "Housekeeper",
             "Housekeeping Supervisor",
             "Laundry Attendant",
-            "Public Area Attendant"
+            "Groundskeeper"
         ],
         "Food & Beverage": [
-            "Server",
-            "Bartender",
-            "Host/Hostess",
-            "Kitchen Staff",
-            "Banquet Server"
+            "Breakfast Attendant"
         ],
         "Maintenance": [
             "Maintenance Technician",
-            "Engineering Assistant",
             "Groundskeeper"
         ]
     }
@@ -564,23 +560,64 @@ async def submit_job_application(property_id: str, application_data: JobApplicat
     
     # Convert application data to dictionary format expected by JobApplication model
     applicant_data = {
+        # Personal Information
         "first_name": application_data.first_name,
+        "middle_initial": application_data.middle_initial,
         "last_name": application_data.last_name,
         "email": application_data.email,
         "phone": application_data.phone,
+        "phone_type": application_data.phone_type,
+        "secondary_phone": application_data.secondary_phone,
+        "secondary_phone_type": application_data.secondary_phone_type,
         "address": application_data.address,
+        "apartment_unit": application_data.apartment_unit,
         "city": application_data.city,
         "state": application_data.state,
         "zip_code": application_data.zip_code,
+        
+        # Position Information
+        "salary_desired": application_data.salary_desired,
+        
+        # Work Authorization & Legal
         "work_authorized": application_data.work_authorized,
         "sponsorship_required": application_data.sponsorship_required,
+        "age_verification": application_data.age_verification,
+        "conviction_record": application_data.conviction_record.model_dump(),
+        
+        # Availability
         "start_date": application_data.start_date,
         "shift_preference": application_data.shift_preference,
         "employment_type": application_data.employment_type,
+        "seasonal_start_date": application_data.seasonal_start_date,
+        "seasonal_end_date": application_data.seasonal_end_date,
+        
+        # Previous Hotel Employment
+        "previous_hotel_employment": application_data.previous_hotel_employment,
+        "previous_hotel_details": application_data.previous_hotel_details,
+        
+        # How did you hear about us
+        "how_heard": application_data.how_heard,
+        "how_heard_detailed": application_data.how_heard_detailed,
+        
+        # References
+        "personal_reference": application_data.personal_reference.model_dump(),
+        
+        # Military Service
+        "military_service": application_data.military_service.model_dump(),
+        
+        # Education & Employment History
+        "education_history": [edu.model_dump() for edu in application_data.education_history],
+        "employment_history": [emp.model_dump() for emp in application_data.employment_history],
+        
+        # Skills & Additional Info
+        "skills_languages_certifications": application_data.skills_languages_certifications,
+        "voluntary_self_identification": application_data.voluntary_self_identification.model_dump() if application_data.voluntary_self_identification else None,
+        
+        # Experience (legacy fields kept for compatibility)
         "experience_years": application_data.experience_years,
         "hotel_experience": application_data.hotel_experience,
-        "previous_employer": application_data.previous_employer,
-        "reason_for_leaving": application_data.reason_for_leaving,
+        
+        # Additional Comments
         "additional_comments": application_data.additional_comments
     }
     

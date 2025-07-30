@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
+import ReviewPlaceholder from '@/components/ReviewPlaceholder'
 import { CheckCircle, Building, FileText, Shield } from 'lucide-react'
 
 interface OnboardingContext {
@@ -47,6 +48,7 @@ export default function CompanyPoliciesStep() {
   const [acknowledgedPolicies, setAcknowledgedPolicies] = useState<string[]>([])
   const [isSigned, setIsSigned] = useState(false)
   const [signatureData, setSignatureData] = useState(null)
+  const [showReview, setShowReview] = useState(false)
 
   useEffect(() => {
     const existingData = progress.stepData?.['company-policies']
@@ -65,6 +67,16 @@ export default function CompanyPoliciesStep() {
     }
   }
 
+  const handleProceedToReview = () => {
+    if (allPoliciesAcknowledged && !isSigned) {
+      setShowReview(true)
+    }
+  }
+
+  const handleBackFromReview = () => {
+    setShowReview(false)
+  }
+
   const handleSignature = (signature: any) => {
     setSignatureData(signature)
     setIsSigned(true)
@@ -77,12 +89,42 @@ export default function CompanyPoliciesStep() {
     }
     markStepComplete('company-policies', stepData)
     saveProgress()
+    setShowReview(false)
   }
 
   const allPoliciesAcknowledged = COMPANY_POLICIES.every(policy => 
     acknowledgedPolicies.includes(policy.id)
   )
   const isStepComplete = allPoliciesAcknowledged && isSigned
+
+  // Show review placeholder if all policies acknowledged and review is requested
+  if (showReview && allPoliciesAcknowledged) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <Building className="h-6 w-6 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Review Company Policies</h1>
+          </div>
+        </div>
+        
+        <ReviewPlaceholder
+          formType="company_policies"
+          formTitle="Company Policy Acknowledgments"
+          description="Review your policy acknowledgments before signing"
+          isReady={allPoliciesAcknowledged}
+          onEdit={handleBackFromReview}
+          language="en"
+        />
+        
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={handleBackFromReview}>
+            Back to Policies
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -132,6 +174,19 @@ export default function CompanyPoliciesStep() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Review Button */}
+      {allPoliciesAcknowledged && !isSigned && (
+        <div className="flex justify-center">
+          <Button 
+            onClick={handleProceedToReview}
+            size="lg"
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Review and Sign Policies
+          </Button>
+        </div>
+      )}
 
       {allPoliciesAcknowledged && (
         <Card>

@@ -32,11 +32,17 @@ import HumanTraffickingAwareness from '../components/HumanTraffickingAwareness'
 // Import onboarding step components
 import WelcomeStep from './onboarding/WelcomeStep'
 import JobDetailsStep from './onboarding/JobDetailsStep'
+import PersonalInfoStep from './onboarding/PersonalInfoStep'
+import I9Section1Step from './onboarding/I9Section1Step'
 import I9ReviewSignStep from './onboarding/I9ReviewSignStep'
+import W4FormStep from './onboarding/W4FormStep'
 import W4ReviewSignStep from './onboarding/W4ReviewSignStep'
+import DirectDepositStep from './onboarding/DirectDepositStep'
+import HealthInsuranceStep from './onboarding/HealthInsuranceStep'
 import EmergencyContactsStep from './onboarding/EmergencyContactsStep'
-import BackgroundCheckStep from './onboarding/BackgroundCheckStep'
-import PhotoCaptureStep from './onboarding/PhotoCaptureStep'
+import CompanyPoliciesStep from './onboarding/CompanyPoliciesStep'
+import TraffickingAwarenessStep from './onboarding/TrafficakingAwarenessStep'
+import WeaponsPolicyStep from './onboarding/WeaponsPolicyStep'
 import FinalReviewStep from './onboarding/FinalReviewStep'
 import I9SupplementsStep from './onboarding/I9SupplementsStep'
 
@@ -315,13 +321,38 @@ export default function EnhancedOnboardingPortal() {
 
   // Enhanced navigation using official packet mapping
   const getNextAvailableStep = (currentStepId: string): string | null => {
-    const nextStep = OfficialPacketMappingService.getNextStep(currentStepId, completedSteps)
+    // Find current step index
+    const currentIndex = ONBOARDING_STEPS.findIndex(step => step.id === currentStepId)
+    console.log('Current step ID:', currentStepId, 'Current index:', currentIndex)
+    
+    // If we can't find the current step or we're at the last step, return null
+    if (currentIndex === -1 || currentIndex >= ONBOARDING_STEPS.length - 1) {
+      return null
+    }
+    
+    // Return the next step
+    const nextStep = ONBOARDING_STEPS[currentIndex + 1]
+    console.log('Found next step:', nextStep?.id)
     return nextStep?.id || null
   }
 
   // Validate step dependencies using official packet mapping
   const canAccessStep = (stepId: string): boolean => {
-    return OfficialPacketMappingService.validateStepDependencies(stepId, completedSteps)
+    // For now, allow access to all steps in sequence
+    // In a production app, you'd check dependencies properly
+    console.log('Checking if can access step:', stepId)
+    const step = ONBOARDING_STEPS.find(s => s.id === stepId)
+    
+    // If step has no dependencies, it's accessible
+    if (!step?.dependencies || step.dependencies.length === 0) {
+      console.log('Step has no dependencies, allowing access')
+      return true
+    }
+    
+    // Check if all dependencies are completed
+    const allDependenciesMet = step.dependencies.every(dep => completedSteps.includes(dep))
+    console.log('Dependencies:', step.dependencies, 'Completed:', completedSteps, 'All met:', allDependenciesMet)
+    return allDependenciesMet
   }
 
   // Smart step validation
@@ -438,10 +469,13 @@ export default function EnhancedOnboardingPortal() {
 
   // Enhanced next step with validation using official packet mapping
   const nextStep = async () => {
+    console.log('Next button clicked, currentStepIndex:', currentStepIndex)
     const currentStep = ONBOARDING_STEPS[currentStepIndex]
+    console.log('Current step:', currentStep)
     
     // Validate current step before proceeding
     const validation = validateCurrentStep()
+    console.log('Validation result:', validation)
     
     if (!validation.isValid) {
       console.log('Step validation failed:', validation.errors)
@@ -449,15 +483,19 @@ export default function EnhancedOnboardingPortal() {
     }
 
     // Mark current step as complete if validation passes
+    console.log('Marking step complete:', currentStep.id)
     markStepComplete(currentStep.id, formData[currentStep.id])
 
     // Use official packet mapping to get next step
     const nextStepId = getNextAvailableStep(currentStep.id)
+    console.log('Next step ID:', nextStepId)
     
     if (nextStepId) {
       const nextStepIndex = ONBOARDING_STEPS.findIndex(step => step.id === nextStepId)
+      console.log('Next step index:', nextStepIndex)
       
       if (nextStepIndex !== -1 && canAccessStep(nextStepId)) {
+        console.log('Moving to next step')
         setCurrentStepIndex(nextStepIndex)
         await updateProgress(nextStepId, formData)
         
@@ -819,7 +857,7 @@ export default function EnhancedOnboardingPortal() {
                         disabled={!isClickable}
                         className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                           status === 'current'
-                            ? 'bg-hotel-primary text-white shadow-sm'
+                            ? 'bg-blue-600 text-white shadow-sm hover:bg-blue-700'
                             : status === 'completed'
                             ? 'bg-green-100 text-green-800 hover:bg-green-200'
                             : step.governmentRequired && !isClickable
@@ -834,7 +872,9 @@ export default function EnhancedOnboardingPortal() {
                         ) : step.governmentRequired && !isClickable ? (
                           <AlertTriangle className="h-4 w-4" />
                         ) : (
-                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-current/20 text-xs font-bold">
+                          <span className={`flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${
+                          status === 'current' ? 'bg-white/20' : 'bg-current/20'
+                        }`}>
                             {index + 1}
                           </span>
                         )}
@@ -1128,10 +1168,10 @@ export default function EnhancedOnboardingPortal() {
         return <JobDetailsStep {...stepProps} />
         
       case 'personal_information':
-        return renderPersonalInfoStep()
+        return <PersonalInfoStep {...stepProps} />
         
       case 'i9_section1':
-        return renderI9Section1Step()
+        return <I9Section1Step {...stepProps} />
         
       case 'i9_supplements':
         return <I9SupplementsStep {...stepProps} />
@@ -1140,16 +1180,16 @@ export default function EnhancedOnboardingPortal() {
         return <I9ReviewSignStep {...stepProps} />
         
       case 'w4_tax_withholding':
-        return renderW4FormStep()
+        return <W4FormStep {...stepProps} />
         
       case 'w4_review_sign':
         return <W4ReviewSignStep {...stepProps} />
         
       case 'direct_deposit':
-        return renderDirectDepositStep()
+        return <DirectDepositStep {...stepProps} />
         
       case 'health_insurance':
-        return renderHealthInsuranceStep()
+        return <HealthInsuranceStep {...stepProps} />
         
       case 'emergency_contacts':
         return <EmergencyContactsStep {...stepProps} />
@@ -1221,7 +1261,9 @@ export default function EnhancedOnboardingPortal() {
     )
   }
 
-  // Import the actual form components
+  // Legacy render functions - DEPRECATED
+  // These are replaced by the new step components that include review and sign functionality
+  /*
   function renderPersonalInfoStep() { 
     return (
       <PersonalInformationForm
@@ -1455,44 +1497,45 @@ export default function EnhancedOnboardingPortal() {
   function renderPhotoCaptureStep() { return renderPlaceholderStep() }
   function renderEmployeeSignatureStep() { return renderPlaceholderStep() }
   function renderManagerReviewStep() { return renderPlaceholderStep() }
+  */
 
   // Render current step based on step ID
   function renderCurrentStep() {
     const currentStep = ONBOARDING_STEPS[currentStepIndex]
     const normalizedId = normalizeStepId(currentStep.id)
     
-    // Map step IDs to render functions
+    // Map step IDs to render functions - all using new step components
     switch (normalizedId) {
       case 'welcome':
         return <WelcomeStep {...getStepProps()} />
       case 'personal-info':
-        return renderPersonalInfoStep()
+        return <PersonalInfoStep {...getStepProps()} />
       case 'job-details':
         return <JobDetailsStep {...getStepProps()} />
       case 'i9-section1':
-        return renderI9Section1Step()
+        return <I9Section1Step {...getStepProps()} />
+      case 'i9-review-sign':
+        return <I9ReviewSignStep {...getStepProps()} />
       case 'i9-supplements':
         return <I9SupplementsStep {...getStepProps()} />
       case 'document-upload':
         return renderPlaceholderStep()
       case 'w4-form':
-        return renderW4FormStep()
+        return <W4FormStep {...getStepProps()} />
+      case 'w4-review-sign':
+        return <W4ReviewSignStep {...getStepProps()} />
       case 'direct-deposit':
-        return renderDirectDepositStep()
+        return <DirectDepositStep {...getStepProps()} />
       case 'health-insurance':
-        return renderHealthInsuranceStep()
+        return <HealthInsuranceStep {...getStepProps()} />
       case 'emergency-contacts':
-        return renderEmergencyContactsStep()
+        return <EmergencyContactsStep {...getStepProps()} />
       case 'company-policies':
-        return renderCompanyPoliciesStep()
+        return <CompanyPoliciesStep {...getStepProps()} />
       case 'trafficking-awareness':
-        return renderTrafficingAwarenessStep()
+        return <TraffickingAwarenessStep {...getStepProps()} />
       case 'weapons-policy':
-        return renderCompanyPoliciesStep()
-      case 'background-check':
-        return <BackgroundCheckStep {...getStepProps()} />
-      case 'photo-capture':
-        return <PhotoCaptureStep {...getStepProps()} />
+        return <WeaponsPolicyStep {...getStepProps()} />
       case 'final-review':
         return <FinalReviewStep {...getStepProps()} />
       default:
@@ -1566,9 +1609,6 @@ export default function EnhancedOnboardingPortal() {
       </div>
     )
   }
-
-  const currentStep = ONBOARDING_STEPS[currentStepIndex]
-  const progressPercentage = ((completedSteps.length / ONBOARDING_STEPS.length) * 100)
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import DirectDepositForm from '@/components/DirectDepositForm'
+import ReviewPlaceholder from '@/components/ReviewPlaceholder'
 import { CheckCircle, CreditCard, DollarSign, AlertTriangle } from 'lucide-react'
 
 interface OnboardingContext {
@@ -18,6 +20,7 @@ export default function DirectDepositStep() {
   const [formData, setFormData] = useState(null)
   const [isValid, setIsValid] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
+  const [showReview, setShowReview] = useState(false)
 
   // Load existing data from progress
   useEffect(() => {
@@ -30,13 +33,24 @@ export default function DirectDepositStep() {
 
   const handleFormSave = (data: any) => {
     setFormData(data)
+    // Save progress but don't mark complete yet (wait for review and sign)
     const stepData = {
       formData: data,
       signed: isSigned,
       completedAt: new Date().toISOString()
     }
-    markStepComplete('direct-deposit', stepData)
+    // Don't mark complete until reviewed and signed
     saveProgress()
+  }
+
+  const handleProceedToReview = () => {
+    if (isValid && formData) {
+      setShowReview(true)
+    }
+  }
+
+  const handleBackFromReview = () => {
+    setShowReview(false)
   }
 
   const handleDigitalSignature = (signatureData: any) => {
@@ -49,9 +63,39 @@ export default function DirectDepositStep() {
     }
     markStepComplete('direct-deposit', stepData)
     saveProgress()
+    setShowReview(false)
   }
 
   const isStepComplete = isValid && isSigned
+
+  // Show review placeholder if form is valid and review is requested
+  if (showReview && formData) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <DollarSign className="h-6 w-6 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Review Direct Deposit</h1>
+          </div>
+        </div>
+        
+        <ReviewPlaceholder
+          formType="direct_deposit"
+          formTitle="Direct Deposit Authorization"
+          description="Review your banking information before signing"
+          isReady={isValid}
+          onEdit={handleBackFromReview}
+          language="en"
+        />
+        
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={handleBackFromReview}>
+            Back to Form
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -120,6 +164,19 @@ export default function DirectDepositStep() {
             onValidationChange={setIsValid}
             onDigitalSignature={handleDigitalSignature}
           />
+          
+          {/* Review and Sign Button */}
+          {isValid && formData && !isSigned && (
+            <div className="mt-6 flex justify-end">
+              <Button 
+                onClick={handleProceedToReview}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Review and Sign Form
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
