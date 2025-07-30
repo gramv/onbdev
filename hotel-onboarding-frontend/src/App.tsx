@@ -14,7 +14,7 @@ import LoginPage from './pages/LoginPage'
 import HRDashboard from './pages/HRDashboard'
 import ManagerDashboard from './pages/ManagerDashboard'
 import EnhancedManagerDashboard from './pages/EnhancedManagerDashboard'
-import JobApplicationForm from './pages/JobApplicationForm'
+import JobApplicationFormV2 from './pages/JobApplicationFormV2'
 import EnhancedOnboardingPortal from './pages/EnhancedOnboardingPortal'
 import OnboardingWelcome from './pages/OnboardingWelcome'
 // Onboarding step components
@@ -87,8 +87,8 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Other application routes */}
-              <Route path="/apply/:propertyId" element={<JobApplicationForm />} />
+              {/* Job application route */}
+              <Route path="/apply/:propertyId" element={<JobApplicationFormV2 />} />
               
               {/* Onboarding routes - Professional step-by-step approach */}
               <Route path="/onboarding" element={<OnboardingLayout />}>

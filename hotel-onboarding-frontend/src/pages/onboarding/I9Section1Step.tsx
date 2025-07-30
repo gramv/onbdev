@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import I9Section1Form from '@/components/I9Section1Form'
+import I9Section1Review from '@/components/reviews/I9Section1Review'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle, Shield, AlertTriangle, FileText } from 'lucide-react'
@@ -28,6 +29,7 @@ export default function I9Section1Step({
   const [formData, setFormData] = useState(null)
   const [isValid, setIsValid] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
+  const [showReview, setShowReview] = useState(false)
 
   // Load existing data from progress
   useEffect(() => {
@@ -40,16 +42,17 @@ export default function I9Section1Step({
 
   const handleFormSave = (data: any) => {
     setFormData(data)
-    const stepData = {
-      formData: data,
-      signed: isSigned,
-      completedAt: new Date().toISOString()
-    }
-    markStepComplete('i9-section1', stepData)
-    saveProgress('i9-section1', stepData)
+    // Save progress but don't mark complete yet
+    saveProgress('i9-section1', { formData: data, signed: false })
   }
 
-  const handleDigitalSignature = (signatureData: any) => {
+  const handleProceedToReview = () => {
+    if (isValid && formData) {
+      setShowReview(true)
+    }
+  }
+
+  const handleSignature = (signatureData: any) => {
     setIsSigned(true)
     const stepData = {
       formData,
@@ -59,9 +62,26 @@ export default function I9Section1Step({
     }
     markStepComplete('i9-section1', stepData)
     saveProgress('i9-section1', stepData)
+    setShowReview(false)
+  }
+
+  const handleBackFromReview = () => {
+    setShowReview(false)
   }
 
   const isStepComplete = isValid && isSigned
+
+  // Show review component if in review mode
+  if (showReview && formData) {
+    return (
+      <I9Section1Review
+        formData={formData}
+        language={language}
+        onSign={handleSignature}
+        onBack={handleBackFromReview}
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -128,8 +148,20 @@ export default function I9Section1Step({
             language={language}
             onSave={handleFormSave}
             onValidationChange={setIsValid}
-            onDigitalSignature={handleDigitalSignature}
           />
+          
+          {/* Review and Sign Button */}
+          {isValid && formData && (
+            <div className="mt-6 flex justify-end">
+              <Button 
+                onClick={handleProceedToReview}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Review and Sign Form
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
