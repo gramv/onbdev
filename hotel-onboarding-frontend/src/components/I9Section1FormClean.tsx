@@ -830,27 +830,6 @@ export default function I9Section1FormClean({
                     )}
                   </div>
 
-                  {formData.citizenship_status === 'authorized_alien' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="foreign_passport_number">Foreign Passport Number</Label>
-                        <Input
-                          id="foreign_passport_number"
-                          value={formData.foreign_passport_number}
-                          onChange={(e) => handleInputChange('foreign_passport_number', e.target.value)}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="country_of_issuance">Country of Issuance</Label>
-                        <Input
-                          id="country_of_issuance"
-                          value={formData.country_of_issuance}
-                          onChange={(e) => handleInputChange('country_of_issuance', e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
