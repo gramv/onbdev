@@ -19,6 +19,7 @@ interface I9Section1FormCleanProps {
   language?: 'en' | 'es'
   onValidationChange?: (isValid: boolean) => void
   employeeId?: string
+  showPreview?: boolean  // Control whether to show internal preview
 }
 
 interface FormData {
@@ -64,7 +65,8 @@ export default function I9Section1FormClean({
   initialData = {},
   language = 'en',
   onValidationChange,
-  employeeId
+  employeeId,
+  showPreview = true
 }: I9Section1FormCleanProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [showReview, setShowReview] = useState(false)
@@ -342,8 +344,14 @@ export default function I9Section1FormClean({
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1)
       } else {
-        // All steps complete, generate PDF preview
-        generatePdfPreview()
+        // All steps complete
+        if (showPreview) {
+          // Show internal preview
+          generatePdfPreview()
+        } else {
+          // Pass data to parent without preview
+          onComplete(formData)
+        }
       }
     }
   }
@@ -874,12 +882,19 @@ export default function I9Section1FormClean({
               disabled={isGeneratingPdf}
             >
               {currentStep === steps.length - 1 ? (
-                isGeneratingPdf ? (
-                  <>Generating Preview...</>
+                showPreview ? (
+                  isGeneratingPdf ? (
+                    <>Generating Preview...</>
+                  ) : (
+                    <>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Preview & Sign
+                    </>
+                  )
                 ) : (
                   <>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Preview & Sign
+                    Continue
+                    <ChevronRight className="ml-2 h-4 w-4" />
                   </>
                 )
               ) : (

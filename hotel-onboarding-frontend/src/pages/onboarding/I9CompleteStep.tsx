@@ -11,6 +11,8 @@ import ReviewAndSign from '@/components/ReviewAndSign'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { i9Section1Validator } from '@/utils/stepValidators'
+import { generateMappedI9Pdf } from '@/utils/i9PdfGeneratorMapped'
+import axios from 'axios'
 
 export default function I9CompleteStep({
   currentStep,
@@ -35,6 +37,10 @@ export default function I9CompleteStep({
   
   // State for supplements
   const [needsSupplements, setNeedsSupplements] = useState<'none' | 'translator'>('none')
+  
+  // State for PDF
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
   
   // Validation hook
   const { errors, fieldErrors, validate } = useStepValidation(i9Section1Validator)
@@ -172,9 +178,82 @@ export default function I9CompleteStep({
     }
     
     await saveProgress(currentStep.id, { documentsData: data, documentsComplete: true })
+    
+    // Generate PDF before showing preview
+    await generateCompletePdf(data)
+    
     setActiveTab('preview')
   }
   
+  const generateCompletePdf = async (documents?: any) => {
+    setIsGeneratingPdf(true)
+    try {
+      // Prepare complete form data including Section 2 info from documents
+      const completeFormData = {
+        ...formData,
+        // Add Section 2 data from document extraction
+        section2: documents?.extractedData ? {
+          documents: documents.extractedData,
+          documentVerificationDate: new Date().toISOString()
+        } : null,
+        // Add supplement data if applicable
+        supplementA: needsSupplements === 'translator' ? supplementsData : null
+      }
+      
+      // Generate PDF with all sections
+      const pdfBase64 = await generateMappedI9Pdf(completeFormData)
+      
+      // Save PDF to backend if employeeId is available
+      if (employee?.id) {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+          const response = await axios.post(
+            `${apiUrl}/api/onboarding/${employee.id}/i9-complete/generate-pdf`,
+            {
+              section1Data: formData,
+              supplementAData: needsSupplements === 'translator' ? supplementsData : null,
+              section2Data: documents?.extractedData || null
+            }
+          )
+          
+          if (response.data.pdf_url) {
+            setPdfUrl(response.data.pdf_url)
+          }
+        } catch (error) {
+          console.error('Error saving PDF to backend:', error)
+        }
+      }
+      
+      // Convert base64 to blob URL for preview
+      const base64ToBlob = (base64: string, contentType: string): Blob => {
+        const byteCharacters = atob(base64)
+        const byteArrays = []
+        
+        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+          const slice = byteCharacters.slice(offset, offset + 512)
+          const byteNumbers = new Array(slice.length)
+          for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i)
+          }
+          const byteArray = new Uint8Array(byteNumbers)
+          byteArrays.push(byteArray)
+        }
+        
+        return new Blob(byteArrays, { type: contentType })
+      }
+      
+      const pdfBlob = base64ToBlob(pdfBase64, 'application/pdf')
+      const url = URL.createObjectURL(pdfBlob)
+      setPdfUrl(url)
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      // Continue without PDF preview
+    } finally {
+      setIsGeneratingPdf(false)
+    }
+  }
+
   const handleSign = async (signatureData: any) => {
     const completeData = {
       formData,
@@ -307,6 +386,7 @@ export default function I9CompleteStep({
               initialData={formData}
               language={language}
               employeeId={employee?.id}
+              showPreview={false}
             />
           </TabsContent>
           
@@ -410,27 +490,39 @@ export default function I9CompleteStep({
           
           {/* Preview Tab */}
           <TabsContent value="preview" className="space-y-6">
-            <ReviewAndSign
-              formType="i9-complete"
-              formData={{ ...formData, supplementsData, documentsData }}
-              title={language === 'es' ? 'Revisar I-9 Completo' : 'Review Complete I-9'}
-              description={language === 'es' 
-                ? 'Revise toda la información antes de firmar'
-                : 'Review all information before signing'}
-              language={language}
-              onSign={handleSign}
-              onBack={() => setActiveTab('documents')}
-              renderPreview={renderFormPreview}
-              usePDFPreview={false}
-              federalCompliance={{
-                formName: 'Form I-9, Employment Eligibility Verification',
-                retentionPeriod: '3 years after hire or 1 year after termination (whichever is later)',
-                requiresWitness: false
-              }}
-              agreementText={language === 'es'
-                ? 'Atestiguo, bajo pena de perjurio, que la información proporcionada es verdadera y correcta.'
-                : 'I attest, under penalty of perjury, that the information provided is true and correct.'}
-            />
+            {isGeneratingPdf ? (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <span className="text-gray-600">
+                    {language === 'es' ? 'Generando PDF...' : 'Generating PDF...'}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <ReviewAndSign
+                formType="i9-complete"
+                formData={{ ...formData, supplementsData, documentsData }}
+                title={language === 'es' ? 'Revisar I-9 Completo' : 'Review Complete I-9'}
+                description={language === 'es' 
+                  ? 'Revise toda la información antes de firmar'
+                  : 'Review all information before signing'}
+                language={language}
+                onSign={handleSign}
+                onBack={() => setActiveTab('documents')}
+                renderPreview={renderFormPreview}
+                usePDFPreview={true}
+                pdfUrl={pdfUrl}
+                federalCompliance={{
+                  formName: 'Form I-9, Employment Eligibility Verification',
+                  retentionPeriod: '3 years after hire or 1 year after termination (whichever is later)',
+                  requiresWitness: false
+                }}
+                agreementText={language === 'es'
+                  ? 'Atestiguo, bajo pena de perjurio, que la información proporcionada es verdadera y correcta.'
+                  : 'I attest, under penalty of perjury, that the information provided is true and correct.'}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>
