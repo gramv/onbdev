@@ -18,6 +18,7 @@ import logging
 import base64
 import io
 from dotenv import load_dotenv
+from groq import Groq
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -37,6 +38,10 @@ from .policy_document_generator import PolicyDocumentGenerator
 
 # Import PDF API router
 from .pdf_api import router as pdf_router
+
+# Import OCR service
+from .i9_ocr_service import I9DocumentOCRService
+from .i9_section2 import I9DocumentType
 
 # Import standardized response system
 from .response_models import *
@@ -117,6 +122,12 @@ token_manager = OnboardingTokenManager()
 password_manager = PasswordManager()
 security = HTTPBearer()
 supabase_service = EnhancedSupabaseService()
+
+# Initialize GROQ client
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# Initialize OCR service
+ocr_service = I9DocumentOCRService(groq_client)
 
 # Include PDF API router
 app.include_router(pdf_router)
@@ -5846,6 +5857,91 @@ async def verify_document_integrity(
         logger.error(f"Document verification error: {e}")
         return error_response(
             message="Failed to verify document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Document Processing with AI (GROQ/Llama)
+@app.post("/api/documents/process")
+async def process_document_with_ai(
+    file: UploadFile = File(...),
+    document_type: str = Form(...)
+):
+    """
+    Process uploaded document with GROQ AI to extract I-9 relevant information
+    Uses Llama 3.3 70B model for document analysis
+    """
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/') and file.content_type != 'application/pdf':
+            return validation_error_response(
+                "Invalid file type. Please upload an image or PDF file."
+            )
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Convert to base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Map frontend document types to backend enum
+        document_type_mapping = {
+            'us_passport': I9DocumentType.US_PASSPORT,
+            'permanent_resident_card': I9DocumentType.PERMANENT_RESIDENT_CARD,
+            'drivers_license': I9DocumentType.DRIVERS_LICENSE,
+            'social_security_card': I9DocumentType.SSN_CARD,
+        }
+        
+        # Get the document type enum
+        doc_type_enum = document_type_mapping.get(document_type)
+        if not doc_type_enum:
+            return validation_error_response(
+                f"Unknown document type: {document_type}"
+            )
+        
+        # Process with OCR service
+        result = ocr_service.extract_document_fields(
+            document_type=doc_type_enum,
+            image_data=file_base64,
+            file_name=file.filename
+        )
+        
+        if not result.get("success"):
+            return error_response(
+                message=f"Document processing failed: {result.get('error', 'Unknown error')}",
+                error_code=ErrorCode.PROCESSING_ERROR,
+                status_code=400
+            )
+        
+        # Extract the data we need for Section 2
+        extracted_data = result.get("extracted_data", {})
+        
+        # Format response for frontend
+        response_data = {
+            "documentNumber": extracted_data.get("document_number", ""),
+            "expirationDate": extracted_data.get("expiration_date", ""),
+            "issuingAuthority": extracted_data.get("issuing_authority", ""),
+            "documentType": document_type,
+            "confidence": result.get("confidence_score", 0.0),
+            "validation": result.get("validation", {})
+        }
+        
+        # Add additional fields based on document type
+        if doc_type_enum == I9DocumentType.PERMANENT_RESIDENT_CARD:
+            response_data["alienNumber"] = extracted_data.get("alien_number", "")
+            response_data["uscisNumber"] = extracted_data.get("uscis_number", "")
+        elif doc_type_enum == I9DocumentType.SSN_CARD:
+            response_data["ssn"] = extracted_data.get("ssn", "")
+        
+        return success_response(
+            data=response_data,
+            message="Document processed successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Document processing error: {str(e)}")
+        return error_response(
+            message="Failed to process document",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
