@@ -301,6 +301,7 @@ export const finalReviewValidator = (data: any): ValidationResult => {
 export const stepValidators: Record<string, (data: any) => ValidationResult> = {
   'personal-info': personalInfoValidator,
   'i9-section1': i9Section1Validator,
+  'i9-complete': i9Section1Validator,
   'w4-form': w4FormValidator,
   'direct-deposit': directDepositValidator,
   'company-policies': companyPoliciesValidator,
