@@ -1,38 +1,39 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
-import { HRDashboardLayout } from '@/components/layouts/HRDashboardLayout'
-import { ManagerDashboardLayout } from '@/components/layouts/ManagerDashboardLayout'
-import { OnboardingLayout } from '@/components/layouts/OnboardingLayout'
-import PropertiesTab from '@/components/dashboard/PropertiesTab'
-import ManagersTab from '@/components/dashboard/ManagersTab'
-import { EmployeesTab } from '@/components/dashboard/EmployeesTab'
-import { ApplicationsTab } from '@/components/dashboard/ApplicationsTab'
-import { AnalyticsTab } from '@/components/dashboard/AnalyticsTab'
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import HRDashboard from './pages/HRDashboard'
-import ManagerDashboard from './pages/ManagerDashboard'
-import EnhancedManagerDashboard from './pages/EnhancedManagerDashboard'
-import JobApplicationFormV2 from './pages/JobApplicationFormV2'
-import EnhancedOnboardingPortal from './pages/EnhancedOnboardingPortal'
-import OnboardingWelcome from './pages/OnboardingWelcome'
-// Onboarding step components
-import PersonalInfoStep from './pages/onboarding/PersonalInfoStep'
-import I9Section1Step from './pages/onboarding/I9Section1Step'
-import I9SupplementsStep from './pages/onboarding/I9SupplementsStep'
-import DocumentUploadStep from './pages/onboarding/DocumentUploadStep'
-import W4FormStep from './pages/onboarding/W4FormStep'
-import DirectDepositStep from './pages/onboarding/DirectDepositStep'
-import HealthInsuranceStep from './pages/onboarding/HealthInsuranceStep'
-import CompanyPoliciesStep from './pages/onboarding/CompanyPoliciesStep'
-import TraffickingAwarenessStep from './pages/onboarding/TrafficakingAwarenessStep'
-import WeaponsPolicyStep from './pages/onboarding/WeaponsPolicyStep'
-import EmployeeReviewStep from './pages/onboarding/EmployeeReviewStep'
-import OnboardingComplete from './pages/OnboardingComplete'
 import { AuthProvider } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
 import './App.css'
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+)
+
+// Lazy load layouts
+const HRDashboardLayout = lazy(() => import('@/components/layouts/HRDashboardLayout').then(m => ({ default: m.HRDashboardLayout })))
+const ManagerDashboardLayout = lazy(() => import('@/components/layouts/ManagerDashboardLayout').then(m => ({ default: m.ManagerDashboardLayout })))
+
+// Lazy load dashboard components
+const PropertiesTab = lazy(() => import('@/components/dashboard/PropertiesTab'))
+const ManagersTab = lazy(() => import('@/components/dashboard/ManagersTab'))
+const EmployeesTab = lazy(() => import('@/components/dashboard/EmployeesTab').then(m => ({ default: m.EmployeesTab })))
+const ApplicationsTab = lazy(() => import('@/components/dashboard/ApplicationsTab').then(m => ({ default: m.ApplicationsTab })))
+const AnalyticsTab = lazy(() => import('@/components/dashboard/AnalyticsTab').then(m => ({ default: m.AnalyticsTab })))
+
+// Lazy load pages
+const HomePage = lazy(() => import('./pages/HomePage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const HRDashboard = lazy(() => import('./pages/HRDashboard'))
+const ManagerDashboard = lazy(() => import('./pages/ManagerDashboard'))
+const EnhancedManagerDashboard = lazy(() => import('./pages/EnhancedManagerDashboard'))
+const JobApplicationFormV2 = lazy(() => import('./pages/JobApplicationFormV2'))
+const OnboardingFlowPortal = lazy(() => import('./pages/OnboardingFlowPortal'))
+const OnboardingComplete = lazy(() => import('./pages/OnboardingComplete'))
+const OnboardingFlowTest = lazy(() => import('./pages/OnboardingFlowTest'))
 
 function App() {
   return (
@@ -40,7 +41,8 @@ function App() {
       <LanguageProvider>
         <Router>
           <div className="min-h-screen bg-gray-50">
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               
@@ -90,31 +92,17 @@ function App() {
               {/* Job application route */}
               <Route path="/apply/:propertyId" element={<JobApplicationFormV2 />} />
               
-              {/* Onboarding routes - Professional step-by-step approach */}
-              <Route path="/onboarding" element={<OnboardingLayout />}>
-                <Route index element={<Navigate to="/onboarding/personal-info" replace />} />
-                <Route path="personal-info" element={<PersonalInfoStep />} />
-                <Route path="i9-section1" element={<I9Section1Step />} />
-                <Route path="i9-supplements" element={<I9SupplementsStep />} />
-                <Route path="document-upload" element={<DocumentUploadStep />} />
-                <Route path="w4-form" element={<W4FormStep />} />
-                <Route path="direct-deposit" element={<DirectDepositStep />} />
-                <Route path="health-insurance" element={<HealthInsuranceStep />} />
-                <Route path="company-policies" element={<CompanyPoliciesStep />} />
-                <Route path="trafficking-awareness" element={<TraffickingAwarenessStep />} />
-                <Route path="weapons-policy" element={<WeaponsPolicyStep />} />
-                <Route path="employee-review" element={<EmployeeReviewStep />} />
-              </Route>
-              
-              {/* Onboarding welcome/entry point */}
-              <Route path="/onboarding/:token" element={<OnboardingWelcome />} />
-              <Route path="/onboarding-welcome" element={<OnboardingWelcome />} />
-              <Route path="/onboarding-welcome/:employeeId" element={<OnboardingWelcome />} />
+              {/* Onboarding completion page */}
               <Route path="/onboarding-complete" element={<OnboardingComplete />} />
               
-              {/* Main onboarding route */}
-              <Route path="/onboard" element={<EnhancedOnboardingPortal />} />
-            </Routes>
+              {/* New Flow-Based Onboarding Portal */}
+              <Route path="/onboard-flow" element={<OnboardingFlowPortal />} />
+              <Route path="/onboard-flow-test" element={<OnboardingFlowPortal testMode={true} />} />
+              
+              {/* Component Test Page */}
+              <Route path="/test-components" element={<OnboardingFlowTest />} />
+              </Routes>
+            </Suspense>
             <Toaster />
           </div>
         </Router>

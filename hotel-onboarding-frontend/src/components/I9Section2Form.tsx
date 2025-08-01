@@ -721,7 +721,6 @@ export default function I9Section2Form({
           <div>
             <Label>{t('reviewer_signature')} *</Label>
             <DigitalSignatureCapture
-              signatureType="manager_i9"
               documentName="Form I-9 Section 2 Employer Verification"
               signerName={formData.reviewerName || 'Manager'}
               signerTitle={formData.reviewerTitle}

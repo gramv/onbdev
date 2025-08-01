@@ -406,7 +406,6 @@ export default function W4ReviewAndSign({
       </div>
 
       <DigitalSignatureCapture
-        signatureType="employee_w4"
         documentName="Form W-4 - Employee's Withholding Certificate"
         signerName={`${w4FormData?.first_name} ${w4FormData?.last_name}`}
         signerTitle="Employee"

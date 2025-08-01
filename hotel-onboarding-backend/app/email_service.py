@@ -5,7 +5,7 @@ Handles sending email notifications for job application workflow
 import asyncio
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, date
 from typing import Dict, Any, Optional
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -367,9 +367,11 @@ class EmailService:
         
         return await self.send_email(applicant_email, subject, html_content, text_content)
     
-    async def send_rejection_notification(self, applicant_email: str, applicant_name: str,
+    async def send_rejection_notification(self, to_email: str, applicant_name: str,
                                         property_name: str, position: str,
-                                        manager_name: str, manager_email: str) -> bool:
+                                        rejection_reason: str,
+                                        manager_name: str = "Hiring Manager", 
+                                        manager_email: str = "hr@hotel.com") -> bool:
         """Send rejection notification email"""
         
         html_content, text_content = self._get_rejection_template(
@@ -382,11 +384,13 @@ class EmailService:
         
         subject = f"Application Update - {property_name}"
         
-        return await self.send_email(applicant_email, subject, html_content, text_content)
+        return await self.send_email(to_email, subject, html_content, text_content)
     
-    async def send_talent_pool_notification(self, applicant_email: str, applicant_name: str,
+    async def send_talent_pool_notification(self, to_email: str, applicant_name: str,
                                           property_name: str, position: str,
-                                          manager_name: str, manager_email: str) -> bool:
+                                          talent_pool_notes: Optional[str] = None,
+                                          manager_name: str = "Hiring Manager",
+                                          manager_email: str = "hr@hotel.com") -> bool:
         """Send talent pool notification email"""
         
         html_content, text_content = self._get_talent_pool_template(
@@ -399,11 +403,14 @@ class EmailService:
         
         subject = f"You're in Our Talent Pool - {property_name}"
         
-        return await self.send_email(applicant_email, subject, html_content, text_content)
+        return await self.send_email(to_email, subject, html_content, text_content)
     
-    async def send_onboarding_welcome_email(self, employee_email: str, employee_name: str,
+    async def send_onboarding_welcome_email(self, to_email: str, employee_name: str,
                                           property_name: str, position: str,
-                                          onboarding_link: str, manager_name: str) -> bool:
+                                          start_date: date, orientation_date: date,
+                                          orientation_time: str, orientation_location: str,
+                                          onboarding_url: str, expires_at: datetime,
+                                          manager_name: str = "Your Manager") -> bool:
         """Send onboarding welcome email with secure link"""
         
         subject = f"Welcome to {property_name} - Complete Your Onboarding"
@@ -434,12 +441,19 @@ class EmailService:
                     <p>Congratulations on joining our team as a <strong>{position}</strong>! We're excited to have you aboard.</p>
                     
                     <div class="highlight">
+                        <h3>📅 Important Dates</h3>
+                        <p><strong>Start Date:</strong> {start_date.strftime('%B %d, %Y')}</p>
+                        <p><strong>Orientation:</strong> {orientation_date.strftime('%B %d, %Y')} at {orientation_time}</p>
+                        <p><strong>Location:</strong> {orientation_location}</p>
+                    </div>
+                    
+                    <div class="highlight">
                         <h3>🚀 Next Step: Complete Your Onboarding</h3>
                         <p>To get started, please complete your onboarding process by clicking the button below. This secure link will guide you through all the necessary forms and information.</p>
                     </div>
                     
                     <div style="text-align: center;">
-                        <a href="{onboarding_link}" class="button">Start My Onboarding</a>
+                        <a href="{onboarding_url}" class="button">Start My Onboarding</a>
                     </div>
                     
                     <p><strong>What to expect:</strong></p>
@@ -453,7 +467,7 @@ class EmailService:
                     </ul>
                     
                     <div class="highlight">
-                        <p><strong>⏰ Important:</strong> Please complete your onboarding within 72 hours. The process takes approximately 45 minutes.</p>
+                        <p><strong>⏰ Important:</strong> Please complete your onboarding by {expires_at.strftime('%B %d, %Y at %I:%M %p')}. The process takes approximately 45 minutes.</p>
                     </div>
                     
                     <p>If you have any questions during the onboarding process, please don't hesitate to contact your manager:</p>
@@ -480,10 +494,15 @@ class EmailService:
         
         Congratulations on joining our team as a {position}! We're excited to have you aboard.
         
+        Important Dates:
+        - Start Date: {start_date.strftime('%B %d, %Y')}
+        - Orientation: {orientation_date.strftime('%B %d, %Y')} at {orientation_time}
+        - Location: {orientation_location}
+        
         Next Step: Complete Your Onboarding
         To get started, please complete your onboarding process by visiting the secure link below:
         
-        {onboarding_link}
+        {onboarding_url}
         
         What to expect:
         - Personal information and emergency contacts
@@ -493,7 +512,7 @@ class EmailService:
         - Company policies and acknowledgments
         - Digital signatures and final review
         
-        Important: Please complete your onboarding within 72 hours. The process takes approximately 45 minutes.
+        Important: Please complete your onboarding by {expires_at.strftime('%B %d, %Y at %I:%M %p')}. The process takes approximately 45 minutes.
         
         If you have any questions during the onboarding process, please contact your manager:
         {manager_name}
@@ -508,7 +527,7 @@ class EmailService:
         This is an automated message from the Hotel Onboarding System.
         """
         
-        return await self.send_email(employee_email, subject, html_content, text_content)
+        return await self.send_email(to_email, subject, html_content, text_content)
     
     async def send_form_update_notification(self, employee_email: str, employee_name: str,
                                           form_type: str, update_link: str, 

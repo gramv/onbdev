@@ -36,6 +36,7 @@ interface PersonalInformationFormProps {
   onNext?: () => void
   onBack?: () => void
   onValidationChange?: (isValid: boolean, errors: Record<string, string>) => void
+  useMainNavigation?: boolean
 }
 
 const US_STATES = [
@@ -52,7 +53,8 @@ export default function PersonalInformationForm({
   onSave,
   onNext,
   onBack,
-  onValidationChange
+  onValidationChange,
+  useMainNavigation = false
 }: PersonalInformationFormProps) {
   const [formData, setFormData] = useState<PersonalInformationData>({
     firstName: '',
@@ -79,6 +81,7 @@ export default function PersonalInformationForm({
   const [formValidator] = useState(() => FormValidator.getInstance())
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [showErrors, setShowErrors] = useState(false)
+  const [initialValidationDone, setInitialValidationDone] = useState(false)
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -160,9 +163,27 @@ export default function PersonalInformationForm({
     return translations[language][key] || key
   }
 
+  // Initial validation without showing errors to user
   useEffect(() => {
-    validateForm()
-  }, [formData])
+    if (!initialValidationDone) {
+      const validationRules = getValidationRules('personal_info')
+      const result = formValidator.validateForm(formData, validationRules)
+      setIsValid(result.isValid)
+      setInitialValidationDone(true)
+      
+      // Notify parent but don't set visible errors
+      if (onValidationChange) {
+        onValidationChange(result.isValid, {})
+      }
+    }
+  }, [formData, initialValidationDone])
+
+  useEffect(() => {
+    // Only validate and show errors if form has been interacted with or if we're showing errors
+    if (initialValidationDone && (showErrors || Object.keys(touchedFields).length > 0)) {
+      validateForm()
+    }
+  }, [formData, showErrors, touchedFields, initialValidationDone])
 
   useEffect(() => {
     // Apply auto-fill formatting when user types
@@ -176,6 +197,14 @@ export default function PersonalInformationForm({
       }
     })
   }, [formData.ssn, formData.phone, formData.zipCode])
+
+  // Auto-save form data whenever it changes
+  useEffect(() => {
+    if (initialValidationDone && Object.keys(touchedFields).length > 0) {
+      // Call onSave to notify parent of data changes
+      onSave(formData)
+    }
+  }, [formData, initialValidationDone, touchedFields, onSave])
 
   const validateForm = () => {
     // Use unified validation system
@@ -250,7 +279,7 @@ export default function PersonalInformationForm({
       extractAutoFillData(formData, 'personal_info')
       
       onSave(formData)
-      if (onNext) onNext()
+      if (!useMainNavigation && onNext) onNext()
     }
   }
 
@@ -537,16 +566,25 @@ export default function PersonalInformationForm({
       </div>
 
       {/* Navigation - Compact */}
-      <div className="flex justify-between items-center pt-4">
-        {onBack && (
-          <Button variant="outline" onClick={onBack} size="sm">
-            {t('back')}
+      {!useMainNavigation && (
+        <div className="flex justify-between items-center pt-4">
+          {onBack && (
+            <Button variant="outline" onClick={onBack} size="sm">
+              {t('back')}
+            </Button>
+          )}
+          <Button onClick={handleSubmit} className="px-6" size="sm" disabled={!isValid}>
+            {t('save_continue')}
           </Button>
-        )}
-        <Button onClick={handleSubmit} className="px-6" size="sm" disabled={!isValid}>
-          {t('save_continue')}
+        </div>
+      )}
+      
+      {/* Hidden save button for main navigation */}
+      {useMainNavigation && (
+        <Button onClick={handleSubmit} className="hidden" disabled={!isValid}>
+          Save Personal Info
         </Button>
-      </div>
+      )}
 
       {/* Form validation indicator for parent component */}
       <div className="hidden" data-form-valid={isValid} data-form-errors={JSON.stringify(errors)} />

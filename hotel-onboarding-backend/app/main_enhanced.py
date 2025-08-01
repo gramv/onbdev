@@ -3,17 +3,20 @@
 Hotel Employee Onboarding System API - Supabase Only Version
 Enhanced with standardized API response formats
 """
-from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query
+from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, timedelta, timezone
+from pathlib import Path
 import uuid
 import json
 import os
 import jwt
 import logging
+import base64
+import io
 from dotenv import load_dotenv
 
 # Configure logging
@@ -29,6 +32,11 @@ from .services.form_update_service import FormUpdateService
 # Import Supabase service and email service
 from .supabase_service_enhanced import EnhancedSupabaseService
 from .email_service import email_service
+from .document_storage import DocumentStorageService
+from .policy_document_generator import PolicyDocumentGenerator
+
+# Import PDF API router
+from .pdf_api import router as pdf_router
 
 # Import standardized response system
 from .response_models import *
@@ -109,6 +117,9 @@ token_manager = OnboardingTokenManager()
 password_manager = PasswordManager()
 security = HTTPBearer()
 supabase_service = EnhancedSupabaseService()
+
+# Include PDF API router
+app.include_router(pdf_router)
 
 # Initialize enhanced services
 onboarding_orchestrator = None
@@ -1269,6 +1280,73 @@ async def approve_application(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Approval failed: {str(e)}")
 
+@app.post("/applications/{id}/approve-enhanced")
+async def approve_application_enhanced(
+    id: str,
+    request: ApplicationApprovalRequest,
+    current_user: User = Depends(require_manager_role)
+):
+    """Enhanced application approval that redirects to employee setup"""
+    try:
+        # Get application from Supabase
+        application = await supabase_service.get_application_by_id(id)
+        if not application:
+            return not_found_response("Application not found")
+        
+        # Verify manager access
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        property_ids = [prop.id for prop in manager_properties]
+        
+        if application.property_id not in property_ids:
+            return forbidden_response("Access denied to this application")
+        
+        if application.status != "pending":
+            return error_response(
+                message="Application is not pending",
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400
+            )
+        
+        # Store the approval data temporarily (or in session)
+        approval_data = {
+            "application_id": id,
+            "job_offer": request.job_offer.model_dump(),
+            "orientation_details": {
+                "orientation_date": request.orientation_date.isoformat(),
+                "orientation_time": request.orientation_time,
+                "orientation_location": request.orientation_location,
+                "uniform_size": request.uniform_size,
+                "parking_location": request.parking_location,
+                "locker_number": request.locker_number,
+                "training_requirements": request.training_requirements,
+                "special_instructions": request.special_instructions
+            },
+            "benefits_preselection": {
+                "health_plan_selection": request.health_plan_selection,
+                "dental_coverage": request.dental_coverage,
+                "vision_coverage": request.vision_coverage
+            }
+        }
+        
+        # Return redirect information to frontend
+        return success_response(
+            data={
+                "redirect_to": "employee_setup",
+                "application_id": id,
+                "approval_data": approval_data,
+                "message": "Please complete employee setup to finalize approval"
+            },
+            message="Application approved - proceed to employee setup"
+        )
+        
+    except Exception as e:
+        logger.error(f"Enhanced approval error: {e}")
+        return error_response(
+            message="Failed to process application approval",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
 @app.post("/applications/{id}/reject")
 async def reject_application(
     id: str,
@@ -1315,6 +1393,90 @@ async def reject_application(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reject application: {str(e)}")
+
+@app.post("/applications/{id}/reject-enhanced")
+async def reject_application_enhanced(
+    id: str,
+    request: ApplicationRejectionRequest,
+    current_user: User = Depends(require_manager_role)
+):
+    """Enhanced application rejection with talent pool and email options"""
+    try:
+        # Get application
+        application = await supabase_service.get_application_by_id(id)
+        if not application:
+            return not_found_response("Application not found")
+        
+        # Verify manager access
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        property_ids = [prop.id for prop in manager_properties]
+        
+        if application.property_id not in property_ids:
+            return forbidden_response("Access denied to this application")
+        
+        if application.status != "pending":
+            return error_response(
+                message="Application is not pending",
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400
+            )
+        
+        # Update application status
+        status = "talent_pool" if request.add_to_talent_pool else "rejected"
+        await supabase_service.update_application_status(id, status, current_user.id)
+        
+        # Update rejection details
+        update_data = {
+            "rejection_reason": request.rejection_reason,
+            "reviewed_by": current_user.id,
+            "reviewed_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if request.add_to_talent_pool:
+            update_data["talent_pool_date"] = datetime.now(timezone.utc).isoformat()
+            update_data["talent_pool_notes"] = request.talent_pool_notes
+        
+        supabase_service.client.table('job_applications').update(update_data).eq('id', id).execute()
+        
+        # Send rejection email if requested
+        if request.send_rejection_email:
+            property_obj = supabase_service.get_property_by_id_sync(application.property_id)
+            applicant_data = application.applicant_data
+            
+            if request.add_to_talent_pool:
+                await email_service.send_talent_pool_notification(
+                    to_email=applicant_data.get('email'),
+                    applicant_name=f"{applicant_data.get('first_name')} {applicant_data.get('last_name')}",
+                    property_name=property_obj.name,
+                    position=application.position,
+                    talent_pool_notes=request.talent_pool_notes
+                )
+            else:
+                await email_service.send_rejection_notification(
+                    to_email=applicant_data.get('email'),
+                    applicant_name=f"{applicant_data.get('first_name')} {applicant_data.get('last_name')}",
+                    property_name=property_obj.name,
+                    position=application.position,
+                    rejection_reason=request.rejection_reason
+                )
+        
+        return success_response(
+            data={
+                "status": status,
+                "rejection_reason": request.rejection_reason,
+                "talent_pool": request.add_to_talent_pool,
+                "email_sent": request.send_rejection_email
+            },
+            message=f"Application {'moved to talent pool' if request.add_to_talent_pool else 'rejected'} successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Enhanced rejection error: {e}")
+        return error_response(
+            message="Failed to process application rejection",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
 
 @app.get("/hr/applications/talent-pool")
 async def get_talent_pool(
@@ -4158,6 +4320,1535 @@ async def place_legal_hold(
     except Exception as e:
         logger.error(f"Failed to place legal hold: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# =====================================
+# MANAGER EMPLOYEE SETUP ENDPOINTS
+# =====================================
+
+@app.post("/api/manager/employee-setup", response_model=OnboardingLinkGeneration)
+async def create_employee_setup(
+    setup_data: ManagerEmployeeSetup,
+    current_user: User = Depends(require_manager_role)
+):
+    """Manager creates initial employee setup matching pages 1-2 of hire packet"""
+    try:
+        # Verify manager has access to the property
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        property_ids = [prop.id for prop in manager_properties]
+        
+        if setup_data.property_id not in property_ids:
+            return forbidden_response("Manager does not have access to this property")
+        
+        # Get property details
+        property_obj = supabase_service.get_property_by_id_sync(setup_data.property_id)
+        if not property_obj:
+            return not_found_response("Property not found")
+        
+        # Create user account for employee
+        user_data = {
+            "id": str(uuid.uuid4()),
+            "email": setup_data.employee_email,
+            "first_name": setup_data.employee_first_name,
+            "last_name": setup_data.employee_last_name,
+            "role": "employee",
+            "property_id": setup_data.property_id,
+            "is_active": False,  # Will be activated after onboarding
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Check if user already exists
+        existing_user = supabase_service.get_user_by_email_sync(setup_data.employee_email)
+        if existing_user:
+            return error_response(
+                message="Employee with this email already exists",
+                error_code=ErrorCode.RESOURCE_CONFLICT,
+                status_code=409
+            )
+        
+        # Create user in Supabase
+        await supabase_service.create_user(user_data)
+        
+        # Create employee record
+        employee_data = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_data["id"],
+            "employee_number": f"EMP-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:6].upper()}",
+            "application_id": setup_data.application_id,
+            "property_id": setup_data.property_id,
+            "manager_id": current_user.id,
+            "department": setup_data.department,
+            "position": setup_data.position,
+            "job_level": setup_data.job_title,
+            "hire_date": setup_data.hire_date.isoformat(),
+            "start_date": setup_data.start_date.isoformat(),
+            "pay_rate": setup_data.pay_rate,
+            "pay_frequency": setup_data.pay_frequency,
+            "employment_type": setup_data.employment_type,
+            "personal_info": {
+                "first_name": setup_data.employee_first_name,
+                "middle_initial": setup_data.employee_middle_initial,
+                "last_name": setup_data.employee_last_name,
+                "email": setup_data.employee_email,
+                "phone": setup_data.employee_phone,
+                "address": setup_data.employee_address,
+                "city": setup_data.employee_city,
+                "state": setup_data.employee_state,
+                "zip_code": setup_data.employee_zip,
+                "work_schedule": setup_data.work_schedule,
+                "overtime_eligible": setup_data.overtime_eligible,
+                "supervisor_name": setup_data.supervisor_name,
+                "supervisor_title": setup_data.supervisor_title,
+                "supervisor_email": setup_data.supervisor_email,
+                "supervisor_phone": setup_data.supervisor_phone,
+                "reporting_location": setup_data.reporting_location,
+                "orientation_date": setup_data.orientation_date.isoformat(),
+                "orientation_time": setup_data.orientation_time,
+                "orientation_location": setup_data.orientation_location,
+                "training_requirements": setup_data.training_requirements,
+                "uniform_required": setup_data.uniform_required,
+                "uniform_size": setup_data.uniform_size,
+                "parking_assigned": setup_data.parking_assigned,
+                "parking_location": setup_data.parking_location,
+                "locker_assigned": setup_data.locker_assigned,
+                "locker_number": setup_data.locker_number
+            },
+            "benefits_eligible": setup_data.benefits_eligible,
+            "health_insurance_eligible": setup_data.health_insurance_eligible,
+            "pto_eligible": setup_data.pto_eligible,
+            "employment_status": "pending_onboarding",
+            "onboarding_status": "not_started",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Store benefits pre-selection if provided
+        if setup_data.health_plan_selection:
+            employee_data["health_insurance"] = {
+                "medical_plan": setup_data.health_plan_selection,
+                "dental_coverage": setup_data.dental_coverage,
+                "vision_coverage": setup_data.vision_coverage,
+                "enrollment_date": None  # Will be set during onboarding
+            }
+        
+        # Save employee to Supabase
+        employee = await supabase_service.create_employee(employee_data)
+        
+        # Generate onboarding token
+        token = token_manager.generate_token()
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=72)
+        
+        # Create onboarding token record
+        token_data = {
+            "id": str(uuid.uuid4()),
+            "employee_id": employee.id,
+            "token": token,
+            "token_type": "onboarding",
+            "expires_at": expires_at.isoformat(),
+            "is_used": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": current_user.id
+        }
+        
+        # Save token to Supabase
+        supabase_service.client.table('onboarding_tokens').insert(token_data).execute()
+        
+        # Create onboarding session
+        session_data = await onboarding_orchestrator.initiate_onboarding(
+            application_id=setup_data.application_id,
+            employee_id=employee.id,
+            property_id=setup_data.property_id,
+            manager_id=current_user.id,
+            expires_hours=72
+        )
+        
+        # Generate onboarding URL
+        base_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        onboarding_url = f"{base_url}/onboarding/{employee.id}?token={token}"
+        
+        # Send welcome email to employee
+        await email_service.send_onboarding_welcome_email(
+            to_email=setup_data.employee_email,
+            employee_name=f"{setup_data.employee_first_name} {setup_data.employee_last_name}",
+            property_name=property_obj.name,
+            position=setup_data.position,
+            start_date=setup_data.start_date,
+            orientation_date=setup_data.orientation_date,
+            orientation_time=setup_data.orientation_time,
+            orientation_location=setup_data.orientation_location,
+            onboarding_url=onboarding_url,
+            expires_at=expires_at
+        )
+        
+        # Update application status if linked
+        if setup_data.application_id:
+            await supabase_service.update_application_status(
+                setup_data.application_id,
+                "approved",
+                current_user.id
+            )
+        
+        # Return onboarding link information
+        return success_response(
+            data={
+                "employee_id": employee.id,
+                "employee_name": f"{setup_data.employee_first_name} {setup_data.employee_last_name}",
+                "employee_email": setup_data.employee_email,
+                "onboarding_url": onboarding_url,
+                "token": token,
+                "expires_at": expires_at.isoformat(),
+                "session_id": session_data.id,
+                "property_name": property_obj.name,
+                "position": setup_data.position,
+                "start_date": setup_data.start_date.isoformat()
+            },
+            message="Employee setup completed successfully. Onboarding invitation sent."
+        )
+        
+    except Exception as e:
+        logger.error(f"Employee setup error: {e}")
+        return error_response(
+            message="Failed to create employee setup",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.get("/api/manager/employee-setup/{application_id}")
+async def get_application_for_setup(
+    application_id: str,
+    current_user: User = Depends(require_manager_role)
+):
+    """Get application data pre-filled for employee setup"""
+    try:
+        # Get application
+        application = await supabase_service.get_application_by_id(application_id)
+        if not application:
+            return not_found_response("Application not found")
+        
+        # Verify manager access
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        property_ids = [prop.id for prop in manager_properties]
+        
+        if application.property_id not in property_ids:
+            return forbidden_response("Access denied to this application")
+        
+        # Get property details
+        property_obj = supabase_service.get_property_by_id_sync(application.property_id)
+        if not property_obj:
+            return not_found_response("Property not found")
+        
+        # Pre-fill setup data from application
+        applicant_data = application.applicant_data
+        setup_prefill = {
+            "application_id": application.id,
+            "property_id": property_obj.id,
+            "property_name": property_obj.name,
+            "property_address": property_obj.address,
+            "property_city": property_obj.city,
+            "property_state": property_obj.state,
+            "property_zip": property_obj.zip_code,
+            "property_phone": property_obj.phone,
+            "employee_first_name": applicant_data.get("first_name", ""),
+            "employee_middle_initial": applicant_data.get("middle_initial", ""),
+            "employee_last_name": applicant_data.get("last_name", ""),
+            "employee_email": applicant_data.get("email", ""),
+            "employee_phone": applicant_data.get("phone", ""),
+            "employee_address": applicant_data.get("address", ""),
+            "employee_city": applicant_data.get("city", ""),
+            "employee_state": applicant_data.get("state", ""),
+            "employee_zip": applicant_data.get("zip_code", ""),
+            "department": application.department,
+            "position": application.position,
+            "employment_type": applicant_data.get("employment_type", "full_time"),
+            "health_plan_selection": applicant_data.get("health_plan_selection"),
+            "dental_coverage": applicant_data.get("dental_coverage", False),
+            "vision_coverage": applicant_data.get("vision_coverage", False),
+            "manager_id": current_user.id,
+            "manager_name": f"{current_user.first_name} {current_user.last_name}"
+        }
+        
+        return success_response(
+            data=setup_prefill,
+            message="Application data retrieved for employee setup"
+        )
+        
+    except Exception as e:
+        logger.error(f"Get application for setup error: {e}")
+        return error_response(
+            message="Failed to retrieve application data",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# ========================= I-9 and W-4 Form Endpoints =========================
+
+@app.post("/api/onboarding/{employee_id}/i9-section1")
+async def save_i9_section1(
+    employee_id: str,
+    data: dict
+):
+    """Save I-9 Section 1 data for an employee"""
+    try:
+        # Validate employee exists
+        employee = supabase_service.get_employee_by_id_sync(employee_id)
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        # Store I-9 Section 1 data
+        i9_data = {
+            "employee_id": employee_id,
+            "section": "section1",
+            "form_data": data.get("formData", {}),
+            "signed": data.get("signed", False),
+            "signature_data": data.get("signatureData"),
+            "completed_at": data.get("completedAt"),
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        # Check if record exists
+        existing = supabase_service.client.table('i9_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('section', 'section1')\
+            .execute()
+        
+        if existing.data:
+            # Update existing record
+            response = supabase_service.client.table('i9_forms')\
+                .update(i9_data)\
+                .eq('employee_id', employee_id)\
+                .eq('section', 'section1')\
+                .execute()
+        else:
+            # Insert new record
+            response = supabase_service.client.table('i9_forms')\
+                .insert(i9_data)\
+                .execute()
+        
+        # Update employee onboarding progress
+        progress_update = {
+            f"onboarding_progress.i9_section1": {
+                "completed": data.get("signed", False),
+                "completed_at": data.get("completedAt"),
+                "data": data
+            }
+        }
+        
+        supabase_service.client.table('employees')\
+            .update(progress_update)\
+            .eq('id', employee_id)\
+            .execute()
+        
+        return success_response(
+            data={"message": "I-9 Section 1 saved successfully"},
+            message="Form data saved"
+        )
+        
+    except Exception as e:
+        logger.error(f"Save I-9 Section 1 error: {e}")
+        return error_response(
+            message="Failed to save I-9 Section 1",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/w4-form")
+async def save_w4_form(
+    employee_id: str,
+    data: dict
+):
+    """Save W-4 form data for an employee"""
+    try:
+        # Validate employee exists
+        employee = supabase_service.get_employee_by_id_sync(employee_id)
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        # Store W-4 data
+        w4_data = {
+            "employee_id": employee_id,
+            "form_data": data.get("formData", {}),
+            "signed": data.get("signed", False),
+            "signature_data": data.get("signatureData"),
+            "completed_at": data.get("completedAt"),
+            "tax_year": 2025,  # Current tax year
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        # Check if record exists
+        existing = supabase_service.client.table('w4_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('tax_year', 2025)\
+            .execute()
+        
+        if existing.data:
+            # Update existing record
+            response = supabase_service.client.table('w4_forms')\
+                .update(w4_data)\
+                .eq('employee_id', employee_id)\
+                .eq('tax_year', 2025)\
+                .execute()
+        else:
+            # Insert new record
+            response = supabase_service.client.table('w4_forms')\
+                .insert(w4_data)\
+                .execute()
+        
+        # Update employee onboarding progress
+        progress_update = {
+            f"onboarding_progress.w4_form": {
+                "completed": data.get("signed", False),
+                "completed_at": data.get("completedAt"),
+                "data": data
+            }
+        }
+        
+        supabase_service.client.table('employees')\
+            .update(progress_update)\
+            .eq('id', employee_id)\
+            .execute()
+        
+        return success_response(
+            data={"message": "W-4 form saved successfully"},
+            message="Form data saved"
+        )
+        
+    except Exception as e:
+        logger.error(f"Save W-4 form error: {e}")
+        return error_response(
+            message="Failed to save W-4 form",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/onboarding/{employee_id}/i9-section1")
+async def get_i9_section1(employee_id: str):
+    """Get I-9 Section 1 data for an employee"""
+    try:
+        response = supabase_service.client.table('i9_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('section', 'section1')\
+            .execute()
+        
+        if response.data:
+            return success_response(data=response.data[0])
+        else:
+            return success_response(data=None)
+            
+    except Exception as e:
+        logger.error(f"Get I-9 Section 1 error: {e}")
+        return error_response(
+            message="Failed to retrieve I-9 Section 1",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/onboarding/{employee_id}/w4-form")
+async def get_w4_form(employee_id: str):
+    """Get W-4 form data for an employee"""
+    try:
+        response = supabase_service.client.table('w4_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('tax_year', 2025)\
+            .execute()
+        
+        if response.data:
+            return success_response(data=response.data[0])
+        else:
+            return success_response(data=None)
+            
+    except Exception as e:
+        logger.error(f"Get W-4 form error: {e}")
+        return error_response(
+            message="Failed to retrieve W-4 form",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/i9-section1/generate-pdf")
+async def generate_i9_section1_pdf(employee_id: str):
+    """Generate PDF for I-9 Section 1"""
+    try:
+        # Get employee data
+        employee = supabase_service.get_employee_by_id_sync(employee_id)
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        # Get I-9 Section 1 data
+        i9_response = supabase_service.client.table('i9_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('section', 'section1')\
+            .execute()
+        
+        if not i9_response.data:
+            return not_found_response("I-9 Section 1 data not found")
+        
+        i9_data = i9_response.data[0]
+        form_data = i9_data.get('form_data', {})
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Map form data to PDF fields
+        pdf_data = {
+            "employee_last_name": form_data.get("last_name", ""),
+            "employee_first_name": form_data.get("first_name", ""),
+            "employee_middle_initial": form_data.get("middle_initial", ""),
+            "other_last_names": form_data.get("other_names", ""),
+            "address_street": form_data.get("address", ""),
+            "address_apt": form_data.get("apt_number", ""),
+            "address_city": form_data.get("city", ""),
+            "address_state": form_data.get("state", ""),
+            "address_zip": form_data.get("zip_code", ""),
+            "date_of_birth": form_data.get("date_of_birth", ""),
+            "ssn": form_data.get("ssn", ""),
+            "email": form_data.get("email", ""),
+            "phone": form_data.get("phone", ""),
+            "citizenship_us_citizen": form_data.get("citizenship_status") == "citizen",
+            "citizenship_noncitizen_national": form_data.get("citizenship_status") == "national",
+            "citizenship_permanent_resident": form_data.get("citizenship_status") == "permanent_resident",
+            "citizenship_authorized_alien": form_data.get("citizenship_status") == "authorized_alien",
+            "uscis_number": form_data.get("alien_registration_number", ""),
+            "i94_admission_number": form_data.get("foreign_passport_number", ""),
+            "passport_number": form_data.get("foreign_passport_number", ""),
+            "passport_country": form_data.get("country_of_issuance", ""),
+            "employee_signature_date": i9_data.get("completed_at", datetime.utcnow().isoformat())
+        }
+        
+        # Generate PDF
+        pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
+        
+        # Add signature if available
+        if i9_data.get('signature_data'):
+            pdf_bytes = pdf_filler.add_signature_to_pdf(
+                pdf_bytes, 
+                i9_data['signature_data'], 
+                "employee_i9"
+            )
+        
+        # Return PDF as base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"I9_Section1_{employee.first_name}_{employee.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="I-9 Section 1 PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate I-9 PDF error: {e}")
+        return error_response(
+            message="Failed to generate I-9 PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/w4-form/generate-pdf")
+async def generate_w4_pdf(employee_id: str):
+    """Generate PDF for W-4 form"""
+    try:
+        # Get employee data
+        employee = supabase_service.get_employee_by_id_sync(employee_id)
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        # Get W-4 data
+        w4_response = supabase_service.client.table('w4_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('tax_year', 2025)\
+            .execute()
+        
+        if not w4_response.data:
+            return not_found_response("W-4 form data not found")
+        
+        w4_data = w4_response.data[0]
+        form_data = w4_data.get('form_data', {})
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Map form data to PDF fields
+        pdf_data = {
+            "first_name": form_data.get("first_name", ""),
+            "last_name": form_data.get("last_name", ""),
+            "ssn": form_data.get("ssn", ""),
+            "address": form_data.get("address", ""),
+            "city": form_data.get("city", ""),
+            "state": form_data.get("state", ""),
+            "zip": form_data.get("zip_code", ""),
+            "filing_status_single": form_data.get("filing_status") == "single",
+            "filing_status_married_jointly": form_data.get("filing_status") == "married_filing_jointly",
+            "filing_status_married_separately": form_data.get("filing_status") == "married_filing_separately",
+            "filing_status_head": form_data.get("filing_status") == "head_of_household",
+            "multiple_jobs": form_data.get("multiple_jobs", False),
+            "dependents_children": form_data.get("qualifying_children", 0),
+            "dependents_other": form_data.get("other_dependents", 0),
+            "other_income": form_data.get("other_income", ""),
+            "deductions": form_data.get("deductions", ""),
+            "extra_withholding": form_data.get("extra_withholding", ""),
+            "signature_date": w4_data.get("completed_at", datetime.utcnow().isoformat())
+        }
+        
+        # Generate PDF
+        pdf_bytes = pdf_filler.fill_w4_form(pdf_data)
+        
+        # Add signature if available
+        if w4_data.get('signature_data'):
+            pdf_bytes = pdf_filler.add_signature_to_pdf(
+                pdf_bytes, 
+                w4_data['signature_data'], 
+                "employee_w4"
+            )
+        
+        # Return PDF as base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"W4_2025_{employee.first_name}_{employee.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="W-4 PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate W-4 PDF error: {e}")
+        return error_response(
+            message="Failed to generate W-4 PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# =============================================================================
+# NEW ONBOARDING FLOW API ENDPOINTS
+# Implements Phase 1: Core Infrastructure from candidate-onboarding-flow spec
+# =============================================================================
+
+@app.get("/api/onboarding/session/{token}")
+async def get_onboarding_session(token: str):
+    """
+    Get onboarding session data by token
+    Implements initializeOnboarding from OnboardingFlowController spec
+    """
+    try:
+        # Handle test mode with demo-token
+        if token == "demo-token":
+            # Return mock data for testing
+            session_data = {
+                "employee": {
+                    "id": "demo-employee-001",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "email": "john.doe@demo.com",
+                    "position": "Front Desk Associate",
+                    "department": "Front Office",
+                    "startDate": "2025-02-01",
+                    "propertyId": "demo-property-001"
+                },
+                "property": {
+                    "id": "demo-property-001",
+                    "name": "Demo Hotel & Suites",
+                    "address": "123 Demo Street, Demo City, DC 12345"
+                },
+                "progress": {
+                    "currentStepIndex": 0,
+                    "totalSteps": 14,
+                    "completedSteps": [],
+                    "percentComplete": 0
+                },
+                "expiresAt": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+            }
+            
+            return success_response(
+                data=session_data,
+                message="Demo onboarding session loaded successfully"
+            )
+        
+        # Use existing token verification logic for real tokens
+        token_manager = OnboardingTokenManager()
+        token_data = token_manager.verify_token(token)
+        
+        if not token_data:
+            return unauthorized_response("Invalid or expired onboarding token")
+        
+        # Get employee and property data
+        db = await EnhancedSupabaseService.get_db()
+        
+        # Get employee data
+        employee_response = await db.table('employees').select('*').eq('id', token_data['employee_id']).single().execute()
+        if not employee_response.data:
+            return not_found_response("Employee not found")
+        
+        employee = employee_response.data
+        
+        # Get property data  
+        property_response = await db.table('properties').select('*').eq('id', employee['property_id']).single().execute()
+        property_data = property_response.data if property_response.data else {}
+        
+        # Get progress data
+        progress_response = await db.table('onboarding_progress').select('*').eq('employee_id', token_data['employee_id']).execute()
+        completed_steps = [p['step_id'] for p in progress_response.data if p.get('completed')]
+        
+        # Calculate current step index (next incomplete step)
+        from .config.onboarding_steps import ONBOARDING_STEPS
+        current_step_index = 0
+        for i, step in enumerate(ONBOARDING_STEPS):
+            if step['id'] not in completed_steps:
+                current_step_index = i
+                break
+        else:
+            current_step_index = len(ONBOARDING_STEPS) - 1  # All completed, stay on last step
+        
+        session_data = {
+            "employee": {
+                "id": employee['id'],
+                "firstName": employee.get('first_name', ''),
+                "lastName": employee.get('last_name', ''),
+                "email": employee.get('email', ''),
+                "position": employee.get('position', ''),
+                "department": employee.get('department', ''),
+                "startDate": employee.get('hire_date', ''),
+                "propertyId": employee.get('property_id', '')
+            },
+            "property": {
+                "id": property_data.get('id', ''),
+                "name": property_data.get('name', 'Hotel Property'),
+                "address": property_data.get('address', '')
+            },
+            "progress": {
+                "currentStepIndex": current_step_index,
+                "totalSteps": len(ONBOARDING_STEPS),
+                "completedSteps": completed_steps,
+                "percentComplete": round((len(completed_steps) / len(ONBOARDING_STEPS)) * 100)
+            },
+            "expiresAt": token_data.get('exp', datetime.now(timezone.utc) + timedelta(hours=24))
+        }
+        
+        return success_response(
+            data=session_data,
+            message="Onboarding session loaded successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Get onboarding session error: {e}")
+        return error_response(
+            message="Failed to load onboarding session",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/progress/{step_id}")
+async def save_step_progress(
+    employee_id: str,
+    step_id: str,
+    request: Dict[str, Any]
+):
+    """
+    Save progress for a specific step
+    Implements saveProgress from OnboardingFlowController spec
+    """
+    try:
+        # Handle test mode
+        if employee_id == "demo-employee-001":
+            return success_response(
+                data={
+                    "saved": True,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                message="Demo progress saved successfully"
+            )
+        
+        db = await EnhancedSupabaseService.get_db()
+        
+        form_data = request.get('formData', {})
+        
+        # Upsert progress record
+        progress_data = {
+            'employee_id': employee_id,
+            'step_id': step_id,
+            'form_data': form_data,
+            'last_saved_at': datetime.now(timezone.utc).isoformat(),
+            'completed': False  # This is just progress, not completion
+        }
+        
+        await db.table('onboarding_progress').upsert(progress_data).execute()
+        
+        return success_response(
+            data={
+                "saved": True,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            },
+            message="Progress saved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Save step progress error: {e}")
+        return error_response(
+            message="Failed to save progress",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/complete/{step_id}")
+async def mark_step_complete(
+    employee_id: str,
+    step_id: str,
+    request: Dict[str, Any]
+):
+    """
+    Mark a step as complete
+    Implements markStepComplete from OnboardingFlowController spec
+    """
+    try:
+        # Handle test mode
+        if employee_id == "demo-employee-001":
+            # Determine next step for demo
+            from .config.onboarding_steps import ONBOARDING_STEPS
+            current_index = next((i for i, step in enumerate(ONBOARDING_STEPS) if step['id'] == step_id), -1)
+            next_step = ONBOARDING_STEPS[current_index + 1]['id'] if current_index + 1 < len(ONBOARDING_STEPS) else None
+            
+            return success_response(
+                data={
+                    "completed": True,
+                    "nextStep": next_step,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                message="Demo step completed successfully"
+            )
+        
+        db = await EnhancedSupabaseService.get_db()
+        
+        form_data = request.get('formData', {})
+        signature_data = request.get('signature')
+        
+        # Mark step as complete
+        progress_data = {
+            'employee_id': employee_id,
+            'step_id': step_id,
+            'form_data': form_data,
+            'completed': True,
+            'completed_at': datetime.now(timezone.utc).isoformat(),
+            'last_saved_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        if signature_data:
+            progress_data['signature_data'] = signature_data
+            
+        await db.table('onboarding_progress').upsert(progress_data).execute()
+        
+        # Determine next step
+        from .config.onboarding_steps import ONBOARDING_STEPS
+        current_index = next((i for i, step in enumerate(ONBOARDING_STEPS) if step['id'] == step_id), -1)
+        next_step = ONBOARDING_STEPS[current_index + 1]['id'] if current_index + 1 < len(ONBOARDING_STEPS) else None
+        
+        return success_response(
+            data={
+                "completed": True,
+                "nextStep": next_step
+            },
+            message="Step completed successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Mark step complete error: {e}")
+        return error_response(
+            message="Failed to complete step",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/submit")
+async def submit_final_onboarding(employee_id: str):
+    """
+    Submit final onboarding and generate all PDFs
+    Implements final submission from OnboardingFlowController spec
+    """
+    try:
+        db = await EnhancedSupabaseService.get_db()
+        
+        # Check that all required steps are completed
+        progress_response = await db.table('onboarding_progress').select('*').eq('employee_id', employee_id).execute()
+        completed_steps = [p['step_id'] for p in progress_response.data if p.get('completed')]
+        
+        from .config.onboarding_steps import ONBOARDING_STEPS
+        required_steps = [step['id'] for step in ONBOARDING_STEPS if step.get('required', True)]
+        missing_steps = [step for step in required_steps if step not in completed_steps]
+        
+        if missing_steps:
+            return validation_error_response(
+                f"Cannot submit onboarding. Missing required steps: {', '.join(missing_steps)}"
+            )
+        
+        # Generate PDFs (placeholder URLs for now)
+        pdf_urls = {
+            "i9": f"/api/onboarding/{employee_id}/i9-section1/generate-pdf",
+            "w4": f"/api/onboarding/{employee_id}/w4-form/generate-pdf", 
+            "allForms": f"/api/onboarding/{employee_id}/generate-all-pdfs"
+        }
+        
+        # Mark onboarding as submitted
+        await db.table('employees').update({
+            'onboarding_status': 'completed',
+            'onboarding_completed_at': datetime.now(timezone.utc).isoformat()
+        }).eq('id', employee_id).execute()
+        
+        return success_response(
+            data={
+                "submitted": True,
+                "pdfUrls": pdf_urls
+            },
+            message="Onboarding submitted successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Submit final onboarding error: {e}")
+        return error_response(
+            message="Failed to submit onboarding",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Test endpoint for document upload (no auth required)
+@app.post("/api/test/documents/upload")
+async def test_upload_document(
+    document_type: str = Form(...),
+    employee_id: str = Form(...),
+    property_id: str = Form(...),
+    file: UploadFile = File(...),
+    metadata: Optional[str] = Form(None)
+):
+    """
+    Test endpoint for document upload without authentication
+    """
+    try:
+        # Validate file size
+        contents = await file.read()
+        if len(contents) > 10 * 1024 * 1024:  # 10MB limit
+            return {
+                "success": False,
+                "error": "File size exceeds 10MB limit"
+            }
+        
+        # Parse metadata if provided
+        doc_metadata = json.loads(metadata) if metadata else {}
+        
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Store document with encryption
+        stored_doc = await doc_storage.store_document(
+            file_content=contents,
+            filename=file.filename,
+            document_type=DocumentType(document_type),
+            employee_id=employee_id,
+            property_id=property_id,
+            uploaded_by="test-user",  # Use test user for no-auth endpoint
+            metadata=doc_metadata
+        )
+        
+        logger.info(f"Test document uploaded: {stored_doc.document_id}")
+        
+        return {
+            "success": True,
+            "data": {
+                "document_id": stored_doc.document_id,
+                "document_type": stored_doc.document_type,
+                "file_size": stored_doc.file_size,
+                "uploaded_at": stored_doc.uploaded_at.isoformat(),
+                "message": "Test document uploaded successfully"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Test document upload error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Generate and store company policies document
+@app.post("/api/onboarding/{employee_id}/company-policies/generate-document")
+async def generate_company_policies_document(
+    employee_id: str,
+    request: Request,
+    current_user=Depends(get_current_user)
+):
+    """
+    Generate a formatted PDF document for signed company policies
+    """
+    try:
+        # Get request data
+        data = await request.json()
+        policy_data = data.get('policyData', {})
+        signature_data = data.get('signatureData', {})
+        
+        # Get employee information
+        employee = await supabase_service.get_employee_by_id(employee_id)
+        if not employee:
+            return error_response(
+                message="Employee not found",
+                error_code=ErrorCode.RESOURCE_NOT_FOUND,
+                status_code=404
+            )
+        
+        # Get property information
+        property_info = supabase_service.get_property_by_id_sync(employee.property_id)
+        
+        # Prepare employee data for document
+        employee_data = {
+            'name': f"{employee.first_name} {employee.last_name}",
+            'id': employee_id,
+            'property_name': property_info.name if property_info else 'N/A',
+            'position': employee.position
+        }
+        
+        # Generate PDF document
+        generator = PolicyDocumentGenerator()
+        pdf_bytes = generator.generate_policy_document(
+            employee_data=employee_data,
+            policy_data=policy_data,
+            signature_data=signature_data
+        )
+        
+        # Store document using document storage service
+        doc_storage = DocumentStorageService()
+        stored_doc = await doc_storage.store_document(
+            file_content=pdf_bytes,
+            filename=f"company_policies_{employee_id}_{datetime.now().strftime('%Y%m%d')}.pdf",
+            document_type=DocumentType.COMPANY_POLICIES,
+            employee_id=employee_id,
+            property_id=employee.property_id,
+            uploaded_by=current_user.id,
+            metadata={
+                'generated_from': 'company_policies_step',
+                'signature_id': signature_data.get('signatureId'),
+                'initials': {
+                    'sexual_harassment': policy_data.get('sexualHarassmentInitials'),
+                    'eeo': policy_data.get('eeoInitials')
+                }
+            }
+        )
+        
+        # Save metadata to database
+        await supabase_service.save_document_metadata(stored_doc.dict())
+        
+        logger.info(f"Generated company policies document for employee {employee_id}")
+        
+        return success_response(
+            data={
+                'document_id': stored_doc.document_id,
+                'filename': stored_doc.original_filename,
+                'generated_at': datetime.now().isoformat()
+            },
+            message="Company policies document generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to generate company policies document: {e}")
+        return error_response(
+            message="Failed to generate document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Test endpoint for generating policy document (no auth required)
+@app.post("/api/test/generate-policy-document")
+async def test_generate_policy_document(request: Request):
+    """
+    Test endpoint to generate company policies document without authentication
+    """
+    try:
+        # Get request data
+        data = await request.json()
+        employee_data = data.get('employeeData', {
+            'name': 'Test Employee',
+            'id': 'test-employee-123',
+            'property_name': 'Test Hotel',
+            'position': 'Test Position'
+        })
+        policy_data = data.get('policyData', {})
+        signature_data = data.get('signatureData', {})
+        
+        # Generate PDF document
+        generator = PolicyDocumentGenerator()
+        pdf_bytes = generator.generate_policy_document(
+            employee_data=employee_data,
+            policy_data=policy_data,
+            signature_data=signature_data
+        )
+        
+        # Store document using document storage service
+        doc_storage = DocumentStorageService()
+        stored_doc = await doc_storage.store_document(
+            file_content=pdf_bytes,
+            filename=f"test_company_policies_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+            document_type=DocumentType.COMPANY_POLICIES,
+            employee_id=employee_data.get('id', 'test-employee'),
+            property_id='test-property-123',
+            uploaded_by='test-user',
+            metadata={
+                'test_generation': True,
+                'generated_from': 'test_endpoint'
+            }
+        )
+        
+        logger.info(f"Test generated company policies document: {stored_doc.document_id}")
+        
+        return {
+            "success": True,
+            "data": {
+                "document_id": stored_doc.document_id,
+                "filename": stored_doc.original_filename,
+                "file_size": stored_doc.file_size,
+                "storage_path": stored_doc.file_path
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Test policy document generation error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Test endpoint to download a document (no auth required)
+@app.get("/api/test/documents/{document_id}/download")
+async def test_download_document(document_id: str):
+    """
+    Test endpoint to download a document without authentication
+    """
+    try:
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Find the document file
+        storage_path = Path("document_storage")
+        document_path = None
+        
+        for doc_type_dir in storage_path.iterdir():
+            if doc_type_dir.is_dir():
+                for employee_dir in doc_type_dir.iterdir():
+                    if employee_dir.is_dir():
+                        for file_path in employee_dir.iterdir():
+                            if document_id in file_path.name:
+                                document_path = file_path
+                                break
+        
+        if not document_path:
+            return {
+                "success": False,
+                "error": "Document not found"
+            }
+        
+        # Read the file
+        with open(document_path, 'rb') as f:
+            content = f.read()
+        
+        # The content is encrypted, decrypt it
+        try:
+            # For files stored by our document storage service, they're encrypted
+            decrypted_content = doc_storage.cipher.decrypt(content)
+            content = decrypted_content
+            logger.info(f"Successfully decrypted document {document_id}")
+        except Exception as decrypt_error:
+            # If decryption fails, the file might be stored unencrypted
+            logger.warning(f"Failed to decrypt document {document_id}: {decrypt_error}")
+            # Check if it's a valid PDF by looking at the header
+            if content[:4] != b'%PDF':
+                return {
+                    "success": False,
+                    "error": "Document appears to be corrupted or encrypted with unknown key"
+                }
+        
+        # Return file
+        return Response(
+            content=content,
+            media_type='application/pdf' if document_path.suffix == '.pdf' else 'image/jpeg',
+            headers={
+                "Content-Disposition": f"inline; filename={document_path.name}"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Test document download error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Test endpoint for document verification (no auth required)
+@app.get("/api/test/documents/count")
+async def test_document_count():
+    """Test endpoint to check if documents are being created"""
+    try:
+        # Get total document count from storage directory
+        storage_dir = Path("document_storage")
+        if not storage_dir.exists():
+            return {
+                "success": True,
+                "data": {
+                    "total_documents": 0,
+                    "storage_directory_exists": False,
+                    "message": "Document storage directory not created yet"
+                }
+            }
+        
+        # Count all files in storage (both encrypted .enc and unencrypted files)
+        doc_count = sum(1 for f in storage_dir.rglob("*") if f.is_file())
+        
+        # Get recent files
+        recent_files = []
+        all_files = [f for f in storage_dir.rglob("*") if f.is_file()]
+        for file_path in sorted(all_files, key=lambda p: p.stat().st_mtime, reverse=True)[:5]:
+            recent_files.append({
+                "filename": file_path.name,
+                "size": file_path.stat().st_size,
+                "created": datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
+            })
+        
+        return {
+            "success": True,
+            "data": {
+                "total_documents": doc_count,
+                "storage_directory_exists": True,
+                "storage_path": str(storage_dir.absolute()),
+                "recent_files": recent_files
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error checking document count: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Document Storage Endpoints
+@app.post("/api/documents/upload")
+async def upload_document(
+    request: Request,
+    document_type: str = Form(...),
+    employee_id: str = Form(...),
+    property_id: str = Form(...),
+    file: UploadFile = File(...),
+    metadata: Optional[str] = Form(None),
+    current_user=Depends(get_current_user)
+):
+    """
+    Upload a document with encryption and legal compliance metadata
+    """
+    try:
+        # Validate file size
+        contents = await file.read()
+        if len(contents) > 10 * 1024 * 1024:  # 10MB limit
+            return validation_error_response(
+                errors={"file": "File size exceeds 10MB limit"},
+                message="File too large"
+            )
+        
+        # Parse metadata if provided
+        doc_metadata = json.loads(metadata) if metadata else {}
+        
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Store document with encryption
+        stored_doc = await doc_storage.store_document(
+            file_content=contents,
+            filename=file.filename,
+            document_type=DocumentType(document_type),
+            employee_id=employee_id,
+            property_id=property_id,
+            uploaded_by=current_user.id,
+            metadata=doc_metadata
+        )
+        
+        # Save metadata to database
+        await supabase_service.save_document_metadata(stored_doc.dict())
+        
+        # Log for compliance
+        logger.info(f"Document uploaded: {stored_doc.document_id} by {current_user.id}")
+        
+        return success_response(
+            data={
+                "document_id": stored_doc.document_id,
+                "document_type": stored_doc.document_type,
+                "file_size": stored_doc.file_size,
+                "uploaded_at": stored_doc.uploaded_at.isoformat(),
+                "retention_date": stored_doc.retention_date.isoformat(),
+                "verification_status": stored_doc.verification_status
+            },
+            message="Document uploaded successfully"
+        )
+        
+    except ValueError as e:
+        return validation_error_response(
+            errors={"file": str(e)},
+            message="Invalid file"
+        )
+    except Exception as e:
+        logger.error(f"Document upload error: {e}")
+        return error_response(
+            message="Failed to upload document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/documents/{document_id}")
+async def get_document(
+    document_id: str,
+    current_user=Depends(get_current_user)
+):
+    """
+    Retrieve a document with access logging
+    """
+    try:
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Retrieve document
+        content, metadata = await doc_storage.retrieve_document(
+            document_id=document_id,
+            requester_id=current_user.id,
+            purpose="view"
+        )
+        
+        # Log access
+        access_log = DocumentAccessLog(
+            document_id=document_id,
+            accessed_by=current_user.id,
+            accessed_at=datetime.now(timezone.utc),
+            action="view",
+            ip_address=request.client.host,
+            user_agent=request.headers.get("user-agent"),
+            purpose="view"
+        )
+        
+        await supabase_service.log_document_access(access_log.dict())
+        
+        # Return document data
+        return success_response(
+            data={
+                "document_id": metadata.document_id,
+                "content": base64.b64encode(content).decode('utf-8'),
+                "mime_type": metadata.mime_type,
+                "original_filename": metadata.original_filename,
+                "metadata": metadata.metadata
+            },
+            message="Document retrieved successfully"
+        )
+        
+    except FileNotFoundError:
+        return not_found_response("Document not found")
+    except Exception as e:
+        logger.error(f"Document retrieval error: {e}")
+        return error_response(
+            message="Failed to retrieve document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/documents/{document_id}/download")
+async def download_document(
+    document_id: str,
+    request: Request,
+    current_user=Depends(get_current_user)
+):
+    """
+    Download a document with watermark and legal cover sheet
+    """
+    try:
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Retrieve document
+        content, metadata = await doc_storage.retrieve_document(
+            document_id=document_id,
+            requester_id=current_user.id,
+            purpose="download"
+        )
+        
+        # Generate legal cover sheet
+        cover_sheet = await doc_storage.generate_legal_cover_sheet(metadata)
+        
+        # Create document package
+        if metadata.mime_type == 'application/pdf':
+            from PyPDF2 import PdfMerger
+            merger = PdfMerger()
+            merger.append(io.BytesIO(cover_sheet))
+            merger.append(io.BytesIO(content))
+            
+            output = io.BytesIO()
+            merger.write(output)
+            merger.close()
+            
+            final_content = output.getvalue()
+        else:
+            final_content = content
+        
+        # Log download
+        access_log = DocumentAccessLog(
+            document_id=document_id,
+            accessed_by=current_user.id,
+            accessed_at=datetime.now(timezone.utc),
+            action="download",
+            ip_address=request.client.host,
+            user_agent=request.headers.get("user-agent"),
+            purpose="download"
+        )
+        
+        await supabase_service.log_document_access(access_log.dict())
+        
+        return FileResponse(
+            io.BytesIO(final_content),
+            filename=f"LEGAL_{metadata.original_filename}",
+            media_type=metadata.mime_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="LEGAL_{metadata.original_filename}"'
+            }
+        )
+        
+    except FileNotFoundError:
+        return not_found_response("Document not found")
+    except Exception as e:
+        logger.error(f"Document download error: {e}")
+        return error_response(
+            message="Failed to download document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/documents/package")
+async def create_document_package(
+    document_ids: List[str],
+    package_title: str,
+    current_user=Depends(get_current_user)
+):
+    """
+    Create a legal document package with multiple documents
+    """
+    try:
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Create package
+        package_content = await doc_storage.create_document_package(
+            document_ids=document_ids,
+            package_title=package_title,
+            requester_id=current_user.id
+        )
+        
+        # Generate package ID
+        package_id = str(uuid.uuid4())
+        
+        # Store package metadata
+        package_metadata = {
+            "package_id": package_id,
+            "title": package_title,
+            "document_ids": document_ids,
+            "created_by": current_user.id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await supabase_service.save_document_package(package_metadata)
+        
+        return FileResponse(
+            io.BytesIO(package_content),
+            filename=f"{package_title.replace(' ', '_')}_package.pdf",
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="{package_title.replace(" ", "_")}_package.pdf"'
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Document package creation error: {e}")
+        return error_response(
+            message="Failed to create document package",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/documents/employee/{employee_id}")
+async def get_employee_documents(
+    employee_id: str,
+    document_type: Optional[DocumentType] = None,
+    current_user=Depends(get_current_user)
+):
+    """
+    Get all documents for an employee
+    """
+    try:
+        # Get documents from database
+        documents = await supabase_service.get_employee_documents(
+            employee_id=employee_id,
+            document_type=document_type.value if document_type else None
+        )
+        
+        return success_response(
+            data={
+                "documents": documents,
+                "total": len(documents)
+            },
+            message="Documents retrieved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Get employee documents error: {e}")
+        return error_response(
+            message="Failed to retrieve documents",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/documents/{document_id}/verify")
+async def verify_document_integrity(
+    document_id: str,
+    current_user=Depends(get_current_user)
+):
+    """
+    Verify document integrity and authenticity
+    """
+    try:
+        # Initialize document storage service
+        doc_storage = DocumentStorageService()
+        
+        # Verify document
+        is_valid = await doc_storage.verify_document_integrity(document_id)
+        
+        # Update verification status
+        await supabase_service.update_document_verification(
+            document_id=document_id,
+            verification_status="verified" if is_valid else "failed",
+            verified_by=current_user.id
+        )
+        
+        return success_response(
+            data={
+                "document_id": document_id,
+                "integrity_valid": is_valid,
+                "verified_at": datetime.now(timezone.utc).isoformat(),
+                "verified_by": current_user.id
+            },
+            message="Document verification completed"
+        )
+        
+    except Exception as e:
+        logger.error(f"Document verification error: {e}")
+        return error_response(
+            message="Failed to verify document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
 
 if __name__ == "__main__":
     import uvicorn

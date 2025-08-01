@@ -16,16 +16,11 @@ import {
   BookOpen,
   Car
 } from 'lucide-react'
-
-interface StepProps {
-  currentStep: any
-  progress: any
-  markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: (stepId: string, data?: any) => void
-  language: 'en' | 'es'
-  employee?: any
-  property?: any
-}
+import { StepProps } from '../../controllers/OnboardingFlowController'
+import { StepContainer } from '@/components/onboarding/StepContainer'
+import { useAutoSave } from '@/hooks/useAutoSave'
+import { useStepValidation } from '@/hooks/useStepValidation'
+import { documentUploadValidator } from '@/utils/stepValidators'
 
 interface DocumentOption {
   id: string
@@ -98,59 +93,85 @@ const DOCUMENT_OPTIONS: DocumentOption[] = [
   }
 ]
 
-export default function DocumentUploadStep(props: StepProps) {
-  const { currentStep, progress, markStepComplete, saveProgress } = props
+export default function DocumentUploadStep({
+  currentStep,
+  progress,
+  markStepComplete,
+  saveProgress,
+  language = 'en',
+  employee,
+  property
+}: StepProps) {
   
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, File>>({})
   const [documentStrategy, setDocumentStrategy] = useState<'listA' | 'listBC'>('listA')
   const [isComplete, setIsComplete] = useState(false)
 
+  // Validation hook
+  const { errors, validate } = useStepValidation(documentUploadValidator)
+
+  // Auto-save data
+  const autoSaveData = {
+    selectedDocuments,
+    uploadedFiles: Object.keys(uploadedFiles),
+    documentStrategy,
+    isComplete
+  }
+
+  // Auto-save hook
+  const { saveStatus } = useAutoSave(autoSaveData, {
+    onSave: async (data) => {
+    await saveProgress(currentStep.id, data)
+    }
+  })
+
   // Load existing data from progress
   useEffect(() => {
-    const existingData = progress.stepData?.['document-upload']
-    if (existingData) {
-      setSelectedDocuments(existingData.selectedDocuments || [])
-      setDocumentStrategy(existingData.strategy || 'listA')
+    if (progress.completedSteps.includes(currentStep.id)) {
+      setIsComplete(true)
     }
-  }, [progress])
+  }, [currentStep.id, progress.completedSteps])
 
   // Check completion status
   useEffect(() => {
-    let complete = false
-    
-    if (documentStrategy === 'listA') {
-      // Need one List A document
-      const hasListADoc = selectedDocuments.some(docId => 
-        DOCUMENT_OPTIONS.find(doc => doc.id === docId)?.category === 'listA'
-      )
-      const hasUpload = selectedDocuments.some(docId => uploadedFiles[docId])
-      complete = hasListADoc && hasUpload
-    } else {
-      // Need one List B AND one List C document
-      const hasListBDoc = selectedDocuments.some(docId => 
-        DOCUMENT_OPTIONS.find(doc => doc.id === docId)?.category === 'listB'
-      )
-      const hasListCDoc = selectedDocuments.some(docId => 
-        DOCUMENT_OPTIONS.find(doc => doc.id === docId)?.category === 'listC'
-      )
-      const hasUploads = selectedDocuments.every(docId => uploadedFiles[docId])
-      complete = hasListBDoc && hasListCDoc && hasUploads
-    }
-    
-    setIsComplete(complete)
-    
-    if (complete) {
-      const stepData = {
-        strategy: documentStrategy,
-        selectedDocuments,
-        uploadedFiles: Object.keys(uploadedFiles),
-        completedAt: new Date().toISOString()
+    const checkCompletion = async () => {
+      let complete = false
+      
+      if (documentStrategy === 'listA') {
+        // Need one List A document
+        const hasListADoc = selectedDocuments.some(docId => 
+          DOCUMENT_OPTIONS.find(doc => doc.id === docId)?.category === 'listA'
+        )
+        const hasUpload = selectedDocuments.some(docId => uploadedFiles[docId])
+        complete = hasListADoc && hasUpload
+      } else {
+        // Need one List B AND one List C document
+        const hasListBDoc = selectedDocuments.some(docId => 
+          DOCUMENT_OPTIONS.find(doc => doc.id === docId)?.category === 'listB'
+        )
+        const hasListCDoc = selectedDocuments.some(docId => 
+          DOCUMENT_OPTIONS.find(doc => doc.id === docId)?.category === 'listC'
+        )
+        const hasUploads = selectedDocuments.every(docId => uploadedFiles[docId])
+        complete = hasListBDoc && hasListCDoc && hasUploads
       }
-      markStepComplete('document-upload', stepData)
-      saveProgress()
+      
+      setIsComplete(complete)
+      
+      if (complete && !progress.completedSteps.includes(currentStep.id)) {
+        const stepData = {
+          strategy: documentStrategy,
+          selectedDocuments,
+          uploadedFiles: Object.keys(uploadedFiles),
+          completedAt: new Date().toISOString()
+        }
+        await markStepComplete(currentStep.id, stepData)
+      }
     }
-  }, [documentStrategy, selectedDocuments, uploadedFiles])
+    
+    checkCompletion()
+  }, [documentStrategy, selectedDocuments, uploadedFiles, currentStep.id, progress.completedSteps, markStepComplete])
 
   const handleDocumentSelect = (docId: string) => {
     const doc = DOCUMENT_OPTIONS.find(d => d.id === docId)
@@ -178,6 +199,81 @@ export default function DocumentUploadStep(props: StepProps) {
   const handleFileUpload = (docId: string, file: File) => {
     setUploadedFiles(prev => ({ ...prev, [docId]: file }))
   }
+
+  const translations = {
+    en: {
+      title: 'Document Verification',
+      description: 'Upload acceptable documents to verify your identity and work authorization. These documents will be reviewed by your manager to complete Section 2 of Form I-9.',
+      federalRequirement: 'Federal Requirement:',
+      federalNotice: 'You must provide acceptable documents within 3 business days of your employment start date. Documents must be unexpired and appear genuine.',
+      completionMessage: 'Document upload completed successfully. Your manager will review these documents to complete I-9 verification.',
+      strategyTitle: 'Choose Your Document Strategy',
+      option1: 'Option 1: List A Document',
+      option2: 'Option 2: List B + List C',
+      recommendedNotice: 'Recommended:',
+      recommendedMessage: 'List A documents establish both identity and work authorization with a single document.',
+      listBCNotice: 'You must provide one document from List B (identity) AND one document from List C (work authorization).',
+      listBTitle: 'List B - Identity Documents',
+      listCTitle: 'List C - Work Authorization Documents',
+      photoGuidelinesTitle: 'Photo Guidelines',
+      photoGuidelines: [
+        'Take clear, well-lit photos showing all document details',
+        'Ensure all text is readable and document corners are visible',
+        'Documents must be unexpired and in good condition',
+        'Accepted formats: JPG, PNG, PDF (max 10MB per file)'
+      ],
+      uploadRequirementsTitle: 'Upload Requirements',
+      oneListADocument: 'One List A document uploaded',
+      listBDocument: 'List B document (Identity)',
+      listCDocument: 'List C document (Work Authorization)',
+      complete: 'Complete',
+      required: 'Required',
+      readyForReview: 'Ready for Manager Review',
+      managerReviewNotice: 'Your manager will examine these documents in person or remotely to complete Section 2 of Form I-9 within 3 business days of your start date.',
+      privacyNotice: 'Privacy Notice:',
+      privacyMessage: 'Document images are encrypted and stored securely for I-9 compliance. They will be retained for the required period and destroyed in accordance with federal recordkeeping requirements.',
+      estimatedTime: 'Estimated time: 4-6 minutes',
+      uploadLabel: 'Upload',
+      fileUploaded: 'File uploaded:'
+    },
+    es: {
+      title: 'Verificación de Documentos',
+      description: 'Cargue documentos aceptables para verificar su identidad y autorización de trabajo. Estos documentos serán revisados por su gerente para completar la Sección 2 del Formulario I-9.',
+      federalRequirement: 'Requisito Federal:',
+      federalNotice: 'Debe proporcionar documentos aceptables dentro de los 3 días hábiles posteriores a su fecha de inicio. Los documentos deben estar vigentes y parecer genuinos.',
+      completionMessage: 'Carga de documentos completada exitosamente. Su gerente revisará estos documentos para completar la verificación I-9.',
+      strategyTitle: 'Elija su Estrategia de Documentos',
+      option1: 'Opción 1: Documento de Lista A',
+      option2: 'Opción 2: Lista B + Lista C',
+      recommendedNotice: 'Recomendado:',
+      recommendedMessage: 'Los documentos de Lista A establecen tanto identidad como autorización de trabajo con un solo documento.',
+      listBCNotice: 'Debe proporcionar un documento de Lista B (identidad) Y un documento de Lista C (autorización de trabajo).',
+      listBTitle: 'Lista B - Documentos de Identidad',
+      listCTitle: 'Lista C - Documentos de Autorización de Trabajo',
+      photoGuidelinesTitle: 'Guías para Fotos',
+      photoGuidelines: [
+        'Tome fotos claras y bien iluminadas mostrando todos los detalles del documento',
+        'Asegúrese de que todo el texto sea legible y las esquinas del documento sean visibles',
+        'Los documentos deben estar vigentes y en buenas condiciones',
+        'Formatos aceptados: JPG, PNG, PDF (máximo 10MB por archivo)'
+      ],
+      uploadRequirementsTitle: 'Requisitos de Carga',
+      oneListADocument: 'Un documento de Lista A cargado',
+      listBDocument: 'Documento de Lista B (Identidad)',
+      listCDocument: 'Documento de Lista C (Autorización de Trabajo)',
+      complete: 'Completo',
+      required: 'Requerido',
+      readyForReview: 'Listo para Revisión del Gerente',
+      managerReviewNotice: 'Su gerente examinará estos documentos en persona o remotamente para completar la Sección 2 del Formulario I-9 dentro de los 3 días hábiles de su fecha de inicio.',
+      privacyNotice: 'Aviso de Privacidad:',
+      privacyMessage: 'Las imágenes de documentos están encriptadas y almacenadas de forma segura para cumplimiento del I-9. Se conservarán durante el período requerido y se destruirán de acuerdo con los requisitos federales de mantenimiento de registros.',
+      estimatedTime: 'Tiempo estimado: 4-6 minutos',
+      uploadLabel: 'Cargar',
+      fileUploaded: 'Archivo cargado:'
+    }
+  }
+
+  const t = translations[language]
 
   const DocumentCard = ({ doc }: { doc: DocumentOption }) => {
     const isSelected = selectedDocuments.includes(doc.id)
@@ -216,7 +312,7 @@ export default function DocumentUploadStep(props: StepProps) {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload {doc.title}
+                    {t.uploadLabel} {doc.title}
                   </label>
                   <input
                     type="file"
@@ -231,7 +327,7 @@ export default function DocumentUploadStep(props: StepProps) {
                 {hasUpload && (
                   <div className="flex items-center space-x-2 text-green-700 text-sm">
                     <CheckCircle className="h-4 w-4" />
-                    <span>File uploaded: {uploadedFiles[doc.id]?.name}</span>
+                    <span>{t.fileUploaded} {uploadedFiles[doc.id]?.name}</span>
                   </div>
                 )}
               </div>
@@ -243,25 +339,22 @@ export default function DocumentUploadStep(props: StepProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <StepContainer errors={errors} saveStatus={saveStatus}>
+      <div className="space-y-6">
       {/* Step Header */}
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
           <Upload className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Document Verification</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
         </div>
-        <p className="text-gray-600 max-w-3xl mx-auto">
-          Upload acceptable documents to verify your identity and work authorization. These documents will be reviewed 
-          by your manager to complete Section 2 of Form I-9.
-        </p>
+        <p className="text-gray-600 max-w-3xl mx-auto">{t.description}</p>
       </div>
 
       {/* Federal Requirements */}
       <Alert className="bg-blue-50 border-blue-200">
         <Shield className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
-          <strong>Federal Requirement:</strong> You must provide acceptable documents within 3 business days of your 
-          employment start date. Documents must be unexpired and appear genuine.
+          <strong>{t.federalRequirement}</strong> {t.federalNotice}
         </AlertDescription>
       </Alert>
 
@@ -270,7 +363,7 @@ export default function DocumentUploadStep(props: StepProps) {
         <Alert className="bg-green-50 border-green-200">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
-            Document upload completed successfully. Your manager will review these documents to complete I-9 verification.
+            {t.completionMessage}
           </AlertDescription>
         </Alert>
       )}
@@ -280,17 +373,17 @@ export default function DocumentUploadStep(props: StepProps) {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <FileText className="h-5 w-5 text-blue-600" />
-            <span>Choose Your Document Strategy</span>
+            <span>{t.strategyTitle}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={documentStrategy} onValueChange={(value: any) => setDocumentStrategy(value)}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="listA" className="flex items-center space-x-2">
-                <span>Option 1: List A Document</span>
+                <span>{t.option1}</span>
               </TabsTrigger>
               <TabsTrigger value="listBC" className="flex items-center space-x-2">
-                <span>Option 2: List B + List C</span>
+                <span>{t.option2}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -298,7 +391,7 @@ export default function DocumentUploadStep(props: StepProps) {
               <Alert className="bg-green-50 border-green-200 mb-4">
                 <Info className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  <strong>Recommended:</strong> List A documents establish both identity and work authorization with a single document.
+                  <strong>{t.recommendedNotice}</strong> {t.recommendedMessage}
                 </AlertDescription>
               </Alert>
               
@@ -313,13 +406,13 @@ export default function DocumentUploadStep(props: StepProps) {
               <Alert className="bg-yellow-50 border-yellow-200 mb-4">
                 <AlertTriangle className="h-4 w-4 text-yellow-600" />
                 <AlertDescription className="text-yellow-800">
-                  You must provide <strong>one document from List B</strong> (identity) AND <strong>one document from List C</strong> (work authorization).
+                  {t.listBCNotice}
                 </AlertDescription>
               </Alert>
               
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-3">List B - Identity Documents</h3>
+                  <h3 className="font-medium text-gray-900 mb-3">{t.listBTitle}</h3>
                   <div className="grid gap-4">
                     {DOCUMENT_OPTIONS.filter(doc => doc.category === 'listB').map(doc => (
                       <DocumentCard key={doc.id} doc={doc} />
@@ -328,7 +421,7 @@ export default function DocumentUploadStep(props: StepProps) {
                 </div>
                 
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-3">List C - Work Authorization Documents</h3>
+                  <h3 className="font-medium text-gray-900 mb-3">{t.listCTitle}</h3>
                   <div className="grid gap-4">
                     {DOCUMENT_OPTIONS.filter(doc => doc.category === 'listC').map(doc => (
                       <DocumentCard key={doc.id} doc={doc} />
@@ -387,7 +480,7 @@ export default function DocumentUploadStep(props: StepProps) {
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
                   )}
-                  <span className="text-sm font-medium">Required</span>
+                  <span className="text-sm font-medium">{t.required}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -398,7 +491,7 @@ export default function DocumentUploadStep(props: StepProps) {
                   ) : (
                     <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
                   )}
-                  <span className="text-sm font-medium">Required</span>
+                  <span className="text-sm font-medium">{t.required}</span>
                 </div>
               </div>
             </>
@@ -424,15 +517,16 @@ export default function DocumentUploadStep(props: StepProps) {
         </Card>
       )}
 
-      {/* Federal Notice */}
-      <div className="text-xs text-gray-500 border-t pt-4">
-        <p><strong>Privacy Notice:</strong> Document images are encrypted and stored securely for I-9 compliance. They will be retained for the required period and destroyed in accordance with federal recordkeeping requirements.</p>
-      </div>
+        {/* Federal Notice */}
+        <div className="text-xs text-gray-500 border-t pt-4">
+          <p><strong>{t.privacyNotice}</strong> {t.privacyMessage}</p>
+        </div>
 
-      {/* Estimated Time */}
-      <div className="text-center text-sm text-gray-500">
-        <p>Estimated time: 4-6 minutes</p>
+        {/* Estimated Time */}
+        <div className="text-center text-sm text-gray-500">
+          <p>{t.estimatedTime}</p>
+        </div>
       </div>
-    </div>
+    </StepContainer>
   )
 }

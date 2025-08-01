@@ -193,7 +193,8 @@ export default function LoginPage() {
             
             <Button 
               type="submit" 
-              className="w-full btn-primary btn-size-lg smooth-transition" 
+              size="lg"
+              className="w-full" 
               disabled={loading}
             >
               {loading ? (
@@ -211,10 +212,10 @@ export default function LoginPage() {
           {config.testCredentials && (
             <div className="pt-4 border-t border-muted">
               <Button 
-                variant="outline" 
+                variant="secondary" 
                 size="sm" 
                 onClick={fillTestCredentials}
-                className="w-full btn-secondary btn-size-sm"
+                className="w-full"
                 disabled={loading}
               >
                 Use Test Credentials

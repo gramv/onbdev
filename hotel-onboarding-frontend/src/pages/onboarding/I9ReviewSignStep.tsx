@@ -6,17 +6,7 @@ import PDFDocumentViewer from '@/components/ui/pdf-document-viewer'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
 import { CheckCircle, FileText, AlertTriangle, Shield, Eye } from 'lucide-react'
 
-interface StepProps {
-  currentStep: any
-  progress: any
-  markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: (stepId: string, data?: any) => void
-  language: 'en' | 'es'
-  employee?: any
-  property?: any
-}
-
-export default function I9ReviewSignStep(props: StepProps) {
+export default function I9ReviewSignStep(props) {
   const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = props
   
   const [isComplete, setIsComplete] = useState(false)
@@ -38,7 +28,7 @@ export default function I9ReviewSignStep(props: StepProps) {
   const supplementAData = progress.stepData?.['i9_supplement_a']?.formData
   const supplementBData = progress.stepData?.['i9_supplement_b']?.formData
 
-  const handleComplete = (data: any) => {
+  const handleComplete = (data) => {
     setReviewData(data)
     setIsComplete(true)
     const stepData = {
@@ -142,7 +132,6 @@ export default function I9ReviewSignStep(props: StepProps) {
         </div>
 
         <DigitalSignatureCapture
-          signatureType="employee_i9"
           documentName="Form I-9 - Employment Eligibility Verification"
           signerName={`${section1Data?.employee_first_name} ${section1Data?.employee_last_name}`}
           signerTitle="Employee"

@@ -10,15 +10,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "btn-primary-enhanced",
+          "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 focus-visible:ring-blue-500/25 border-0",
         enhanced:
-          "btn-primary-enhanced",
+          "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 focus-visible:ring-blue-500/25 border-0",
         destructive:
           "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md hover:shadow-lg hover:from-red-600 hover:to-red-700 focus-visible:ring-red-500/25",
         outline:
-          "btn-outline-enhanced",
+          "border-2 border-blue-600 bg-transparent text-blue-600 shadow-sm hover:bg-blue-600 hover:text-white focus-visible:ring-blue-500/25",
         secondary:
-          "btn-secondary-enhanced",
+          "bg-white border-2 border-gray-300 text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-400 hover:text-gray-900 focus-visible:ring-gray-400/25",
         ghost: 
           "text-hotel-neutral-700 hover:bg-hotel-neutral-100 hover:text-hotel-primary focus-visible:ring-hotel-primary/20 rounded-xl px-4 py-2",
         link: 

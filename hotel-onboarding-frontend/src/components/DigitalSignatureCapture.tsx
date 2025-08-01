@@ -9,46 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { PenTool, RotateCcw, Check, Shield, Clock, User, FileText, AlertCircle } from 'lucide-react'
 
-interface DigitalSignatureData {
-  signatureType: 'employee_final' | 'employee_i9' | 'employee_w4' | 'employee_policies' | 'manager_i9' | 'manager_approval'
-  signatureData: string // SVG or base64 image data
-  signedByName: string
-  signedByTitle?: string
-  ipAddress?: string
-  timestamp: string
-  documentName: string
-  acknowledgments: string[]
-  termsAccepted: boolean
-  identityVerified: boolean
-  // ESIGN Act Required Metadata
-  userAgent: string
-  browserInfo: {
-    platform: string
-    language: string
-    timezone: string
-    screenResolution: string
-  }
-  signatureMethod: 'draw' | 'type'
-  signatureHash: string
-  consentTimestamp: string
-  auditTrail: {
-    action: string
-    timestamp: string
-    details: string
-  }[]
-}
-
-interface DigitalSignatureCaptureProps {
-  signatureType: DigitalSignatureData['signatureType']
-  documentName: string
-  signerName: string
-  signerTitle?: string
-  acknowledgments: string[]
-  requireIdentityVerification?: boolean
-  language: 'en' | 'es'
-  onSignatureComplete: (signatureData: DigitalSignatureData) => void
-  onCancel: () => void
-}
 
 export default function DigitalSignatureCapture({
   signatureType,
@@ -60,25 +20,26 @@ export default function DigitalSignatureCapture({
   language,
   onSignatureComplete,
   onCancel
-}: DigitalSignatureCaptureProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+}) {
+  const canvasRef = useRef(null)
   const [isDrawing, setIsDrawing] = useState(false)
-  const [signatureData, setSignatureData] = useState<string>('')
+  const [signatureData, setSignatureData] = useState('')
   const [typedName, setTypedName] = useState(signerName)
-  const [signatureMethod, setSignatureMethod] = useState<'draw' | 'type'>('draw')
+  // Only draw method now, no type option
+  const signatureMethod = 'draw'
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [identityVerified, setIdentityVerified] = useState(false)
-  const [acknowledgementsChecked, setAcknowledgementsChecked] = useState<boolean[]>(
+  const [acknowledgementsChecked, setAcknowledgementsChecked] = useState(
     new Array(acknowledgments.length).fill(false)
   )
   const [ipAddress, setIpAddress] = useState('')
   const [canSign, setCanSign] = useState(false)
-  const [auditTrail, setAuditTrail] = useState<any[]>([])
-  const [browserInfo, setBrowserInfo] = useState<any>({})
-  const [consentTimestamp, setConsentTimestamp] = useState<string>('')
+  const [auditTrail, setAuditTrail] = useState([])
+  const [browserInfo, setBrowserInfo] = useState({})
+  const [consentTimestamp, setConsentTimestamp] = useState('')
 
-  const t = (key: string) => {
-    const translations: Record<string, Record<string, string>> = {
+  const t = (key) => {
+    const translations = {
       en: {
         'digital_signature': 'Digital Signature',
         'signature_required': 'Your signature is required to complete this document',
@@ -153,13 +114,13 @@ export default function DigitalSignatureCapture({
   useEffect(() => {
     // Check if all requirements are met
     const allAcknowledgmentsChecked = acknowledgementsChecked.every(checked => checked)
-    const hasSignature = signatureMethod === 'draw' ? signatureData.length > 0 : typedName.trim().length > 0
+    const hasSignature = signatureData.length > 0
     const identityOk = requireIdentityVerification ? identityVerified : true
     
     setCanSign(allAcknowledgmentsChecked && hasSignature && termsAccepted && identityOk)
   }, [acknowledgementsChecked, signatureData, typedName, termsAccepted, identityVerified, requireIdentityVerification, signatureMethod])
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e) => {
     if (!canvasRef.current) return
     
     setIsDrawing(true)
@@ -187,7 +148,7 @@ export default function DigitalSignatureCapture({
     }
   }
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (e) => {
     if (!isDrawing || !canvasRef.current) return
     
     const canvas = canvasRef.current
@@ -229,7 +190,7 @@ export default function DigitalSignatureCapture({
     }
   }
 
-  const generateTypedSignature = (name: string): string => {
+  const generateTypedSignature = (name) => {
     // Create SVG signature for typed name
     const svg = `
       <svg width="300" height="80" xmlns="http://www.w3.org/2000/svg">
@@ -239,7 +200,7 @@ export default function DigitalSignatureCapture({
     return 'data:image/svg+xml;base64,' + btoa(svg)
   }
 
-  const generateSignatureHash = (data: string): string => {
+  const generateSignatureHash = (data) => {
     // Simple hash function for demo - in production use crypto.subtle.digest
     let hash = 0
     for (let i = 0; i < data.length; i++) {
@@ -250,7 +211,7 @@ export default function DigitalSignatureCapture({
     return Math.abs(hash).toString(16).padStart(8, '0')
   }
   
-  const addAuditTrailEntry = (action: string, details: string) => {
+  const addAuditTrailEntry = (action, details) => {
     const entry = {
       action,
       timestamp: new Date().toISOString(),
@@ -265,19 +226,17 @@ export default function DigitalSignatureCapture({
     setConsentTimestamp(currentConsentTimestamp)
     addAuditTrailEntry('Consent provided', 'User consented to electronic signature')
     
-    const finalSignatureData = signatureMethod === 'draw' 
-      ? signatureData 
-      : generateTypedSignature(typedName)
+    const finalSignatureData = signatureData
     
     // Generate signature hash for integrity verification
     const signatureHash = generateSignatureHash(finalSignatureData + currentConsentTimestamp)
     
-    addAuditTrailEntry('Signature captured', `Signature method: ${signatureMethod}, Hash: ${signatureHash}`)
+    addAuditTrailEntry('Signature captured', `Signature method: draw, Hash: ${signatureHash}`)
 
-    const signatureDataToSubmit: DigitalSignatureData = {
+    const signatureDataToSubmit = {
       signatureType,
       signatureData: finalSignatureData,
-      signedByName: signatureMethod === 'draw' ? signerName : typedName,
+      signedByName: signerName,
       signedByTitle: signerTitle,
       ipAddress,
       timestamp: new Date().toISOString(),
@@ -306,7 +265,7 @@ export default function DigitalSignatureCapture({
     onSignatureComplete(signatureDataToSubmit)
   }
 
-  const handleAcknowledgmentChange = (index: number, checked: boolean) => {
+  const handleAcknowledgmentChange = (index, checked) => {
     const newChecked = [...acknowledgementsChecked]
     newChecked[index] = checked
     setAcknowledgementsChecked(newChecked)
@@ -445,75 +404,33 @@ export default function DigitalSignatureCapture({
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">{t('signature_verification')}</CardTitle>
-          <div className="flex space-x-2">
-            <Button
-              variant={signatureMethod === 'draw' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSignatureMethod('draw')}
-            >
-              <PenTool className="h-4 w-4 mr-2" />
-              {t('draw_signature')}
-            </Button>
-            <Button
-              variant={signatureMethod === 'type' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSignatureMethod('type')}
-            >
-              <User className="h-4 w-4 mr-2" />
-              {t('type_signature')}
-            </Button>
-          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {signatureMethod === 'draw' ? (
-            <div>
-              <p className="text-sm text-gray-600 mb-4">{t('draw_instruction')}</p>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
-                <canvas
-                  ref={canvasRef}
-                  width={600}
-                  height={200}
-                  className="w-full h-32 border border-gray-200 rounded cursor-crosshair"
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
-                  onMouseUp={stopDrawing}
-                  onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
-                  onTouchEnd={stopDrawing}
-                />
-                <div className="flex justify-between items-center mt-3">
-                  <p className="text-xs text-gray-500">Sign above</p>
-                  <Button variant="outline" size="sm" onClick={clearSignature}>
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    {t('clear')}
-                  </Button>
-                </div>
+          <div>
+            <p className="text-sm text-gray-600 mb-4">{t('draw_instruction')}</p>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-white">
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={200}
+                className="w-full h-32 border border-gray-200 rounded cursor-crosshair"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+              />
+              <div className="flex justify-between items-center mt-3">
+                <p className="text-xs text-gray-500">Sign above</p>
+                <Button variant="outline" size="sm" onClick={clearSignature}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  {t('clear')}
+                </Button>
               </div>
             </div>
-          ) : (
-            <div>
-              <p className="text-sm text-gray-600 mb-4">{t('type_instruction')}</p>
-              <div>
-                <Label htmlFor="typed-name">{t('your_name')}</Label>
-                <Input
-                  id="typed-name"
-                  value={typedName}
-                  onChange={(e) => setTypedName(e.target.value)}
-                  placeholder="Enter your full legal name"
-                  className="mt-2"
-                />
-                {typedName && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded border">
-                    <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                    <div className="text-2xl font-serif italic text-center py-4 bg-white border rounded">
-                      {typedName}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
@@ -524,7 +441,7 @@ export default function DigitalSignatureCapture({
           <span>{t('document_retention')}</span>
         </div>
         <p>
-          Signature Method: {signatureMethod === 'draw' ? 'Hand-drawn' : 'Typed'}
+          Signature Method: Hand-drawn
         </p>
         <p>Timestamp: {new Date().toLocaleString()}</p>
         {ipAddress && <p>IP Address: {ipAddress}</p>}
@@ -538,7 +455,7 @@ export default function DigitalSignatureCapture({
             {acknowledgementsChecked.some(checked => !checked) && (
               <div>{t('all_acknowledgments_required')}</div>
             )}
-            {(signatureMethod === 'draw' ? !signatureData : !typedName.trim()) && (
+            {!signatureData && (
               <div>{t('signature_required_error')}</div>
             )}
           </AlertDescription>

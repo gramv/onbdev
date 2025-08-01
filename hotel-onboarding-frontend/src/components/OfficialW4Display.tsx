@@ -216,7 +216,6 @@ export default function OfficialW4Display({
         </div>
 
         <DigitalSignatureCapture
-          signatureType="employee_w4"
           documentName="Form W-4 - Employee's Withholding Certificate"
           signerName={`${employeeData?.first_name} ${employeeData?.last_name}`}
           signerTitle="Employee"

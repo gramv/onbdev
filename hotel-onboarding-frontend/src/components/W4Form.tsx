@@ -4,7 +4,7 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Checkbox } from './ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import SignaturePad from './SignaturePad'
+import DigitalSignatureCapture from './DigitalSignatureCapture'
 import { AlertTriangle, Shield, Info, CheckCircle } from 'lucide-react'
 import { validateW4Form, FederalValidationError, generateComplianceAuditEntry } from '@/utils/federalValidation'
 interface W4FormProps {
@@ -616,14 +616,20 @@ export default function W4Form({ onSubmit, ocrData = {}, language = 'en' }: W4Fo
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <SignaturePad
-              label="Employee's Signature"
-              onSignature={(sig) => updateField('signature', sig)}
-              required={true}
-            />
-          </div>
+        <div className="space-y-4">
+          <DigitalSignatureCapture
+            documentName="Form W-4 - Employee's Withholding Certificate"
+            signerName={`${formData.first_name} ${formData.last_name}`}
+            signerTitle="Employee"
+            acknowledgments={[
+              "I declare that this certificate, to the best of my knowledge and belief, is true, correct, and complete",
+              "I understand that false statements may result in penalties under federal tax law"
+            ]}
+            requireIdentityVerification={true}
+            language={language}
+            onSignatureComplete={(signatureData) => updateField('signature', signatureData.signatureData)}
+            onCancel={() => {}}
+          />
           <div>
             <Label htmlFor="signature_date" className="text-sm">Date *</Label>
             <Input

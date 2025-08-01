@@ -156,7 +156,7 @@ export function ManagerDashboardLayout() {
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
             <h2 className="text-heading-lg text-primary mb-2">Access Denied</h2>
             <p className="text-body-md text-secondary mb-6">Manager role required to access this dashboard.</p>
-            <Button onClick={logout} className="btn-primary btn-size-md">
+            <Button onClick={logout} className="">
               Return to Login
             </Button>
           </CardContent>
@@ -177,11 +177,11 @@ export function ManagerDashboardLayout() {
               You are not currently assigned to a property. Please contact HR for assistance.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleRetry} className="btn-primary btn-size-md">
+              <Button onClick={handleRetry} className="">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
-              <Button onClick={logout} variant="outline" className="btn-secondary btn-size-md">
+              <Button onClick={logout} variant="outline" className="">
                 Logout
               </Button>
             </div>
@@ -215,13 +215,13 @@ export function ManagerDashboardLayout() {
                   onClick={handleRetry} 
                   variant="outline" 
                   size="sm"
-                  className="btn-secondary btn-size-sm"
+                  className=""
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Retry
                 </Button>
               )}
-              <Button onClick={logout} variant="outline" className="btn-secondary btn-size-md">
+              <Button onClick={logout} variant="outline" className="">
                 Logout
               </Button>
             </div>

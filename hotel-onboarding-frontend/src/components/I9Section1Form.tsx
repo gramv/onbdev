@@ -190,21 +190,66 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
   }, [initialData]);
 
   const validateSection = (sectionIndex: number): boolean => {
-    // First run federal validation on the complete form data
-    const federalValidation = validateI9Section1(formData);
-    setFederalValidationResult(federalValidation);
-    
-    // Check for compliance blocking errors (age violations)
-    const hasAgeViolations = federalValidation.errors.some(e => 
-      e.legalCode.includes('FLSA') || e.legalCode.includes('CHILD-LABOR')
-    );
-    setComplianceBlocked(hasAgeViolations);
-
     const newErrors: Record<string, string> = {};
     
-    // Add federal validation errors to the errors object
-    for (const error of federalValidation.errors) {
-      newErrors[error.field] = error.message;
+    // Only validate fields relevant to the current section
+    let partialFormData: Partial<FormData> = {};
+    
+    switch (sectionIndex) {
+      case 0: // Personal Information section
+        partialFormData = {
+          employee_first_name: formData.employee_first_name,
+          employee_last_name: formData.employee_last_name,
+          employee_middle_initial: formData.employee_middle_initial,
+          other_last_names: formData.other_last_names
+        };
+        break;
+      case 1: // Address section
+        partialFormData = {
+          address_street: formData.address_street,
+          address_apt: formData.address_apt,
+          address_city: formData.address_city,
+          address_state: formData.address_state,
+          address_zip: formData.address_zip
+        };
+        break;
+      case 2: // Personal Details section
+        partialFormData = {
+          date_of_birth: formData.date_of_birth,
+          ssn: formData.ssn,
+          email: formData.email,
+          phone: formData.phone
+        };
+        break;
+      case 3: // Citizenship section
+        partialFormData = {
+          citizenship_status: formData.citizenship_status,
+          uscis_number: formData.uscis_number,
+          i94_admission_number: formData.i94_admission_number,
+          passport_number: formData.passport_number,
+          passport_country: formData.passport_country,
+          work_authorization_expiration: formData.work_authorization_expiration,
+          employee_attestation: formData.employee_attestation
+        };
+        break;
+    }
+    
+    // Only run federal validation on final submission, not during navigation
+    if (sectionIndex === 3) {
+      // Run full federal validation on the complete form data
+      const federalValidation = validateI9Section1(formData);
+      setFederalValidationResult(federalValidation);
+      
+      // Check for compliance blocking errors (age violations)
+      const hasAgeViolations = federalValidation.errors.some(e => 
+        e.legalCode.includes('FLSA') || e.legalCode.includes('CHILD-LABOR')
+      );
+      setComplianceBlocked(hasAgeViolations);
+      
+      // Add federal validation errors to the errors object
+      for (const error of federalValidation.errors) {
+        newErrors[error.field] = error.message;
+      }
     }
 
     // Section-specific basic validation (in addition to federal validation)
@@ -265,7 +310,15 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0 && federalValidation.isValid;
+    
+    // For sections 0-2, only check if there are no errors
+    // For section 3, also check federal validation
+    if (sectionIndex === 3) {
+      const federalValidation = validateI9Section1(formData);
+      return Object.keys(newErrors).length === 0 && federalValidation.isValid;
+    } else {
+      return Object.keys(newErrors).length === 0;
+    }
   };
 
   const handleInputChange = (field: keyof FormData, value: string | boolean) => {
@@ -997,7 +1050,7 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-hotel-neutral-50 via-white to-blue-50">
       {/* Federal Compliance Status Bar - Compact */}
-      {federalValidationResult && (
+      {currentSection === 3 && federalValidationResult && (
         <div className={`flex-shrink-0 ${complianceBlocked ? 'bg-red-600' : federalValidationResult.isValid ? 'bg-green-600' : 'bg-yellow-600'} text-white px-4 py-1`}>
           <div className="max-w-5xl mx-auto flex items-center justify-between text-xs">
             <div className="flex items-center space-x-2">
@@ -1075,8 +1128,8 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
               </div>
             </div>
 
-            {/* Federal Compliance Errors Display - Collapsible */}
-            {federalValidationResult && (federalValidationResult.errors.length > 0 || federalValidationResult.warnings.length > 0) && (
+            {/* Federal Compliance Errors Display - Only show on final section */}
+            {currentSection === 3 && federalValidationResult && (federalValidationResult.errors.length > 0 || federalValidationResult.warnings.length > 0) && (
               <div className="mb-4">
                 {federalValidationResult.errors.length > 0 && (
                   <details className="group mb-2">
@@ -1141,7 +1194,7 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
               <button
                 onClick={handlePrevious}
                 disabled={currentSection === 0}
-                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 h-12 px-6"
+                variant="secondary" className="disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 h-12 px-6"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1164,7 +1217,7 @@ const I9Section1Form: React.FC<I9Section1FormProps> = ({
                 className={`flex items-center space-x-2 h-12 px-8 rounded-lg font-semibold text-base transition-all ${
                   complianceBlocked 
                     ? 'bg-red-100 text-red-400 cursor-not-allowed border-2 border-red-200' 
-                    : 'btn-primary'
+                    : ''
                 }`}
               >
                 {complianceBlocked && <AlertTriangle className="h-4 w-4" />}

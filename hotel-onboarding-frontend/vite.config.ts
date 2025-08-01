@@ -17,17 +17,45 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true
       }
+    },
+    // Optimize HMR for better memory usage
+    hmr: {
+      overlay: false
     }
   },
+  optimizeDeps: {
+    // Pre-bundle heavy dependencies
+    include: ['react', 'react-dom', 'react-router-dom', 'axios', 'react-hook-form'],
+    // Exclude rarely changed dependencies from optimization
+    exclude: []
+  },
   build: {
-    // Ensure proper routing in production
+    // Reduce memory usage during build
+    sourcemap: false,
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
+        // Enhanced code splitting for better performance
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom']
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          radixUI: [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-select',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-radio-group',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast'
+          ],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          utils: ['axios', 'date-fns', 'clsx', 'tailwind-merge']
         }
       }
     }
+  },
+  // Prevent memory leaks in development
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' }
   }
 })
 

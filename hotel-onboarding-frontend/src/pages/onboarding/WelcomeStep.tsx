@@ -1,18 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent } from '@/components/ui/card'
-import { CheckCircle, Clock, FileText, Globe } from 'lucide-react'
-
-interface WelcomeStepProps {
-  currentStep: any
-  progress: any
-  markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: (stepId: string, data?: any) => void
-  language: 'en' | 'es'
-  employee?: any
-  property?: any
-}
+import { CheckCircle, Clock, FileText } from 'lucide-react'
+import { StepProps } from '../../controllers/OnboardingFlowController'
+import { StepContainer } from '@/components/onboarding/StepContainer'
+import { useAutoSave } from '@/hooks/useAutoSave'
 
 export default function WelcomeStep({
   currentStep, 
@@ -22,40 +14,38 @@ export default function WelcomeStep({
   language = 'en', 
   employee,
   property
-}: WelcomeStepProps) {
+}: StepProps) {
   
-  const [isComplete, setIsComplete] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'es'>(language)
+  const [formData, setFormData] = useState({
+    welcomeAcknowledged: false,
+    languagePreference: language
+  })
 
-  // Load existing data from progress
+  // Auto-save hook
+  const { saveStatus } = useAutoSave(formData, {
+    onSave: async (data) => {
+      await saveProgress(currentStep.id, data)
+    }
+  })
+
+  // Load existing data
   useEffect(() => {
-    const existingData = progress.stepData?.['welcome'] || progress.stepData?.['language_welcome']
-    if (existingData) {
-      setIsComplete(existingData.completed || false)
-      setSelectedLanguage(existingData.selectedLanguage || language)
+    const isCompleted = progress.completedSteps.includes(currentStep.id)
+    if (isCompleted) {
+      setFormData(prev => ({ ...prev, welcomeAcknowledged: true }))
     }
-  }, [progress, language])
+  }, [progress.completedSteps, currentStep.id])
 
-  const handleLanguageToggle = () => {
-    const newLanguage = selectedLanguage === 'en' ? 'es' : 'en'
-    setSelectedLanguage(newLanguage)
-  }
-
-  const handleContinue = () => {
-    setIsComplete(true)
-    const stepData = {
-      completed: true,
-      selectedLanguage,
-      completedAt: new Date().toISOString(),
-      welcomeAcknowledged: true
+  // Mark complete when acknowledged
+  useEffect(() => {
+    if (formData.welcomeAcknowledged && !progress.completedSteps.includes(currentStep.id)) {
+      markStepComplete(currentStep.id, formData)
     }
-    markStepComplete('welcome', stepData)
-    saveProgress('welcome', stepData)
-  }
+  }, [formData.welcomeAcknowledged, currentStep.id, markStepComplete, progress.completedSteps])
 
   const translations = {
     en: {
-      greeting: employee?.name ? `Welcome, ${employee.name}!` : 'Welcome!',
+      greeting: `Welcome, ${employee?.firstName || 'Team Member'}!`,
       propertyInfo: property?.name || 'Our Company',
       title: 'Let\'s get you started',
       description: 'Complete your onboarding in about 45 minutes',
@@ -67,12 +57,10 @@ export default function WelcomeStep({
         'Emergency contact details'
       ],
       estimatedTime: 'Estimated time: 45-60 minutes',
-      languageToggle: 'Español',
-      continueButton: 'Start Onboarding',
-      completedButton: 'Welcome Completed'
+      completedMessage: 'Welcome step completed! Click Next to continue.'
     },
     es: {
-      greeting: employee?.name ? `¡Bienvenido, ${employee.name}!` : '¡Bienvenido!',
+      greeting: `¡Bienvenido, ${employee?.firstName || 'Miembro del Equipo'}!`,
       propertyInfo: property?.name || 'Nuestra Empresa',
       title: 'Comencemos',
       description: 'Complete su incorporación en aproximadamente 45 minutos',
@@ -84,92 +72,71 @@ export default function WelcomeStep({
         'Datos de contacto de emergencia'
       ],
       estimatedTime: 'Tiempo estimado: 45-60 minutos',
-      languageToggle: 'English',
-      continueButton: 'Comenzar Incorporación',
-      completedButton: 'Bienvenida Completada'
+      completedMessage: '¡Paso de bienvenida completado! Haga clic en Siguiente para continuar.'
     }
   }
 
-  const t = translations[selectedLanguage]
+  const t = translations[language]
 
   return (
-    <div className="flex-container-adaptive">
-      {/* Clean Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.greeting}</h1>
-        <p className="text-lg text-blue-600 font-medium">{t.propertyInfo}</p>
-        <p className="text-base text-gray-600">{t.title}</p>
-      </div>
-
-      {/* Completion Alert */}
-      {isComplete && (
-        <Alert className="bg-green-50 border-green-200">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            Welcome step completed! You can proceed to the next step.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Main Content Card */}
-      <Card className="flex-1">
-        <CardContent className="pt-6 space-y-4">
-          {/* Time Estimate */}
-          <div className="flex items-center justify-center space-x-2 text-blue-600 bg-blue-50 rounded-lg p-3">
-            <Clock className="h-5 w-5" />
-            <span className="font-medium">{t.estimatedTime}</span>
-          </div>
-
-          {/* Requirements List */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-              <FileText className="h-4 w-4 mr-2" />
-              {t.whatYouNeed}
-            </h3>
-            <ul className="space-y-2">
-              {t.requirements.map((req, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="text-green-500 mr-2">✓</span>
-                  <span className="text-gray-700">{req}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Language Toggle & Continue Button */}
-      <div className="space-y-3">
-        {/* Language Toggle */}
-        <div className="flex justify-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLanguageToggle}
-            className="flex items-center space-x-2"
-          >
-            <Globe className="h-4 w-4" />
-            <span>{t.languageToggle}</span>
-          </Button>
+    <StepContainer saveStatus={saveStatus}>
+      <div className="space-y-6">
+        {/* Clean Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.greeting}</h1>
+          <p className="text-lg text-blue-600 font-medium">{t.propertyInfo}</p>
+          <p className="text-base text-gray-600">{t.title}</p>
         </div>
 
-        {/* Continue Button */}
-        <Button
-          onClick={handleContinue}
-          size="lg"
-          className="w-full"
-          disabled={isComplete}
-        >
-          {isComplete ? (
-            <div className="flex items-center justify-center space-x-2">
-              <CheckCircle className="h-5 w-5" />
-              <span>{t.completedButton}</span>
+        {/* Completion Alert */}
+        {formData.welcomeAcknowledged && (
+          <Alert className="bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              {t.completedMessage}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Main Content Card */}
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            {/* Time Estimate */}
+            <div className="flex items-center justify-center space-x-2 text-blue-600 bg-blue-50 rounded-lg p-3">
+              <Clock className="h-5 w-5" />
+              <span className="font-medium">{t.estimatedTime}</span>
             </div>
-          ) : (
-            <span>{t.continueButton}</span>
-          )}
-        </Button>
+
+            {/* Requirements List */}
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                <FileText className="h-4 w-4 mr-2" />
+                {t.whatYouNeed}
+              </h3>
+              <ul className="space-y-2">
+                {t.requirements.map((req, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-green-500 mr-2">✓</span>
+                    <span className="text-gray-700">{req}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Auto-acknowledge after viewing */}
+        {!formData.welcomeAcknowledged && (
+          <div className="text-center mt-4">
+            <button
+              onClick={() => setFormData(prev => ({ ...prev, welcomeAcknowledged: true }))}
+              className="text-sm text-blue-600 hover:text-blue-700 underline"
+            >
+              I understand the requirements
+            </button>
+          </div>
+        )}
       </div>
-    </div>
+    </StepContainer>
   )
 }

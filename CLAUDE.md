@@ -2,6 +2,27 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Agent OS Integration
+
+This project uses **Agent OS** - a system for better planning and executing software development tasks with AI agents. Agent OS ensures consistent, high-quality code generation aligned with our specific standards and requirements.
+
+### Agent OS Structure
+- **Global Standards**: Located at `~/.agent-os/standards/` - defines tech stack, code style, and best practices
+- **Product Documentation**: Located at `~/.agent-os/product/` - contains mission, roadmap, and decisions
+- **Feature Specifications**: Located at `~/.agent-os/product/specs/` - detailed specs for each feature
+
+### Available Commands
+- `/analyze-product` - Analyze existing codebase and create product documentation
+- `/plan-product` - Create or update product planning documents
+- `/create-spec` - Create detailed feature specifications before implementation
+- `/execute-task` - Implement features following specifications and standards
+
+### Development Workflow with Agent OS
+1. **Before starting new features**: Run `/create-spec` to create detailed specifications
+2. **Follow brick-by-brick methodology**: Build and test each component completely before moving to next
+3. **Adhere to standards**: All code must follow patterns defined in Agent OS standards
+4. **Maintain documentation**: Update specs and decisions as the project evolves
+
 ## Project Overview
 
 This is a comprehensive hotel employee onboarding system built with a FastAPI backend and React/TypeScript frontend. The system handles the complete employee lifecycle from job application to onboarding completion, including document management, digital signatures, and compliance requirements.
@@ -10,204 +31,367 @@ This is a comprehensive hotel employee onboarding system built with a FastAPI ba
 
 **MODULAR FORM ARCHITECTURE**: The system is designed with complete modularity where individual forms (W-4, I-9, health insurance, etc.) can be sent independently to employees for updates at any time. When an employee's situation changes (marriage, dependents, address), HR can send just the specific form needed for update without requiring a complete onboarding process.
 
-## Three-Phase Onboarding Workflow
+## Three-Phase Onboarding Workflow Implementation Plan
 
-1. **Employee Phase**: Complete required forms and documentation
-2. **Manager Phase**: Review employee submissions and complete I-9 Section 2
-3. **HR Phase**: Final approval and compliance verification
+### Overview
+The system implements a complete digital onboarding workflow that replicates the current paper packet with three distinct phases:
+1. **Employee Phase**: Job application → Manager approval → Employee completes onboarding
+2. **Manager Phase**: Reviews employee submission → Completes manager sections → Approves or requests corrections
+3. **HR Phase**: Final review → Compliance verification → System integration or corrections
 
-## Brick-by-Brick Implementation Plan
+### Workflow Entry Points
+- **Job Application Submitted**: Candidate applies for position
+- **Manager Reviews Application**: 
+  - If approved → Manager fills initial employee setup form (Page 1-2)
+  - If rejected → Candidate receives gentle rejection + talent pool invitation email
+- **After Manager Setup**: Employee receives onboarding link with pre-populated job details
 
-### Phase 1: Foundation & Cleanup (CURRENT FOCUS)
-**Status**: ✅ IN PROGRESS - Fixing component prop structure
+## Phase 0: Manager Initial Setup
 
-**Completed Tasks:**
-- ✅ Fixed WelcomeStep component to use direct props instead of useOutletContext
-- ✅ Fixed PersonalInfoStep component prop structure
-- ✅ Fixed I9Section1Step component prop structure
-- ✅ Created TestStepComponents for isolated testing
-- ✅ Added autoFillManager utility for consistent data management
+Before employee begins onboarding, manager must complete:
 
-**Current Task:**
-- 🔄 Testing basic component rendering and navigation
-- 🔄 Ensuring all step components work with direct props pattern
+### Manager Setup Module
+**Maps to**: Pages 1-2 of packet
+- **Component**: `ManagerEmployeeSetup.tsx` (to be built)
+- **Data collected**:
+  - Hotel name/address
+  - Employee name, SSN, DOB, gender
+  - Address and contact information
+  - Position, department, hire date
+  - Pay rate, schedule (FT/PT)
+  - Initial health insurance selection
+  - Manager/supervisor information
+- **Actions**: Generate unique onboarding link for employee
 
-**Next Steps:**
-1. Complete remaining step component fixes (JobDetailsStep, etc.)
-2. Create simple navigation wrapper that works
-3. Test basic data flow between components
-4. Verify each component renders without errors
+## Phase 1: Employee Onboarding Modules
 
-### Phase 2: Core Page Implementation (PLANNED)
-**Approach**: Build → Test → Link pattern
+Based on the 28-page onboarding packet analysis, the employee must complete these modules:
 
-**Page Order** (based on "2025+ New Employee Hire Packet" analysis):
+### Module Mapping to Paper Packet
 
-#### Page 1: Manager Forms & Setup
-- **Purpose**: Manager completes property setup and employee position details
-- **Components**: Property info, job description, manager contact
-- **Testing**: Verify manager can complete forms and submit
-- **Link**: Direct to employee notification system
+| Module | Component | Packet Pages | Description |
+|--------|-----------|--------------|-------------|
+| 1. Welcome & Personal Info | `WelcomeStep.tsx`, `PersonalInfoStep.tsx` | Page 5 | Language selection, personal details |
+| 2. Job Details Confirmation | `JobDetailsStep.tsx` | Page 2 | Review position, pay rate, start date |
+| 3. Emergency Contacts | `EmergencyContactsStep.tsx` | N/A | Emergency contact information |
+| 4. Company Policies | `CompanyPoliciesStep.tsx` | Pages 3-6, 9, 20 | All company policy acknowledgments |
+| 5. I-9 Section 1 | `I9Section1Step.tsx` | Page 10 | Employment eligibility (by first day) |
+| 6. I-9 Supplements | `I9SupplementsStep.tsx` | Pages 12-13 | Conditional - only if applicable |
+| 7. W-4 Tax Form | `W4FormStep.tsx` | Pages 15-17 | 2025 federal tax withholding |
+| 8. Direct Deposit | `DirectDepositStep.tsx` | Page 18 | Banking information |
+| 9. Human Trafficking | `TraffickingAwarenessStep.tsx` | Pages 19, 21 | Federal requirement for hospitality |
+| 10. Weapons Policy | `WeaponsPolicyStep.tsx` | Page 22 | Weapons prohibition acknowledgment |
+| 11. Health Insurance | `HealthInsuranceStep.tsx` | Pages 23-28 | Benefits election or waiver |
+| 12. Document Upload | `DocumentUploadStep.tsx` | Page 1 ref | I-9 documents, voided check |
+| 13. Final Review | `FinalReviewStep.tsx` | N/A | Review all info, submit |
 
-#### Page 2: Employee Welcome & Language Selection  
-- **Purpose**: Employee receives notification and selects language preference
-- **Components**: WelcomeStep (already fixed), language toggle, overview
-- **Testing**: Test language switching, welcome flow
-- **Link**: Connect to job details confirmation
+## Phase 2: Manager Review Modules
 
-#### Page 3: Job Details Confirmation
-- **Purpose**: Employee reviews and confirms job details set by manager
-- **Components**: JobDetailsStep (already fixed), job info display, confirmations
-- **Testing**: Verify job details display correctly, confirmations work
-- **Link**: Connect to personal information collection
+After employee submission, manager receives notification to complete:
 
-#### Page 4: Personal Information Collection
-- **Purpose**: Collect employee personal details and emergency contacts
-- **Components**: PersonalInfoStep (already fixed), PersonalInformationForm, EmergencyContactsForm
-- **Testing**: Test form validation, data persistence, emergency contacts
-- **Link**: Connect to federal compliance forms
+### Manager Responsibilities
+1. **Review Employee Information**: Verify all submitted data matches initial setup
+2. **I-9 Section 2**: Complete within 3 business days (Page 11)
+3. **Document Verification**: Verify uploaded documents match requirements
+4. **Approval Actions**:
+   - Approve and send to HR
+   - Request corrections on specific modules with comments
 
-#### Page 5: I-9 Section 1 (Federal Compliance)
-- **Purpose**: Employee completes I-9 Section 1 employment eligibility verification
-- **Components**: I9Section1Step (already fixed), I9Section1Form, digital signature
-- **Testing**: Test federal validation, signature capture, compliance rules
-- **Link**: Connect to I-9 supplements if needed
+## Phase 3: HR Final Review
 
-#### Page 6: I-9 Supplements A & B (Conditional)
-- **Purpose**: Complete I-9 Supplement A (Preparer/Translator) or B (for certain cases)
-- **Components**: I9SupplementA, I9SupplementB with smart field mapping
-- **Testing**: Test conditional logic, ensure fields stay blank per federal requirements
-- **Link**: Connect to document upload
+HR performs final compliance review and system integration:
 
-#### Page 7: Document Upload & Verification
-- **Purpose**: Upload identity and work authorization documents
-- **Components**: DocumentUploadStep, OCR processing, validation
-- **Testing**: Test file upload, OCR accuracy, document validation
-- **Link**: Connect to W-4 tax information
+### HR Responsibilities
+1. **Compliance Verification**: Ensure federal requirements met
+2. **Document Audit**: Verify all required documents present
+3. **Final Actions**:
+   - Approve and add employee to system
+   - Request manager corrections (with CC)
+   - Request employee corrections (manager CC'd)
 
-#### Page 8: W-4 Tax Information (Federal Compliance)
-- **Purpose**: Complete W-4 Employee's Withholding Certificate
-- **Components**: W4FormStep, W4Form with IRS validation
-- **Testing**: Test tax calculations, validation rules, digital signature
-- **Link**: Connect to direct deposit setup
+## Implementation Stages
 
-#### Page 9: Direct Deposit Setup
-- **Purpose**: Set up banking information for payroll
-- **Components**: DirectDepositStep, banking validation, security
-- **Testing**: Test bank validation, security measures, form submission
-- **Link**: Connect to health insurance enrollment
+### Stage 1: Employee Side (Current Focus)
+- [ ] Fix all 16 step components to use direct props pattern
+- [ ] Build missing modules if any
+- [ ] Create employee onboarding flow navigation
+- [ ] Implement progress tracking and auto-save
+- [ ] Add module-level validation
 
-#### Page 10: Health Insurance Enrollment
-- **Purpose**: Select health insurance options and dependents
-- **Components**: HealthInsuranceStep, plan comparisons, dependent management
-- **Testing**: Test plan selection, dependent calculations, enrollment
-- **Link**: Connect to company policies
+### Stage 2: Manager Side
+- [ ] Create manager dashboard
+- [ ] Build I-9 Section 2 interface
+- [ ] Implement document review screens
+- [ ] Add approval/correction workflow
+- [ ] Create manager notification system
 
-#### Page 11: Company Policies & Acknowledgments
-- **Purpose**: Review and acknowledge company policies
-- **Components**: CompanyPoliciesStep, policy display, acknowledgments
-- **Testing**: Test policy display, acknowledgment tracking
-- **Link**: Connect to specialized policy forms
+### Stage 3: HR Side
+- [ ] Build HR dashboard with queue
+- [ ] Create compliance verification tools
+- [ ] Implement final approval workflow
+- [ ] Add correction request system
+- [ ] Build employee system integration
 
-#### Page 12: Human Trafficking Awareness (Federal Requirement)
-- **Purpose**: Complete federally required human trafficking awareness training
-- **Components**: HumanTraffickingAwareness, training content, certification
-- **Testing**: Test training completion, certification generation
-- **Link**: Connect to weapons policy if applicable
+### Stage 4: Workflow Integration
+- [ ] Connect all three phases
+- [ ] Implement email notifications
+- [ ] Add real-time status updates
+- [ ] Create audit trail
+- [ ] End-to-end testing
 
-#### Page 13: Weapons Policy Acknowledgment (Property-Specific)
-- **Purpose**: Acknowledge weapons policy for security positions
-- **Components**: WeaponsPolicyStep, conditional display based on position
-- **Testing**: Test conditional logic, policy acknowledgment
-- **Link**: Connect to background check authorization  
+### Stage 5: Polish & Deploy
+- [ ] Security audit
+- [ ] Performance optimization
+- [ ] Multi-language testing
+- [ ] Compliance validation
+- [ ] Production deployment
 
-#### Page 14: Background Check Authorization
-- **Purpose**: Authorize background check processing
-- **Components**: BackgroundCheckStep, authorization forms, consent
-- **Testing**: Test authorization process, consent management
-- **Link**: Connect to photo capture
+## Technical Architecture
 
-#### Page 15: Employee Photo Capture
-- **Purpose**: Capture employee photo for ID badge and records
-- **Components**: PhotoCaptureStep, camera integration, photo validation
-- **Testing**: Test camera access, photo quality, storage
-- **Link**: Connect to final review
+### API Endpoints
+```
+# Manager endpoints (requires auth)
+POST /api/applications/{id}/approve - Manager approves application, generates JWT
+POST /api/applications/{id}/reject - Manager rejects (talent pool)
+POST /api/manager/onboarding/{id}/review - Manager completes I-9 Section 2
+POST /api/manager/onboarding/{id}/request-correction - Request employee corrections
 
-#### Page 16: Employee Final Review & Submission
-- **Purpose**: Review all entered information and submit for manager approval
-- **Components**: FinalReviewStep, comprehensive summary, submission
-- **Testing**: Test complete data review, submission process
-- **Link**: Connect to manager review workflow
+# Employee endpoints (JWT token auth)
+GET /api/onboarding/validate-token - Validate JWT and get session info
+GET /api/onboarding/session - Get current onboarding progress (JWT required)
+POST /api/onboarding/step/{step_id}/save - Save step progress (JWT required)
+POST /api/onboarding/step/{step_id}/complete - Complete step (JWT required)
+POST /api/onboarding/submit - Submit final onboarding (JWT required)
 
-### Phase 3: Manager Review Integration (PLANNED)
-**Purpose**: Integrate manager workflow for completing I-9 Section 2 and final approval
+# HR endpoints (requires auth)
+POST /api/hr/onboarding/{id}/approve - HR final approval
+POST /api/hr/onboarding/{id}/regenerate-token - Generate new 7-day token
+GET /api/hr/onboarding/expired - List expired/incomplete onboardings
+```
 
-#### Manager Review Dashboard
-- **Components**: Manager interface for reviewing submitted onboarding
-- **Features**: I-9 Section 2 completion, document verification, approval workflow
-- **Testing**: Test manager access, I-9 Section 2 completion, approval process
+### Key Features
+- **Modular Independence**: Each module saves/submits independently
+- **Correction Workflow**: Individual modules can be sent back for fixes
+- **Compliance Tracking**: Federal requirement timers and validations
+- **Audit Trail**: Complete history of all actions and changes
 
-#### I-9 Section 2 Completion (Manager)
-- **Components**: Manager completes I-9 Section 2 within 3 business days
-- **Features**: Document review, employer verification, signature
-- **Testing**: Test timing compliance, document verification, completion
+## Development Notes
 
-### Phase 4: Integration & Testing (PLANNED)
-**Purpose**: Connect all pages into seamless workflow
+- **Backend Python Version**: Use Python3 for backend implementation, not Poetry
+  - Transition away from Poetry dependency management
+  - Use standard Python virtual environments and `requirements.txt`
+  - Ensure compatibility with Python 3.12+
 
-#### Navigation System
-- **Components**: Step-by-step navigation, progress tracking, back/forward functionality
-- **Features**: URL routing, progress persistence, error handling
-- **Testing**: Test complete workflow, navigation, data persistence
+## Scalability Architecture
 
-#### Data Flow Integration
-- **Components**: Unified data management, auto-fill functionality, validation
-- **Features**: Cross-component data sharing, validation consistency
-- **Testing**: Test data flow, validation, auto-fill accuracy
+### System Capacity
+The system is designed to handle:
+- **15-20 HR users** with full dashboard access
+- **200+ Managers** with property-specific access
+- **Unlimited employees** (stateless onboarding sessions only)
 
-#### PDF Generation & Review
-- **Components**: Official document generation using government templates
-- **Features**: I-9 PDF generation, W-4 PDF generation, signature integration
-- **Testing**: Test PDF accuracy, signature placement, federal compliance
+### Key Architecture Decisions
 
-### Phase 5: Production Readiness (PLANNED)
-**Purpose**: Final testing and production deployment preparation
+#### User Account Model
+1. **Only Managers and HR have accounts** - Full authentication with username/password
+2. **Employees are stateless** - No user accounts, no login credentials
+3. **Employee Access via JWT tokens**:
+   - When manager approves job application, system generates 7-day JWT token
+   - Unique onboarding URL created: `https://onboarding.hotel.com/onboard?token={JWT}`
+   - Token contains: employee_id, property_id, position, expiry
+   - URL sent to employee via email/SMS
+   - No password required - just click the link
+   - After 7 days, token expires and HR must generate new link if needed
 
-#### Comprehensive Testing
-- **End-to-end workflow testing**: Complete onboarding process from start to finish
-- **Federal compliance validation**: Ensure all government requirements are met
-- **Multi-language testing**: Verify English/Spanish functionality
-- **Manager workflow testing**: Complete manager review and approval process
+#### Access Control
+1. **Managers have limited scope** - Can only see their property's data
+2. **HR has global view** - But with pagination and filtering
+3. **Employees have temporary access** - Only to their own onboarding session
 
-#### Performance & Security
-- **Security audit**: Ensure all personal data is properly protected
-- **Performance optimization**: Optimize loading times and user experience
-- **Error handling**: Comprehensive error handling and user feedback
+#### Security Benefits
+- No employee credentials to manage or reset
+- Reduced attack surface (no employee login page)
+- Automatic expiration prevents stale access
+- Each onboarding session is isolated
 
-## Government Compliance Requirements
+### Production Deployment Recommendations
 
-### I-9 Employment Eligibility Verification
-- **Section 1**: Must be completed by employee on or before first day of work
-- **Section 2**: Must be completed by employer within 3 business days of start date
-- **Supplements A/B**: Only used in specific circumstances, most fields must remain blank
-- **Document Requirements**: Must verify both identity AND work authorization
-- **Retention**: Must be retained for 3 years after hire date or 1 year after termination
+#### 1. Simple Caching Layer (Priority: High)
+```python
+# Add to backend for frequently accessed data
+from functools import lru_cache
+import asyncio
 
-### W-4 Employee's Withholding Certificate
-- **IRS Compliance**: Must use current year IRS form template
-- **Validation**: Must validate tax calculations and withholding amounts
-- **Digital Signature**: Must capture employee signature with legal compliance metadata
-- **Updates**: Employees can update W-4 information at any time
+@lru_cache(maxsize=128)
+async def get_cached_properties():
+    return await supabase.get_all_properties()
 
-### Federal Documentation Standards
-- **Digital Signatures**: Must include timestamp, IP address, legal compliance metadata
-- **Data Retention**: All federal forms must be retained per government requirements
-- **Privacy Protection**: All personal information must be encrypted and secured
-- **Audit Trail**: Complete audit trail required for all compliance-related actions
+# Clear cache every 5 minutes
+async def cache_invalidator():
+    while True:
+        await asyncio.sleep(300)
+        get_cached_properties.cache_clear()
+```
+
+#### 2. Connection Pool Configuration
+```python
+# In supabase_service_enhanced.py
+max_connections = 50  # Increase from 20
+min_connections = 10  # Increase from 5
+```
+
+#### 3. Multi-Worker Deployment
+```bash
+# Production deployment command
+gunicorn app.main_enhanced:app \
+  --workers 4 \
+  --worker-class uvicorn.workers.UvicornWorker \
+  --bind 0.0.0.0:8000 \
+  --timeout 120
+```
+
+#### 4. Database Indexes (Run once)
+```sql
+-- Optimize common queries
+CREATE INDEX idx_employees_property_id ON employees(property_id);
+CREATE INDEX idx_applications_property_status ON job_applications(property_id, status);
+CREATE INDEX idx_managers_property ON property_managers(property_id);
+CREATE INDEX idx_onboarding_token ON onboarding_tokens(token) WHERE expires_at > NOW();
+```
+
+#### 5. API Response Optimization
+- Implement pagination on all list endpoints (already done for most)
+- Add `select` parameter to return only needed fields
+- Use database views for complex joins
+
+### Performance Monitoring
+- Monitor response times for API endpoints
+- Track database connection pool usage
+- Set up alerts for slow queries (>1s)
+- Monitor memory usage of Node.js frontend 
+
+## I-9 and W-4 Module Implementation Status
+
+### Completed Features
+✅ **Backend API Endpoints**
+- `POST /api/onboarding/{employee_id}/i9-section1` - Save I-9 Section 1 data
+- `GET /api/onboarding/{employee_id}/i9-section1` - Retrieve I-9 Section 1 data
+- `POST /api/onboarding/{employee_id}/i9-section1/generate-pdf` - Generate I-9 PDF
+- `POST /api/onboarding/{employee_id}/w4-form` - Save W-4 form data
+- `GET /api/onboarding/{employee_id}/w4-form` - Retrieve W-4 form data
+- `POST /api/onboarding/{employee_id}/w4-form/generate-pdf` - Generate W-4 PDF
+
+✅ **Frontend Integration**
+- I9Section1Step now saves data to backend on form save and signature
+- W4FormStep now saves data to backend on form save and signature
+- Digital signature capture integrated via ReviewAndSign component
+- Signature metadata includes timestamp, user agent for compliance
+
+✅ **PDF Generation**
+- PDFFormFiller class with official I-9 and W-4 field mappings
+- Signature embedding in PDFs
+- Federal compliance metadata
+
+### Pending Implementation
+❌ **Manager Interface for I-9 Section 2**
+- Manager dashboard component to complete Section 2
+- Document verification interface
+- 3-day deadline tracking from hire date
+
+❌ **Compliance Deadline Tracking**
+- I-9 Section 1: Must be completed by first day of work
+- I-9 Section 2: Must be completed within 3 business days
+- Visual indicators and alerts for approaching deadlines
+
+❌ **Full Workflow Testing**
+- End-to-end test of employee completing I-9/W-4
+- Manager review and Section 2 completion
+- PDF generation and storage
+
+### Database Tables Required
+```sql
+-- I-9 Forms table
+CREATE TABLE i9_forms (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  employee_id UUID REFERENCES employees(id),
+  section VARCHAR(20), -- 'section1', 'section2', 'section3'
+  form_data JSONB,
+  signed BOOLEAN DEFAULT false,
+  signature_data TEXT,
+  completed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- W-4 Forms table
+CREATE TABLE w4_forms (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  employee_id UUID REFERENCES employees(id),
+  tax_year INTEGER,
+  form_data JSONB,
+  signed BOOLEAN DEFAULT false,
+  signature_data TEXT,
+  completed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX idx_i9_employee_section ON i9_forms(employee_id, section);
+CREATE INDEX idx_w4_employee_year ON w4_forms(employee_id, tax_year);
+```
+
+## Development Commands
+
+### Backend
+```bash
+cd hotel-onboarding-backend
+python3 -m venv venv              # Create virtual environment
+source venv/bin/activate          # Activate (Linux/Mac)
+pip install -r requirements.txt   # Install dependencies
+python3 -m app.main_enhanced      # Run enhanced server
+```
+
+### Frontend
+```bash
+cd hotel-onboarding-frontend
+npm install                       # Install dependencies
+npm run dev                      # Start development server (http://localhost:3000)
+npm run build                    # Build for production
+npm run test                     # Run Jest tests
+npm run test:watch              # Run tests in watch mode
+npm run lint                    # Run ESLint
+```
+
+### Testing Routes
+- `/test-steps` - Test individual step components in isolation
+- `/onboard` - Main enhanced onboarding portal (under development)
+- `/manager` - Manager dashboard for reviews and approvals
+- `/hr` - HR dashboard for final approvals (to be built)
+
+## Architecture
+
+### Backend (hotel-onboarding-backend/)
+- **Framework**: FastAPI with Python 3.12+
+- **Database**: Supabase (PostgreSQL)
+- **Key Files**:
+  - `app/main_enhanced.py`: Primary backend with all endpoints
+  - `app/models.py`: Comprehensive Pydantic models
+  - `app/supabase_service_enhanced.py`: Database service layer
+  - `app/auth.py`: Authentication and authorization
+  - `app/pdf_forms.py`: PDF generation for federal forms
+- **External Services**: Groq API for OCR/vision processing
+
+### Frontend (hotel-onboarding-frontend/)
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Library**: Radix UI components with Tailwind CSS
+- **State Management**: React Context API (AuthContext, LanguageContext)
+- **Form Management**: React Hook Form with Zod validation
 
 ## Component Architecture
 
-### Step Component Pattern (CURRENT IMPLEMENTATION)
+### Step Component Pattern
 All onboarding step components follow this standardized pattern:
 
 ```typescript
@@ -227,285 +411,63 @@ export default function StepName(props: StepProps) {
 }
 ```
 
-### Data Management
-- **autoFillManager**: Centralized utility for managing form auto-fill across steps
-- **Progress Tracking**: Each step saves progress independently with step ID
-- **Validation**: Each component handles its own validation and completion status
+## Government Compliance Requirements
 
-## Testing Strategy
+### I-9 Employment Eligibility Verification
+- **Section 1**: Must be completed by employee on or before first day of work
+- **Section 2**: Must be completed by employer within 3 business days of start date
+- **Supplements A/B**: Only used in specific circumstances
+- **Document Requirements**: Must verify both identity AND work authorization
+- **Retention**: 3 years after hire or 1 year after termination (whichever is later)
 
-### Component-Level Testing
-- **Individual Step Testing**: Each step component tested in isolation
-- **Props Interface Testing**: Verify all components work with standardized props
-- **Validation Testing**: Test form validation and completion logic
+### W-4 Employee's Withholding Certificate
+- **IRS Compliance**: Must use current year (2025) IRS form template
+- **Digital Signature**: Must capture with timestamp and compliance metadata
+- **Updates**: Employees can update W-4 at any time
 
-### Integration Testing  
-- **Navigation Flow**: Test navigation between steps
-- **Data Persistence**: Test data saving and loading across steps
-- **Language Switching**: Test bilingual functionality
+### Federal Documentation Standards
+- **Digital Signatures**: Must include timestamp, IP address, legal metadata
+- **Data Retention**: All federal forms retained per requirements
+- **Privacy Protection**: All personal information encrypted
+- **Audit Trail**: Complete audit trail for compliance actions
 
-### End-to-End Testing
-- **Complete Workflow**: Test entire onboarding process from start to finish
-- **Manager Integration**: Test manager review and completion workflow
-- **Federal Compliance**: Test all government compliance requirements
+## Agent OS Usage Guidelines
 
-## Development Commands
+### When to Use Agent OS Commands
 
-### Backend
-```bash
-cd hotel-onboarding-backend
-poetry install                    # Install dependencies
-poetry run python app/main.py     # Run development server on port 8000
-poetry run python app/main_enhanced.py  # Run enhanced server on port 8000
-poetry run pytest tests/        # Run backend tests
-poetry run python -m pytest tests/test_integration.py  # Run integration tests
-```
+1. **Starting New Features**
+   - Always run `/create-spec` before implementing any new feature
+   - Review the generated spec and adjust if needed
+   - Ensure spec aligns with federal compliance requirements
 
-### Frontend
-```bash
-cd hotel-onboarding-frontend
-npm install                       # Install dependencies
-npm run dev                      # Start development server (http://localhost:3000)
-npm run build                    # Build for production
-npm run test                     # Run Jest tests
-npm run test:watch              # Run tests in watch mode
-npm run lint                    # Run ESLint
-npm run test -- --coverage      # Run tests with coverage report
-```
+2. **Implementing Features**
+   - Use `/execute-task` to implement features according to specs
+   - Agent OS will follow the brick-by-brick methodology automatically
+   - All code will adhere to our established patterns and standards
 
-### Testing Individual Components
-```bash
-# Backend: Run specific test file
-cd hotel-onboarding-backend
-poetry run python test_<filename>.py
+3. **Project Analysis**
+   - Run `/analyze-product` periodically to assess progress
+   - Use insights to update roadmap and priorities
+   - Identify technical debt and compliance gaps
 
-# Frontend: Run specific test file
-cd hotel-onboarding-frontend
-npm test src/__tests__/<filename>.test.tsx
-```
+### Agent OS Standards Override
 
-### Common Test Scripts
-```bash
-# Backend test data setup
-poetry run python create_test_data.py
-poetry run python setup_test_accounts.py
+While Agent OS provides global standards, this project has specific overrides:
 
-# Testing specific features
-poetry run python test_job_application_submission.py
-poetry run python test_manager_access_control.py
-poetry run python test_email_service.py
-```
+1. **Component Pattern**: Always use direct props (StepProps interface), never useOutletContext
+2. **Federal Compliance**: I-9 and W-4 requirements take precedence over generic form patterns
+3. **Modular Architecture**: Each form must be independently deployable
+4. **Security**: PII handling must follow our specific encryption standards
 
-### Testing Routes
-- `/test-steps` - Test individual step components in isolation
-- `/onboard` - Main enhanced onboarding portal (under development)
-- `/manager` - Manager dashboard for reviews and approvals
-- `/job-application` - Public job application form
-- `/login` - Authentication page
-- `/hr-dashboard` - HR management interface
+### Integration with Existing Workflow
 
-## Architecture
+Agent OS complements our existing development process:
+- Continue using git flow for version control
+- Maintain PR reviews for all changes
+- Run compliance tests before merging
+- Update Agent OS specs when requirements change
 
-### Backend (hotel-onboarding-backend/)
-- **Framework**: FastAPI with Python 3.12+
-- **Database**: In-memory database (dictionary-based) for development
-- **Key Files**:
-  - `app/main.py`: Core FastAPI application with basic functionality
-  - `app/main_enhanced.py`: Enhanced version with additional features (primary implementation)
-  - `app/models.py`: Comprehensive Pydantic models for all data structures
-  - `app/auth.py`: Authentication and authorization logic
-  - `app/pdf_forms.py`: PDF form generation and processing with government templates
-  - `app/i9_section2.py`: I-9 Section 2 employer verification logic
-  - `app/email_service.py`: Email notification service for onboarding workflows
-  - `app/qr_service.py`: QR code generation for job application links
-  - `app/document_service.py`: Document upload and OCR processing
-  - `app/compliance_engine.py`: Federal compliance validation engine
-- **External Services**: Groq API for OCR/vision processing of documents
-- **Dependencies**: Managed via Poetry (`pyproject.toml`)
-
-### Frontend (hotel-onboarding-frontend/)
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite
-- **UI Library**: Radix UI components with Tailwind CSS
-- **State Management**: React Context API (AuthContext, LanguageContext)
-- **Routing**: React Router v7 with navigation hooks
-- **Internationalization**: i18next for EN/ES language support
-- **Key Pages**:
-  - `HomePage.tsx`: Landing page
-  - `LoginPage.tsx`: Authentication
-  - `HRDashboard.tsx`: HR management interface
-  - `ManagerDashboard.tsx`: Manager review interface
-  - `JobApplicationFormV2.tsx`: Public job application (enhanced version)
-  - `EnhancedOnboardingPortal.tsx`: Primary employee onboarding workflow with government compliance
-  - `OnboardingWelcome.tsx`: Employee onboarding welcome page
-  - `OnboardingComplete.tsx`: Completion confirmation page
-- **Components**: Modular form components in `components/` including:
-  - `I9Section1Form.tsx`: Federal-compliant I-9 Section 1 with validation
-  - `W4Form.tsx`: IRS-compliant W-4 Employee's Withholding Certificate
-  - `HealthInsuranceForm.tsx`: Health insurance enrollment
-  - `DirectDepositForm.tsx`: Banking information setup
-  - `EmergencyContactsForm.tsx`: Emergency contact information
-  - `DigitalSignatureCapture.tsx`: Legal signature capture component
-  - `PDFViewer.tsx`: Document preview component
-- **Testing**: Comprehensive Jest test suite with React Testing Library
-
-## Data Models
-
-The system uses comprehensive Pydantic models defined in `models.py`:
-- **User Management**: User, Property models with role-based access
-- **Applications**: JobApplication with validation and status tracking
-- **Onboarding**: OnboardingSession with progress tracking and step management
-- **Documents**: Document, DigitalSignature with OCR and approval workflows
-- **Forms**: Specialized models for I-9, W-4, health insurance, personal info
-
-## Authentication
-
-- Token-based authentication using user IDs as tokens
-- Role-based access control (HR, Manager, Employee)
-- Special endpoints for HR user creation with secret keys
-- Property-based access restrictions for managers
-
-## Environment Setup
-
-The system expects the following environment variables:
-- `GROQ_API_KEY`: For OCR document processing
-- `GROQ_MODEL`: Model to use (default: llama-3.3-70b-versatile)
-- `GROQ_MAX_TOKENS`: Token limit for API calls
-- `GROQ_TEMPERATURE`: Temperature for API responses
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`: Email configuration
-- `EMAIL_FROM`: Sender email address for notifications
-
-## Development Notes
-
-- CORS is fully disabled for development (allow all origins)
-- File uploads are stored in base64 format in the in-memory database
-- The system includes test data creation scripts (`create_test_data.py`, `setup_test_accounts.py`)
-- Enhanced components are the primary implementations with federal compliance and validation
-- Onboarding workflow supports multi-language (EN/ES) and government compliance requirements
-- **CRITICAL**: Always test each component individually before integrating into the full workflow
-- **CRITICAL**: Follow the brick-by-brick approach - build one page, test it, then move to the next
-- **CRITICAL**: Never attempt to build the entire onboarding experience at once
-
-## API Endpoints Structure
-
-### Public Endpoints (No Auth Required)
-- `GET /api/properties/{property_id}/public-info` - Public property information
-- `POST /api/job-application` - Submit job application
-- `GET /api/qr/{qr_id}` - Redirect from QR code scan
-
-### HR Endpoints (HR Role Required)
-- `POST /api/hr/create` - Create HR user with secret key
-- `GET /api/hr/dashboard` - HR dashboard data
-- `POST /api/properties` - Create new property
-- `GET /api/analytics/*` - Analytics endpoints
-
-### Manager Endpoints (Manager Role Required)
-- `GET /api/managers/dashboard` - Manager dashboard data
-- `POST /api/managers/complete-i9-section2` - Complete I-9 Section 2
-- `PUT /api/applications/{app_id}/status` - Update application status
-- `GET /api/managers/talent-pool` - View talent pool
-
-### Employee Endpoints (Employee Role Required)
-- `GET /api/onboarding/session` - Get onboarding session
-- `POST /api/onboarding/step/{step_id}` - Submit step data
-- `POST /api/documents/upload` - Upload documents
-- `GET /api/forms/pdf/*` - Generate PDF forms
-
-## Key Implementation Patterns
-
-### Navigation Hook Pattern
-```typescript
-// Use the simplified navigation hook
-import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
-
-function Component() {
-  const { navigateToStep, navigateBack } = useSimpleNavigation();
-  // Use for step navigation
-}
-```
-
-### Form Validation Pattern
-```typescript
-// All forms use Zod schemas with React Hook Form
-const schema = z.object({
-  field: z.string().min(1, "Required"),
-  // Federal compliance validations
-});
-```
-
-### API Request Pattern
-```typescript
-// Consistent error handling and auth headers
-const response = await axios.post('/api/endpoint', data, {
-  headers: { Authorization: `Bearer ${token}` }
-});
-```
-
-## Common Issues & Solutions
-
-### Port Conflicts
-- Backend runs on port 8000
-- Frontend runs on port 3000
-- Kill existing processes: `lsof -ti:8000 | xargs kill -9`
-
-### Component Props Issues
-- All step components use direct props, not useOutletContext
-- Follow the StepProps interface pattern
-
-### Navigation Issues
-- Use the simplified navigation hook (use-simple-navigation.ts)
-- Avoid complex routing libraries for step navigation
-
-### Testing Failed Imports
-- Ensure all test files import from correct paths
-- Use `@/` alias for src directory imports
-
-## Security Considerations
-
-- All sensitive data encrypted in transit
-- Authentication tokens stored securely
-- File uploads validated for type and size
-- SQL injection prevented via Pydantic models
-- XSS protection through React's built-in escaping
-- CSRF protection via token-based auth
-
-
-## Testing Individual Components
-
-### Running a Single Test
-```bash
-# Backend
-cd hotel-onboarding-backend
-poetry run pytest tests/test_specific_file.py::test_function_name -v
-
-# Frontend
-cd hotel-onboarding-frontend
-npm test -- --testNamePattern="specific test name"
-```
-
-### Utility Scripts
-- `start_backend.sh`: Starts backend server in background
-- `stop_servers.sh`: Stops all running servers
-- `restart_servers.sh`: Restarts both frontend and backend
-
-## Key Backend Services
-
-### OnboardingOrchestrator (`app/services/onboarding_orchestrator.py`)
-Manages the complete onboarding workflow state machine, handling transitions between employee, manager, and HR phases.
-
-### FormUpdateService (`app/services/form_update_service.py`)
-Enables individual form updates outside the full onboarding flow, critical for the modular architecture.
-
-### Email Service (`app/email_service.py`)
-Handles all notification emails including onboarding invitations, approval notifications, and form update requests.
-
-### PDF Forms (`app/pdf_forms.py`)
-Generates official government-compliant PDFs for I-9, W-4, and other federal forms with exact field mapping.
-
-## Common Gotchas
-
-1. **Component Props**: All step components must use direct props, not `useOutletContext()`
-2. **File Paths**: Always use absolute paths when working with file operations
-3. **Testing**: The `/test-steps` route is crucial for testing components in isolation
-4. **Enhanced vs Basic**: Use `main_enhanced.py` for full onboarding features, `main.py` for basic HR functionality
-5. **Form IDs**: Each form component expects consistent IDs for progress tracking (e.g., 'welcome', 'personal-info', 'i9-section1')
+For more details on Agent OS configuration, see:
+- `~/.agent-os/standards/` - Our customized standards
+- `~/.agent-os/product/` - Product documentation
+- `~/.agent-os/product/specs/` - Feature specifications
