@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button 
                   onClick={this.handleRetry}
-                  className="btn-primary btn-size-md"
+                  className=""
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Try Again
@@ -80,7 +80,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Button 
                   onClick={this.handleGoHome}
                   variant="outline"
-                  className="btn-secondary btn-size-md"
+                  className=""
                 >
                   <Home className="h-4 w-4 mr-2" />
                   Go Home

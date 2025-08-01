@@ -1,40 +1,54 @@
 import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
-import { CheckCircle, FileText, AlertTriangle, Users, Shield, Clock } from 'lucide-react'
+import { CheckCircle, FileText, Users, Shield, Clock } from 'lucide-react'
+import { StepProps } from '../../controllers/OnboardingFlowController'
+import { StepContainer } from '@/components/onboarding/StepContainer'
+import { useAutoSave } from '@/hooks/useAutoSave'
+import { useStepValidation } from '@/hooks/useStepValidation'
+import { finalReviewValidator } from '@/utils/stepValidators'
 
-interface StepProps {
-  currentStep: any
-  progress: any
-  markStepComplete: (stepId: string, data?: any) => void
-  saveProgress: (stepId: string, data?: any) => void
-  language: 'en' | 'es'
-  employee?: any
-  property?: any
-}
-
-export default function FinalReviewStep(props: StepProps) {
-  const { currentStep, progress, markStepComplete, saveProgress, language = 'en' } = props
+export default function FinalReviewStep({
+  currentStep,
+  progress,
+  markStepComplete,
+  saveProgress,
+  language = 'en',
+  employee,
+  property
+}: StepProps) {
   
   const [isComplete, setIsComplete] = useState(false)
-  const [finalAcknowledgments, setFinalAcknowledgments] = useState<boolean[]>([false, false, false, false])
-  const [finalSignature, setFinalSignature] = useState('')
-  const [reviewData, setReviewData] = useState<any>(null)
+  const [finalAcknowledgments, setFinalAcknowledgments] = useState([false, false, false, false])
+  const [signatureData, setSignatureData] = useState(null)
+  const [reviewData, setReviewData] = useState(null)
+
+  // Validation hook
+  const { errors, validate } = useStepValidation(finalReviewValidator)
+
+  // Auto-save data
+  const autoSaveData = {
+    finalAcknowledgments,
+    signatureData,
+    reviewData,
+    isComplete
+  }
+
+  // Auto-save hook
+  const { saveStatus } = useAutoSave(autoSaveData, {
+    onSave: async (data) => {
+    await saveProgress(currentStep.id, data)
+    }
+  })
 
   // Load existing data from progress
   useEffect(() => {
-    const existingData = progress.stepData?.['employee_signature']
-    if (existingData) {
-      setReviewData(existingData.reviewData)
-      setFinalAcknowledgments(existingData.finalAcknowledgments || [false, false, false, false])
-      setFinalSignature(existingData.finalSignature || '')
-      setIsComplete(existingData.completed || false)
+    if (progress.completedSteps.includes(currentStep.id)) {
+      setIsComplete(true)
     }
-  }, [progress])
+  }, [currentStep.id, progress.completedSteps])
 
   const handleAcknowledgmentChange = (index: number, checked: boolean) => {
     const newAcknowledgments = [...finalAcknowledgments]
@@ -42,33 +56,33 @@ export default function FinalReviewStep(props: StepProps) {
     setFinalAcknowledgments(newAcknowledgments)
   }
 
-  const handleSignatureComplete = (signature: string) => {
-    setFinalSignature(signature)
-  }
-
-  const handleFinalSubmit = () => {
-    if (!finalSignature || !finalAcknowledgments.every(ack => ack)) {
-      alert('Please complete all acknowledgments and provide your signature.')
-      return
-    }
-
-    const completionData = {
+  const handleSignatureComplete = async (signature) => {
+    setSignatureData(signature)
+    
+    // Validate before completing
+    const validation = await validate({
       finalAcknowledgments,
-      finalSignature,
-      reviewData: {
-        allStepsCompleted: true,
-        completedAt: new Date().toISOString(),
-        employeeSignatureTimestamp: new Date().toISOString(),
-        finalReviewCompleted: true
-      },
-      completed: true,
-      completedAt: new Date().toISOString()
-    }
+      signature
+    })
+    
+    if (validation.valid) {
+      const completionData = {
+        finalAcknowledgments,
+        signatureData: signature,
+        reviewData: {
+          allStepsCompleted: true,
+          completedAt: new Date().toISOString(),
+          employeeSignatureTimestamp: new Date().toISOString(),
+          finalReviewCompleted: true
+        },
+        completed: true,
+        completedAt: new Date().toISOString()
+      }
 
-    setReviewData(completionData.reviewData)
-    setIsComplete(true)
-    markStepComplete('employee_signature', completionData)
-    saveProgress()
+      setReviewData(completionData.reviewData)
+      setIsComplete(true)
+      await markStepComplete(currentStep.id, completionData)
+    }
   }
 
   const translations = {
@@ -84,6 +98,9 @@ export default function FinalReviewStep(props: StepProps) {
       acknowledgment2: 'I understand that providing false or misleading information may result in termination of employment and potential legal consequences.',
       acknowledgment3: 'I acknowledge that I have read, understood, and agree to comply with all company policies and procedures presented during this onboarding process.',
       acknowledgment4: 'I consent to the processing of my personal information as described in the company privacy policy and understand my rights regarding this data.',
+      legalNoticeTitle: 'Legal Notice:',
+      legalNoticeMessage: 'Your signature above is legally binding and certifies the completeness and accuracy of all information provided.',
+      complianceMessage: 'This onboarding process complies with federal employment law requirements including I-9 and tax withholding regulations.',
       finalSignature: 'Final Employee Signature',
       signatureDesc: 'Your signature below certifies that you have completed the onboarding process and agree to all terms and conditions.',
       submitButton: 'Complete Onboarding',
@@ -100,7 +117,11 @@ export default function FinalReviewStep(props: StepProps) {
         company_policies: 'Company Policies',
         trafficking_awareness: 'Human Trafficking Awareness'
       },
-      estimatedTime: 'Estimated time: 4-5 minutes'
+      estimatedTime: 'Estimated time: 4-5 minutes',
+      overallProgress: 'Overall Progress',
+      stepsCompleted: 'steps completed',
+      complete: 'Complete',
+      pending: 'Pending'
     },
     es: {
       title: 'Revisión Final y Firma del Empleado',
@@ -114,6 +135,9 @@ export default function FinalReviewStep(props: StepProps) {
       acknowledgment2: 'Entiendo que proporcionar información falsa o engañosa puede resultar en la terminación del empleo y posibles consecuencias legales.',
       acknowledgment3: 'Reconozco que he leído, entendido y acepto cumplir con todas las políticas y procedimientos de la empresa presentados durante este proceso de incorporación.',
       acknowledgment4: 'Consiento al procesamiento de mi información personal como se describe en la política de privacidad de la empresa y entiendo mis derechos con respecto a estos datos.',
+      legalNoticeTitle: 'Aviso Legal:',
+      legalNoticeMessage: 'Su firma anterior es legalmente vinculante y certifica la integridad y precisión de toda la información proporcionada.',
+      complianceMessage: 'Este proceso de incorporación cumple con los requisitos de la ley federal de empleo, incluidos los requisitos del I-9 y de retención de impuestos.',
       finalSignature: 'Firma Final del Empleado',
       signatureDesc: 'Su firma a continuación certifica que ha completado el proceso de incorporación y acepta todos los términos y condiciones.',
       submitButton: 'Completar Incorporación',
@@ -130,7 +154,11 @@ export default function FinalReviewStep(props: StepProps) {
         company_policies: 'Políticas de la Empresa',
         trafficking_awareness: 'Concientización sobre Trata de Personas'
       },
-      estimatedTime: 'Tiempo estimado: 4-5 minutos'
+      estimatedTime: 'Tiempo estimado: 4-5 minutos',
+      overallProgress: 'Progreso General',
+      stepsCompleted: 'pasos completados',
+      complete: 'Completo',
+      pending: 'Pendiente'
     }
   }
 
@@ -147,7 +175,8 @@ export default function FinalReviewStep(props: StepProps) {
   const completionPercentage = Math.round((completedSteps.length / totalSteps) * 100)
 
   return (
-    <div className="space-y-6">
+    <StepContainer errors={errors} saveStatus={saveStatus}>
+      <div className="space-y-6">
       {/* Step Header */}
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
@@ -183,7 +212,7 @@ export default function FinalReviewStep(props: StepProps) {
             {/* Overall Progress */}
             <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-blue-900">Overall Progress</span>
+                <span className="font-medium text-blue-900">{t.overallProgress}</span>
                 <span className="text-lg font-bold text-blue-600">{completionPercentage}%</span>
               </div>
               <div className="w-full bg-blue-200 rounded-full h-3">
@@ -193,7 +222,7 @@ export default function FinalReviewStep(props: StepProps) {
                 />
               </div>
               <p className="text-sm text-blue-700 mt-2">
-                {completedSteps.length} of {totalSteps} steps completed
+                {completedSteps.length} of {totalSteps} {t.stepsCompleted}
               </p>
             </div>
 
@@ -211,7 +240,7 @@ export default function FinalReviewStep(props: StepProps) {
                         <Clock className="h-4 w-4 text-gray-400" />
                       )}
                       <span className="text-sm font-medium">
-                        {isCompleted ? 'Complete' : 'Pending'}
+                        {isCompleted ? t.complete : t.pending}
                       </span>
                     </div>
                   </div>
@@ -261,45 +290,42 @@ export default function FinalReviewStep(props: StepProps) {
         </CardHeader>
         <CardContent>
           <DigitalSignatureCapture
+            documentName="Employee Onboarding Completion"
+            signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
+            signerTitle={employee?.position}
+            acknowledgments={[
+              t.acknowledgment1,
+              t.acknowledgment2,
+              t.acknowledgment3,
+              t.acknowledgment4
+            ]}
+            requireIdentityVerification={false}
+            language={language}
             onSignatureComplete={handleSignatureComplete}
-            required={true}
-            label="Employee Final Signature"
           />
         </CardContent>
       </Card>
 
-      {/* Submit Button */}
-      <div className="flex justify-center">
-        <Button
-          onClick={handleFinalSubmit}
-          disabled={!finalSignature || !finalAcknowledgments.every(ack => ack) || isComplete}
-          className="px-8 py-3 text-lg font-semibold"
-          size="lg"
-        >
-          {isComplete ? (
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5" />
-              <span>Onboarding Completed</span>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5" />
-              <span>{t.submitButton}</span>
-            </div>
-          )}
-        </Button>
-      </div>
+      {/* Completion Status */}
+      {isComplete && (
+        <div className="bg-green-50 rounded-lg p-6 text-center">
+          <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-3" />
+          <h3 className="text-lg font-semibold text-green-800 mb-2">Onboarding Completed</h3>
+          <p className="text-green-700">{t.completedNotice}</p>
+        </div>
+      )}
 
-      {/* Legal Notice */}
-      <div className="text-xs text-gray-500 border-t pt-4">
-        <p className="mb-2"><strong>Legal Notice:</strong> Your signature above is legally binding and certifies the completeness and accuracy of all information provided.</p>
-        <p>This onboarding process complies with federal employment law requirements including I-9 and tax withholding regulations.</p>
-      </div>
+        {/* Legal Notice */}
+        <div className="text-xs text-gray-500 border-t pt-4">
+          <p className="mb-2"><strong>{t.legalNoticeTitle}</strong> {t.legalNoticeMessage}</p>
+          <p>{t.complianceMessage}</p>
+        </div>
 
       {/* Estimated Time */}
       <div className="text-center text-sm text-gray-500">
         <p>{t.estimatedTime}</p>
       </div>
-    </div>
+      </div>
+    </StepContainer>
   )
 }

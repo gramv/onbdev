@@ -256,7 +256,6 @@ const WeaponsPolicyAcknowledgment: React.FC<WeaponsPolicyAcknowledgmentProps> = 
             </div>
 
             <DigitalSignatureCapture
-              signatureType="employee_policies"
               documentName="Weapons and Workplace Violence Prevention Policy"
               signerName="Employee"
               acknowledgments={currentContent.acknowledgments}

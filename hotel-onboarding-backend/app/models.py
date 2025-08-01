@@ -1,10 +1,11 @@
 """
 Enhanced data models for comprehensive onboarding system
 """
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, validator, Field
 from typing import Optional, List, Dict, Any, Union
 from datetime import datetime, date
 from enum import Enum
+import uuid
 
 # Enhanced Enums
 class UserRole(str, Enum):
@@ -1212,3 +1213,239 @@ class JobOfferData(BaseModel):
         if v not in valid_types:
             raise ValueError(f'Employment type must be one of: {valid_types}')
         return v
+
+# Manager Employee Setup Models (Phase 1 - Page 1-2 of packet)
+class ManagerEmployeeSetup(BaseModel):
+    """Manager-completed initial employee setup matching pages 1-2 of hire packet"""
+    # Hotel/Property Information
+    property_id: str
+    property_name: str
+    property_address: str
+    property_city: str
+    property_state: str
+    property_zip: str
+    property_phone: str
+    
+    # Employee Personal Information (from application)
+    employee_first_name: str
+    employee_middle_initial: Optional[str] = ""
+    employee_last_name: str
+    employee_email: EmailStr
+    employee_phone: str
+    employee_address: str
+    employee_city: str
+    employee_state: str
+    employee_zip: str
+    
+    # Position and Employment Details
+    department: str
+    position: str
+    job_title: str
+    hire_date: date
+    start_date: date
+    employment_type: str  # "full_time", "part_time", "temporary", "seasonal"
+    work_schedule: str  # e.g., "Monday-Friday 9AM-5PM"
+    
+    # Compensation
+    pay_rate: float
+    pay_frequency: str  # "hourly", "salary", "biweekly", "monthly"
+    overtime_eligible: bool = True
+    
+    # Reporting Structure
+    supervisor_name: str
+    supervisor_title: str
+    supervisor_email: EmailStr
+    supervisor_phone: str
+    reporting_location: str  # Where employee reports to work
+    
+    # Benefits Eligibility
+    benefits_eligible: bool
+    health_insurance_eligible: bool
+    health_insurance_start_date: Optional[date] = None
+    pto_eligible: bool
+    pto_accrual_rate: Optional[str] = None  # e.g., "1 day per month"
+    
+    # Initial Benefits Selection (from application)
+    health_plan_selection: Optional[str] = None  # "hra_6k", "hra_4k", "hra_2k", "minimum_essential", "declined"
+    dental_coverage: bool = False
+    vision_coverage: bool = False
+    
+    # Special Requirements
+    uniform_required: bool = False
+    uniform_size: Optional[str] = None
+    parking_assigned: bool = False
+    parking_location: Optional[str] = None
+    locker_assigned: bool = False
+    locker_number: Optional[str] = None
+    
+    # Orientation and Training
+    orientation_date: date
+    orientation_time: str
+    orientation_location: str
+    training_requirements: Optional[str] = None
+    
+    # Manager Information
+    manager_id: str
+    manager_name: str
+    manager_signature: str  # Digital signature data
+    manager_signature_date: datetime
+    
+    # System Metadata
+    application_id: Optional[str] = None  # Link to original application
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+    
+    @validator('pay_rate')
+    def validate_pay_rate(cls, v):
+        if v <= 0:
+            raise ValueError('Pay rate must be greater than 0')
+        # Could add minimum wage validation here
+        return v
+    
+    @validator('start_date')
+    def validate_start_date(cls, v, values):
+        if 'hire_date' in values and v < values['hire_date']:
+            raise ValueError('Start date cannot be before hire date')
+        return v
+    
+    @validator('health_insurance_start_date')
+    def validate_insurance_date(cls, v, values):
+        if v and 'start_date' in values and v < values['start_date']:
+            raise ValueError('Health insurance cannot start before employment start date')
+        return v
+
+class OnboardingToken(BaseModel):
+    """Onboarding token for employee access"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employee_id: str
+    token: str
+    token_type: str = "onboarding"  # "onboarding", "form_update"
+    
+    # Access details
+    expires_at: datetime
+    is_used: bool = False
+    used_at: Optional[datetime] = None
+    
+    # Session tracking
+    session_id: Optional[str] = None
+    form_type: Optional[str] = None  # For form_update tokens
+    
+    # Security
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_by: str  # Manager or HR user ID
+    
+    def is_expired(self) -> bool:
+        """Check if token has expired"""
+        return datetime.utcnow() > self.expires_at
+    
+    def is_valid(self) -> bool:
+        """Check if token is valid for use"""
+        return not self.is_used and not self.is_expired()
+
+class OnboardingLinkGeneration(BaseModel):
+    """Response model for onboarding link generation"""
+    employee_id: str
+    employee_name: str
+    employee_email: str
+    onboarding_url: str
+    token: str
+    expires_at: datetime
+    session_id: str
+    property_name: str
+    position: str
+    start_date: date
+    
+class ApplicationApprovalRequest(BaseModel):
+    """Enhanced application approval request"""
+    # Job offer details
+    job_offer: JobOfferData
+    
+    # Additional setup information
+    orientation_date: date
+    orientation_time: str
+    orientation_location: str
+    uniform_size: Optional[str] = None
+    parking_location: Optional[str] = None
+    locker_number: Optional[str] = None
+    training_requirements: Optional[str] = None
+    special_instructions: Optional[str] = None
+    
+    # Benefits pre-selection (if provided in application)
+    health_plan_selection: Optional[str] = None
+    dental_coverage: bool = False
+    vision_coverage: bool = False
+    
+    # Generate onboarding link
+    send_onboarding_email: bool = True
+    
+class ApplicationRejectionRequest(BaseModel):
+    """Application rejection request"""
+    rejection_reason: str
+    add_to_talent_pool: bool = True
+    talent_pool_notes: Optional[str] = None
+    send_rejection_email: bool = True
+
+# Document Storage Models
+class DocumentType(str, Enum):
+    """Types of documents in the onboarding system"""
+    I9_FORM = "i9_form"
+    W4_FORM = "w4_form"
+    DIRECT_DEPOSIT = "direct_deposit"
+    INSURANCE_FORM = "insurance_form"
+    COMPANY_POLICIES = "company_policies"
+    BACKGROUND_CHECK = "background_check"
+    DRIVERS_LICENSE = "drivers_license"
+    PASSPORT = "passport"
+    SOCIAL_SECURITY = "social_security"
+    WORK_PERMIT = "work_permit"
+    VOIDED_CHECK = "voided_check"
+    OTHER = "other"
+
+class DocumentCategory(str, Enum):
+    """Categories for document classification"""
+    FEDERAL_FORMS = "federal_forms"
+    IDENTITY_DOCUMENTS = "identity_documents"
+    FINANCIAL_DOCUMENTS = "financial_documents"
+    COMPANY_DOCUMENTS = "company_documents"
+    BACKGROUND_DOCUMENTS = "background_documents"
+
+class DocumentMetadata(BaseModel):
+    """Metadata for stored documents"""
+    document_id: str
+    document_type: DocumentType
+    original_filename: str
+    stored_filename: str
+    file_path: str
+    file_size: int
+    file_hash: str
+    mime_type: str
+    employee_id: str
+    property_id: str
+    uploaded_by: str
+    uploaded_at: datetime
+    encryption_status: str = "encrypted"
+    verification_status: str = "pending"
+    retention_date: datetime
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    access_log: List[Dict[str, Any]] = Field(default_factory=list)
+
+class DocumentUploadRequest(BaseModel):
+    """Request model for document upload"""
+    document_type: DocumentType
+    employee_id: str
+    property_id: str
+    metadata: Optional[Dict[str, Any]] = None
+
+class DocumentAccessLog(BaseModel):
+    """Log entry for document access"""
+    document_id: str
+    accessed_by: str
+    accessed_at: datetime
+    action: str  # view, download, print, email
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    purpose: Optional[str] = None

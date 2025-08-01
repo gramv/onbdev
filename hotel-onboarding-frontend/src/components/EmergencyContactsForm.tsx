@@ -34,7 +34,8 @@ interface EmergencyContactsFormProps {
   onSave: (data: EmergencyContactsData) => void;
   onNext?: () => void;
   onBack?: () => void;
-  onValidationChange?: (isValid: boolean) => void;
+  onValidationChange?: (isValid: boolean, errors?: Record<string, string>) => void;
+  useMainNavigation?: boolean;
 }
 
 const US_STATES = [
@@ -51,7 +52,8 @@ export default function EmergencyContactsForm({
   onSave,
   onNext,
   onBack,
-  onValidationChange
+  onValidationChange,
+  useMainNavigation = false
 }: EmergencyContactsFormProps) {
   const [formData, setFormData] = useState<EmergencyContactsData>({
     primaryContact: {
@@ -62,7 +64,8 @@ export default function EmergencyContactsForm({
       address: '',
       city: '',
       state: '',
-      zipCode: ''
+      zipCode: '',
+      ...(initialData?.primaryContact || {})
     },
     secondaryContact: {
       name: '',
@@ -72,13 +75,13 @@ export default function EmergencyContactsForm({
       address: '',
       city: '',
       state: '',
-      zipCode: ''
+      zipCode: '',
+      ...(initialData?.secondaryContact || {})
     },
-    medicalInfo: '',
-    allergies: '',
-    medications: '',
-    medicalConditions: '',
-    ...initialData
+    medicalInfo: initialData?.medicalInfo || '',
+    allergies: initialData?.allergies || '',
+    medications: initialData?.medications || '',
+    medicalConditions: initialData?.medicalConditions || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -153,7 +156,7 @@ export default function EmergencyContactsForm({
     
     // Notify parent component of validation status
     if (onValidationChange) {
-      onValidationChange(formIsValid);
+      onValidationChange(formIsValid, newErrors);
     }
     
     return formIsValid;
@@ -163,6 +166,14 @@ export default function EmergencyContactsForm({
   useEffect(() => {
     validateForm();
   }, [formData.primaryContact.name, formData.primaryContact.relationship, formData.primaryContact.phoneNumber]);
+
+  // Auto-save form data whenever it changes
+  useEffect(() => {
+    // Only save if user has interacted with the form
+    if (Object.keys(touchedFields).length > 0) {
+      onSave(formData);
+    }
+  }, [formData, touchedFields, onSave]);
 
   const handleInputChange = (contactType: 'primaryContact' | 'secondaryContact', field: string, value: string) => {
     setFormData(prev => ({
@@ -197,7 +208,7 @@ export default function EmergencyContactsForm({
     setShowErrors(true); // Show all errors when user tries to submit
     if (validateForm()) {
       onSave(formData);
-      onNext();
+      if (!useMainNavigation && onNext) onNext();
     }
   };
 
@@ -524,14 +535,23 @@ export default function EmergencyContactsForm({
       </Alert>
 
       {/* Navigation - Compact */}
-      <div className="flex justify-between items-center pt-4">
-        <Button variant="outline" onClick={onBack} size="sm">
-          {t('back')}
+      {!useMainNavigation && (
+        <div className="flex justify-between items-center pt-4">
+          <Button variant="outline" onClick={onBack} size="sm">
+            {t('back')}
+          </Button>
+          <Button onClick={handleSubmit} className="px-6" size="sm">
+            {t('save_continue')}
+          </Button>
+        </div>
+      )}
+      
+      {/* Hidden save button for main navigation */}
+      {useMainNavigation && (
+        <Button onClick={handleSubmit} className="hidden" disabled={!isValid}>
+          Save Emergency Contacts
         </Button>
-        <Button onClick={handleSubmit} className="px-6" size="sm">
-          {t('save_continue')}
-        </Button>
-      </div>
+      )}
     </div>
   );
 }

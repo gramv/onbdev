@@ -185,7 +185,6 @@ export default function OfficialI9Display({
         </div>
 
         <DigitalSignatureCapture
-          signatureType="employee_i9"
           documentName="Form I-9 - Employment Eligibility Verification"
           signerName={`${employeeData?.employee_first_name} ${employeeData?.employee_last_name}`}
           signerTitle="Employee"

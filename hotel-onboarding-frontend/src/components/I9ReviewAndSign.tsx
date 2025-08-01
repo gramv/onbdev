@@ -340,7 +340,6 @@ export default function I9ReviewAndSign({
         </div>
 
         <DigitalSignatureCapture
-          signatureType="employee_i9"
           documentName="Form I-9 - Employee Review and Final Certification"
           signerName={`${section1Data?.employee_first_name} ${section1Data?.employee_last_name}`}
           signerTitle="Employee"

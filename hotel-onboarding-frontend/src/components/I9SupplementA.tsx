@@ -522,7 +522,6 @@ export default function I9SupplementA({
         </div>
 
         <DigitalSignatureCapture
-          signatureType="employee_i9"
           documentName="Form I-9 Supplement A - Preparer and/or Translator Certification"
           signerName={`${formData.preparerFirstName} ${formData.preparerLastName}`}
           signerTitle="Preparer/Translator"

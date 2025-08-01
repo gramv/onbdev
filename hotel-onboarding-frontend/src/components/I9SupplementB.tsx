@@ -245,7 +245,6 @@ export default function I9SupplementB({
         </div>
 
         <DigitalSignatureCapture
-          signatureType="manager_i9"
           documentName="Form I-9 Supplement B - Reverification and Rehire"
           signerName={user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : 'Employer Representative'}
           signerTitle={userRole === 'hr' ? 'HR Representative' : 'Manager'}
