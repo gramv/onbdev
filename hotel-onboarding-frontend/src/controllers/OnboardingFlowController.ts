@@ -80,15 +80,13 @@ export class OnboardingFlowController {
     { id: 'personal-info', name: 'Personal Information', order: 2, required: true, estimatedMinutes: 8, governmentRequired: false },
     { id: 'job-details', name: 'Job Details Confirmation', order: 3, required: true, estimatedMinutes: 3, governmentRequired: false },
     { id: 'company-policies', name: 'Company Policies', order: 4, required: true, estimatedMinutes: 10, governmentRequired: false },
-    { id: 'i9-section1', name: 'I-9 Section 1', order: 5, required: true, estimatedMinutes: 8, governmentRequired: true },
-    { id: 'i9-supplements', name: 'I-9 Supplements', order: 6, required: false, estimatedMinutes: 5, governmentRequired: true },
-    { id: 'w4-form', name: 'W-4 Tax Form', order: 7, required: true, estimatedMinutes: 10, governmentRequired: true },
-    { id: 'direct-deposit', name: 'Direct Deposit', order: 8, required: true, estimatedMinutes: 5, governmentRequired: false },
-    { id: 'trafficking-awareness', name: 'Human Trafficking Awareness', order: 9, required: true, estimatedMinutes: 5, governmentRequired: true },
-    { id: 'weapons-policy', name: 'Weapons Policy', order: 10, required: true, estimatedMinutes: 2, governmentRequired: false },
-    { id: 'health-insurance', name: 'Health Insurance', order: 11, required: true, estimatedMinutes: 8, governmentRequired: false },
-    { id: 'document-upload', name: 'Document Upload', order: 12, required: true, estimatedMinutes: 5, governmentRequired: false },
-    { id: 'final-review', name: 'Final Review', order: 13, required: true, estimatedMinutes: 5, governmentRequired: false }
+    { id: 'i9-complete', name: 'I-9 Employment Verification', order: 5, required: true, estimatedMinutes: 20, governmentRequired: true },
+    { id: 'w4-form', name: 'W-4 Tax Form', order: 6, required: true, estimatedMinutes: 10, governmentRequired: true },
+    { id: 'direct-deposit', name: 'Direct Deposit', order: 7, required: true, estimatedMinutes: 5, governmentRequired: false },
+    { id: 'trafficking-awareness', name: 'Human Trafficking Awareness', order: 8, required: true, estimatedMinutes: 5, governmentRequired: true },
+    { id: 'weapons-policy', name: 'Weapons Policy', order: 9, required: true, estimatedMinutes: 2, governmentRequired: false },
+    { id: 'health-insurance', name: 'Health Insurance', order: 10, required: true, estimatedMinutes: 8, governmentRequired: false },
+    { id: 'final-review', name: 'Final Review', order: 11, required: true, estimatedMinutes: 5, governmentRequired: false }
   ]
 
   constructor() {
@@ -454,7 +452,7 @@ export class OnboardingFlowController {
    * Check if a specific step has government requirements
    */
   isGovernmentRequiredStep(stepId: string): boolean {
-    const governmentSteps = ['i9-section1', 'i9-supplements', 'w4-form']
+    const governmentSteps = ['i9-complete', 'w4-form']
     return governmentSteps.includes(stepId)
   }
 
