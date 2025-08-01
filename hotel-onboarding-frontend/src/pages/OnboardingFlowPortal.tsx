@@ -21,6 +21,7 @@ import PersonalInfoStep from './onboarding/PersonalInfoStep'
 import JobDetailsStep from './onboarding/JobDetailsStep'
 import CompanyPoliciesStep from './onboarding/CompanyPoliciesStep'
 import I9Section1Step from './onboarding/I9Section1Step'
+import I9CompleteStep from './onboarding/I9CompleteStep'
 import I9SupplementsStep from './onboarding/I9SupplementsStep'
 import W4FormStep from './onboarding/W4FormStep'
 import DirectDepositStep from './onboarding/DirectDepositStep'
@@ -239,6 +240,8 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
         return <CompanyPoliciesStep {...stepProps} />
       case 'i9-section1':
         return <I9Section1Step {...stepProps} />
+      case 'i9-complete':
+        return <I9CompleteStep {...stepProps} />
       case 'i9-supplements':
         return <I9SupplementsStep {...stepProps} />
       case 'w4-form':
