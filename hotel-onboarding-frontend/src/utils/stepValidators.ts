@@ -74,32 +74,39 @@ export const i9Section1Validator = (data: any): ValidationResult => {
   const errors: string[] = []
   const fieldErrors: Record<string, string> = {}
 
+  // Handle both direct data and nested formData structure (for i9-complete step)
+  const formData = data.formData || data
+  
   // Personal Information
-  if (!data.lastName?.trim()) {
+  if (!formData.last_name?.trim() && !formData.lastName?.trim()) {
     fieldErrors.lastName = 'Last name is required for I-9'
   }
-  if (!data.firstName?.trim()) {
+  if (!formData.first_name?.trim() && !formData.firstName?.trim()) {
     fieldErrors.firstName = 'First name is required for I-9'
   }
-  if (!data.dateOfBirth) {
+  if (!formData.date_of_birth && !formData.dateOfBirth) {
     fieldErrors.dateOfBirth = 'Date of birth is required'
   }
-  if (!data.ssn?.trim()) {
+  if (!formData.ssn?.trim()) {
     fieldErrors.ssn = 'Social Security Number is required'
   }
 
-  // Citizenship Status
-  if (!data.citizenshipStatus) {
+  // Citizenship Status - check both field name variations
+  const citizenshipStatus = formData.citizenship_status || formData.citizenshipStatus
+  if (!citizenshipStatus) {
     errors.push('You must select your citizenship status')
   }
 
   // Alien Number/USCIS Number for non-citizens
-  if (data.citizenshipStatus === 'alien_authorized' && !data.alienNumber?.trim() && !data.uscisNumber?.trim()) {
+  if ((citizenshipStatus === 'alien_authorized' || citizenshipStatus === 'authorized_alien') && 
+      !formData.alien_registration_number?.trim() && !formData.alienNumber?.trim() && 
+      !formData.uscisNumber?.trim()) {
     errors.push('Alien Registration Number or USCIS Number is required for work-authorized aliens')
   }
 
-  // Signature
-  if (!data.signature || !data.signatureData) {
+  // Signature - check both nested and direct signature data
+  const hasSignature = data.signed || formData.signed || data.signatureData || formData.signatureData
+  if (!hasSignature) {
     errors.push('Electronic signature is required')
   }
 

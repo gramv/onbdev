@@ -34,6 +34,7 @@ const JobApplicationFormV2 = lazy(() => import('./pages/JobApplicationFormV2'))
 const OnboardingFlowPortal = lazy(() => import('./pages/OnboardingFlowPortal'))
 const OnboardingComplete = lazy(() => import('./pages/OnboardingComplete'))
 const OnboardingFlowTest = lazy(() => import('./pages/OnboardingFlowTest'))
+const ExtractI9Fields = lazy(() => import('./pages/ExtractI9Fields'))
 
 function App() {
   return (
@@ -101,6 +102,9 @@ function App() {
               
               {/* Component Test Page */}
               <Route path="/test-components" element={<OnboardingFlowTest />} />
+              
+              {/* I-9 Field Extraction Tool */}
+              <Route path="/extract-i9-fields" element={<ExtractI9Fields />} />
               </Routes>
             </Suspense>
             <Toaster />

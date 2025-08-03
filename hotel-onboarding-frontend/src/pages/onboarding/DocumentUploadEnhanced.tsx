@@ -183,7 +183,7 @@ export default function DocumentUploadEnhanced({
         doc.id === docId ? {
           ...doc,
           status: 'complete',
-          extractedData: response.data
+          extractedData: response.data.data || response.data  // Extract the data field from the response
         } : doc
       ))
       
@@ -243,6 +243,8 @@ export default function DocumentUploadEnhanced({
         documentType: doc.type,
         ...doc.extractedData
       }))
+    
+    console.log('DocumentUploadEnhanced - Extracted data being passed:', extractedData)
     
     onComplete({ 
       uploadedDocuments: uploadedDocuments.map(doc => ({
