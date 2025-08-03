@@ -11,7 +11,7 @@ import ReviewAndSign from '@/components/ReviewAndSign'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { i9Section1Validator } from '@/utils/stepValidators'
-import { generateMappedI9Pdf } from '@/utils/i9PdfGeneratorMapped'
+import { generateCleanI9Pdf } from '@/utils/i9PdfGeneratorClean'
 import axios from 'axios'
 
 export default function I9CompleteStep({
@@ -88,6 +88,7 @@ export default function I9CompleteStep({
         if (parsed.formComplete) setFormComplete(parsed.formComplete)
         if (parsed.supplementsComplete) setSupplementsComplete(parsed.supplementsComplete)
         if (parsed.documentsComplete) setDocumentsComplete(parsed.documentsComplete)
+        if (parsed.isSigned) setIsSigned(parsed.isSigned)
       } catch (e) {
         console.error('Failed to parse saved data:', e)
       }
@@ -185,66 +186,46 @@ export default function I9CompleteStep({
     setActiveTab('preview')
   }
   
-  const generateCompletePdf = async (documents?: any) => {
+  const generateCompletePdf = async (documents?: any, signatureData?: any) => {
     setIsGeneratingPdf(true)
     try {
+      // Debug log to see the structure
+      console.log('Documents received in generateCompletePdf:', documents)
+      console.log('Extracted data:', documents?.extractedData)
+      
       // Prepare complete form data including Section 2 info from documents
       const completeFormData = {
         ...formData,
         // Add Section 2 data from document extraction
-        section2: documents?.extractedData ? {
-          documents: documents.extractedData,
+        section2: documents?.extractedData && documents.extractedData.length > 0 ? {
+          documents: documents.extractedData, // Pass all documents
           documentVerificationDate: new Date().toISOString()
         } : null,
         // Add supplement data if applicable
-        supplementA: needsSupplements === 'translator' ? supplementsData : null
+        supplementA: needsSupplements === 'translator' ? supplementsData : null,
+        // Add signature data if available
+        signatureData: signatureData || null
       }
+      
+      console.log('Complete form data being sent to PDF generator:', completeFormData)
       
       // Generate PDF with all sections
-      const pdfBase64 = await generateMappedI9Pdf(completeFormData)
+      const pdfBytes = await generateCleanI9Pdf(completeFormData)
       
-      // Save PDF to backend if employeeId is available
-      if (employee?.id) {
-        try {
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-          const response = await axios.post(
-            `${apiUrl}/api/onboarding/${employee.id}/i9-complete/generate-pdf`,
-            {
-              section1Data: formData,
-              supplementAData: needsSupplements === 'translator' ? supplementsData : null,
-              section2Data: documents?.extractedData || null
-            }
-          )
-          
-          if (response.data.pdf_url) {
-            setPdfUrl(response.data.pdf_url)
-          }
-        } catch (error) {
-          console.error('Error saving PDF to backend:', error)
-        }
+      // Convert Uint8Array to base64 using a more efficient method
+      let binary = ''
+      const chunkSize = 8192 // Process in chunks to avoid stack overflow
+      for (let i = 0; i < pdfBytes.length; i += chunkSize) {
+        const chunk = pdfBytes.slice(i, i + chunkSize)
+        binary += String.fromCharCode.apply(null, Array.from(chunk))
       }
+      const base64String = btoa(binary)
       
-      // Convert base64 to blob URL for preview
-      const base64ToBlob = (base64: string, contentType: string): Blob => {
-        const byteCharacters = atob(base64)
-        const byteArrays = []
-        
-        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-          const slice = byteCharacters.slice(offset, offset + 512)
-          const byteNumbers = new Array(slice.length)
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i)
-          }
-          const byteArray = new Uint8Array(byteNumbers)
-          byteArrays.push(byteArray)
-        }
-        
-        return new Blob(byteArrays, { type: contentType })
-      }
+      // TODO: Save PDF to backend when endpoint is implemented
+      // The backend endpoint /api/onboarding/{employee_id}/i9-complete/generate-pdf needs to be implemented
       
-      const pdfBlob = base64ToBlob(pdfBase64, 'application/pdf')
-      const url = URL.createObjectURL(pdfBlob)
-      setPdfUrl(url)
+      // Set the base64 PDF data - PDFViewer expects base64 string
+      setPdfUrl(base64String)
       
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -255,14 +236,31 @@ export default function I9CompleteStep({
   }
 
   const handleSign = async (signatureData: any) => {
+    // Store signature data
     const completeData = {
       formData,
       supplementsData,
       documentsData,
       signed: true,
       signatureData,
-      completedAt: new Date().toISOString()
+      completedAt: new Date().toISOString(),
+      needsSupplements
     }
+    
+    // Save to backend if we have an employee ID
+    if (employee?.id) {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-complete`, completeData)
+        console.log('I-9 complete data saved to backend')
+      } catch (error) {
+        console.error('Failed to save I-9 data to backend:', error)
+        // Continue even if backend save fails - data is in session storage
+      }
+    }
+    
+    // Regenerate PDF with signature
+    await generateCompletePdf(documentsData, signatureData)
     
     setIsSigned(true)
     await markStepComplete(currentStep.id, completeData)

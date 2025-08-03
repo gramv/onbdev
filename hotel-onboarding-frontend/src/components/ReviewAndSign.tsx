@@ -26,6 +26,7 @@ interface ReviewAndSignProps {
   }
   pdfEndpoint?: string // Optional endpoint to generate PDF
   usePDFPreview?: boolean // Whether to show PDF preview instead of HTML
+  pdfUrl?: string | null // Direct PDF URL to display
 }
 
 export interface SignatureData {
@@ -52,7 +53,8 @@ export default function ReviewAndSign({
   agreementText,
   federalCompliance,
   pdfEndpoint,
-  usePDFPreview = false
+  usePDFPreview = false,
+  pdfUrl
 }: ReviewAndSignProps) {
   const [showSignature, setShowSignature] = useState(false)
   const [hasAgreed, setHasAgreed] = useState(false)
@@ -115,11 +117,11 @@ export default function ReviewAndSign({
       // For now, we'll use placeholder data
     }
     
-    // Load PDF if endpoint is provided and PDF preview is enabled
-    if (usePDFPreview && pdfEndpoint && !showSignature) {
+    // Load PDF if endpoint is provided and PDF preview is enabled (skip if pdfUrl already provided)
+    if (usePDFPreview && pdfEndpoint && !showSignature && !pdfUrl) {
       loadPDF()
     }
-  }, [usePDFPreview, pdfEndpoint, showSignature])
+  }, [usePDFPreview, pdfEndpoint, showSignature, pdfUrl])
   
   const loadPDF = async () => {
     if (!pdfEndpoint) return
@@ -231,7 +233,7 @@ export default function ReviewAndSign({
           </div>
 
           {/* Show PDF Preview or HTML Preview */}
-          {usePDFPreview && pdfEndpoint ? (
+          {usePDFPreview && (pdfUrl || pdfEndpoint) ? (
             <div className="space-y-4">
               {loadingPDF ? (
                 <Card>
@@ -249,9 +251,9 @@ export default function ReviewAndSign({
                     {pdfError}
                   </AlertDescription>
                 </Alert>
-              ) : pdfData ? (
+              ) : (pdfUrl || pdfData) ? (
                 <PDFViewer
-                  pdfData={pdfData}
+                  pdfData={pdfUrl || pdfData}
                   title={`${title} Preview`}
                   height="600px"
                   showToolbar={true}

@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib'
+import { PDFDocument, rgb } from 'pdf-lib'
 
 interface I9FormData {
   last_name: string
@@ -19,6 +19,49 @@ interface I9FormData {
   foreign_passport_number?: string
   country_of_issuance?: string
   expiration_date?: string
+  // Section 2 data
+  section2?: {
+    documents: any[] | any
+    documentVerificationDate: string
+  }
+  // Supplement A data
+  supplementA?: any
+  // Signature data
+  signatureData?: {
+    signature: string
+    timestamp: string
+    ipAddress?: string
+    userAgent?: string
+  }
+}
+
+// Helper function to format dates for PDF fields
+function formatDateForPdf(dateString: string): string {
+  if (!dateString) return ''
+  
+  try {
+    const date = new Date(dateString)
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const year = date.getFullYear()
+    return `${month}${day}${year}` // mmddyyyy format
+  } catch (e) {
+    console.error('Error formatting date:', e)
+    return dateString
+  }
+}
+
+// Helper function to get proper document title for PDF
+function getDocumentTitle(documentType: string): string {
+  const documentTitles: Record<string, string> = {
+    'us_passport': 'U.S. Passport',
+    'permanent_resident_card': 'Permanent Resident Card',
+    'drivers_license': 'Driver\'s License',
+    'social_security_card': 'Social Security Card',
+    'birth_certificate': 'Birth Certificate'
+  }
+  
+  return documentTitles[documentType] || documentType
 }
 
 export async function generateMappedI9Pdf(formData: I9FormData): Promise<Uint8Array> {
@@ -36,22 +79,22 @@ export async function generateMappedI9Pdf(formData: I9FormData): Promise<Uint8Ar
     // Map data to exact field names from the official I-9 form
     const fieldMappings = {
       // Personal Information - Using exact field names from the form
-      'Last Name (Family Name)': formData.last_name.toUpperCase(),
-      'First Name Given Name': formData.first_name.toUpperCase(),
-      'Employee Middle Initial (if any)': formData.middle_initial.toUpperCase(),
-      'Employee Other Last Names Used (if any)': formData.other_names.toUpperCase(),
+      'Last Name (Family Name)': (formData.last_name || '').toUpperCase(),
+      'First Name Given Name': (formData.first_name || '').toUpperCase(),
+      'Employee Middle Initial (if any)': (formData.middle_initial || '').toUpperCase(),
+      'Employee Other Last Names Used (if any)': (formData.other_names || '').toUpperCase(),
       
       // Address Information
-      'Address Street Number and Name': formData.address,
-      'Apt Number (if any)': formData.apt_number,
-      'City or Town': formData.city,
-      'ZIP Code': formData.zip_code,
+      'Address Street Number and Name': formData.address || '',
+      'Apt Number (if any)': formData.apt_number || '',
+      'City or Town': formData.city || '',
+      'ZIP Code': formData.zip_code || '',
       
       // Personal Details
-      'Date of Birth mmddyyyy': formatDateWithSlashes(formData.date_of_birth),
-      'US Social Security Number': formData.ssn.replace(/\D/g, ''),
-      'Employees E-mail Address': formData.email,
-      'Telephone Number': formData.phone.replace(/\D/g, ''),
+      'Date of Birth mmddyyyy': formatDateWithSlashes(formData.date_of_birth || ''),
+      'US Social Security Number': (formData.ssn || '').replace(/\D/g, ''),
+      'Employees E-mail Address': formData.email || '',
+      'Telephone Number': (formData.phone || '').replace(/\D/g, ''),
       
       // Signature Date - try multiple possible field names
       "Today's Date mmddyyyy": formatDateWithSlashes(new Date().toISOString()),
@@ -60,10 +103,24 @@ export async function generateMappedI9Pdf(formData: I9FormData): Promise<Uint8Ar
       "Date": formatDateWithSlashes(new Date().toISOString())
     }
     
-    // Fill text fields
+    // Fill text fields - but check all form fields first to avoid Supplement A contamination
+    const allFields = form.getFields()
+    const fieldNames = allFields.map(f => f.getName())
+    
+    // Log which fields we're about to fill
+    console.log('=== FILLING SECTION 1 FIELDS ===')
+    console.log('Available fields in PDF:', fieldNames.filter(n => n.toLowerCase().includes('name')).slice(0, 10))
+    
     for (const [fieldName, value] of Object.entries(fieldMappings)) {
       if (value) {
         try {
+          // Skip if this looks like a Supplement A field
+          if (fieldName.toLowerCase().includes('preparer') || 
+              fieldName.toLowerCase().includes('translator')) {
+            console.log(`Skipping Supplement A field: "${fieldName}"`)
+            continue
+          }
+          
           const field = form.getTextField(fieldName)
           field.setText(value)
           console.log(`Filled "${fieldName}" with "${value}"`)
@@ -181,6 +238,145 @@ export async function generateMappedI9Pdf(formData: I9FormData): Promise<Uint8Ar
           }
         }
       }
+    }
+    
+    // Handle Employee Signature if provided
+    if (formData.signatureData?.signature) {
+      try {
+        // First try to embed the signature as an image
+        const signatureBase64 = formData.signatureData.signature
+        
+        // Convert base64 to image
+        const signatureImageBytes = Uint8Array.from(atob(signatureBase64.split(',')[1]), c => c.charCodeAt(0))
+        const signatureImage = await pdfDoc.embedPng(signatureImageBytes)
+        
+        // Get the first page (where signature field is located)
+        const pages = pdfDoc.getPages()
+        const firstPage = pages[0]
+        
+        // Draw the signature image on the page
+        // Position at "Signature of Employee" field based on extracted coordinates
+        const signatureDims = signatureImage.scale(0.15) // Scale to fit signature box
+        firstPage.drawImage(signatureImage, {
+          x: 42, // Left side where "Signature of Employee" text is
+          y: 335, // Just below the signature line (text is at y=351, field would be below)
+          width: signatureDims.width,
+          height: signatureDims.height,
+        })
+        
+        console.log('Added employee signature image')
+      } catch (e) {
+        console.error('Failed to add employee signature image:', e)
+        
+        // Fallback: Try to set as text field
+        try {
+          const signatureField = form.getTextField('Signature of Employee')
+          const fullName = `${formData.first_name || ''} ${formData.last_name || ''}`.trim()
+          signatureField.setText(fullName)
+          console.log('Added employee signature as text fallback:', fullName)
+        } catch (textError) {
+          console.error('Failed to add signature text:', textError)
+        }
+      }
+    }
+    
+    // Handle Section 2 data if provided
+    if (formData.section2?.documents) {
+      console.log('Filling Section 2 data:', formData.section2)
+      
+      // Handle both array and single document formats
+      const documentsList = Array.isArray(formData.section2.documents) 
+        ? formData.section2.documents 
+        : [formData.section2.documents]
+      
+      console.log('Documents list:', documentsList)
+      
+      // Find different document types
+      const usPassport = documentsList.find(doc => doc.documentType === 'us_passport')
+      const permanentResidentCard = documentsList.find(doc => doc.documentType === 'permanent_resident_card')
+      const driversLicense = documentsList.find(doc => doc.documentType === 'drivers_license')
+      const ssnCard = documentsList.find(doc => doc.documentType === 'social_security_card')
+      
+      console.log('Driver\'s License data:', driversLicense)
+      console.log('SSN Card data:', ssnCard)
+      
+      if (driversLicense) {
+        console.log('DL documentNumber:', driversLicense.documentNumber)
+        console.log('DL issuingAuthority:', driversLicense.issuingAuthority)
+        console.log('DL expirationDate:', driversLicense.expirationDate)
+      }
+      
+      if (ssnCard) {
+        console.log('SSN ssn:', ssnCard.ssn)
+        console.log('SSN documentNumber:', ssnCard.documentNumber)
+      }
+      
+      const section2Fields = {
+        // Copy employee info from Section 1
+        'Last Name Family Name from Section 1': (formData.last_name || '').toUpperCase(),
+        'First Name Given Name from Section 1': (formData.first_name || '').toUpperCase(),
+        'Middle initial if any from Section 1': (formData.middle_initial || '').toUpperCase(),
+      }
+      
+      // Fill List A document (Identity AND Employment Authorization)
+      if (usPassport) {
+        Object.assign(section2Fields, {
+          'Document Title 1': 'U.S. Passport',
+          'Issuing Authority 1': 'United States of America',
+          'Document Number 0 (if any)': usPassport.documentNumber || '',
+          'Expiration Date if any': usPassport.expirationDate ? formatDateForPdf(usPassport.expirationDate) : ''
+        })
+      } else if (permanentResidentCard) {
+        Object.assign(section2Fields, {
+          'Document Title 1': 'Permanent Resident Card',
+          'Issuing Authority 1': 'USCIS',
+          'Document Number 0 (if any)': permanentResidentCard.documentNumber || '',
+          'Expiration Date if any': permanentResidentCard.expirationDate ? formatDateForPdf(permanentResidentCard.expirationDate) : '',
+          'Additional Information': permanentResidentCard.alienNumber || ''
+        })
+      }
+      
+      // Only fill List B and C if List A is not present
+      // (Employee must provide either one List A document OR one List B + one List C document)
+      if (!usPassport && !permanentResidentCard) {
+        // Fill List B document (Driver's License)
+        if (driversLicense) {
+          Object.assign(section2Fields, {
+            'List B Document 1 Title': 'Driver\'s License',
+            'List B Issuing Authority 1': driversLicense.issuingAuthority || '',
+            'List B Document Number 1': driversLicense.documentNumber || '',
+            'List B Expiration Date 1': driversLicense.expirationDate ? formatDateForPdf(driversLicense.expirationDate) : ''
+          })
+        }
+        
+        // Fill List C document (Social Security Card)
+        if (ssnCard) {
+          Object.assign(section2Fields, {
+            'List C Document Title 1': 'Social Security Card',
+            'List C Issuing Authority 1': 'Social Security Administration',
+            'List C Document Number 1': ssnCard.ssn || ssnCard.documentNumber || '',
+            // SSN cards don't expire, so we don't fill List C Expiration Date 1
+          })
+        }
+      }
+      
+      // First day of employment should be filled by manager, not auto-filled
+      
+      // Fill Section 2 fields
+      for (const [fieldName, value] of Object.entries(section2Fields)) {
+        if (value) {
+          try {
+            const field = form.getTextField(fieldName)
+            field.setText(value)
+            console.log(`Filled Section 2 field ${fieldName}: ${value}`)
+          } catch (e) {
+            console.error(`Failed to fill Section 2 field ${fieldName}:`, e)
+          }
+        }
+      }
+      
+      // Note: Section 2 citizenship checkboxes are handled differently in the official form
+      // They will be filled by the manager during review
     }
     
     // Save the filled PDF
