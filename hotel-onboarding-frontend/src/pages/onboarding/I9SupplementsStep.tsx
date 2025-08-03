@@ -7,6 +7,7 @@ import I9SupplementA from '@/components/I9SupplementA'
 import { CheckCircle, FileText, Info, Users, Globe } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 
 export default function I9SupplementsStep({
@@ -152,7 +153,8 @@ export default function I9SupplementsStep({
 
   return (
     <StepContainer saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
       {/* Step Header */}
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
@@ -336,6 +338,7 @@ export default function I9SupplementsStep({
         <p>{t.estimatedTime}</p>
       </div>
       </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

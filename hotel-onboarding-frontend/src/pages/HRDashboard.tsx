@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { StatsSkeleton } from '@/components/ui/skeleton-loader'
+import { StatCard, StatCardGrid } from '@/components/ui/stat-card'
 import { useToast } from '@/hooks/use-toast'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw, Building2, Users, UserCheck, FileText } from 'lucide-react'
 import axios from 'axios'
 
 // Import tab components (to be created in subsequent tasks)
@@ -98,7 +99,7 @@ export default function HRDashboard() {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
           <div className="spacing-xs">
-            <h1 className="text-display-md">HR Dashboard</h1>
+            <h1 className="text-heading-primary">HR Dashboard</h1>
             <p className="text-body-md text-secondary">Welcome, {user?.email}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -134,40 +135,36 @@ export default function HRDashboard() {
           {loading ? (
             <StatsSkeleton count={4} />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="shadow-sm border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-blue-600">{stats.totalProperties}</p>
-                    <p className="text-sm text-gray-500">Properties</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-blue-600">{stats.totalManagers}</p>
-                    <p className="text-sm text-gray-500">Managers</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-blue-600">{stats.totalEmployees}</p>
-                    <p className="text-sm text-gray-500">Employees</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-blue-600">{stats.pendingApplications}</p>
-                    <p className="text-sm text-gray-500">Pending Applications</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <StatCardGrid columns={4} className="card-transition">
+              <StatCard
+                title="Properties"
+                value={stats.totalProperties}
+                icon={<Building2 className="h-5 w-5" />}
+                variant="default"
+                className="card-transition"
+              />
+              <StatCard
+                title="Managers"
+                value={stats.totalManagers}
+                icon={<Users className="h-5 w-5" />}
+                variant="default"
+                className="card-transition"
+              />
+              <StatCard
+                title="Employees"
+                value={stats.totalEmployees}
+                icon={<UserCheck className="h-5 w-5" />}
+                variant="success"
+                className="card-transition"
+              />
+              <StatCard
+                title="Pending Applications"
+                value={stats.pendingApplications}
+                icon={<FileText className="h-5 w-5" />}
+                variant="warning"
+                className="card-transition"
+              />
+            </StatCardGrid>
           )}
         </div>
 

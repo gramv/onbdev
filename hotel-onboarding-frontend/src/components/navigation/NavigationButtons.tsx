@@ -70,7 +70,7 @@ export function NavigationButtons({
               onPrevious()
             }}
             disabled={disabled || saving}
-            className="w-full sm:w-auto flex items-center space-x-2"
+            className="w-full sm:w-auto flex items-center space-x-2 button-transition"
           >
             <ChevronLeft className="h-4 w-4" />
             <span>{t.previous}</span>
@@ -87,7 +87,7 @@ export function NavigationButtons({
             variant="secondary"
             onClick={onSave}
             disabled={disabled || saving}
-            className="w-full sm:w-auto flex items-center space-x-2"
+            className="w-full sm:w-auto flex items-center space-x-2 button-transition"
           >
             {saving ? (
               <>
@@ -108,12 +108,13 @@ export function NavigationButtons({
       <div className="order-1 sm:order-3">
         {showNext && (
           <Button
+            size="lg"
             onClick={() => {
               scrollToTop()
               onNext()
             }}
             disabled={disabled || saving}
-            className={`w-full sm:w-auto flex items-center space-x-2 font-semibold ${
+            className={`w-full sm:w-auto flex items-center space-x-2 font-semibold button-transition ${
               hasErrors 
                 ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' 
                 : 'bg-blue-600 hover:bg-blue-700 text-white'

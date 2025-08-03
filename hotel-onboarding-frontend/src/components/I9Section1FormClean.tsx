@@ -564,8 +564,8 @@ export default function I9Section1FormClean({
     <div className="max-w-3xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Form I-9, Section 1</CardTitle>
-          <p className="text-sm text-gray-600">Employment Eligibility Verification</p>
+          <CardTitle className="sr-only">Form I-9, Section 1</CardTitle>
+          <p className="sr-only text-sm text-gray-600">Employment Eligibility Verification</p>
           
           {/* Progress bar */}
           <div className="mt-4">

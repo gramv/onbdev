@@ -3,6 +3,8 @@ import PersonalInformationForm from '@/components/PersonalInformationForm'
 import EmergencyContactsForm from '@/components/EmergencyContactsForm'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Breadcrumb, createBreadcrumbItems } from '@/components/ui/breadcrumb'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { CheckCircle, User, Phone } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
@@ -205,7 +207,14 @@ export default function PersonalInfoStep({
 
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb 
+          items={createBreadcrumbItems(['Home', 'Onboarding', 'Personal Information'])}
+          className="mb-4"
+        />
+        
         {/* Step Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -373,7 +382,8 @@ export default function PersonalInfoStep({
             </span>
           </div>
         )}
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

@@ -1,31 +1,22 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronRight, Home } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface BreadcrumbItem {
   label: string
-  path?: string
-  icon?: React.ComponentType<{ className?: string }>
-  ariaLabel?: string
+  href?: string // Optional - if provided, item is clickable (visual-only)
+  current?: boolean // Mark current page
 }
 
 interface BreadcrumbProps {
   items: BreadcrumbItem[]
   className?: string
-  maxItems?: number
-  showHomeIcon?: boolean
 }
 
-export function Breadcrumb({ 
-  items, 
-  className, 
-  maxItems = 4,
-  showHomeIcon = true 
-}: BreadcrumbProps) {
-  // Truncate items if too many for mobile
-  const displayItems = items.length > maxItems 
-    ? [items[0], { label: '...', path: undefined }, ...items.slice(-2)]
+export function Breadcrumb({ items, className }: BreadcrumbProps) {
+  // Handle mobile responsive display - show first, ellipsis, and last 2 items if more than 4
+  const displayItems = items.length > 4 
+    ? [items[0], { label: '...', href: undefined }, ...items.slice(-2)]
     : items
 
   return (
@@ -38,52 +29,49 @@ export function Breadcrumb({
     >
       <ol className="flex items-center min-w-0">
         {displayItems.map((item, index) => {
-          const isLast = index === displayItems.length - 1
           const isEllipsis = item.label === '...'
-          const Icon = item.icon
+          const isCurrent = item.current
+          const isClickable = item.href && !isCurrent
 
           return (
-            <li key={index} className="flex items-center min-w-0">
+            <li key={`${item.label}-${index}`} className="flex items-center min-w-0">
               {index > 0 && (
                 <ChevronRight 
-                  className="h-4 w-4 mx-1 text-muted-foreground/50 flex-shrink-0" 
+                  className="h-4 w-4 mx-2 text-muted-foreground/50 flex-shrink-0" 
                   aria-hidden="true"
                 />
               )}
               
               {isEllipsis ? (
                 <span 
-                  className="px-1 text-muted-foreground/70"
+                  className="px-1 text-muted-foreground/70 text-xs"
                   aria-label="More breadcrumb items"
                 >
                   ...
                 </span>
-              ) : item.path && !isLast ? (
-                <Link
-                  to={item.path}
+              ) : isClickable ? (
+                <a
+                  href={item.href || '#'}
                   className={cn(
-                    "flex items-center gap-1 hover:text-foreground transition-colors",
-                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-sm",
-                    "truncate min-w-0"
+                    "text-sm hover:text-foreground transition-colors duration-200",
+                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-sm px-1",
+                    "truncate min-w-0 cursor-pointer"
                   )}
-                  aria-label={item.ariaLabel || `Navigate to ${item.label}`}
+                  aria-label={`Navigate to ${item.label}`}
+                  onClick={(e) => e.preventDefault()} // Prevent actual navigation
                 >
-                  {Icon && showHomeIcon && (
-                    <Icon className="h-4 w-4 flex-shrink-0" />
-                  )}
                   <span className="truncate">{item.label}</span>
-                </Link>
+                </a>
               ) : (
                 <span 
                   className={cn(
-                    "flex items-center gap-1 min-w-0",
-                    isLast ? "text-foreground font-medium" : "text-muted-foreground"
+                    "min-w-0 px-1",
+                    isCurrent 
+                      ? "text-foreground font-medium text-sm" 
+                      : "text-muted-foreground text-sm"
                   )}
-                  aria-current={isLast ? "page" : undefined}
+                  aria-current={isCurrent ? "page" : undefined}
                 >
-                  {Icon && showHomeIcon && (
-                    <Icon className="h-4 w-4 flex-shrink-0" />
-                  )}
                   <span className="truncate">{item.label}</span>
                 </span>
               )}
@@ -95,75 +83,11 @@ export function Breadcrumb({
   )
 }
 
-// Convenience component for dashboard breadcrumbs
-interface DashboardBreadcrumbProps {
-  role: 'hr' | 'manager'
-  currentSection: string
-  className?: string
-  propertyName?: string
-}
-
-export function DashboardBreadcrumb({ 
-  role, 
-  currentSection, 
-  className,
-  propertyName 
-}: DashboardBreadcrumbProps) {
-  const sectionLabels: Record<string, { label: string; description: string }> = {
-    properties: { 
-      label: 'Properties', 
-      description: 'Manage hotel properties and locations' 
-    },
-    managers: { 
-      label: 'Managers', 
-      description: 'Manage property managers and assignments' 
-    },
-    employees: { 
-      label: 'Employees', 
-      description: 'View and manage employees' 
-    },
-    applications: { 
-      label: 'Applications', 
-      description: 'Review job applications' 
-    },
-    analytics: { 
-      label: 'Analytics', 
-      description: 'View system analytics and reports' 
-    }
-  }
-
-  const sectionInfo = sectionLabels[currentSection] || { 
-    label: currentSection, 
-    description: `Navigate to ${currentSection}` 
-  }
-
-  const items: BreadcrumbItem[] = [
-    {
-      label: 'Home',
-      path: '/',
-      icon: Home,
-      ariaLabel: 'Navigate to home page'
-    },
-    {
-      label: role === 'hr' ? 'HR Dashboard' : 'Manager Dashboard',
-      path: `/${role}`,
-      ariaLabel: `Navigate to ${role === 'hr' ? 'HR' : 'Manager'} dashboard`
-    }
-  ]
-
-  // Add property context for managers
-  if (role === 'manager' && propertyName) {
-    items.push({
-      label: propertyName,
-      ariaLabel: `Property: ${propertyName}`
-    })
-  }
-
-  // Add current section
-  items.push({
-    label: sectionInfo.label,
-    ariaLabel: sectionInfo.description
-  })
-
-  return <Breadcrumb items={items} className={className} />
+// Example usage function - creates breadcrumb items for common use cases
+export function createBreadcrumbItems(path: string[]): BreadcrumbItem[] {
+  return path.map((item, index) => ({
+    label: item,
+    href: index === path.length - 1 ? undefined : '#', // Last item is current, no href
+    current: index === path.length - 1
+  }))
 }

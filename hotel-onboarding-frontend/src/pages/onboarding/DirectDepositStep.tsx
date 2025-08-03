@@ -6,9 +6,12 @@ import ReviewAndSign from '@/components/ReviewAndSign'
 import { CheckCircle, DollarSign, AlertTriangle } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { directDepositValidator } from '@/utils/stepValidators'
+import { ValidationSummary } from '@/components/ui/validation-summary'
+import { FormSection } from '@/components/ui/form-section'
 
 export default function DirectDepositStep({
   currentStep,
@@ -27,6 +30,27 @@ export default function DirectDepositStep({
 
   // Validation hook
   const { errors, fieldErrors, validate } = useStepValidation(directDepositValidator)
+
+  // Convert errors to ValidationSummary format
+  const validationMessages = React.useMemo(() => {
+    const messages = []
+    
+    // Add general errors
+    if (errors && errors.length > 0) {
+      messages.push(...errors.map(error => ({ message: error, type: 'error' as const })))
+    }
+    
+    // Add field-specific errors
+    if (fieldErrors) {
+      Object.entries(fieldErrors).forEach(([field, message]) => {
+        if (message) {
+          messages.push({ field, message, type: 'error' as const })
+        }
+      })
+    }
+    
+    return messages
+  }, [errors, fieldErrors])
 
   // Auto-save data
   const autoSaveData = {
@@ -131,48 +155,60 @@ export default function DirectDepositStep({
   if (showReview && formData) {
     return (
       <StepContainer errors={errors} saveStatus={saveStatus}>
-        <div className="space-y-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <DollarSign className="h-6 w-6 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">{t.reviewTitle}</h1>
-            </div>
+        <StepContentWrapper>
+          <div className="space-y-6">
+          {/* Validation Summary */}
+          {validationMessages.length > 0 && (
+            <ValidationSummary
+              messages={validationMessages}
+              title="Please correct the following issues"
+              className="mb-6"
+            />
+          )}
+
+          <FormSection
+            title={t.reviewTitle}
+            description="Please review your direct deposit information and sign to complete this step"
+            icon={<DollarSign className="h-5 w-5" />}
+            required={true}
+          >
+            <ReviewAndSign
+              formType="direct_deposit"
+              formTitle="Direct Deposit Authorization Form"
+              formData={formData}
+              documentName="Direct Deposit Authorization"
+              signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
+              signerTitle={employee?.position}
+              onSign={handleDigitalSignature}
+              onEdit={handleBackFromReview}
+              acknowledgments={[
+                formData.paymentMethod === 'direct_deposit' 
+                  ? t.acknowledgments.directDeposit
+                  : t.acknowledgments.paperCheck,
+                t.acknowledgments.understand,
+                t.acknowledgments.update
+              ]}
+              language={language}
+            />
+          </FormSection>
           </div>
-          
-          <ReviewAndSign
-            formType="direct_deposit"
-            formTitle="Direct Deposit Authorization Form"
-            formData={formData}
-            documentName="Direct Deposit Authorization"
-            signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
-            signerTitle={employee?.position}
-            onSign={handleDigitalSignature}
-            onEdit={handleBackFromReview}
-            acknowledgments={[
-              formData.paymentMethod === 'direct_deposit' 
-                ? t.acknowledgments.directDeposit
-                : t.acknowledgments.paperCheck,
-              t.acknowledgments.understand,
-              t.acknowledgments.update
-            ]}
-            language={language}
-          />
-        </div>
+        </StepContentWrapper>
       </StepContainer>
     )
   }
 
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
-      <div className="space-y-6">
-        {/* Step Header */}
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <DollarSign className="h-6 w-6 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
-          </div>
-          <p className="text-gray-600 max-w-3xl mx-auto">{t.description}</p>
-        </div>
+      <StepContentWrapper>
+        <div className="space-y-6">
+        {/* Validation Summary */}
+        {validationMessages.length > 0 && (
+          <ValidationSummary
+            messages={validationMessages}
+            title="Please correct the following issues"
+            className="mb-6"
+          />
+        )}
 
         {/* Progress Indicator */}
         {isStepComplete && (
@@ -184,44 +220,49 @@ export default function DirectDepositStep({
           </Alert>
         )}
 
-        {/* Important Information */}
-        <Card className="border-amber-200 bg-amber-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center space-x-2 text-amber-800">
-              <AlertTriangle className="h-5 w-5" />
-              <span>{t.importantInfoTitle}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-amber-800">
-            <ul className="space-y-2 text-sm">
-              {t.importantInfo.map((info, index) => (
-                <li key={index}>• {info}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        {/* Main Form Section */}
+        <FormSection
+          title={t.title}
+          description={t.description}
+          icon={<DollarSign className="h-5 w-5" />}
+          completed={isStepComplete}
+          required={true}
+        >
+          <div className="space-y-6">
+            {/* Important Information */}
+            <Card className="border-amber-200 bg-amber-50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center space-x-2 text-amber-800">
+                  <AlertTriangle className="h-5 w-5" />
+                  <span>{t.importantInfoTitle}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-amber-800">
+                <ul className="space-y-2 text-sm">
+                  {t.importantInfo.map((info, index) => (
+                    <li key={index}>• {info}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
 
-        {/* Direct Deposit Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-blue-600" />
-              <span>{t.formTitle}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DirectDepositFormEnhanced
-              initialData={formData}
-              language={language}
-              onComplete={handleFormComplete}
-              onValidationChange={(valid: boolean, errors: Record<string, string>) => {
-                setIsValid(valid)
-              }}
-              employeeId={employee?.id}
-            />
-          </CardContent>
-        </Card>
-      </div>
+            {/* Direct Deposit Form */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900">{t.formTitle}</h3>
+              <DirectDepositFormEnhanced
+                initialData={formData}
+                language={language}
+                onComplete={handleFormComplete}
+                onValidationChange={(valid: boolean, errors: Record<string, string>) => {
+                  setIsValid(valid)
+                }}
+                employeeId={employee?.id}
+              />
+            </div>
+          </div>
+        </FormSection>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

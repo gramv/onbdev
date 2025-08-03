@@ -3,6 +3,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import EmergencyContactsForm from '@/components/EmergencyContactsForm'
 import { CheckCircle, Phone, AlertTriangle, Heart } from 'lucide-react'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 
 interface StepProps {
   currentStep: any
@@ -76,7 +77,8 @@ export default function EmergencyContactsStep(props: StepProps) {
   const t = translations[language]
 
   return (
-    <div className="space-y-6">
+    <StepContentWrapper>
+      <div className="space-y-6">
       {/* Step Header */}
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
@@ -137,6 +139,7 @@ export default function EmergencyContactsStep(props: StepProps) {
       <div className="text-center text-sm text-gray-500">
         <p>{t.estimatedTime}</p>
       </div>
-    </div>
+      </div>
+    </StepContentWrapper>
   )
 }

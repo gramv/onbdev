@@ -5,16 +5,20 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { scrollToTop, scrollToErrorContainer } from '@/utils/scrollHelpers'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 // Import the new infrastructure
 import { OnboardingFlowController, StepProps } from '../controllers/OnboardingFlowController'
 import { ProgressBar } from '../components/navigation/ProgressBar'
-import { StepIndicator } from '../components/navigation/StepIndicator'
 import { NavigationButtons } from '../components/navigation/NavigationButtons'
+
+// Import new shadcn UI components
+import { StepIndicator, Step } from '@/components/ui/step-indicator'
+import { Breadcrumb, createBreadcrumbItems } from '@/components/ui/breadcrumb'
+import { ValidationSummary, ValidationMessage } from '@/components/ui/validation-summary'
 
 // Import step components
 import WelcomeStep from './onboarding/WelcomeStep'
@@ -272,7 +276,7 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       default:
         return (
           <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-heading-secondary text-gray-900 mb-2">
               Step Not Implemented
             </h3>
             <p className="text-gray-600">
@@ -309,7 +313,7 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Onboarding Error</h2>
+<h2 className="text-2xl font-bold text-heading-primary text-gray-900 mb-2">Onboarding Error</h2>
             <p className="text-gray-600 mb-6">{error || 'Unable to load onboarding session'}</p>
             <button
               onClick={() => window.location.reload()}
@@ -335,7 +339,7 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">Employee Onboarding</h1>
+              <h1 className="text-xl font-semibold text-heading-primary text-gray-900">Employee Onboarding</h1>
               <span className="ml-4 text-sm text-gray-500">
                 {session.property.name}
               </span>
@@ -353,6 +357,18 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
         </div>
       </header>
 
+      {/* Breadcrumb Navigation */}
+      {currentStep && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <Breadcrumb 
+              items={createBreadcrumbItems(['Home', 'Onboarding', currentStep.name])} 
+              className="text-sm"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Progress Bar */}
       {progress && (
         <ProgressBar
@@ -369,47 +385,31 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       )}
 
       {/* Main Content */}
-      <main className="flex-1 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          {/* Step Indicator */}
-          {currentStep && progress && (
-            <StepIndicator
-              stepNumber={progress.currentStepIndex + 1}
-              stepName={currentStep.name}
-              isComplete={progress.completedSteps.includes(currentStep.id)}
-              isCurrent={true}
-              isRequired={currentStep.required}
-              isFederalRequired={currentStep.governmentRequired}
-              estimatedMinutes={currentStep.estimatedMinutes}
-              hasErrors={validationErrors.length > 0}
-            />
-          )}
+      <main className="flex-1 py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
           {/* Step Content */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                {currentStep?.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <Card className="card-transition fade-in">
+            <CardContent className="pt-6">
               {/* Validation Errors */}
               {validationErrors.length > 0 && (
-                <Alert id="error-container" className="mb-6 border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription>
-                    <div className="font-medium text-red-800 mb-2">Please fix the following issues:</div>
-                    <ul className="list-disc list-inside space-y-1 text-red-700">
-                      {validationErrors.map((error, index) => (
-                        <li key={index}>{error}</li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
+                <div id="error-container" className="mb-6">
+                  <ValidationSummary
+                    messages={validationErrors.map((error) => ({
+                      message: error,
+                      type: 'error'
+                    } as ValidationMessage))}
+                    title="Please fix the following issues"
+                    showIcon={true}
+                    className="transition-all duration-300"
+                  />
+                </div>
               )}
 
               {/* Step Content */}
-              {renderStepContent()}
+              <ErrorBoundary>
+                {renderStepContent()}
+              </ErrorBoundary>
 
               {/* Navigation */}
               {progress && (

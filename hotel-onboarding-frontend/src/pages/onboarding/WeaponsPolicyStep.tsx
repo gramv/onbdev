@@ -5,6 +5,7 @@ import WeaponsPolicyAcknowledgment from '@/components/WeaponsPolicyAcknowledgmen
 import { CheckCircle, Shield, AlertTriangle } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 
 export default function WeaponsPolicyStep({
@@ -77,7 +78,8 @@ export default function WeaponsPolicyStep({
 
   return (
     <StepContainer saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Step Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -125,7 +127,8 @@ export default function WeaponsPolicyStep({
         <div className="text-center text-sm text-gray-500">
           <p>{t.estimatedTime}</p>
         </div>
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

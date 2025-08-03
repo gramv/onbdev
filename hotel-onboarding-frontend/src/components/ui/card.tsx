@@ -11,7 +11,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     const baseClasses = "rounded-xl border bg-white text-gray-900 transition-all duration-300 ease-in-out dark:border-hotel-neutral-800 dark:bg-hotel-neutral-900 dark:text-hotel-neutral-50"
     
     const variantClasses = {
-      default: "border-hotel-neutral-200 shadow-sm hover:shadow-md duration-200",
+      default: "border-hotel-neutral-200 shadow-sm hover:shadow-md card-transition",
       enhanced: "card-elevated-enhanced",
       elevated: "card-elevated-enhanced"
     }
@@ -38,7 +38,7 @@ export interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ className, variant = "default", ...props }, ref) => {
     const variantClasses = {
-      default: "flex flex-col space-y-1 sm:space-y-2 p-3 sm:p-4 md:p-6 lg:p-8",
+      default: "flex flex-col space-y-1 sm:space-y-2 p-4 sm:p-6",
       enhanced: "card-header-enhanced"
     }
 
@@ -84,7 +84,7 @@ export interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
 const CardContent = React.forwardRef<HTMLDivElement, CardContentProps>(
   ({ className, variant = "default", ...props }, ref) => {
     const variantClasses = {
-      default: "p-3 sm:p-4 md:p-6 lg:p-8 pt-0",
+      default: "p-4 sm:p-6 pt-0",
       enhanced: "card-content-enhanced"
     }
 
@@ -106,7 +106,7 @@ export interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
   ({ className, variant = "default", ...props }, ref) => {
     const variantClasses = {
-      default: "flex items-center p-3 sm:p-4 md:p-6 lg:p-8 pt-0",
+      default: "flex items-center p-4 sm:p-6 pt-0",
       enhanced: "card-footer-enhanced"
     }
 

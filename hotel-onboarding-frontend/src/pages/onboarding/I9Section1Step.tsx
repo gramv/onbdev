@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import I9Section1FormClean from '@/components/I9Section1FormClean'
 import ReviewAndSign from '@/components/ReviewAndSign'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle, FileText } from 'lucide-react'
+import { CheckCircle, FileText, User } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { FormSection } from '@/components/ui/form-section'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { i9Section1Validator } from '@/utils/stepValidators'
@@ -192,11 +194,12 @@ export default function I9Section1Step({
 
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Step Header */}
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
-          <p className="text-gray-600 mt-2">{t.description}</p>
+          <h1 className="text-heading-secondary font-bold text-gray-900">{t.title}</h1>
+          <p className="text-gray-600 mt-2 text-base">{t.description}</p>
         </div>
 
         {/* Completion Status */}
@@ -209,54 +212,63 @@ export default function I9Section1Step({
           </Alert>
         )}
 
-        {/* Tabbed Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="form" className="flex items-center space-x-2">
-              <FileText className="h-4 w-4" />
-              <span>{t.fillFormTab}</span>
-              {formValid && <CheckCircle className="h-3 w-3 text-green-600" />}
-            </TabsTrigger>
-            <TabsTrigger value="review" disabled={!formValid} className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4" />
-              <span>{t.reviewTab}</span>
-              {isSigned && <CheckCircle className="h-3 w-3 text-green-600" />}
-            </TabsTrigger>
-          </TabsList>
+        {/* Form Section */}
+        <FormSection
+          title="Employment Eligibility Form"
+          description="Complete your I-9 Section 1 form and review before signing"
+          icon={<User className="h-5 w-5" />}
+          completed={isSigned}
+          required={true}
+        >
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="form" className="flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>{t.fillFormTab}</span>
+                {formValid && <CheckCircle className="h-3 w-3 text-green-600" />}
+              </TabsTrigger>
+              <TabsTrigger value="review" disabled={!formValid} className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>{t.reviewTab}</span>
+                {isSigned && <CheckCircle className="h-3 w-3 text-green-600" />}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="form" className="space-y-6">
-            <I9Section1FormClean
-              onComplete={handleFormComplete}
-              initialData={formData}
-              language={language}
-              employeeId={employee?.id}
-            />
-          </TabsContent>
-
-          <TabsContent value="review" className="space-y-6">
-            {formData && (
-              <ReviewAndSign
-                formType="i9-section1"
-                formData={formData}
-                title={t.reviewTitle}
-                description={t.reviewDescription}
+            <TabsContent value="form" className="space-y-6">
+              <I9Section1FormClean
+                onComplete={handleFormComplete}
+                initialData={formData}
                 language={language}
-                onSign={handleSign}
-                onBack={() => setActiveTab('form')}
-                renderPreview={renderFormPreview}
-                usePDFPreview={true}
-                pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/i9-section1/generate-pdf`}
-                federalCompliance={{
-                  formName: 'Form I-9, Employment Eligibility Verification',
-                  retentionPeriod: '3 years after hire or 1 year after termination (whichever is later)',
-                  requiresWitness: false
-                }}
-                agreementText={t.agreementText}
+                employeeId={employee?.id}
               />
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+            </TabsContent>
+
+            <TabsContent value="review" className="space-y-6">
+              {formData && (
+                <ReviewAndSign
+                  formType="i9-section1"
+                  formData={formData}
+                  title={t.reviewTitle}
+                  description={t.reviewDescription}
+                  language={language}
+                  onSign={handleSign}
+                  onBack={() => setActiveTab('form')}
+                  renderPreview={renderFormPreview}
+                  usePDFPreview={true}
+                  pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/i9-section1/generate-pdf`}
+                  federalCompliance={{
+                    formName: 'Form I-9, Employment Eligibility Verification',
+                    retentionPeriod: '3 years after hire or 1 year after termination (whichever is later)',
+                    requiresWitness: false
+                  }}
+                  agreementText={t.agreementText}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
+        </FormSection>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }
