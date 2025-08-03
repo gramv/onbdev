@@ -105,7 +105,7 @@ export const i9Section1Validator = (data: any): ValidationResult => {
   }
 
   // Signature - check both nested and direct signature data
-  const hasSignature = data.signed || formData.signed || data.signatureData || formData.signatureData
+  const hasSignature = data.signed || formData.signed || data.signatureData || formData.signatureData || data.isSigned
   if (!hasSignature) {
     errors.push('Electronic signature is required')
   }

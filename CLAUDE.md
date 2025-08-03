@@ -23,6 +23,21 @@ This project uses **Agent OS** - a system for better planning and executing soft
 3. **Adhere to standards**: All code must follow patterns defined in Agent OS standards
 4. **Maintain documentation**: Update specs and decisions as the project evolves
 
+### Using Agent OS Agents for Complex Tasks
+When working on multi-faceted improvements or refactoring:
+- **Use specialized agents**: Leverage agents like `frontend-component-fixer`, `onboarding-form-builder`, or `compliance-validator` for specific tasks
+- **Parallel execution**: Launch multiple agents concurrently for independent tasks to maximize efficiency
+- **Complex refactoring**: For tasks like breaking up large components or implementing cross-component features, use appropriate agents
+- **Testing and validation**: Use `test-automation-engineer` and `field-validation-tester` agents to ensure thorough testing
+
+Example workflow for complex changes:
+```
+1. Use frontend-component-fixer for navigation improvements
+2. Use onboarding-form-builder for form restructuring  
+3. Use field-validation-tester for cross-field validation
+4. Use compliance-validator for federal requirement checks
+```
+
 ## Project Overview
 
 This is a comprehensive hotel employee onboarding system built with a FastAPI backend and React/TypeScript frontend. The system handles the complete employee lifecycle from job application to onboarding completion, including document management, digital signatures, and compliance requirements.
@@ -181,6 +196,8 @@ GET /api/hr/onboarding/expired - List expired/incomplete onboardings
   - Transition away from Poetry dependency management
   - Use standard Python virtual environments and `requirements.txt`
   - Ensure compatibility with Python 3.12+
+
+- **NO MOCK DATA - PRODUCTION SYSTEM**: This is a production system. All OCR and document processing must use real API calls to extract actual data from uploaded documents. Never return hardcoded/mock data for document processing, authentication, or any other production features.
 
 ## Scalability Architecture
 

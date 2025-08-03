@@ -95,33 +95,56 @@ export default function I9Section1FormClean({
     expiration_date: initialData.expiration_date || ''
   })
   
-  // Update form data when initialData changes
+  // Update form data when initialData changes - with deep comparison to preserve state
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
-      setFormData({
-        last_name: initialData.last_name || '',
-        first_name: initialData.first_name || '',
-        middle_initial: initialData.middle_initial || '',
-        other_names: initialData.other_names || '',
-        address: initialData.address || '',
-        apt_number: initialData.apt_number || '',
-        city: initialData.city || '',
-        state: initialData.state || '',
-        zip_code: initialData.zip_code || '',
-        date_of_birth: initialData.date_of_birth || '',
-        ssn: initialData.ssn || '',
-        email: initialData.email || '',
-        phone: initialData.phone || '',
-        citizenship_status: initialData.citizenship_status || '',
-        alien_registration_number: initialData.alien_registration_number || '',
-        foreign_passport_number: initialData.foreign_passport_number || '',
-        country_of_issuance: initialData.country_of_issuance || '',
-        expiration_date: initialData.expiration_date || ''
+      console.log('I9Section1FormClean: Received initialData update:', {
+        citizenship_status: initialData.citizenship_status,
+        keys: Object.keys(initialData)
+      })
+      
+      setFormData(prev => {
+        const newData = {
+          last_name: initialData.last_name || prev.last_name || '',
+          first_name: initialData.first_name || prev.first_name || '',
+          middle_initial: initialData.middle_initial || prev.middle_initial || '',
+          other_names: initialData.other_names || prev.other_names || '',
+          address: initialData.address || prev.address || '',
+          apt_number: initialData.apt_number || prev.apt_number || '',
+          city: initialData.city || prev.city || '',
+          state: initialData.state || prev.state || '',
+          zip_code: initialData.zip_code || prev.zip_code || '',
+          date_of_birth: initialData.date_of_birth || prev.date_of_birth || '',
+          ssn: initialData.ssn || prev.ssn || '',
+          email: initialData.email || prev.email || '',
+          phone: initialData.phone || prev.phone || '',
+          citizenship_status: initialData.citizenship_status || prev.citizenship_status || '',
+          alien_registration_number: initialData.alien_registration_number || prev.alien_registration_number || '',
+          foreign_passport_number: initialData.foreign_passport_number || prev.foreign_passport_number || '',
+          country_of_issuance: initialData.country_of_issuance || prev.country_of_issuance || '',
+          expiration_date: initialData.expiration_date || prev.expiration_date || ''
+        }
+        
+        console.log('I9Section1FormClean: Updated form data:', {
+          citizenship_status: newData.citizenship_status,
+          previous: prev.citizenship_status
+        })
+        
+        return newData
       })
     }
   }, [initialData])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Debug logging for citizenship status
+  useEffect(() => {
+    console.log('I9Section1FormClean - citizenship_status state:', {
+      current: formData.citizenship_status,
+      initial: initialData?.citizenship_status,
+      isEmpty: !formData.citizenship_status
+    })
+  }, [formData.citizenship_status, initialData?.citizenship_status])
 
   const steps = [
     {
@@ -143,10 +166,28 @@ export default function I9Section1FormClean({
   ]
 
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    console.log(`I9Section1FormClean: Field ${field} changed to:`, value)
+    
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      console.log('I9Section1FormClean: New form data state:', {
+        field,
+        value,
+        citizenship_status: newData.citizenship_status
+      })
+      return newData
+    })
+    
     // Clear error when user types
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+    
+    // Immediately call onValidationChange if available to notify parent
+    if (onValidationChange) {
+      const newErrors = { ...errors }
+      delete newErrors[field]
+      onValidationChange(Object.keys(newErrors).length === 0)
     }
   }
 
@@ -340,17 +381,24 @@ export default function I9Section1FormClean({
   }
 
   const handleNext = () => {
+    console.log('I9Section1FormClean: handleNext called, current formData:', {
+      citizenship_status: formData.citizenship_status,
+      step: currentStep
+    })
+    
     if (validateStep(currentStep)) {
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1)
       } else {
-        // All steps complete
+        // All steps complete - pass the complete form data
+        console.log('I9Section1FormClean: Completing form with data:', formData)
+        
         if (showPreview) {
           // Show internal preview
           generatePdfPreview()
         } else {
-          // Pass data to parent without preview
-          onComplete(formData)
+          // Pass data to parent without preview - ensure we pass the complete formData
+          onComplete({ ...formData })
         }
       }
     }
@@ -414,6 +462,11 @@ export default function I9Section1FormClean({
   }
 
   const handleSign = async (signatureData: any) => {
+    console.log('I9Section1FormClean: handleSign called with formData:', {
+      citizenship_status: formData.citizenship_status,
+      hasSignature: !!signatureData
+    })
+    
     try {
       if (employeeId && !employeeId.startsWith('test-') && !employeeId.startsWith('demo-')) {
         // Only save to backend for real employee IDs (not demo or test)
@@ -425,19 +478,26 @@ export default function I9Section1FormClean({
         })
       }
       
-      onComplete({
+      const completeData = {
         ...formData,
         signature: signatureData,
         completedAt: new Date().toISOString()
+      }
+      
+      console.log('I9Section1FormClean: Completing with signed data:', {
+        citizenship_status: completeData.citizenship_status
       })
+      
+      onComplete(completeData)
     } catch (error) {
       console.error('Error saving signed form:', error)
       // Still complete even if save fails
-      onComplete({
+      const completeData = {
         ...formData,
         signature: signatureData,
         completedAt: new Date().toISOString()
-      })
+      }
+      onComplete(completeData)
     }
   }
 
@@ -747,7 +807,10 @@ export default function I9Section1FormClean({
                 <Label>I attest, under penalty of perjury, that I am: *</Label>
                 <RadioGroup
                   value={formData.citizenship_status}
-                  onValueChange={(value) => handleInputChange('citizenship_status', value)}
+                  onValueChange={(value) => {
+                    console.log('RadioGroup citizenship_status onValueChange:', value)
+                    handleInputChange('citizenship_status', value)
+                  }}
                   className="mt-3 space-y-3"
                 >
                   <div className="flex items-center space-x-2">

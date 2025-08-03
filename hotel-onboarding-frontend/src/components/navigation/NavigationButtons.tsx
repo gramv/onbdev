@@ -5,6 +5,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight, Save, RefreshCw } from 'lucide-react'
+import { scrollToTop } from '@/utils/scrollHelpers'
 
 interface NavigationButtonsProps {
   showPrevious: boolean
@@ -64,7 +65,10 @@ export function NavigationButtons({
         {showPrevious ? (
           <Button
             variant="outline"
-            onClick={onPrevious}
+            onClick={() => {
+              scrollToTop()
+              onPrevious()
+            }}
             disabled={disabled || saving}
             className="w-full sm:w-auto flex items-center space-x-2"
           >
@@ -104,7 +108,10 @@ export function NavigationButtons({
       <div className="order-1 sm:order-3">
         {showNext && (
           <Button
-            onClick={onNext}
+            onClick={() => {
+              scrollToTop()
+              onNext()
+            }}
             disabled={disabled || saving}
             className={`w-full sm:w-auto flex items-center space-x-2 font-semibold ${
               hasErrors 
