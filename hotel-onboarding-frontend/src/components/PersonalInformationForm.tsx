@@ -292,8 +292,8 @@ export default function PersonalInformationForm({
     <div className="flex-container-adaptive">
       <div className="text-center container-responsive">
         <User className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 mx-auto mb-2" />
-        <h2 className="text-responsive-lg font-bold text-gray-900">{t('personal_info')}</h2>
-        <p className="text-responsive-base text-gray-600 mt-1 max-w-4xl mx-auto leading-relaxed">{t('personal_info_desc')}</p>
+        <h2 className="sr-only text-responsive-lg font-bold text-gray-900">{t('personal_info')}</h2>
+        <p className="sr-only text-responsive-base text-gray-600 mt-1 max-w-4xl mx-auto leading-relaxed">{t('personal_info_desc')}</p>
       </div>
 
       {/* Consolidated Personal Information - Single Card */}

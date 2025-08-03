@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { documentUploadValidator } from '@/utils/stepValidators'
@@ -340,7 +341,8 @@ export default function DocumentUploadStep({
 
   return (
     <StepContainer errors={errors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
       {/* Step Header */}
       <div className="text-center">
         <div className="flex items-center justify-center space-x-2 mb-4">
@@ -526,7 +528,8 @@ export default function DocumentUploadStep({
         <div className="text-center text-sm text-gray-500">
           <p>{t.estimatedTime}</p>
         </div>
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

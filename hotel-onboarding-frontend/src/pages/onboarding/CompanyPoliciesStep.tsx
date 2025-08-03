@@ -9,6 +9,7 @@ import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
 import { CheckCircle, Building, FileText, ScrollText, PenTool, Check, Shield, Briefcase, Lock, Heart, ArrowRight, ArrowLeft } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { companyPoliciesValidator } from '@/utils/stepValidators'
@@ -571,7 +572,8 @@ export default function CompanyPoliciesStep({
 
   return (
     <StepContainer errors={errors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -992,7 +994,8 @@ export default function CompanyPoliciesStep({
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

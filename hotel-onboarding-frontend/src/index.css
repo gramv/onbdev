@@ -143,6 +143,149 @@
 }
 
 @layer components {
+  /* TYPOGRAPHY SCALE SYSTEM */
+  
+  /* Primary Typography Scale */
+  .text-heading-primary {
+    @apply text-3xl font-bold tracking-tight leading-tight;
+    font-size: 30px;
+  }
+  
+  .text-heading-secondary {
+    @apply text-2xl font-semibold tracking-tight leading-snug;
+    font-size: 24px;
+  }
+  
+  .text-heading-tertiary {
+    @apply text-xl font-medium tracking-normal leading-relaxed;
+    font-size: 20px;
+  }
+  
+  .text-body-large {
+    @apply text-lg font-normal leading-relaxed;
+    font-size: 18px;
+  }
+  
+  .text-body-default {
+    @apply text-base font-normal leading-normal;
+    font-size: 16px;
+  }
+  
+  .text-body-small {
+    @apply text-sm font-normal leading-normal;
+    font-size: 14px;
+  }
+  
+  .text-caption {
+    @apply text-xs text-muted-foreground font-normal leading-tight;
+    color: hsl(var(--muted-foreground));
+    font-size: 12px;
+  }
+
+  /* TRANSITION CLASSES */
+  
+  .card-transition {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .button-transition {
+    @apply transition-all duration-150 ease-in-out;
+  }
+  
+  .fade-in {
+    animation: fadeInSmooth 0.3s ease-in-out;
+  }
+  
+  @keyframes fadeInSmooth {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* SPACING UTILITY CLASSES */
+  
+  .spacing-xs {
+    @apply p-2;
+    padding: 0.5rem; /* 8px */
+  }
+  
+  .spacing-sm {
+    @apply p-3;
+    padding: 0.75rem; /* 12px */
+  }
+  
+  .spacing-md {
+    @apply p-4;
+    padding: 1rem; /* 16px */
+  }
+  
+  .spacing-lg {
+    @apply p-6;
+    padding: 1.5rem; /* 24px */
+  }
+  
+  .spacing-xl {
+    @apply p-8;
+    padding: 2rem; /* 32px */
+  }
+  
+  /* Margin variants */
+  .spacing-xs-m {
+    @apply m-2;
+    margin: 0.5rem; /* 8px */
+  }
+  
+  .spacing-sm-m {
+    @apply m-3;
+    margin: 0.75rem; /* 12px */
+  }
+  
+  .spacing-md-m {
+    @apply m-4;
+    margin: 1rem; /* 16px */
+  }
+  
+  .spacing-lg-m {
+    @apply m-6;
+    margin: 1.5rem; /* 24px */
+  }
+  
+  .spacing-xl-m {
+    @apply m-8;
+    margin: 2rem; /* 32px */
+  }
+  
+  /* Gap variants for flex/grid layouts */
+  .spacing-xs-gap {
+    @apply gap-2;
+    gap: 0.5rem; /* 8px */
+  }
+  
+  .spacing-sm-gap {
+    @apply gap-3;
+    gap: 0.75rem; /* 12px */
+  }
+  
+  .spacing-md-gap {
+    @apply gap-4;
+    gap: 1rem; /* 16px */
+  }
+  
+  .spacing-lg-gap {
+    @apply gap-6;
+    gap: 1.5rem; /* 24px */
+  }
+  
+  .spacing-xl-gap {
+    @apply gap-8;
+    gap: 2rem; /* 32px */
+  }
+
   /* COMPREHENSIVE RESPONSIVE LAYOUT SYSTEM */
   
   /* Full viewport utilization - auto-adapts to ANY screen size */
@@ -304,16 +447,25 @@
   /* Enhanced Input Styles */
   .form-input {
     @apply h-11 px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 
-           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+           focus:border-hotel-primary focus:ring-2 focus:ring-hotel-primary/20 focus:outline-none
            transition-all duration-200 ease-in-out;
   }
   
   .form-input:hover {
-    @apply border-gray-400;
+    @apply border-gray-400 shadow-sm;
+  }
+  
+  .form-input:focus {
+    @apply shadow-md transform scale-[1.01];
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
   
   .form-input.error {
     @apply border-red-500 focus:border-red-500 focus:ring-red-500/20;
+  }
+  
+  .form-input.error:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
   
   /* Enterprise Button Styles */
@@ -706,15 +858,30 @@
   
   /* Form Validation States */
   .form-field-error {
-    @apply border-red-500 bg-red-50 text-red-900;
+    @apply border-red-500 bg-red-50 text-red-900 transition-all duration-200;
+  }
+  
+  .form-field-error:focus {
+    @apply ring-2 ring-red-500/20 transform scale-[1.01];
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
   
   .form-field-success {
-    @apply border-green-500 bg-green-50 text-green-900;
+    @apply border-green-500 bg-green-50 text-green-900 transition-all duration-200;
+  }
+  
+  .form-field-success:focus {
+    @apply ring-2 ring-green-500/20 transform scale-[1.01];
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
   
   .form-field-warning {
-    @apply border-amber-500 bg-amber-50 text-amber-900;
+    @apply border-amber-500 bg-amber-50 text-amber-900 transition-all duration-200;
+  }
+  
+  .form-field-warning:focus {
+    @apply ring-2 ring-amber-500/20 transform scale-[1.01];
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
   
   /* ARIA Live Regions */

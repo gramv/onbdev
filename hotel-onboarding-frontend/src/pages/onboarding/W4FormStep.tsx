@@ -5,11 +5,28 @@ import W4FormClean from '@/components/W4FormClean'
 import ReviewAndSign from '@/components/ReviewAndSign'
 import { CheckCircle, CreditCard, FileText, AlertTriangle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { FormSection } from '@/components/ui/form-section'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { w4FormValidator } from '@/utils/stepValidators'
+
+interface W4Translations {
+  title: string
+  description: string
+  federalNotice: string
+  completionMessage: string
+  importantInfoTitle: string
+  importantInfo: string[]
+  fillFormTab: string
+  reviewTab: string
+  formTitle: string
+  reviewTitle: string
+  reviewDescription: string
+  agreementText: string
+}
 
 export default function W4FormStep({
   currentStep,
@@ -129,7 +146,7 @@ export default function W4FormStep({
     )
   }
 
-  const translations = {
+  const translations: Record<'en' | 'es', W4Translations> = {
     en: {
       title: 'W-4 Tax Withholding',
       description: 'Complete Form W-4 to determine the correct amount of federal income tax to withhold from your pay.',
@@ -174,12 +191,13 @@ export default function W4FormStep({
 
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Step Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <CreditCard className="h-6 w-6 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
+            <h1 className="text-heading-secondary">{t.title}</h1>
           </div>
           <p className="text-gray-600 max-w-3xl mx-auto">{t.description}</p>
         </div>
@@ -219,64 +237,73 @@ export default function W4FormStep({
           </CardContent>
         </Card>
 
-        {/* Tabbed Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="form" className="flex items-center space-x-2">
-              <FileText className="h-4 w-4" />
-              <span>{t.fillFormTab}</span>
-              {formValid && <CheckCircle className="h-3 w-3 text-green-600" />}
-            </TabsTrigger>
-            <TabsTrigger value="review" disabled={!formValid} className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4" />
-              <span>{t.reviewTab}</span>
-              {isSigned && <CheckCircle className="h-3 w-3 text-green-600" />}
-            </TabsTrigger>
-          </TabsList>
+        {/* Form Section */}
+        <FormSection
+          title={String(t.title || 'W-4 Tax Withholding')}
+          description={String(t.description || '')}
+          icon={<FileText />}
+          completed={isSigned}
+          required={true}
+        >
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="form" className="flex items-center space-x-2">
+                <FileText className="h-4 w-4" />
+                <span>{t.fillFormTab}</span>
+                {formValid && <CheckCircle className="h-3 w-3 text-green-600" />}
+              </TabsTrigger>
+              <TabsTrigger value="review" disabled={!formValid} className="flex items-center space-x-2">
+                <CheckCircle className="h-4 w-4" />
+                <span>{t.reviewTab}</span>
+                {isSigned && <CheckCircle className="h-3 w-3 text-green-600" />}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="form" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <span>{t.formTitle}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <W4FormClean
-                  initialData={formData}
+            <TabsContent value="form" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <span>{t.formTitle}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <W4FormClean
+                    initialData={formData}
+                    language={language}
+                    employeeId={employee?.id}
+                    onComplete={handleFormComplete}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="review" className="space-y-6">
+              {formData && (
+                <ReviewAndSign
+                  formType="w4-form"
+                  formData={formData}
+                  title={t.reviewTitle}
+                  description={t.reviewDescription}
                   language={language}
-                  employeeId={employee?.id}
-                  onComplete={handleFormComplete}
+                  onSign={handleSign}
+                  onBack={() => setActiveTab('form')}
+                  renderPreview={renderFormPreview}
+                  usePDFPreview={true}
+                  pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
+                  federalCompliance={{
+                    formName: 'Form W-4, Employee\'s Withholding Certificate',
+                    retentionPeriod: 'For 4 years after the date the last tax return using the information was filed',
+                    requiresWitness: false
+                  }}
+                  agreementText={t.agreementText}
                 />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="review" className="space-y-6">
-            {formData && (
-              <ReviewAndSign
-                formType="w4-form"
-                formData={formData}
-                title={t.reviewTitle}
-                description={t.reviewDescription}
-                language={language}
-                onSign={handleSign}
-                onBack={() => setActiveTab('form')}
-                renderPreview={renderFormPreview}
-                usePDFPreview={true}
-                pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
-                federalCompliance={{
-                  formName: 'Form W-4, Employee\'s Withholding Certificate',
-                  retentionPeriod: 'For 4 years after the date the last tax return using the information was filed',
-                  requiresWitness: false
-                }}
-                agreementText={t.agreementText}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </FormSection>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

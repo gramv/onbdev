@@ -322,8 +322,8 @@ export default function W4FormClean({
     <div className="max-w-3xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Form W-4</CardTitle>
-          <p className="text-sm text-gray-600">Employee's Withholding Certificate</p>
+          <CardTitle className="sr-only">Form W-4</CardTitle>
+          <p className="sr-only text-sm text-gray-600">Employee's Withholding Certificate</p>
           
           {/* Progress bar */}
           <div className="mt-4">

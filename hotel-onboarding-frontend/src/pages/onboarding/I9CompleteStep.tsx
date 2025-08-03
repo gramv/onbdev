@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, FileText, Upload, Camera, Globe, AlertTriangle } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import I9Section1FormClean from '@/components/I9Section1FormClean'
 import I9SupplementA from '@/components/I9SupplementA'
 import DocumentUploadEnhanced from './DocumentUploadEnhanced'
@@ -555,7 +556,8 @@ export default function I9CompleteStep({
   
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
@@ -842,7 +844,8 @@ export default function I9CompleteStep({
             )}
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

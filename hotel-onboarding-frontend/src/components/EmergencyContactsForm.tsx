@@ -222,8 +222,8 @@ export default function EmergencyContactsForm({
     <div className="space-y-4">
       <div className="text-center mb-4">
         <Phone className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-        <h2 className="text-xl font-bold text-gray-900">{t('emergency_contacts')}</h2>
-        <p className="text-gray-600 text-sm mt-1">{t('emergency_contacts_desc')}</p>
+        <h2 className="sr-only text-xl font-bold text-gray-900">{t('emergency_contacts')}</h2>
+        <p className="sr-only text-gray-600 text-sm mt-1">{t('emergency_contacts_desc')}</p>
       </div>
 
       {/* Emergency Contacts - Side by Side */}

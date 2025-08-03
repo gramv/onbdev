@@ -125,7 +125,8 @@ export default function HealthInsuranceStep({
   if (showReview && formData) {
     return (
       <StepContainer errors={errors} saveStatus={saveStatus}>
-        <div className="space-y-6">
+        <StepContentWrapper>
+          <div className="space-y-6">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Heart className="h-6 w-6 text-blue-600" />
@@ -151,14 +152,16 @@ export default function HealthInsuranceStep({
             language={language}
             description={t.reviewDescription}
           />
-        </div>
+          </div>
+        </StepContentWrapper>
       </StepContainer>
     )
   }
 
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Step Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -210,7 +213,8 @@ export default function HealthInsuranceStep({
         <div className="text-center text-sm text-gray-500">
           <p>{t.estimatedTime}</p>
         </div>
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

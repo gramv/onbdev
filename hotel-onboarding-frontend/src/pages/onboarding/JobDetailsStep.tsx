@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { CheckCircle, Briefcase, Calendar, DollarSign, Building, User } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 
 export default function JobDetailsStep({
@@ -129,7 +130,8 @@ export default function JobDetailsStep({
 
   return (
     <StepContainer saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Step Header */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
@@ -280,7 +282,8 @@ export default function JobDetailsStep({
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }

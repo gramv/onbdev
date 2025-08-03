@@ -1,132 +1,20 @@
+INFO:     Will watch for changes in these directories: ['/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [29115] using StatReload
 /opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
 * 'schema_extra' has been renamed to 'json_schema_extra'
   warnings.warn(message, UserWarning)
 WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
 INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/main_enhanced.py:139: DeprecationWarning: 
-        on_event is deprecated, use lifespan event handlers instead.
-
-        Read more about it in the
-        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
-        
-  @app.on_event("startup")
-INFO:     Started server process [64808]
+INFO:     Started server process [29124]
 INFO:     Waiting for application startup.
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
 INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:52479 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:52479 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52751 - "OPTIONS /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:__main__:Demo mode: Processing I-9 complete for demo-employee-001
-INFO:__main__:Demo mode: Simulating save of I-9 complete data
-INFO:     127.0.0.1:52751 - "POST /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:64236 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:64259 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64326 - "OPTIONS /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:__main__:Demo mode: Processing I-9 complete for demo-employee-001
-INFO:__main__:Demo mode: Simulating save of I-9 complete data
-INFO:     127.0.0.1:64326 - "POST /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:49372 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:49394 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:__main__:Demo mode: Processing I-9 complete for demo-employee-001
-INFO:__main__:Demo mode: Simulating save of I-9 complete data
-INFO:     127.0.0.1:49802 - "POST /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:51323 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:51349 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51408 - "OPTIONS /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:__main__:Demo mode: Processing I-9 complete for demo-employee-001
-INFO:__main__:Demo mode: Simulating save of I-9 complete data
-INFO:     127.0.0.1:51408 - "POST /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:53189 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:53215 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54427 - "OPTIONS /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:__main__:Demo mode: Processing I-9 complete for demo-employee-001
-INFO:__main__:Demo mode: Simulating save of I-9 complete data
-INFO:     127.0.0.1:54427 - "POST /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:55625 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:55661 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:58385 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:58407 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.DRIVERS_LICENSE
-INFO:     127.0.0.1:61678 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Using mock data for document type: I9DocumentType.SSN_CARD
-INFO:     127.0.0.1:61700 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [64808]
-/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
-* 'schema_extra' has been renamed to 'json_schema_extra'
-  warnings.warn(message, UserWarning)
-WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
-INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/main_enhanced.py:139: DeprecationWarning: 
-        on_event is deprecated, use lifespan event handlers instead.
-
-        Read more about it in the
-        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
-        
-  @app.on_event("startup")
-INFO:     Started server process [15014]
-INFO:     Waiting for application startup.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
-ERROR:app.i9_ocr_service:Groq Vision API error: Error code: 400 - {'error': {'message': 'The model `llama-3.2-90b-vision-preview` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:50738 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
-ERROR:app.i9_ocr_service:Groq Vision API error: Error code: 400 - {'error': {'message': 'The model `llama-3.2-90b-vision-preview` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.', 'type': 'invalid_request_error', 'code': 'model_decommissioned'}}
-INFO:     127.0.0.1:50781 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [15014]
-/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
-* 'schema_extra' has been renamed to 'json_schema_extra'
-  warnings.warn(message, UserWarning)
-WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
-INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/main_enhanced.py:139: DeprecationWarning: 
-        on_event is deprecated, use lifespan event handlers instead.
-
-        Read more about it in the
-        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
-        
-  @app.on_event("startup")
-INFO:     Started server process [20182]
-INFO:     Waiting for application startup.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
 ✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
 ✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
 ✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:51865 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49824 - "GET /healthz HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -144,7 +32,7 @@ INFO:app.i9_ocr_service:Groq API response: {
   "weight": "",
   "eye_color": "Brown"
 }
-INFO:     127.0.0.1:52239 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54996 - "POST /api/documents/process HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -153,7 +41,7 @@ INFO:app.i9_ocr_service:Groq API response: {
   "last_name": "Sousa",
   "issuing_authority": "Social Security Administration"
 }
-INFO:     127.0.0.1:52266 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55029 - "POST /api/documents/process HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -171,7 +59,7 @@ INFO:app.i9_ocr_service:Groq API response: {
   "weight": "",
   "eye_color": "Brown"
 }
-INFO:     127.0.0.1:52509 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55357 - "POST /api/documents/process HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -180,7 +68,7 @@ INFO:app.i9_ocr_service:Groq API response: {
   "last_name": "Sousa",
   "issuing_authority": "Social Security Administration"
 }
-INFO:     127.0.0.1:52532 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55382 - "POST /api/documents/process HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -198,7 +86,7 @@ INFO:app.i9_ocr_service:Groq API response: {
   "weight": "",
   "eye_color": "Brown"
 }
-INFO:     127.0.0.1:62042 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56261 - "POST /api/documents/process HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -207,7 +95,11 @@ INFO:app.i9_ocr_service:Groq API response: {
   "last_name": "Sousa",
   "issuing_authority": "Social Security Administration"
 }
-INFO:     127.0.0.1:62074 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56284 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56384 - "OPTIONS /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
+INFO:app.main_enhanced:Demo mode: Processing I-9 complete for demo-employee-001
+INFO:app.main_enhanced:Demo mode: Simulating save of I-9 complete data
+INFO:     127.0.0.1:56384 - "POST /api/onboarding/demo-employee-001/i9-complete HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -225,7 +117,7 @@ INFO:app.i9_ocr_service:Groq API response: {
   "weight": "",
   "eye_color": "Brown"
 }
-INFO:     127.0.0.1:63339 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56663 - "POST /api/documents/process HTTP/1.1" 200 OK
 INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
 INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
 INFO:app.i9_ocr_service:Groq API response: {
@@ -234,58 +126,10 @@ INFO:app.i9_ocr_service:Groq API response: {
   "last_name": "Sousa",
   "issuing_authority": "Social Security Administration"
 }
-INFO:     127.0.0.1:63374 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "document_number": "123456789",
-  "first_name": "Janice",
-  "last_name": "Sample",
-  "date_of_birth": "1994-06-01",
-  "issue_date": "2024-06-01",
-  "expiration_date": "2032-06-01",
-  "issuing_authority": "Tennessee",
-  "address": "123 Main St, Apt 1, Nashville, TN 37210",
-  "class": "M",
-  "restrictions": "None",
-  "height": "5'-06\"",
-  "weight": "",
-  "eye_color": "Brown"
-}
-INFO:     127.0.0.1:64868 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "ssn": "000-00-0000",
-  "first_name": "Barry",
-  "last_name": "Sousa",
-  "issuing_authority": "Social Security Administration"
-}
-INFO:     127.0.0.1:64895 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "document_number": "123456789",
-  "first_name": "Janice",
-  "last_name": "Sample",
-  "date_of_birth": "1994-06-01",
-  "issue_date": "2024-06-01",
-  "expiration_date": "2032-06-01",
-  "issuing_authority": "Tennessee",
-  "address": "123 Main St, Apt 1, Nashville, TN 37210",
-  "class": "M",
-  "restrictions": "None",
-  "height": "5'-06\"",
-  "weight": "",
-  "eye_color": "Brown"
-}
-INFO:     127.0.0.1:65269 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "ssn": "000-00-0000",
-  "first_name": "Barry",
-  "last_name": "Sousa",
-  "issuing_authority": "Social Security Administration"
-}
-INFO:     127.0.0.1:65300 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56686 - "POST /api/documents/process HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.demo "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to get property by ID demo: {'message': 'invalid input syntax for type uuid: "demo"', 'code': '22P02', 'hint': None, 'details': None}
+INFO:     127.0.0.1:59997 - "GET /properties/demo/info HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A&id=eq.demo "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to get property by ID demo: {'message': 'invalid input syntax for type uuid: "demo"', 'code': '22P02', 'hint': None, 'details': None}
+INFO:     127.0.0.1:60003 - "GET /properties/demo/info HTTP/1.1" 404 Not Found

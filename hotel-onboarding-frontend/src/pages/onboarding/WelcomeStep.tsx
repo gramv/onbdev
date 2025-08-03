@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Clock, FileText } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 
 export default function WelcomeStep({
@@ -80,36 +81,37 @@ export default function WelcomeStep({
 
   return (
     <StepContainer saveStatus={saveStatus}>
-      <div className="space-y-6">
+      <StepContentWrapper>
+        <div className="space-y-6">
         {/* Clean Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.greeting}</h1>
-          <p className="text-lg text-blue-600 font-medium">{t.propertyInfo}</p>
-          <p className="text-base text-gray-600">{t.title}</p>
+          <h1 className="text-heading-primary">{t.greeting}</h1>
+          <p className="text-heading-secondary text-blue-600">{t.propertyInfo}</p>
+          <p className="text-body-large text-gray-600">{t.title}</p>
         </div>
 
         {/* Completion Alert */}
         {formData.welcomeAcknowledged && (
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
+            <AlertDescription className="text-body-default text-green-800">
               {t.completedMessage}
             </AlertDescription>
           </Alert>
         )}
 
         {/* Main Content Card */}
-        <Card>
+        <Card className="card-transition">
           <CardContent className="pt-6 space-y-4">
             {/* Time Estimate */}
             <div className="flex items-center justify-center space-x-2 text-blue-600 bg-blue-50 rounded-lg p-3">
               <Clock className="h-5 w-5" />
-              <span className="font-medium">{t.estimatedTime}</span>
+              <span className="text-body-small font-medium">{t.estimatedTime}</span>
             </div>
 
             {/* Requirements List */}
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <h3 className="text-body-default font-semibold text-gray-900 mb-3 flex items-center">
                 <FileText className="h-4 w-4 mr-2" />
                 {t.whatYouNeed}
               </h3>
@@ -117,7 +119,7 @@ export default function WelcomeStep({
                 {t.requirements.map((req, index) => (
                   <li key={index} className="flex items-start">
                     <span className="text-green-500 mr-2">✓</span>
-                    <span className="text-gray-700">{req}</span>
+                    <span className="text-body-default text-gray-700">{req}</span>
                   </li>
                 ))}
               </ul>
@@ -130,13 +132,14 @@ export default function WelcomeStep({
           <div className="text-center mt-4">
             <button
               onClick={() => setFormData(prev => ({ ...prev, welcomeAcknowledged: true }))}
-              className="text-sm text-blue-600 hover:text-blue-700 underline"
+              className="text-body-small text-blue-600 hover:text-blue-700 underline"
             >
               I understand the requirements
             </button>
           </div>
         )}
-      </div>
+        </div>
+      </StepContentWrapper>
     </StepContainer>
   )
 }
