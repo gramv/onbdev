@@ -8,6 +8,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import { scrollToTop, scrollToErrorContainer } from '@/utils/scrollHelpers'
 
 // Import the new infrastructure
 import { OnboardingFlowController, StepProps } from '../controllers/OnboardingFlowController'
@@ -101,7 +102,7 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       setSaveStatus(status)
     }
 
-    const interval = setInterval(updateSaveStatus, 1000)
+    const interval = setInterval(updateSaveStatus, 5000) // Reduced frequency from 1s to 5s
     return () => clearInterval(interval)
   }, [session, currentStep, flowController])
 
@@ -135,6 +136,8 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       if (!validation.valid) {
         console.log('Validation failed:', validation)
         setValidationErrors(validation.errors)
+        // Scroll to error container to show validation errors
+        scrollToErrorContainer()
         return
       }
       
@@ -146,9 +149,14 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       setCurrentStep(flowController.getCurrentStep())
       setProgress(flowController.getProgress())
       
+      // Scroll to top after successful navigation
+      scrollToTop()
+      
     } catch (err) {
       console.error('Failed to proceed to next step:', err)
       setValidationErrors([err instanceof Error ? err.message : 'Failed to proceed'])
+      // Scroll to error container to show error
+      scrollToErrorContainer()
     }
   }, [currentStep, flowController])
 
@@ -156,6 +164,9 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
     flowController.goToPreviousStep()
     setCurrentStep(flowController.getCurrentStep())
     setProgress(flowController.getProgress())
+    
+    // Scroll to top after navigation
+    scrollToTop()
   }, [flowController])
 
   const handleSaveProgress = useCallback(async (stepId: string, data?: any) => {
@@ -384,7 +395,7 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
             <CardContent>
               {/* Validation Errors */}
               {validationErrors.length > 0 && (
-                <Alert className="mb-6 border-red-200 bg-red-50">
+                <Alert id="error-container" className="mb-6 border-red-200 bg-red-50">
                   <AlertCircle className="h-4 w-4 text-red-600" />
                   <AlertDescription>
                     <div className="font-medium text-red-800 mb-2">Please fix the following issues:</div>

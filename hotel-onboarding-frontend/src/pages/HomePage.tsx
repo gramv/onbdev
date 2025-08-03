@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Sparkles, Code, FileText, TestTube } from 'lucide-react'
 
 export default function HomePage() {
+  const isDevelopment = process.env.NODE_ENV === 'development'
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-8">
@@ -91,6 +93,78 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Development Tools Section */}
+      {isDevelopment && (
+        <div className="mt-16 border-t pt-8">
+          <h2 className="text-2xl font-semibold mb-4 text-center text-gray-700">Development Tools</h2>
+          <div className="grid md:grid-cols-4 gap-4 max-w-6xl mx-auto">
+            <Card className="border-dashed border-2 border-blue-300 bg-blue-50/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-blue-600" />
+                  Enhanced UI Test
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link to="/test-enhanced-ui">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Test New Components
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="border-dashed border-2 border-purple-300 bg-purple-50/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TestTube className="h-4 w-4 text-purple-600" />
+                  Component Test
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link to="/test-components">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Test Components
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="border-dashed border-2 border-green-300 bg-green-50/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Code className="h-4 w-4 text-green-600" />
+                  Flow Test
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link to="/onboard-flow-test">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Test Onboarding Flow
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="border-dashed border-2 border-orange-300 bg-orange-50/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-orange-600" />
+                  I-9 Field Tool
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Link to="/extract-i9-fields">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Extract I-9 Fields
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

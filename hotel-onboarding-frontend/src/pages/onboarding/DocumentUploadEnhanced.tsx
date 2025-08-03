@@ -179,11 +179,22 @@ export default function DocumentUploadEnhanced({
       )
       
       // Update with extracted data
+      console.log('Document processing response:', response.data)
+      console.log('Document type:', docType)
+      
+      const extractedData = response.data.data || response.data
+      console.log('Extracted data for', docType, ':', extractedData)
+      
+      // For SSN card, ensure the SSN is available at the root level
+      if (docType === 'social_security_card' && extractedData.ssn) {
+        console.log('SSN found in response:', extractedData.ssn)
+      }
+      
       setUploadedDocuments(prev => prev.map(doc => 
         doc.id === docId ? {
           ...doc,
           status: 'complete',
-          extractedData: response.data.data || response.data  // Extract the data field from the response
+          extractedData: extractedData
         } : doc
       ))
       
@@ -237,14 +248,24 @@ export default function DocumentUploadEnhanced({
   
   // Handle completion
   const handleComplete = () => {
+    console.log('handleComplete - uploadedDocuments:', uploadedDocuments)
+    
     const extractedData = uploadedDocuments
       .filter(doc => doc.status === 'complete')
-      .map(doc => ({
-        documentType: doc.type,
-        ...doc.extractedData
-      }))
+      .map(doc => {
+        console.log('Processing document:', doc.type, 'with extractedData:', doc.extractedData)
+        return {
+          documentType: doc.type,
+          type: doc.type, // Add both for compatibility
+          ...doc.extractedData
+        }
+      })
     
-    console.log('DocumentUploadEnhanced - Extracted data being passed:', extractedData)
+    console.log('DocumentUploadEnhanced - Final extracted data array:', extractedData)
+    
+    // Look specifically for SSN data
+    const ssnDoc = extractedData.find(d => d.documentType === 'social_security_card')
+    console.log('SSN document found:', ssnDoc)
     
     onComplete({ 
       uploadedDocuments: uploadedDocuments.map(doc => ({

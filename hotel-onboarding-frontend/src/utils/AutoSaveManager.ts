@@ -25,7 +25,7 @@ export class AutoSaveManager {
 
   constructor(config: Partial<AutoSaveConfig> = {}) {
     this.config = {
-      interval: 30000, // 30 seconds default
+      interval: 60000, // 60 seconds default (increased from 30s)
       debounceDelay: 2000, // 2 seconds debounce
       ...config
     }
@@ -84,7 +84,10 @@ export class AutoSaveManager {
       await saveFunction(formId, currentData)
 
       // Update state on success
-      formState.lastData = JSON.parse(JSON.stringify(currentData))
+      // Use structuredClone for better performance if available, fallback to JSON method
+      formState.lastData = typeof structuredClone !== 'undefined' 
+        ? structuredClone(currentData)
+        : JSON.parse(JSON.stringify(currentData))
       formState.lastSaved = new Date()
       formState.saving = false
 
@@ -172,12 +175,19 @@ export class AutoSaveManager {
   }
 
   /**
-   * Check if data has changed (deep comparison)
+   * Check if data has changed (optimized comparison)
    */
   private isDataEqual(data1: any, data2: any): boolean {
     if (data1 === data2) return true
     if (!data1 || !data2) return false
+    if (typeof data1 !== 'object' || typeof data2 !== 'object') return false
     
+    // Quick check: compare number of keys
+    const keys1 = Object.keys(data1)
+    const keys2 = Object.keys(data2)
+    if (keys1.length !== keys2.length) return false
+    
+    // Deep comparison only if key counts match
     return JSON.stringify(data1) === JSON.stringify(data2)
   }
 
@@ -189,7 +199,10 @@ export class AutoSaveManager {
     if (formState) {
       formState.lastSaved = new Date()
       if (data) {
-        formState.lastData = JSON.parse(JSON.stringify(data))
+        // Use structuredClone for better performance if available, fallback to JSON method
+        formState.lastData = typeof structuredClone !== 'undefined'
+          ? structuredClone(data)
+          : JSON.parse(JSON.stringify(data))
       }
       formState.error = null
     }

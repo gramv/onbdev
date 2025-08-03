@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
-import { CheckCircle, Building, FileText, ScrollText, PenTool, Check } from 'lucide-react'
+import { CheckCircle, Building, FileText, ScrollText, PenTool, Check, Shield, Briefcase, Lock, Heart, ArrowRight, ArrowLeft } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { companyPoliciesValidator } from '@/utils/stepValidators'
+import { scrollToTop } from '@/utils/scrollHelpers'
 
 // Helper component to render formatted text with bold markdown
 const FormattedPolicyText = ({ text, className = '' }: { text: string; className?: string }) => {
@@ -31,8 +33,8 @@ const FormattedPolicyText = ({ text, className = '' }: { text: string; className
   )
 }
 
-// Main Company Policies Text (from pages 3-6)
-const MAIN_POLICIES_TEXT = `**AT WILL EMPLOYMENT**
+// All Company Policies merged into one section
+const COMPANY_POLICIES_TEXT = `**AT WILL EMPLOYMENT**
 
 Your employment relationship with the Hotel is 'At-Will' which means that it is a voluntary one which may by be terminated by either the Hotel or yourself, with or without cause, and with or without notice, at any time. Nothing in these policies shall be interpreted to be in conflict with or to eliminate or modify in any way the 'employment-at-will' status of Hotel associates.
 
@@ -100,6 +102,16 @@ If you are encouraged or pressured to become involved with a customer or associa
 
 In the event that you are contacted by any member of the media or any outside party regarding hotel business or incident, occurring on or off property, kindly refer such inquiries to your General Manager.
 
+**ELECTRONIC MAIL**
+
+Electronic mail may be provided to facilitate the business of the Hotel. It is to be used for business purposes only. The electronic mail and other information systems are not to be used in a way that may be disruptive, offensive to others, or harmful to morale.
+
+Specifically, it is against Hotel policy to display or transmit sexually explicit messages, or cartoons. Therefore, any such transmission or use of e-mail that contain ethnic slurs, racial epithets, or anything else that may be construed as harassment or offensive to others based on their race, national origin, sex, sexual orientation, age, disability, religious, or political beliefs is strictly prohibited and could result in appropriate disciplinary action up to and including termination.
+
+Destroying or deleting e-mail messages which are considered business records is strictly prohibited. The Hotel reserves the right to monitor all electronic mail retention and take appropriate management action, if necessary, including disciplinary action, for violations of this policy up to and including termination.
+
+The Hotel reserves the right to take immediate action, up to and including termination, regarding activities (1) that create security and/or safety issues for the Hotel, associates, vendors, network or computer resources, or (2) that expend Hotel resources on content the Hotel in its sole discretion determines lacks legitimate business content/purpose, (3) other activities as determined by Hotel as inappropriate, or (4) violation of any federal or state regulations.
+
 **REMOVAL OF ITEMS OFF HOTEL PREMISES**
 
 No items other than an associate's own personal property may be removed from Hotel premises without authorization. Permission must be obtained from your General Manager in order to remove any item from the hotel premises. (An example of such is a small article of minimal value that the guest did not take with him/her). The hotel has the right of inspection and retention of any such items suspected to being removed from the premises. At no time is food of any type or form, full or partial, containers of alcoholic beverages to be removed from the Hotel.
@@ -115,16 +127,6 @@ Employees are prohibited from engaging in solicitation or distribution of any ki
 For the purpose of this policy, "working time" includes the working time of both the associate doing the solicitation or distribution and the associate to whom it is directed, but does not include break, lunch or other duty-free periods of time.
 
 Off-duty associates are not permitted access to the interior of the Hotel's premises except where they are attending a Hotel event, or to conduct business with the Hotel's management or administrative office that cannot be conducted during the associate's regular work shift. Unless explicitly approved by the asset manager, associates are not permitted to stay on property.
-
-**ELECTRONIC MAIL**
-
-Electronic mail may be provided to facilitate the business of the Hotel. It is to be used for business purposes only. The electronic mail and other information systems are not to be used in a way that may be disruptive, offensive to others, or harmful to morale.
-
-Specifically, it is against Hotel policy to display or transmit sexually explicit messages, or cartoons. Therefore, any such transmission or use of e-mail that contain ethnic slurs, racial epithets, or anything else that may be construed as harassment or offensive to others based on their race, national origin, sex, sexual orientation, age, disability, religious, or political beliefs is strictly prohibited and could result in appropriate disciplinary action up to and including termination.
-
-Destroying or deleting e-mail messages which are considered business records is strictly prohibited. The Hotel reserves the right to monitor all electronic mail retention and take appropriate management action, if necessary, including disciplinary action, for violations of this policy up to and including termination.
-
-The Hotel reserves the right to take immediate action, up to and including termination, regarding activities (1) that create security and/or safety issues for the Hotel, associates, vendors, network or computer resources, or (2) that expend Hotel resources on content the Hotel in its sole discretion determines lacks legitimate business content/purpose, (3) other activities as determined by Hotel as inappropriate, or (4) violation of any federal or state regulations.
 
 **HAZARD COMMUNICATION PLAN**
 
@@ -254,19 +256,74 @@ export default function CompanyPoliciesStep({
   property
 }: StepProps) {
   
-  const [sexualHarassmentInitials, setSexualHarassmentInitials] = useState('')
+  // Section state - progressive flow
+  const [currentSection, setCurrentSection] = useState(1)
+  
+  // Form state
+  const [companyPoliciesInitials, setCompanyPoliciesInitials] = useState('')
   const [eeoInitials, setEeoInitials] = useState('')
+  const [sexualHarassmentInitials, setSexualHarassmentInitials] = useState('')
   const [acknowledgmentChecked, setAcknowledgmentChecked] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
   const [signatureData, setSignatureData] = useState(null)
 
+  // Section completion state
+  const [section1Complete, setSection1Complete] = useState(false)
+  const [section2Complete, setSection2Complete] = useState(false)
+  const [section3Complete, setSection3Complete] = useState(false)
+  const [section4Complete, setSection4Complete] = useState(false)
+  const [section5Complete, setSection5Complete] = useState(false)
+
+  // Get user initials for validation
+  const getUserInitials = () => {
+    // Try to get from session storage first
+    const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
+    if (personalInfoData) {
+      try {
+        const parsed = JSON.parse(personalInfoData)
+        const firstName = parsed.personalInfo?.firstName || ''
+        const lastName = parsed.personalInfo?.lastName || ''
+        if (firstName && lastName) {
+          return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase()
+        }
+      } catch (e) {
+        console.warn('Failed to parse personal info data:', e)
+      }
+    }
+    
+    // Fallback to employee prop
+    if (employee?.firstName && employee?.lastName) {
+      return (employee.firstName.charAt(0) + employee.lastName.charAt(0)).toUpperCase()
+    }
+    
+    return ''
+  }
+
+  const expectedInitials = getUserInitials()
+
+  // Validation for initials
+  const validateInitials = (initials: string, fieldName: string) => {
+    if (initials.trim().length < 2) return false
+    if (expectedInitials && initials.trim() !== expectedInitials) {
+      return `Initials must match your name (${expectedInitials})`
+    }
+    return true
+  }
+
   // Form data for saving
   const formData = {
+    currentSection,
+    companyPoliciesInitials,
     sexualHarassmentInitials,
     eeoInitials,
     acknowledgmentChecked,
     isSigned,
-    signatureData
+    signatureData,
+    section1Complete,
+    section2Complete,
+    section3Complete,
+    section4Complete,
+    section5Complete
   }
 
   // Validation hook
@@ -283,26 +340,102 @@ export default function CompanyPoliciesStep({
   useEffect(() => {
     if (progress.completedSteps.includes(currentStep.id)) {
       setIsSigned(true)
+      setSection5Complete(true)
+      setSection4Complete(true)
+      setSection3Complete(true)
+      setSection2Complete(true)
+      setSection1Complete(true)
+      setCurrentSection(5)
+    }
+
+    // Load saved data
+    const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        if (parsed.currentSection) setCurrentSection(parsed.currentSection)
+        if (parsed.companyPoliciesInitials) setCompanyPoliciesInitials(parsed.companyPoliciesInitials)
+        if (parsed.sexualHarassmentInitials) setSexualHarassmentInitials(parsed.sexualHarassmentInitials)
+        if (parsed.eeoInitials) setEeoInitials(parsed.eeoInitials)
+        if (parsed.acknowledgmentChecked) setAcknowledgmentChecked(parsed.acknowledgmentChecked)
+        if (parsed.signatureData) setSignatureData(parsed.signatureData)
+        if (parsed.isSigned) setIsSigned(parsed.isSigned)
+        if (parsed.section1Complete) setSection1Complete(parsed.section1Complete)
+        if (parsed.section2Complete) setSection2Complete(parsed.section2Complete)
+        if (parsed.section3Complete) setSection3Complete(parsed.section3Complete)
+        if (parsed.section4Complete) setSection4Complete(parsed.section4Complete)
+        if (parsed.section5Complete) setSection5Complete(parsed.section5Complete)
+      } catch (e) {
+        console.warn('Failed to parse saved company policies data:', e)
+      }
     }
   }, [currentStep.id, progress.completedSteps])
+
+  // Handle section navigation
+  const handleSectionContinue = () => {
+    switch (currentSection) {
+      case 1:
+        // Validate initials for section 1
+        if (validateInitials(companyPoliciesInitials, 'Company Policies') === true) {
+          setSection1Complete(true)
+          setCurrentSection(2)
+        } else {
+          alert('Please provide valid initials for the Company Policies section')
+          return
+        }
+        break
+      case 2:
+        // Validate initials for section 2
+        if (validateInitials(eeoInitials, 'EEO') === true) {
+          setSection2Complete(true)
+          setCurrentSection(3)
+        } else {
+          alert('Please provide valid initials for the Equal Employment Opportunity section')
+          return
+        }
+        break
+      case 3:
+        // Validate initials for section 3
+        if (validateInitials(sexualHarassmentInitials, 'Sexual Harassment') === true) {
+          setSection3Complete(true)
+          setCurrentSection(4)
+        } else {
+          alert('Please provide valid initials for the Sexual Harassment section')
+          return
+        }
+        break
+      case 4:
+        setSection4Complete(true)
+        setCurrentSection(5)
+        break
+      case 5:
+        setSection5Complete(true)
+        break
+    }
+    scrollToTop()
+  }
+
+  // Handle going back to previous section
+  const handleSectionBack = () => {
+    if (currentSection > 1) {
+      setCurrentSection(currentSection - 1)
+      scrollToTop()
+    }
+  }
 
   // Handle signature completion
   const handleSignature = async (signature) => {
     setSignatureData(signature)
     setIsSigned(true)
     
-    // Validate before marking complete
-    const validation = await validate({
-      sexualHarassmentInitials,
-      eeoInitials,
-      acknowledgmentChecked
-    })
+    // Check if all fields are valid
+    const companyValidation = validateInitials(companyPoliciesInitials, 'Company Policies')
+    const eeoValidation = validateInitials(eeoInitials, 'EEO')
+    const shValidation = validateInitials(sexualHarassmentInitials, 'Sexual Harassment')
     
-    if (validation.valid) {
+    if (companyValidation === true && eeoValidation === true && shValidation === true && acknowledgmentChecked) {
       const completeData = {
-        sexualHarassmentInitials,
-        eeoInitials,
-        acknowledgmentChecked,
+        ...formData,
         signatureData: signature,
         isSigned: true,
         completedAt: new Date().toISOString()
@@ -312,58 +445,129 @@ export default function CompanyPoliciesStep({
       // Then mark as complete
       await markStepComplete(currentStep.id, completeData)
     } else {
-      console.error('Validation failed:', validation.errors)
-      alert('Please complete all required fields before signing:\n' + validation.errors.join('\n'))
+      const errorMessages = []
+      if (companyValidation !== true) errorMessages.push(`Company Policies: ${companyValidation}`)
+      if (eeoValidation !== true) errorMessages.push(`EEO Policy: ${eeoValidation}`)
+      if (shValidation !== true) errorMessages.push(`Sexual Harassment Policy: ${shValidation}`)
+      if (!acknowledgmentChecked) errorMessages.push('Please check the acknowledgment agreement')
+      
+      alert('Please complete all required fields before signing:\n' + errorMessages.join('\n'))
     }
   }
 
   // Computed values
-  const isFormComplete = sexualHarassmentInitials.trim().length >= 2 && 
-                        eeoInitials.trim().length >= 2 && 
+  const isFormComplete = validateInitials(companyPoliciesInitials, 'Company Policies') === true &&
+                        validateInitials(eeoInitials, 'EEO') === true && 
+                        validateInitials(sexualHarassmentInitials, 'Sexual Harassment') === true && 
                         acknowledgmentChecked
   
-  const isStepComplete = isFormComplete && isSigned
+  const isStepComplete = isFormComplete && isSigned && section5Complete
+  const allSectionsComplete = section1Complete && section2Complete && section3Complete && section4Complete
 
   const translations = {
     en: {
       title: 'Company Policies & Terms',
-      description: 'Please read through all company policies below. You will need to provide your initials on specific sections and accept the terms.',
-      mainPoliciesTitle: 'Company Policies',
+      description: 'Please read through all company policies in the sections below. You will need to provide your initials on specific sections and accept the terms.',
+      
+      // Section titles
+      section1Title: 'Section 1: All Company Policies',
+      section2Title: 'Section 2: Equal Employment Opportunity',
+      section3Title: 'Section 3: Sexual and Other Unlawful Harassment',
+      section4Title: 'Section 4: Confidential Associate Hotline',
+      section5Title: 'Section 5: Final Acknowledgment & Signature',
+      
+      // Section descriptions
+      section1Desc: 'Core policies including employment terms, workplace violence prevention, pay policies, technology usage, and benefits',
+      section2Desc: 'Equal employment opportunity commitment and policies',
+      section3Desc: 'Sexual harassment prevention and reporting procedures',
+      section4Desc: 'Confidential reporting hotline information',
+      section5Desc: 'Final acknowledgment and digital signature',
+      
+      continue: 'Continue to Next Section',
+      back: 'Back to Previous Section',
+      
       initialsLabel: 'Your initials to acknowledge reading and understanding:',
+      initialsValidationError: 'Initials must match your name',
       acknowledgmentTitle: 'Acknowledgment of Receipt & Agreement',
       acknowledgmentText: 'I have read, understood, and agree to all company policies, terms of employment, and confidentiality requirements outlined above.',
       signatureTitle: 'Digital Signature Required',
       completionTitle: 'Company Policies Acknowledged!',
       completionMessage: 'Thank you for reviewing and accepting our company policies.',
       incompleteTitle: 'Complete All Requirements',
-      toProceeed: 'To proceed, please:',
-      provideInitialsSH: 'Provide initials for Sexual Harassment Policy',
-      provideInitialsEEO: 'Provide initials for Equal Employment Opportunity Policy',
-      checkAcknowledgment: 'Check the acknowledgment agreement',
+      toProceeed: 'To proceed, please complete all sections and requirements.',
       confidentialHotlineTitle: 'Confidential Associate Hotline',
       acknowledgmentSectionTitle: 'ACKNOWLEDGEMENT OF RECEIPT'
     },
     es: {
       title: 'Políticas de la Empresa y Términos',
-      description: 'Por favor, lea todas las políticas de la empresa a continuación. Deberá proporcionar sus iniciales en secciones específicas y aceptar los términos.',
-      mainPoliciesTitle: 'Políticas de la Empresa',
+      description: 'Por favor, lea todas las políticas de la empresa en las secciones a continuación. Deberá proporcionar sus iniciales en secciones específicas y aceptar los términos.',
+      
+      // Section titles
+      section1Title: 'Sección 1: Todas las Políticas de la Empresa',
+      section2Title: 'Sección 2: Igualdad de Oportunidades de Empleo',
+      section3Title: 'Sección 3: Acoso Sexual y Otros Acosos Ilegales',
+      section4Title: 'Sección 4: Línea Directa Confidencial del Asociado',
+      section5Title: 'Sección 5: Reconocimiento Final y Firma',
+      
+      // Section descriptions
+      section1Desc: 'Políticas centrales incluyendo términos de empleo, prevención de violencia en el lugar de trabajo, políticas de pago, uso de tecnología y beneficios',
+      section2Desc: 'Compromiso y políticas de igualdad de oportunidades de empleo',
+      section3Desc: 'Prevención de acoso sexual y procedimientos de denuncia',
+      section4Desc: 'Información de línea directa de denuncia confidencial',
+      section5Desc: 'Reconocimiento final y firma digital',
+      
+      continue: 'Continuar a la Siguiente Sección',
+      back: 'Volver a la Sección Anterior',
+      
       initialsLabel: 'Sus iniciales para reconocer lectura y comprensión:',
+      initialsValidationError: 'Las iniciales deben coincidir con su nombre',
       acknowledgmentTitle: 'Reconocimiento de Recibo y Acuerdo',
       acknowledgmentText: 'He leído, entendido y acepto todas las políticas de la empresa, términos de empleo y requisitos de confidencialidad descritos anteriormente.',
       signatureTitle: 'Firma Digital Requerida',
       completionTitle: '¡Políticas de la Empresa Reconocidas!',
       completionMessage: 'Gracias por revisar y aceptar nuestras políticas de la empresa.',
       incompleteTitle: 'Complete Todos los Requisitos',
-      toProceeed: 'Para continuar, por favor:',
-      provideInitialsSH: 'Proporcione iniciales para la Política de Acoso Sexual',
-      provideInitialsEEO: 'Proporcione iniciales para la Política de Igualdad de Oportunidades',
-      checkAcknowledgment: 'Marque el acuerdo de reconocimiento',
+      toProceeed: 'Para continuar, por favor complete todas las secciones y requisitos.',
       confidentialHotlineTitle: 'Línea Directa Confidencial del Asociado',
       acknowledgmentSectionTitle: 'RECONOCIMIENTO DE RECIBO'
     }
   }
 
   const t = translations[language]
+
+  // Get section icon and status
+  const getSectionIcon = (sectionNum: number) => {
+    const isCompleted = 
+      (sectionNum === 1 && section1Complete) ||
+      (sectionNum === 2 && section2Complete) ||
+      (sectionNum === 3 && section3Complete) ||
+      (sectionNum === 4 && section4Complete) ||
+      (sectionNum === 5 && section5Complete)
+
+    if (isCompleted) {
+      return <CheckCircle className="h-5 w-5 text-green-600" />
+    }
+
+    if (sectionNum === currentSection) {
+      switch (sectionNum) {
+        case 1: return <Shield className="h-5 w-5 text-blue-600" />
+        case 2: return <Building className="h-5 w-5 text-blue-600" />
+        case 3: return <Heart className="h-5 w-5 text-blue-600" />
+        case 4: return <FileText className="h-5 w-5 text-blue-600" />
+        case 5: return <PenTool className="h-5 w-5 text-blue-600" />
+        default: return <FileText className="h-5 w-5 text-blue-600" />
+      }
+    }
+
+    switch (sectionNum) {
+      case 1: return <Shield className="h-5 w-5 text-gray-400" />
+      case 2: return <Building className="h-5 w-5 text-gray-400" />
+      case 3: return <Heart className="h-5 w-5 text-gray-400" />
+      case 4: return <FileText className="h-5 w-5 text-gray-400" />
+      case 5: return <PenTool className="h-5 w-5 text-gray-400" />
+      default: return <FileText className="h-5 w-5 text-gray-400" />
+    }
+  }
 
   return (
     <StepContainer errors={errors} saveStatus={saveStatus}>
@@ -377,6 +581,40 @@ export default function CompanyPoliciesStep({
           <p className="text-gray-600 max-w-3xl mx-auto">{t.description}</p>
         </div>
 
+        {/* Progress indicator */}
+        <div className="flex items-center justify-center space-x-4 mb-6">
+          {[1, 2, 3, 4, 5].map((num) => (
+            <div key={num} className="flex items-center">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                num === currentSection ? 'border-blue-600 bg-blue-50' :
+                (num === 1 && section1Complete) || (num === 2 && section2Complete) || 
+                (num === 3 && section3Complete) || (num === 4 && section4Complete) || 
+                (num === 5 && section5Complete) ? 'border-green-600 bg-green-50' :
+                'border-gray-300 bg-gray-50'
+              }`}>
+                <span className={`text-sm font-medium ${
+                  num === currentSection ? 'text-blue-600' :
+                  (num === 1 && section1Complete) || (num === 2 && section2Complete) || 
+                  (num === 3 && section3Complete) || (num === 4 && section4Complete) || 
+                  (num === 5 && section5Complete) ? 'text-green-600' :
+                  'text-gray-400'
+                }`}>
+                  {(num === 1 && section1Complete) || (num === 2 && section2Complete) || 
+                   (num === 3 && section3Complete) || (num === 4 && section4Complete) || 
+                   (num === 5 && section5Complete) ? '✓' : num}
+                </span>
+              </div>
+              {num < 5 && (
+                <div className={`w-12 h-0.5 ml-2 ${
+                  (num === 1 && section1Complete) || (num === 2 && section2Complete) || 
+                  (num === 3 && section3Complete) || (num === 4 && section4Complete) 
+                  ? 'bg-green-300' : 'bg-gray-300'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+
         {/* Completion Alert */}
         {isStepComplete && (
           <Alert className="bg-green-50 border-green-200">
@@ -387,198 +625,373 @@ export default function CompanyPoliciesStep({
           </Alert>
         )}
 
-        {/* Main Policies Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-gray-600" />
-              <span>{t.mainPoliciesTitle}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto">
-              <div className="prose prose-sm max-w-none">
-                <FormattedPolicyText text={MAIN_POLICIES_TEXT} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Section Content */}
+        <div className="space-y-6">
 
-        {/* Equal Employment Opportunity Policy (requiring initials) */}
-        <Card className="border-orange-200">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <PenTool className="h-5 w-5 text-orange-600" />
-              <span>{EEO_POLICY.title}</span>
-              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                Initials Required
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-4">
-              <div className="prose prose-sm max-w-none">
-                <FormattedPolicyText text={EEO_POLICY.content} />
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Label htmlFor="eeo-initials" className="text-sm">
-                {t.initialsLabel}
-              </Label>
-              <Input
-                id="eeo-initials"
-                value={eeoInitials}
-                onChange={(e) => setEeoInitials(e.target.value.toUpperCase())}
-                placeholder="XX"
-                className="w-24 text-center font-mono text-lg"
-                maxLength={4}
-              />
-              {eeoInitials.trim().length >= 2 && (
-                <Check className="h-4 w-4 text-green-600" />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sexual Harassment Policy (requiring initials) */}
-        <Card className="border-orange-200">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <PenTool className="h-5 w-5 text-orange-600" />
-              <span>{SEXUAL_HARASSMENT_POLICY.title}</span>
-              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                Initials Required
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-4">
-              <div className="prose prose-sm max-w-none">
-                <FormattedPolicyText text={SEXUAL_HARASSMENT_POLICY.content} />
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Label htmlFor="sh-initials" className="text-sm">
-                {t.initialsLabel}
-              </Label>
-              <Input
-                id="sh-initials"
-                value={sexualHarassmentInitials}
-                onChange={(e) => setSexualHarassmentInitials(e.target.value.toUpperCase())}
-                placeholder="XX"
-                className="w-24 text-center font-mono text-lg"
-                maxLength={4}
-              />
-              {sexualHarassmentInitials.trim().length >= 2 && (
-                <Check className="h-4 w-4 text-green-600" />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Confidential Associate Hotline */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-gray-600" />
-              <span>{t.confidentialHotlineTitle}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <FormattedPolicyText text={CONFIDENTIAL_HOTLINE_TEXT} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Acknowledgment Section - Only show when initials are provided */}
-        {sexualHarassmentInitials.trim().length >= 2 && 
-         eeoInitials.trim().length >= 2 && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-blue-800">
-                <FileText className="h-5 w-5" />
-                <span>{t.acknowledgmentSectionTitle}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-4">
-                <div className="prose prose-sm max-w-none">
-                  <FormattedPolicyText text={ACKNOWLEDGMENT_TEXT} className="text-sm" />
+          {/* Section 1: All Company Policies */}
+          {currentSection === 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {getSectionIcon(1)}
+                  <span>{t.section1Title}</span>
+                </CardTitle>
+                <p className="text-sm text-gray-600">{t.section1Desc}</p>
+              </CardHeader>
+              <CardContent>
+                {/* All Company Policies in One Section */}
+                <div className="mb-6">
+                  <div className="p-4 bg-gray-50 rounded-lg max-h-[600px] overflow-y-auto">
+                    <div className="prose prose-sm max-w-none">
+                      <FormattedPolicyText text={COMPANY_POLICIES_TEXT} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <Checkbox
-                  id="acknowledgment"
-                  checked={acknowledgmentChecked}
-                  onCheckedChange={(checked) => setAcknowledgmentChecked(checked as boolean)}
-                  className="mt-1"
-                />
-                <Label htmlFor="acknowledgment" className="text-sm leading-relaxed cursor-pointer">
-                  {t.acknowledgmentText}
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Digital Signature Section - Only show when form is complete */}
-        {isFormComplete && !isSigned && (
-          <Card className="border-green-200 bg-green-50">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-green-800">
-                <CheckCircle className="h-5 w-5" />
-                <span>{t.signatureTitle}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DigitalSignatureCapture
-                documentName="Company Policy Acknowledgment"
-                signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
-                signerTitle={employee?.position}
-                acknowledgments={[
-                  'I have read and understand all company policies',
-                  'I agree to the terms of employment',
-                  'I have provided my initials on required sections'
-                ]}
-                requireIdentityVerification={false}
-                language={language}
-                onSignatureComplete={handleSignature}
-              />
-            </CardContent>
-          </Card>
-        )}
+                {/* Initials for all company policies */}
+                <Card className="border-orange-200 mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <PenTool className="h-5 w-5 text-orange-600" />
+                      <span>Company Policies Acknowledgment</span>
+                      <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                        {language === 'en' ? 'Initials Required' : 'Iniciales Requeridas'}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center space-x-4">
+                      <Label htmlFor="company-initials" className="text-sm">
+                        {t.initialsLabel}
+                      </Label>
+                      <Input
+                        id="company-initials"
+                        value={companyPoliciesInitials}
+                        onChange={(e) => setCompanyPoliciesInitials(e.target.value.toUpperCase())}
+                        placeholder={expectedInitials || "XX"}
+                        className="w-24 text-center font-mono text-lg"
+                        maxLength={4}
+                      />
+                      {validateInitials(companyPoliciesInitials, 'Company Policies') === true && (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                      {typeof validateInitials(companyPoliciesInitials, 'Company Policies') === 'string' && companyPoliciesInitials.trim().length >= 2 && (
+                        <span className="text-xs text-red-600">
+                          {t.initialsValidationError} ({expectedInitials})
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-        {/* Instructions for incomplete form */}
-        {!isFormComplete && (
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <ScrollText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <h3 className="font-medium text-gray-900 mb-1">{t.incompleteTitle}</h3>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <p>{t.toProceeed}</p>
-                  <ul className="text-left inline-block">
-                    {eeoInitials.trim().length < 2 && (
-                      <li>• {t.provideInitialsEEO}</li>
-                    )}
-                    {sexualHarassmentInitials.trim().length < 2 && (
-                      <li>• {t.provideInitialsSH}</li>
-                    )}
-                    {(sexualHarassmentInitials.trim().length >= 2 && 
-                      eeoInitials.trim().length >= 2 && 
-                      !acknowledgmentChecked) && (
-                      <li>• {t.checkAcknowledgment}</li>
-                    )}
-                  </ul>
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleSectionContinue}
+                    className="px-6 py-2"
+                  >
+                    <span>{t.continue}</span>
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section 2: Equal Employment Opportunity */}
+          {currentSection === 2 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {getSectionIcon(2)}
+                  <span>{t.section2Title}</span>
+                </CardTitle>
+                <p className="text-sm text-gray-600">{t.section2Desc}</p>
+              </CardHeader>
+              <CardContent>
+                <Card className="border-orange-200 mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <PenTool className="h-5 w-5 text-orange-600" />
+                      <span>{EEO_POLICY.title}</span>
+                      <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                        {language === 'en' ? 'Initials Required' : 'Iniciales Requeridas'}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-4">
+                      <div className="prose prose-sm max-w-none">
+                        <FormattedPolicyText text={EEO_POLICY.content} />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <Label htmlFor="eeo-initials" className="text-sm">
+                        {t.initialsLabel}
+                      </Label>
+                      <Input
+                        id="eeo-initials"
+                        value={eeoInitials}
+                        onChange={(e) => setEeoInitials(e.target.value.toUpperCase())}
+                        placeholder={expectedInitials || "XX"}
+                        className="w-24 text-center font-mono text-lg"
+                        maxLength={4}
+                      />
+                      {validateInitials(eeoInitials, 'EEO') === true && (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                      {typeof validateInitials(eeoInitials, 'EEO') === 'string' && eeoInitials.trim().length >= 2 && (
+                        <span className="text-xs text-red-600">
+                          {t.initialsValidationError} ({expectedInitials})
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={handleSectionBack}
+                    variant="outline"
+                    className="px-6 py-2"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <span>{t.back}</span>
+                  </Button>
+                  <Button 
+                    onClick={handleSectionContinue}
+                    className="px-6 py-2"
+                  >
+                    <span>{t.continue}</span>
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section 3: Sexual and Other Unlawful Harassment */}
+          {currentSection === 3 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {getSectionIcon(3)}
+                  <span>{t.section3Title}</span>
+                </CardTitle>
+                <p className="text-sm text-gray-600">{t.section3Desc}</p>
+              </CardHeader>
+              <CardContent>
+                <Card className="border-orange-200 mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <PenTool className="h-5 w-5 text-orange-600" />
+                      <span>{SEXUAL_HARASSMENT_POLICY.title}</span>
+                      <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                        {language === 'en' ? 'Initials Required' : 'Iniciales Requeridas'}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-4">
+                      <div className="prose prose-sm max-w-none">
+                        <FormattedPolicyText text={SEXUAL_HARASSMENT_POLICY.content} />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-4">
+                      <Label htmlFor="sh-initials" className="text-sm">
+                        {t.initialsLabel}
+                      </Label>
+                      <Input
+                        id="sh-initials"
+                        value={sexualHarassmentInitials}
+                        onChange={(e) => setSexualHarassmentInitials(e.target.value.toUpperCase())}
+                        placeholder={expectedInitials || "XX"}
+                        className="w-24 text-center font-mono text-lg"
+                        maxLength={4}
+                      />
+                      {validateInitials(sexualHarassmentInitials, 'Sexual Harassment') === true && (
+                        <Check className="h-4 w-4 text-green-600" />
+                      )}
+                      {typeof validateInitials(sexualHarassmentInitials, 'Sexual Harassment') === 'string' && sexualHarassmentInitials.trim().length >= 2 && (
+                        <span className="text-xs text-red-600">
+                          {t.initialsValidationError} ({expectedInitials})
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={handleSectionBack}
+                    variant="outline"
+                    className="px-6 py-2"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <span>{t.back}</span>
+                  </Button>
+                  <Button 
+                    onClick={handleSectionContinue}
+                    className="px-6 py-2"
+                  >
+                    <span>{t.continue}</span>
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section 4: Confidential Associate Hotline */}
+          {currentSection === 4 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  {getSectionIcon(4)}
+                  <span>{t.section4Title}</span>
+                </CardTitle>
+                <p className="text-sm text-gray-600">{t.section4Desc}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 bg-gray-50 rounded-lg mb-6">
+                  <FormattedPolicyText text={CONFIDENTIAL_HOTLINE_TEXT} />
+                </div>
+
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={handleSectionBack}
+                    variant="outline"
+                    className="px-6 py-2"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    <span>{t.back}</span>
+                  </Button>
+                  <Button 
+                    onClick={handleSectionContinue}
+                    className="px-6 py-2"
+                  >
+                    <span>{t.continue}</span>
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Section 5: Final Acknowledgment & Signature */}
+          {currentSection === 5 && (
+            <div className="space-y-6">
+              {/* Acknowledgment Section - Only show when all sections are complete and initials are provided */}
+              {allSectionsComplete && 
+               validateInitials(companyPoliciesInitials, 'Company Policies') === true &&
+               validateInitials(sexualHarassmentInitials, 'Sexual Harassment') === true && 
+               validateInitials(eeoInitials, 'EEO') === true && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-blue-800">
+                      <FileText className="h-5 w-5" />
+                      <span>{t.acknowledgmentSectionTitle}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto mb-4">
+                      <div className="prose prose-sm max-w-none">
+                        <FormattedPolicyText text={ACKNOWLEDGMENT_TEXT} className="text-sm" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3">
+                      <Checkbox
+                        id="acknowledgment"
+                        checked={acknowledgmentChecked}
+                        onCheckedChange={(checked) => setAcknowledgmentChecked(checked as boolean)}
+                        className="mt-1"
+                      />
+                      <Label htmlFor="acknowledgment" className="text-sm leading-relaxed cursor-pointer">
+                        {t.acknowledgmentText}
+                      </Label>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Digital Signature Section - Only show when form is complete */}
+              {isFormComplete && allSectionsComplete && !isSigned && (
+                <Card className="border-green-200 bg-green-50">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-green-800">
+                      <CheckCircle className="h-5 w-5" />
+                      <span>{t.signatureTitle}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <DigitalSignatureCapture
+                      documentName="Company Policy Acknowledgment"
+                      signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
+                      signerTitle={employee?.position}
+                      acknowledgments={[
+                        'I have read and understand all company policies',
+                        'I agree to the terms of employment',
+                        'I have provided my initials on required sections'
+                      ]}
+                      requireIdentityVerification={false}
+                      language={language}
+                      onSignatureComplete={handleSignature}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Instructions for incomplete form */}
+              {(!allSectionsComplete || !isFormComplete) && (
+                <Card className="bg-blue-50 border-blue-200">
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <ScrollText className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                      <h3 className="font-medium text-gray-900 mb-1">{t.incompleteTitle}</h3>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <p>{t.toProceeed}</p>
+                        <ul className="text-left inline-block space-y-1">
+                          {!allSectionsComplete && (
+                            <li>• Complete all policy sections</li>
+                          )}
+                          {validateInitials(companyPoliciesInitials, 'Company Policies') !== true && (
+                            <li>• Provide valid initials for Company Policies section</li>
+                          )}
+                          {validateInitials(eeoInitials, 'EEO') !== true && (
+                            <li>• Provide valid initials for Equal Employment Opportunity Policy</li>
+                          )}
+                          {validateInitials(sexualHarassmentInitials, 'Sexual Harassment') !== true && (
+                            <li>• Provide valid initials for Sexual Harassment Policy</li>
+                          )}
+                          {(allSectionsComplete && 
+                            validateInitials(companyPoliciesInitials, 'Company Policies') === true &&
+                            validateInitials(sexualHarassmentInitials, 'Sexual Harassment') === true && 
+                            validateInitials(eeoInitials, 'EEO') === true && 
+                            !acknowledgmentChecked) && (
+                            <li>• Check the acknowledgment agreement</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="flex justify-start">
+                <Button 
+                  onClick={handleSectionBack}
+                  variant="outline"
+                  className="px-6 py-2"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <span>{t.back}</span>
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </StepContainer>
   )

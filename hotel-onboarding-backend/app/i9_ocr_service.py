@@ -34,47 +34,47 @@ class I9DocumentOCRService:
             # Prepare image for Groq API
             image_base64 = self._prepare_image(image_data)
             
-            # For demo purposes, return mock data since vision API is having issues
-            # In production, this would use actual OCR
-            logger.info(f"Using mock data for document type: {document_type}")
+            # Use actual Groq Vision API for OCR
+            logger.info(f"Processing document type: {document_type} with Groq Vision API")
             
-            if document_type == I9DocumentType.DRIVERS_LICENSE:
-                ocr_result = {
-                    "document_number": "DL123456789",
-                    "first_name": "GOUTHAM",
-                    "last_name": "VEMULA",
-                    "date_of_birth": "1998-05-19",
-                    "issue_date": "2023-01-15",
-                    "expiration_date": "2031-05-19",
-                    "issuing_authority": "Kansas",
-                    "address": "5 Gray St, Apt 1, Jersey City, KS 07302"
-                }
-            elif document_type == I9DocumentType.SSN_CARD:
-                ocr_result = {
-                    "ssn": "090-90-9090",
-                    "first_name": "GOUTHAM",
-                    "last_name": "VEMULA",
-                    "issuing_authority": "Social Security Administration"
-                }
-            elif document_type == I9DocumentType.US_PASSPORT:
-                ocr_result = {
-                    "document_number": "123456789",
-                    "first_name": "GOUTHAM",
-                    "last_name": "VEMULA",
-                    "date_of_birth": "1998-05-19",
-                    "issue_date": "2023-06-01",
-                    "expiration_date": "2033-06-01",
-                    "issuing_authority": "United States of America",
-                    "nationality": "USA"
-                }
-            else:
-                ocr_result = {
-                    "document_number": "DEMO123456",
-                    "first_name": "DEMO",
-                    "last_name": "USER",
-                    "issuing_authority": "Demo Authority"
-                }
-            
+            # Call Groq Vision API
+            try:
+                completion = self.groq_client.chat.completions.create(
+                    model="meta-llama/llama-4-scout-17b-16e-instruct",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": extraction_prompt
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{image_base64}"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    temperature=0.1,
+                    max_tokens=1000,
+                    response_format={"type": "json_object"}
+                )
+                
+                # Parse the response
+                response_text = completion.choices[0].message.content
+                logger.info(f"Groq API response: {response_text}")
+                
+                # Parse JSON response
+                ocr_result = json.loads(response_text)
+                
+            except Exception as api_error:
+                logger.error(f"Groq Vision API error: {str(api_error)}")
+                # Return empty result on API failure
+                ocr_result = self._get_empty_result(document_type)
+                
             # Validate extracted data
             validation_result = self._validate_extracted_data(ocr_result, document_type)
             
@@ -433,3 +433,45 @@ Required fields:
         confidence = base_confidence * 0.7 + (key_fields_found / len(key_fields)) * 0.3
         
         return round(confidence, 2)
+    
+    def _prepare_image(self, image_data: str) -> str:
+        """Prepare image for Groq API - ensure it's properly formatted base64"""
+        # If the image data already includes the data URL prefix, remove it
+        if image_data.startswith('data:'):
+            image_data = image_data.split(',')[1]
+        return image_data
+    
+    def _get_empty_result(self, document_type: I9DocumentType) -> Dict[str, Any]:
+        """Return empty result structure for document type"""
+        if document_type == I9DocumentType.SSN_CARD:
+            return {
+                "ssn": "",
+                "first_name": "",
+                "last_name": "",
+                "issuing_authority": "Social Security Administration"
+            }
+        elif document_type == I9DocumentType.DRIVERS_LICENSE:
+            return {
+                "document_number": "",
+                "first_name": "",
+                "last_name": "",
+                "date_of_birth": "",
+                "expiration_date": "",
+                "issuing_authority": ""
+            }
+        elif document_type == I9DocumentType.US_PASSPORT:
+            return {
+                "document_number": "",
+                "first_name": "",
+                "last_name": "",
+                "date_of_birth": "",
+                "expiration_date": "",
+                "issuing_authority": "United States of America"
+            }
+        else:
+            return {
+                "document_number": "",
+                "first_name": "",
+                "last_name": "",
+                "issuing_authority": ""
+            }

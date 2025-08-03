@@ -7,6 +7,7 @@ import { CheckCircle, User, Phone } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
 import { useAutoSave } from '@/hooks/useAutoSave'
+import { scrollToTop } from '@/utils/scrollHelpers'
 
 export default function PersonalInfoStep({
   currentStep,
@@ -125,6 +126,34 @@ export default function PersonalInfoStep({
     setEmergencyContactsValid(isValid)
   }, [])
 
+  // Handle Continue button for Personal Details section
+  const handlePersonalDetailsContinue = useCallback(() => {
+    if (personalInfoValid) {
+      setActiveTab('emergency')
+      scrollToTop()
+      // Update session storage
+      const updatedFormData = {
+        personalInfo: personalInfoData,
+        emergencyContacts: emergencyContactsData,
+        activeTab: 'emergency'
+      }
+      sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedFormData))
+    }
+  }, [personalInfoValid, personalInfoData, emergencyContactsData, currentStep.id])
+
+  // Enhanced tab change handler
+  const handleTabChange = useCallback((newTab: string) => {
+    setActiveTab(newTab)
+    scrollToTop()
+    // Save tab state
+    const updatedFormData = {
+      personalInfo: personalInfoData,
+      emergencyContacts: emergencyContactsData,
+      activeTab: newTab
+    }
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedFormData))
+  }, [personalInfoData, emergencyContactsData, currentStep.id])
+
   const translations = {
     en: {
       title: 'Personal Information',
@@ -134,7 +163,10 @@ export default function PersonalInfoStep({
       sectionProgress: 'Section Progress',
       complete: 'Complete',
       required: 'Required',
-      completionMessage: 'Personal information section completed successfully.'
+      completionMessage: 'Personal information section completed successfully.',
+      continueToEmergency: 'Continue to Emergency Contacts',
+      backToPersonal: '← Back to Personal Details',
+      fillPersonalFirst: 'Please complete Personal Details first'
     },
     es: {
       title: 'Información Personal',
@@ -144,11 +176,32 @@ export default function PersonalInfoStep({
       sectionProgress: 'Progreso de la Sección',
       complete: 'Completo',
       required: 'Requerido',
-      completionMessage: 'Sección de información personal completada exitosamente.'
+      completionMessage: 'Sección de información personal completada exitosamente.',
+      continueToEmergency: 'Continuar a Contactos de Emergencia',
+      backToPersonal: '← Volver a Detalles Personales',
+      fillPersonalFirst: 'Por favor complete primero los Detalles Personales'
     }
   }
 
   const t = translations[language]
+
+  // Tab configuration similar to I9CompleteStep
+  const tabs = [
+    {
+      id: 'personal',
+      label: t.personalTab,
+      icon: <User className="h-4 w-4" />,
+      enabled: true,
+      complete: personalInfoValid
+    },
+    {
+      id: 'emergency',
+      label: t.emergencyTab,
+      icon: <Phone className="h-4 w-4" />,
+      enabled: true, // Always enabled, but continue button requires personal details
+      complete: emergencyContactsValid
+    }
+  ]
 
   return (
     <StepContainer errors={errors} fieldErrors={fieldErrors} saveStatus={saveStatus}>
@@ -173,55 +226,90 @@ export default function PersonalInfoStep({
         )}
 
         {/* Tabbed Interface */}
-        <Tabs value={activeTab} onValueChange={(value) => {
-          setActiveTab(value)
-          // Save tab state
-          const updatedFormData = {
-            personalInfo: personalInfoData,
-            emergencyContacts: emergencyContactsData,
-            activeTab: value
-          }
-          sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedFormData))
-        }} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="personal" className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
-              <span>{t.personalTab}</span>
-              {personalInfoValid && <CheckCircle className="h-3 w-3 text-green-600" />}
-            </TabsTrigger>
-            <TabsTrigger value="emergency" className="flex items-center space-x-2">
-              <Phone className="h-4 w-4" />
-              <span>{t.emergencyTab}</span>
-              {emergencyContactsValid && <CheckCircle className="h-3 w-3 text-green-600" />}
-            </TabsTrigger>
+            {tabs.map(tab => (
+              <TabsTrigger 
+                key={tab.id}
+                value={tab.id}
+                disabled={!tab.enabled}
+                className="flex items-center space-x-2"
+              >
+                {tab.icon}
+                <span className="hidden sm:inline">{tab.label}</span>
+                {tab.complete && <CheckCircle className="h-3 w-3 text-green-600 ml-1" />}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <TabsContent value="personal" className="space-y-6">
             {dataLoaded && (
-              <PersonalInformationForm
-                key="personal-form"
-                initialData={personalInfoData}
-                language={language}
-                onSave={handlePersonalInfoSave}
-                onNext={() => setActiveTab('emergency')}
-                onValidationChange={handlePersonalInfoValidationChange}
-                useMainNavigation={true}
-              />
+              <>
+                <PersonalInformationForm
+                  key="personal-form"
+                  initialData={personalInfoData}
+                  language={language}
+                  onSave={handlePersonalInfoSave}
+                  onNext={handlePersonalDetailsContinue}
+                  onValidationChange={handlePersonalInfoValidationChange}
+                  useMainNavigation={false}
+                />
+                
+                {/* Continue Button */}
+                <div className="flex justify-end pt-6 border-t">
+                  <button
+                    onClick={handlePersonalDetailsContinue}
+                    disabled={!personalInfoValid}
+                    className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                      personalInfoValid
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {t.continueToEmergency} →
+                  </button>
+                </div>
+                
+                {!personalInfoValid && (
+                  <p className="text-sm text-amber-600 text-center">
+                    {t.fillPersonalFirst}
+                  </p>
+                )}
+              </>
             )}
           </TabsContent>
 
           <TabsContent value="emergency" className="space-y-6">
             {dataLoaded && (
-              <EmergencyContactsForm
-                key="emergency-form"
-                initialData={emergencyContactsData}
-                language={language}
-                onSave={handleEmergencyContactsSave}
-                onNext={() => {}} // Portal handles navigation
-                onBack={() => setActiveTab('personal')}
-                onValidationChange={handleEmergencyContactsValidationChange}
-                useMainNavigation={true}
-              />
+              <>
+                <EmergencyContactsForm
+                  key="emergency-form"
+                  initialData={emergencyContactsData}
+                  language={language}
+                  onSave={handleEmergencyContactsSave}
+                  onNext={() => {}} // Portal handles navigation
+                  onBack={() => handleTabChange('personal')}
+                  onValidationChange={handleEmergencyContactsValidationChange}
+                  useMainNavigation={true}
+                />
+                
+                {/* Navigation Buttons */}
+                <div className="flex justify-between pt-6 border-t">
+                  <button
+                    onClick={() => handleTabChange('personal')}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    {t.backToPersonal}
+                  </button>
+                  
+                  {emergencyContactsValid && (
+                    <div className="flex items-center space-x-2 text-green-600">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="font-medium">{t.complete}</span>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </TabsContent>
         </Tabs>

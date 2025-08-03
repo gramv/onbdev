@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle, FileText, Upload, Camera, Globe } from 'lucide-react'
+import { CheckCircle, FileText, Upload, Camera, Globe, AlertTriangle } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
 import I9Section1FormClean from '@/components/I9Section1FormClean'
 import I9SupplementA from '@/components/I9SupplementA'
 import DocumentUploadEnhanced from './DocumentUploadEnhanced'
 import ReviewAndSign from '@/components/ReviewAndSign'
+import PDFViewer from '@/components/PDFViewer'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { i9Section1Validator } from '@/utils/stepValidators'
 import { generateCleanI9Pdf } from '@/utils/i9PdfGeneratorClean'
+import { scrollToTop } from '@/utils/scrollHelpers'
 import axios from 'axios'
 
 export default function I9CompleteStep({
@@ -19,6 +21,7 @@ export default function I9CompleteStep({
   progress,
   markStepComplete,
   saveProgress,
+  goToNextStep,
   language = 'en',
   employee,
   property
@@ -34,6 +37,10 @@ export default function I9CompleteStep({
   const [supplementsComplete, setSupplementsComplete] = useState(false)
   const [documentsComplete, setDocumentsComplete] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
+  const [signatureData, setSignatureData] = useState<any>(null)
+  
+  // State for SSN validation
+  const [ssnMismatch, setSsnMismatch] = useState<{hasWarning: boolean, acknowledged: boolean}>({hasWarning: false, acknowledged: false})
   
   // State for supplements
   const [needsSupplements, setNeedsSupplements] = useState<'none' | 'translator'>('none')
@@ -55,8 +62,22 @@ export default function I9CompleteStep({
     supplementsComplete,
     documentsComplete,
     needsSupplements,
-    isSigned
+    isSigned,
+    ssnMismatch,
+    signatureData
   }
+  
+  // Debug log citizenship status and check for SSN mismatches
+  useEffect(() => {
+    if (formData.citizenship_status) {
+      console.log('Auto-save formData citizenship_status:', formData.citizenship_status)
+    }
+    
+    // Check for SSN mismatch when both formData and documentsData are available
+    if (formData.ssn && documentsData?.extractedData) {
+      checkSsnMismatch()
+    }
+  }, [formData.citizenship_status, formData.ssn, documentsData])
   
   // Auto-save hook
   const { saveStatus } = useAutoSave(autoSaveData, {
@@ -81,14 +102,37 @@ export default function I9CompleteStep({
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData)
-        if (parsed.formData) setFormData(parsed.formData)
+        console.log('Loading saved I9 data:', {
+          hasFormData: !!parsed.formData,
+          citizenship_status: parsed.formData?.citizenship_status,
+          formComplete: parsed.formComplete
+        })
+        
+        if (parsed.formData) {
+          setFormData(parsed.formData)
+          console.log('Set formData with citizenship_status:', parsed.formData.citizenship_status)
+        }
         if (parsed.supplementsData) setSupplementsData(parsed.supplementsData)
         if (parsed.documentsData) setDocumentsData(parsed.documentsData)
         if (parsed.needsSupplements) setNeedsSupplements(parsed.needsSupplements)
         if (parsed.formComplete) setFormComplete(parsed.formComplete)
         if (parsed.supplementsComplete) setSupplementsComplete(parsed.supplementsComplete)
         if (parsed.documentsComplete) setDocumentsComplete(parsed.documentsComplete)
-        if (parsed.isSigned) setIsSigned(parsed.isSigned)
+        if (parsed.isSigned) {
+          setIsSigned(parsed.isSigned)
+          // Only go to preview if all other steps are complete
+          if (parsed.formComplete && parsed.supplementsComplete && parsed.documentsComplete) {
+            setActiveTab('preview')
+          }
+        }
+        if (parsed.signatureData) {
+          setSignatureData(parsed.signatureData)
+        }
+        if (parsed.ssnMismatch) setSsnMismatch(parsed.ssnMismatch)
+        if (parsed.activeTab && !parsed.isSigned) {
+          // Restore the tab they were on, unless they've already signed
+          setActiveTab(parsed.activeTab)
+        }
       } catch (e) {
         console.error('Failed to parse saved data:', e)
       }
@@ -123,6 +167,24 @@ export default function I9CompleteStep({
     }
   }, [currentStep.id, progress.completedSteps])
   
+  // Regenerate PDF when returning to preview tab
+  useEffect(() => {
+    if (activeTab === 'preview' && !pdfUrl && !isGeneratingPdf && documentsComplete) {
+      console.log('Regenerating PDF on preview tab - formData citizenship_status:', formData.citizenship_status)
+      generateCompletePdf(documentsData)
+    }
+  }, [activeTab, pdfUrl, isGeneratingPdf, documentsComplete])
+  
+  // Cleanup PDF data when component unmounts to free memory
+  useEffect(() => {
+    return () => {
+      setPdfUrl(null)
+      setFormData({})
+      setSupplementsData(null)
+      setDocumentsData(null)
+    }
+  }, [])
+  
   // Tab configuration
   const tabs = [
     { 
@@ -155,11 +217,146 @@ export default function I9CompleteStep({
     }
   ]
   
+  // Helper function to check SSN mismatch
+  const checkSsnMismatch = () => {
+    if (!formData.ssn || !documentsData?.extractedData) return
+    
+    console.log('Checking SSN mismatch - formData.ssn:', formData.ssn)
+    console.log('Checking SSN mismatch - documentsData.extractedData:', documentsData.extractedData)
+    
+    // Find SSN from extracted data - the backend returns it directly in the document object
+    const ssnDocument = documentsData.extractedData.find(doc => 
+      doc.documentType === 'social_security_card' || doc.type === 'social_security_card'
+    )
+    
+    console.log('Found SSN document:', ssnDocument)
+    
+    // Check for SSN in the document - the backend returns it at the root level
+    const extractedSsn = ssnDocument?.ssn
+    
+    if (!extractedSsn) {
+      console.log('No SSN found in extracted data - checking all fields:', ssnDocument)
+      if (ssnDocument) {
+        console.warn('SSN card data exists but no SSN was extracted')
+      }
+      return
+    }
+    
+    // Compare SSNs (remove formatting)
+    const enteredSsnClean = formData.ssn.replace(/\D/g, '')
+    const extractedSsnClean = extractedSsn.replace(/\D/g, '')
+    
+    const hasWarning = enteredSsnClean !== extractedSsnClean
+    setSsnMismatch(prev => ({ ...prev, hasWarning }))
+    
+    if (hasWarning) {
+      console.log('SSN Mismatch detected:', {
+        entered: enteredSsnClean,
+        extracted: extractedSsnClean,
+        enteredFormatted: formData.ssn,
+        extractedFormatted: extractedSsn
+      })
+    } else {
+      console.log('SSN Match confirmed')
+    }
+  }
+  
+  // Tab change handler with validation
+  const handleTabChange = (newTab: string) => {
+    const currentTabIndex = tabs.findIndex(t => t.id === activeTab)
+    const newTabIndex = tabs.findIndex(t => t.id === newTab)
+    
+    console.log('Tab change - Current formData citizenship_status:', formData.citizenship_status)
+    console.log('Tab change - Form data keys:', Object.keys(formData))
+    console.log('Tab change - Form data values preserved:', {
+      citizenship_status: formData.citizenship_status,
+      ssn: formData.ssn ? '***-**-' + formData.ssn.slice(-4) : 'none'
+    })
+    
+    // Save current tab data before switching
+    const currentAutoSaveData = {
+      activeTab: newTab,
+      formData,
+      supplementsData,
+      documentsData,
+      formComplete,
+      supplementsComplete,
+      documentsComplete,
+      needsSupplements,
+      isSigned,
+      ssnMismatch
+    }
+    
+    // Save to session storage immediately
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(currentAutoSaveData))
+    
+    // Also trigger saveProgress to ensure data is saved
+    saveProgress(currentStep.id, currentAutoSaveData)
+    
+    // If going backwards, reset states appropriately
+    if (newTabIndex < currentTabIndex) {
+      // Reset signed state if going back from preview
+      if (activeTab === 'preview' && isSigned) {
+        setIsSigned(false)
+        setPdfUrl(null)
+      }
+      
+      // Reset completion states for tabs ahead of where we're going
+      // BUT preserve the form data
+      if (newTab === 'form') {
+        // Don't reset formComplete if we're just navigating back
+        // This preserves the citizenship checkbox and form data
+        // Keep formComplete true if it was already true
+        if (!formComplete) {
+          // Only set to false if it wasn't already complete
+          setFormComplete(false)
+        }
+        setSupplementsComplete(false)
+        setDocumentsComplete(false)
+        // Regenerate PDF when returning to preview
+        setPdfUrl(null)
+      } else if (newTab === 'supplements') {
+        setSupplementsComplete(false)
+        setDocumentsComplete(false)
+        setPdfUrl(null)
+      } else if (newTab === 'documents') {
+        setDocumentsComplete(false)
+        setPdfUrl(null)
+      }
+    }
+    
+    // Allow navigation if tab is enabled
+    const targetTab = tabs.find(t => t.id === newTab)
+    if (targetTab?.enabled) {
+      setActiveTab(newTab)
+      scrollToTop()
+    }
+  }
+
   // Handlers
   const handleFormComplete = async (data: any) => {
-    setFormData(data)
+    console.log('handleFormComplete - citizenship_status:', data.citizenship_status)
+    console.log('handleFormComplete - Full data received:', Object.keys(data))
+    
+    // Preserve all form data including citizenship status
+    setFormData(prev => ({ ...prev, ...data }))
     setFormComplete(true)
-    await saveProgress(currentStep.id, { formData: data, formComplete: true })
+    
+    // Save with complete form data
+    const completeAutoSaveData = {
+      activeTab: 'supplements',
+      formData: { ...formData, ...data },
+      supplementsData,
+      documentsData,
+      formComplete: true,
+      supplementsComplete,
+      documentsComplete,
+      needsSupplements,
+      isSigned,
+      ssnMismatch
+    }
+    
+    await saveProgress(currentStep.id, completeAutoSaveData)
     setActiveTab('supplements')
   }
   
@@ -178,7 +375,66 @@ export default function I9CompleteStep({
       sessionStorage.setItem('i9_section2_data', JSON.stringify(data.extractedData))
     }
     
+    // Save the documents data and check for SSN mismatch
     await saveProgress(currentStep.id, { documentsData: data, documentsComplete: true })
+    
+    // Check for SSN mismatch after documents are uploaded
+    console.log('Checking SSN after document upload - data.extractedData:', data.extractedData)
+    console.log('Current formData.ssn:', formData.ssn)
+    
+    if (data.extractedData && formData.ssn) {
+      // Find SSN document
+      const ssnDocument = data.extractedData.find(doc => 
+        doc.documentType === 'social_security_card' || doc.type === 'social_security_card'
+      )
+      
+      console.log('Found SSN document in handleDocumentsComplete:', ssnDocument)
+      
+      // Check for SSN in the document - the backend returns it at the root level
+      const extractedSsn = ssnDocument?.ssn
+      
+      console.log('Looking for SSN in document:', {
+        ssnDocument: ssnDocument,
+        hasSSN: !!extractedSsn,
+        extractedSSN: extractedSsn
+      })
+      
+      if (extractedSsn) {
+        const enteredSsn = formData.ssn.replace(/\D/g, '')
+        const extractedSsnClean = extractedSsn.replace(/\D/g, '')
+        const hasWarning = enteredSsn !== extractedSsnClean
+        
+        console.log('SSN Comparison:', {
+          entered: enteredSsn,
+          extracted: extractedSsnClean,
+          hasWarning: hasWarning,
+          enteredFormatted: formData.ssn,
+          extractedFormatted: extractedSsn
+        })
+        
+        if (hasWarning) {
+          setSsnMismatch({ hasWarning: true, acknowledged: false })
+          console.log('SSN Mismatch detected on document upload:', {
+            entered: formData.ssn,
+            extracted: extractedSsn
+          })
+        } else {
+          setSsnMismatch({ hasWarning: false, acknowledged: false })
+          console.log('SSN Match confirmed on document upload')
+        }
+      } else {
+        console.log('No SSN found in SSN document - full document:', ssnDocument)
+        // If we have a social security card but no SSN extracted, that's also a problem
+        if (ssnDocument) {
+          console.warn('SSN card uploaded but no SSN was extracted from it')
+        }
+      }
+    } else {
+      console.log('Missing data for SSN check:', {
+        hasExtractedData: !!data.extractedData,
+        hasFormSSN: !!formData.ssn
+      })
+    }
     
     // Generate PDF before showing preview
     await generateCompletePdf(data)
@@ -208,6 +464,7 @@ export default function I9CompleteStep({
       }
       
       console.log('Complete form data being sent to PDF generator:', completeFormData)
+      console.log('citizenship_status in PDF data:', completeFormData.citizenship_status)
       
       // Generate PDF with all sections
       const pdfBytes = await generateCleanI9Pdf(completeFormData)
@@ -225,6 +482,7 @@ export default function I9CompleteStep({
       // The backend endpoint /api/onboarding/{employee_id}/i9-complete/generate-pdf needs to be implemented
       
       // Set the base64 PDF data - PDFViewer expects base64 string
+      console.log('Setting PDF URL, base64 length:', base64String.length)
       setPdfUrl(base64String)
       
     } catch (error) {
@@ -235,14 +493,21 @@ export default function I9CompleteStep({
     }
   }
 
-  const handleSign = async (signatureData: any) => {
+  const handleSign = async (signature: any) => {
+    // Prevent double signing
+    if (isSigned) {
+      return
+    }
+    
     // Store signature data
+    setSignatureData(signature)
     const completeData = {
       formData,
       supplementsData,
       documentsData,
       signed: true,
-      signatureData,
+      isSigned: true, // Include both for compatibility
+      signatureData: signature,
       completedAt: new Date().toISOString(),
       needsSupplements
     }
@@ -259,83 +524,30 @@ export default function I9CompleteStep({
       }
     }
     
+    // Save the signed status to session storage immediately
+    await saveProgress(currentStep.id, completeData)
+    
+    // Update session storage directly to ensure it's available for validation
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeData))
+    
     // Regenerate PDF with signature
-    await generateCompletePdf(documentsData, signatureData)
+    await generateCompletePdf(documentsData, signature)
     
     setIsSigned(true)
     await markStepComplete(currentStep.id, completeData)
   }
   
-  const renderFormPreview = (data: any) => {
-    return (
-      <div className="space-y-6">
-        {/* Section 1 Data */}
-        <div>
-          <h3 className="font-semibold text-lg mb-3">Section 1 - Employee Information</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600">Name</label>
-              <p className="text-gray-900">{data.first_name} {data.middle_initial} {data.last_name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Date of Birth</label>
-              <p className="text-gray-900">{data.date_of_birth}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">SSN</label>
-              <p className="text-gray-900">***-**-{data.ssn?.slice(-4) || '****'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Citizenship Status</label>
-              <p className="text-gray-900">{data.citizenship_status?.replace('_', ' ')}</p>
-            </div>
-          </div>
-        </div>
-        
-        {/* Supplements Data */}
-        {supplementsData && needsSupplements === 'translator' && (
-          <div>
-            <h3 className="font-semibold text-lg mb-3">Supplement A - Preparer/Translator</h3>
-            <p className="text-gray-600">A translator assisted with completing this form.</p>
-          </div>
-        )}
-        
-        {/* Section 2 Preview (AI-extracted) */}
-        {documentsData?.extractedData && (
-          <div>
-            <h3 className="font-semibold text-lg mb-3">Section 2 - Employer Review (Preview)</h3>
-            <Alert className="bg-blue-50 border-blue-200 mb-3">
-              <AlertDescription className="text-blue-800">
-                The following information was extracted from your documents and will be verified by your manager.
-              </AlertDescription>
-            </Alert>
-            <div className="grid grid-cols-2 gap-4">
-              {documentsData.extractedData.map((doc: any, idx: number) => (
-                <div key={idx}>
-                  <label className="text-sm font-medium text-gray-600">{doc.documentType}</label>
-                  <p className="text-gray-900">
-                    {doc.documentNumber} 
-                    {doc.expirationDate && ` (Exp: ${doc.expirationDate})`}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
   
   const translations = {
     en: {
       title: 'Employment Eligibility Verification (I-9)',
       description: 'Complete all sections of Form I-9 including document upload',
-      completionMessage: 'Form I-9 has been completed and submitted for manager review.'
+      completionMessage: 'Form I-9 has been completed successfully.'
     },
     es: {
       title: 'Verificación de Elegibilidad de Empleo (I-9)',
       description: 'Complete todas las secciones del Formulario I-9 incluyendo carga de documentos',
-      completionMessage: 'El Formulario I-9 ha sido completado y enviado para revisión del gerente.'
+      completionMessage: 'El Formulario I-9 ha sido completado exitosamente.'
     }
   }
   
@@ -360,8 +572,66 @@ export default function I9CompleteStep({
           </Alert>
         )}
         
+        {/* SSN Mismatch Warning */}
+        {ssnMismatch.hasWarning && !ssnMismatch.acknowledged && activeTab === 'preview' && (
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertDescription className="text-amber-800">
+              <div className="space-y-3">
+                <div className="flex items-start space-x-2">
+                  <AlertTriangle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <strong>SSN Verification Required</strong>
+                    <p className="mt-1 text-sm">
+                      The Social Security Number you entered in the form doesn't match the SSN on your uploaded Social Security card.
+                      This could be a simple typo or a document issue.
+                    </p>
+                    <div className="mt-2 p-3 bg-white rounded border border-amber-200">
+                      <p className="text-sm font-medium mb-1">Comparison:</p>
+                      <p className="text-sm">Form Entry: ***-**-{formData.ssn?.slice(-4) || '****'}</p>
+                      <p className="text-sm">Document: ***-**-{(() => {
+                        const ssnDoc = documentsData?.extractedData?.find(doc => doc.documentType === 'social_security_card' || doc.type === 'social_security_card')
+                        const ssn = ssnDoc?.ssn || ssnDoc?.data?.ssn
+                        return ssn?.slice(-4) || '****'
+                      })()}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      setActiveTab('form')
+                      scrollToTop()
+                    }}
+                    className="px-4 py-2 bg-white border border-amber-600 text-amber-600 rounded hover:bg-amber-50 text-sm font-medium"
+                  >
+                    ← Fix SSN Entry
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('documents')
+                      scrollToTop()
+                    }}
+                    className="px-4 py-2 bg-white border border-amber-600 text-amber-600 rounded hover:bg-amber-50 text-sm font-medium"
+                  >
+                    ← Re-upload Document
+                  </button>
+                  <button
+                    onClick={() => setSsnMismatch(prev => ({ ...prev, acknowledged: true }))}
+                    className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700 text-sm font-medium"
+                  >
+                    Continue with Mismatch
+                  </button>
+                </div>
+                <p className="text-xs text-amber-700 italic">
+                  Note: Proceeding with mismatched SSNs may cause issues during employment verification.
+                </p>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {/* Tabbed Interface */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">
             {tabs.map(tab => (
               <TabsTrigger 
@@ -385,6 +655,7 @@ export default function I9CompleteStep({
               language={language}
               employeeId={employee?.id}
               showPreview={false}
+              key={`form-${activeTab}`} // Simplified key to prevent unnecessary re-renders
             />
           </TabsContent>
           
@@ -497,6 +768,55 @@ export default function I9CompleteStep({
                   </span>
                 </div>
               </div>
+            ) : isSigned ? (
+              <div className="space-y-6">
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    <div className="space-y-2">
+                      <p className="font-medium">
+                        {language === 'es' 
+                          ? 'El Formulario I-9 ha sido firmado y completado exitosamente.'
+                          : 'Form I-9 has been signed and completed successfully.'}
+                      </p>
+                      {signatureData && (
+                        <div className="text-sm space-y-1">
+                          {signatureData.signedAt && (
+                            <p>{language === 'es' ? 'Firmado el:' : 'Signed on:'} {new Date(signatureData.signedAt).toLocaleString()}</p>
+                          )}
+                          {signatureData.ipAddress && (
+                            <p>{language === 'es' ? 'Dirección IP:' : 'IP Address:'} {signatureData.ipAddress}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+                
+                {pdfUrl ? (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">PDF Preview ({pdfUrl.length} bytes)</p>
+                    <PDFViewer pdfData={pdfUrl} height="600px" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">Loading PDF...</p>
+                )}
+                
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => handleTabChange('documents')}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    {language === 'es' ? '← Volver' : '← Back'}
+                  </button>
+                  <button
+                    onClick={() => goToNextStep()}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    {language === 'es' ? 'Continuar →' : 'Continue →'}
+                  </button>
+                </div>
+              </div>
             ) : (
               <ReviewAndSign
                 formType="i9-complete"
@@ -508,7 +828,6 @@ export default function I9CompleteStep({
                 language={language}
                 onSign={handleSign}
                 onBack={() => setActiveTab('documents')}
-                renderPreview={renderFormPreview}
                 usePDFPreview={true}
                 pdfUrl={pdfUrl}
                 federalCompliance={{

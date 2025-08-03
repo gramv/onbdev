@@ -121,6 +121,11 @@ export default function ReviewAndSign({
     if (usePDFPreview && pdfEndpoint && !showSignature && !pdfUrl) {
       loadPDF()
     }
+    
+    // Cleanup function to free memory when component unmounts
+    return () => {
+      setPdfData(null)
+    }
   }, [usePDFPreview, pdfEndpoint, showSignature, pdfUrl])
   
   const loadPDF = async () => {
@@ -143,13 +148,17 @@ export default function ReviewAndSign({
         }
       )
       
-      // Convert response to base64
-      const base64 = btoa(
-        new Uint8Array(response.data).reduce(
-          (data, byte) => data + String.fromCharCode(byte),
-          ''
-        )
-      )
+      // Convert response to base64 more efficiently
+      const uint8Array = new Uint8Array(response.data)
+      let binary = ''
+      const chunkSize = 8192 // Process in 8KB chunks to avoid memory spikes
+      
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.slice(i, Math.min(i + chunkSize, uint8Array.length))
+        binary += String.fromCharCode.apply(null, Array.from(chunk))
+      }
+      
+      const base64 = btoa(binary)
       
       setPdfData(base64)
     } catch (error) {

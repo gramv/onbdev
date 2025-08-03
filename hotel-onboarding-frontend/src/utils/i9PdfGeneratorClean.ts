@@ -192,20 +192,16 @@ export async function generateCleanI9Pdf(formData: I9FormData): Promise<Uint8Arr
       }
     }
     
-    // Handle today's date for Section 1
+    // Handle today's date
     const todayFormatted = formatDateWithSlashes(new Date().toISOString())
-    const dateFields = ["Today's Date mmddyyyy", "Today's Date (mm/dd/yyyy)", "Todays Date mmddyyyy"]
-    for (const dateField of dateFields) {
-      if (!supplementFields.has(dateField)) {
-        try {
-          const field = form.getTextField(dateField)
-          field.setText(todayFormatted)
-          console.log(`✓ Filled date field: "${dateField}"`)
-          break // Only fill the first one that works
-        } catch (e) {
-          // Continue to next date field
-        }
-      }
+    
+    // Fill Section 1 employee signature date field
+    try {
+      const section1DateField = form.getTextField("Today's Date mmddyyy")
+      section1DateField.setText(todayFormatted)
+      console.log(`✓ Filled Section 1 employee signature date: ${todayFormatted}`)
+    } catch (e) {
+      console.log('⚠️ Could not fill Section 1 date field:', e)
     }
     
     // Handle Employee Signature
@@ -359,11 +355,21 @@ export async function generateCleanI9Pdf(formData: I9FormData): Promise<Uint8Arr
         try {
           form.getTextField('List C Document Title 1').setText('Social Security Card')
           form.getTextField('List C Issuing Authority 1').setText('Social Security Administration')
-          form.getTextField('List C Document Number 1').setText(ssnCard.ssn || ssnCard.documentNumber || '')
+          // Use user-entered SSN from formData, not OCR-extracted SSN
+          form.getTextField('List C Document Number 1').setText(formData.ssn || '')
           console.log('✓ Filled List C (SSN) fields')
         } catch (e) {
           console.error('✗ Failed to fill List C fields:', e)
         }
+      }
+      
+      // Add Section 2 verification date
+      try {
+        const section2DateField = form.getTextField('S2 Todays Date mmddyyyy')
+        section2DateField.setText(todayFormatted)
+        console.log(`✓ Filled Section 2 employer verification date: ${todayFormatted}`)
+      } catch (e) {
+        console.error('✗ Failed to fill Section 2 date field:', e)
       }
     }
     
