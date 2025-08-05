@@ -15,9 +15,47 @@ import { useStepValidation } from '@/hooks/useStepValidation'
 import { companyPoliciesValidator } from '@/utils/stepValidators'
 import { scrollToTop } from '@/utils/scrollHelpers'
 
-// Helper component to render formatted text with bold markdown
+// Helper component to render formatted text with bold markdown and HTML tables
 const FormattedPolicyText = ({ text, className = '' }: { text: string; className?: string }) => {
-  // Split by ** for bold formatting
+  // Check if text contains HTML table
+  if (text.includes('<table')) {
+    // Process the text in segments - handle tables and markdown separately
+    const segments = text.split(/(<table[\s\S]*?<\/table>)/g)
+    
+    return (
+      <div className={`font-sans text-gray-700 ${className}`}>
+        {segments.map((segment, segmentIndex) => {
+          if (segment.startsWith('<table')) {
+            // Render table as HTML
+            return (
+              <div 
+                key={segmentIndex}
+                dangerouslySetInnerHTML={{ __html: segment }}
+                className="my-4"
+              />
+            )
+          } else {
+            // Process markdown for non-table segments
+            const parts = segment.split(/\*\*(.*?)\*\*/g)
+            return (
+              <div key={segmentIndex} className="whitespace-pre-wrap">
+                {parts.map((part, index) => {
+                  // Even indexes are normal text, odd indexes are bold
+                  if (index % 2 === 0) {
+                    return <span key={index}>{part}</span>
+                  } else {
+                    return <strong key={index} className="font-bold">{part}</strong>
+                  }
+                })}
+              </div>
+            )
+          }
+        })}
+      </div>
+    )
+  }
+  
+  // Original logic for text without tables
   const parts = text.split(/\*\*(.*?)\*\*/g)
   
   return (
@@ -137,10 +175,32 @@ The Hotel values employee safety and gives it the utmost priority. A Hazard Comm
 
 The Company offers PTO to 'regular full-time and part-time associates' only. Temporary/seasonal associates do not earn PTO. Eligible associates begin to accrue PTO immediately, at hire and accrual is rate is only based on regular hours worked. This PTO can be used for any reason that the associate deems appropriate, with advance notice and management approval, and is paid at the rate of pay when PTO is paid out. All PTO earned during each calendar year will be paid out on the last payroll of the calendar year. If associates choose, they may elect to carry over no more than 5 hours of PTO can be carried over into the following year. The rate of accrual and maximum PTO hours that an associate may accrue during a given calendar year will vary with the associate's length of service and hours worked.
 
-YEAR OF EMPLOYMENT | PTO ACCRUAL RATE NON-EXEMPT/HOURLY ASSOCIATES (PER PAID HOUR) | ACCRUED PTO PER ANNIVERSARY YEAR (ASSUMING 2080 HOURS WORKED PER YR)
-1 - 3 | 0.019 | 5 days (40 hours)
-4 - 8 | 0.027 | 7 days (56 hours)
-9 + | 0.038 | 10 days (80 hours)
+<table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+  <thead>
+    <tr style="background-color: #f3f4f6;">
+      <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left; font-weight: bold;">YEAR OF EMPLOYMENT</th>
+      <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left; font-weight: bold;">PTO ACCRUAL RATE<br/>NON-EXEMPT/HOURLY ASSOCIATES<br/>(PER PAID HOUR)</th>
+      <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left; font-weight: bold;">ACCRUED PTO PER ANNIVERSARY YEAR<br/>(ASSUMING 2080 HOURS WORKED PER YR)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">1 - 3</td>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">0.019</td>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">5 days (40 hours)</td>
+    </tr>
+    <tr style="background-color: #f9fafb;">
+      <td style="border: 1px solid #d1d5db; padding: 8px;">4 - 8</td>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">0.027</td>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">7 days (56 hours)</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">9 +</td>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">0.038</td>
+      <td style="border: 1px solid #d1d5db; padding: 8px;">10 days (80 hours)</td>
+    </tr>
+  </tbody>
+</table>
 
 Notes:
 • PTO is granted as a benefit and in order to be paid for this benefit, the day(s) must be taken off.
@@ -339,7 +399,30 @@ export default function CompanyPoliciesStep({
 
   // Load existing data
   useEffect(() => {
-    if (progress.completedSteps.includes(currentStep.id)) {
+    // Load saved data first
+    const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        // Always restore the section state
+        setCurrentSection(parsed.currentSection || 1)
+        setCompanyPoliciesInitials(parsed.companyPoliciesInitials || '')
+        setSexualHarassmentInitials(parsed.sexualHarassmentInitials || '')
+        setEeoInitials(parsed.eeoInitials || '')
+        setAcknowledgmentChecked(parsed.acknowledgmentChecked || false)
+        setSignatureData(parsed.signatureData || null)
+        setIsSigned(parsed.isSigned || false)
+        // Restore completion states - these are the important ones for navigation
+        setSection1Complete(parsed.section1Complete || false)
+        setSection2Complete(parsed.section2Complete || false)
+        setSection3Complete(parsed.section3Complete || false)
+        setSection4Complete(parsed.section4Complete || false)
+        setSection5Complete(parsed.section5Complete || false)
+      } catch (e) {
+        console.warn('Failed to parse saved company policies data:', e)
+      }
+    } else if (progress.completedSteps.includes(currentStep.id)) {
+      // Only set all complete if no saved data exists but step is marked complete
       setIsSigned(true)
       setSection5Complete(true)
       setSection4Complete(true)
@@ -347,28 +430,6 @@ export default function CompanyPoliciesStep({
       setSection2Complete(true)
       setSection1Complete(true)
       setCurrentSection(5)
-    }
-
-    // Load saved data
-    const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData)
-        if (parsed.currentSection) setCurrentSection(parsed.currentSection)
-        if (parsed.companyPoliciesInitials) setCompanyPoliciesInitials(parsed.companyPoliciesInitials)
-        if (parsed.sexualHarassmentInitials) setSexualHarassmentInitials(parsed.sexualHarassmentInitials)
-        if (parsed.eeoInitials) setEeoInitials(parsed.eeoInitials)
-        if (parsed.acknowledgmentChecked) setAcknowledgmentChecked(parsed.acknowledgmentChecked)
-        if (parsed.signatureData) setSignatureData(parsed.signatureData)
-        if (parsed.isSigned) setIsSigned(parsed.isSigned)
-        if (parsed.section1Complete) setSection1Complete(parsed.section1Complete)
-        if (parsed.section2Complete) setSection2Complete(parsed.section2Complete)
-        if (parsed.section3Complete) setSection3Complete(parsed.section3Complete)
-        if (parsed.section4Complete) setSection4Complete(parsed.section4Complete)
-        if (parsed.section5Complete) setSection5Complete(parsed.section5Complete)
-      } catch (e) {
-        console.warn('Failed to parse saved company policies data:', e)
-      }
     }
   }, [currentStep.id, progress.completedSteps])
 
@@ -585,36 +646,49 @@ export default function CompanyPoliciesStep({
 
         {/* Progress indicator */}
         <div className="flex items-center justify-center space-x-4 mb-6">
-          {[1, 2, 3, 4, 5].map((num) => (
-            <div key={num} className="flex items-center">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                num === currentSection ? 'border-blue-600 bg-blue-50' :
-                (num === 1 && section1Complete) || (num === 2 && section2Complete) || 
-                (num === 3 && section3Complete) || (num === 4 && section4Complete) || 
-                (num === 5 && section5Complete) ? 'border-green-600 bg-green-50' :
-                'border-gray-300 bg-gray-50'
-              }`}>
-                <span className={`text-sm font-medium ${
-                  num === currentSection ? 'text-blue-600' :
-                  (num === 1 && section1Complete) || (num === 2 && section2Complete) || 
-                  (num === 3 && section3Complete) || (num === 4 && section4Complete) || 
-                  (num === 5 && section5Complete) ? 'text-green-600' :
-                  'text-gray-400'
-                }`}>
-                  {(num === 1 && section1Complete) || (num === 2 && section2Complete) || 
-                   (num === 3 && section3Complete) || (num === 4 && section4Complete) || 
-                   (num === 5 && section5Complete) ? '✓' : num}
-                </span>
+          {[1, 2, 3, 4, 5].map((num) => {
+            const isComplete = (num === 1 && section1Complete) || 
+                             (num === 2 && section2Complete) || 
+                             (num === 3 && section3Complete) || 
+                             (num === 4 && section4Complete) || 
+                             (num === 5 && section5Complete)
+            const isClickable = num < currentSection || isComplete
+            
+            return (
+              <div key={num} className="flex items-center">
+                <div 
+                  className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                    num === currentSection ? 'border-blue-600 bg-blue-50' :
+                    isComplete ? 'border-green-600 bg-green-50' :
+                    'border-gray-300 bg-gray-50'
+                  } ${isClickable ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
+                  onClick={() => {
+                    if (isClickable) {
+                      setCurrentSection(num)
+                      scrollToTop()
+                    }
+                  }}
+                >
+                  <span className={`text-sm font-medium ${
+                    num === currentSection ? 'text-blue-600' :
+                    isComplete ? 'text-green-600' :
+                    'text-gray-400'
+                  }`}>
+                    {isComplete ? '✓' : num}
+                  </span>
+                </div>
+                {num < 5 && (
+                  <div className={`w-12 h-0.5 ml-2 ${
+                    (num === 1 && section1Complete) || 
+                    (num === 2 && section2Complete) || 
+                    (num === 3 && section3Complete) || 
+                    (num === 4 && section4Complete) 
+                    ? 'bg-green-300' : 'bg-gray-300'
+                  }`} />
+                )}
               </div>
-              {num < 5 && (
-                <div className={`w-12 h-0.5 ml-2 ${
-                  (num === 1 && section1Complete) || (num === 2 && section2Complete) || 
-                  (num === 3 && section3Complete) || (num === 4 && section4Complete) 
-                  ? 'bg-green-300' : 'bg-gray-300'
-                }`} />
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {/* Completion Alert */}

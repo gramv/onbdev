@@ -98,6 +98,7 @@ function App() {
               <Route path="/onboarding-complete" element={<OnboardingComplete />} />
               
               {/* New Flow-Based Onboarding Portal */}
+              <Route path="/onboard" element={<OnboardingFlowPortal />} />
               <Route path="/onboard-flow" element={<OnboardingFlowPortal />} />
               <Route path="/onboard-flow-test" element={<OnboardingFlowPortal testMode={true} />} />
               

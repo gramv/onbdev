@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding Test Launcher</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .saved-data {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1976d2;
+        }
+        .secondary {
+            background-color: #757575;
+        }
+        .secondary:hover {
+            background-color: #616161;
+        }
+        .url-display {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .instructions {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .instructions ol {
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Onboarding Cross-Device Test Launcher</h1>
+        
+        <div class="info-box">
+            <h3>Test Employee Details</h3>
+            <p><strong>Employee ID:</strong> test-emp-dd99c16e</p>
+            <p><strong>Name:</strong> Test CrossDevice</p>
+            <p><strong>Token Expires:</strong> August 11, 2025</p>
+        </div>
+
+        <div class="saved-data">
+            <strong>Pre-saved Data in Cloud:</strong><br>
+            - Name: Goutam Vemula<br>
+            - DOB: 1998-05-19<br>
+            - SSN: 090-90-9090<br>
+            - Address: 5 gray st, Apt 6, Jersey City, NJ 07302<br>
+            - Phone: (079) 972-2194<br>
+            - Emergency Contact: Goutham Vemula (Parent)
+        </div>
+
+        <div class="button-group">
+            <button onclick="openOnboarding()">
+                Open Onboarding (Same Tab)
+            </button>
+            <button onclick="openOnboardingNewTab()">
+                Open in New Tab
+            </button>
+            <button class="secondary" onclick="copyUrl()">
+                Copy URL
+            </button>
+        </div>
+
+        <div class="url-display" id="urlDisplay">
+            <!-- URL will be displayed here -->
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Testing Instructions</h3>
+            <ol>
+                <li>Click "Open Onboarding" to start the test</li>
+                <li>Look for the sync indicator (cloud icon) in the header</li>
+                <li>Navigate to Personal Information step</li>
+                <li>You should see the pre-populated data loaded from the cloud</li>
+                <li>Make some changes and watch the sync indicator</li>
+                <li>Open this HTML file in a different browser</li>
+                <li>Click "Open in New Tab" to test cross-device sync</li>
+                <li>The changes from the first browser should appear!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Clean token without any formatting characters
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLWRkOTljMTZlIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzIzNTM0LCJleHAiOjE3NTQ5MjgzMzQsImp0aSI6ImZYbjBCSTM5RElhS3NYYlhybkp4REEifQ.A-zT3b8PwK50wLc22ow3s7d--UQ0oj-yU_fJTt0Zlgw';
+        const baseUrl = 'http://localhost:3000/onboard';
+        const fullUrl = `${baseUrl}?token=${token}`;
+
+        // Display the URL
+        document.getElementById('urlDisplay').textContent = fullUrl;
+
+        function openOnboarding() {
+            window.location.href = fullUrl;
+        }
+
+        function openOnboardingNewTab() {
+            window.open(fullUrl, '_blank');
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                alert('URL copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy URL. Please select and copy manually.');
+            });
+        }
+    </script>
+</body>
+</html>

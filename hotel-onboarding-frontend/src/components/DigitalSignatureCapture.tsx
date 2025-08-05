@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { PenTool, RotateCcw, Check, Shield, Clock, User, FileText, AlertCircle } from 'lucide-react'
+import { PenTool, RotateCcw, Check, Shield, Clock, User, FileText, AlertCircle, Info } from 'lucide-react'
 
 
 export default function DigitalSignatureCapture({
@@ -429,6 +429,16 @@ export default function DigitalSignatureCapture({
                   {t('clear')}
                 </Button>
               </div>
+            </div>
+            
+            {/* Electronic Signature Legal Notice */}
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-xs text-blue-800 flex items-start">
+                <Info className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
+                {language === 'es' 
+                  ? 'Las firmas electrónicas tienen el mismo nivel de autenticidad y validez legal que las firmas físicas según la Ley ESIGN y UETA.'
+                  : 'Electronic signatures have the same level of authenticity and legal validity as physical signatures under the ESIGN Act and UETA.'}
+              </p>
             </div>
           </div>
         </CardContent>

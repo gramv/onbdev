@@ -1802,6 +1802,73 @@ class EnhancedSupabaseService:
             return []
     
     # ==========================================
+    # ONBOARDING FORM DATA METHODS
+    # ==========================================
+    
+    def save_onboarding_form_data(self, token: str, employee_id: str, step_id: str, form_data: Dict[str, Any]) -> bool:
+        """Save or update onboarding form data for a specific step"""
+        try:
+            # Check if data already exists for this token and step
+            existing = self.client.table("onboarding_form_data").select("id").eq("token", token).eq("step_id", step_id).execute()
+            
+            if existing.data:
+                # Update existing record
+                result = self.client.table("onboarding_form_data").update({
+                    "form_data": form_data,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }).eq("token", token).eq("step_id", step_id).execute()
+            else:
+                # Insert new record
+                result = self.client.table("onboarding_form_data").insert({
+                    "token": token,
+                    "employee_id": employee_id,
+                    "step_id": step_id,
+                    "form_data": form_data
+                }).execute()
+            
+            return bool(result.data)
+        except Exception as e:
+            logger.error(f"Failed to save onboarding form data: {e}")
+            logger.error(f"Token: {token}, Employee: {employee_id}, Step: {step_id}")
+            logger.error(f"Error details: {str(e)}")
+            return False
+    
+    def get_onboarding_form_data(self, token: str, step_id: str = None) -> Dict[str, Any]:
+        """Get onboarding form data for a token and optional step"""
+        try:
+            query = self.client.table("onboarding_form_data").select("*").eq("token", token)
+            
+            if step_id:
+                query = query.eq("step_id", step_id)
+            
+            result = query.execute()
+            
+            if step_id and result.data:
+                # Return single step data
+                return result.data[0].get("form_data", {}) if result.data else {}
+            else:
+                # Return all steps data as a dictionary
+                form_data = {}
+                for record in result.data:
+                    form_data[record["step_id"]] = record["form_data"]
+                return form_data
+                
+        except Exception as e:
+            logger.error(f"Failed to get onboarding form data: {e}")
+            logger.error(f"Token: {token}, Step: {step_id}")
+            logger.error(f"Error details: {str(e)}")
+            return {}
+    
+    def get_all_onboarding_data_by_token(self, token: str) -> List[Dict[str, Any]]:
+        """Get all onboarding form data records for a token"""
+        try:
+            result = self.client.table("onboarding_form_data").select("*").eq("token", token).order("created_at").execute()
+            return result.data if result.data else []
+        except Exception as e:
+            logger.error(f"Failed to get all onboarding data: {e}")
+            return []
+    
+    # ==========================================
     # EMPLOYEE SEARCH & MANAGEMENT METHODS (Phase 1.4)
     # ==========================================
     
@@ -1916,7 +1983,7 @@ class EnhancedSupabaseService:
                 "property_id": property_id
             }
     
-    async def get_onboarding_form_data(self, session_id: str) -> Dict[str, Any]:
+    def get_onboarding_form_data_by_session(self, session_id: str) -> Dict[str, Any]:
         """Get all form data for an onboarding session"""
         try:
             # In a real implementation, this would fetch from a form_data table
@@ -1945,7 +2012,7 @@ class EnhancedSupabaseService:
             logger.error(f"Failed to get onboarding documents: {e}")
             return []
     
-    async def get_onboarding_form_data_by_step(self, session_id: str, step: str) -> Optional[Dict[str, Any]]:
+    def get_onboarding_form_data_by_step(self, session_id: str, step: str) -> Optional[Dict[str, Any]]:
         """Get form data for a specific onboarding step"""
         try:
             # In a real implementation, this would fetch from a form_data table

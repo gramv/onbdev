@@ -9,10 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { CreditCard, Building, Plus, Trash2, AlertTriangle, Info, Upload, Check, Clock, FileText } from 'lucide-react'
+import { CreditCard, Building, Plus, Trash2, AlertTriangle, Info, Upload, Check, Clock, FileText, Save } from 'lucide-react'
 import DocumentUpload from '@/components/DocumentUpload'
 import { DocumentType } from '@/types/documents'
 import { DocumentMetadata } from '@/services/documentService'
+import { useAutoSave } from '@/hooks/useAutoSave'
 
 interface BankAccount {
   bankName: string
@@ -86,7 +87,10 @@ export default function DirectDepositFormEnhanced({
   onNext,
   onBack,
   onValidationChange,
-  useMainNavigation = false
+  useMainNavigation = false,
+  employee,
+  property,
+  sessionToken
 }: DirectDepositFormEnhancedProps) {
   const [formData, setFormData] = useState<DirectDepositData>({
     paymentMethod: 'direct_deposit',
@@ -114,8 +118,20 @@ export default function DirectDepositFormEnhanced({
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [showErrors, setShowErrors] = useState(false)
   const [isValid, setIsValid] = useState(false)
-  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null)
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+
+  // Auto-save hook configuration
+  const { saveStatus } = useAutoSave(formData, {
+    key: 'direct-deposit-form',
+    debounceMs: 2000,
+    onSave: async (data) => {
+      // Save to sessionStorage
+      sessionStorage.setItem('direct_deposit_form_data', JSON.stringify(data))
+      // Also call the parent's onSave if it needs to track changes
+      if (onSave && Object.keys(touchedFields).length > 0) {
+        onSave(data)
+      }
+    }
+  })
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -275,34 +291,24 @@ export default function DirectDepositFormEnhanced({
     return formIsValid
   }, [formData, t, onValidationChange])
 
+  // Load saved data on mount
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('direct_deposit_form_data')
+    if (savedData && !initialData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        setFormData(parsed)
+      } catch (e) {
+        console.error('Failed to load saved direct deposit data:', e)
+      }
+    }
+  }, [])
+
   // Auto-validate when form data changes
   useEffect(() => {
     validateForm()
   }, [formData, validateForm])
 
-  // Auto-save functionality
-  const autoSave = useCallback(() => {
-    setSaveStatus('saving')
-    try {
-      onSave(formData)
-      setLastSaveTime(new Date())
-      setSaveStatus('saved')
-    } catch (error) {
-      console.error('Auto-save failed:', error)
-      setSaveStatus('unsaved')
-    }
-  }, [formData, onSave])
-
-  // Auto-save every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (touchedFields && Object.keys(touchedFields).length > 0) {
-        autoSave()
-      }
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [autoSave, touchedFields])
 
   const handleInputChange = (field: string, value: any) => {
     const keys = field.split('.')
@@ -317,7 +323,6 @@ export default function DirectDepositFormEnhanced({
     
     // Mark field as touched
     setTouchedFields(prev => ({ ...prev, [field]: true }))
-    setSaveStatus('unsaved')
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -403,6 +408,8 @@ export default function DirectDepositFormEnhanced({
     setShowErrors(true) // Show all errors when user tries to submit
     if (validateForm()) {
       onSave(formData)
+      // Clear saved data after successful submission
+      sessionStorage.removeItem('direct_deposit_form_data')
       if (!useMainNavigation && onNext) onNext()
     }
   }
@@ -415,18 +422,6 @@ export default function DirectDepositFormEnhanced({
     return value.replace(/\D/g, '').slice(0, 17)
   }
 
-  // Format save time for display
-  const formatLastSaved = (date: Date | null): string => {
-    if (!date) return 'Not saved'
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMinutes = Math.floor(diffMs / 60000)
-    
-    if (diffMinutes < 1) return 'Just saved'
-    if (diffMinutes < 60) return `Saved ${diffMinutes} min ago`
-    const diffHours = Math.floor(diffMinutes / 60)
-    return `Saved ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-  }
 
   return (
     <div className="space-y-4">
@@ -444,7 +439,9 @@ export default function DirectDepositFormEnhanced({
             ) : saveStatus === 'saved' ? (
               <>
                 <Check className="h-4 w-4 text-green-600" />
-                <span className="text-sm text-gray-600">{formatLastSaved(lastSaveTime)}</span>
+                <span className="text-sm text-gray-600">
+                  {language === 'es' ? 'Guardado automáticamente' : 'Auto-saved'}
+                </span>
               </>
             ) : (
               <>

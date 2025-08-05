@@ -428,6 +428,22 @@ export default function StepName(props: StepProps) {
 }
 ```
 
+## Form Signature Flow Rules
+
+### Single Review and Sign Flow
+- **Each form must have only one integrated review/sign flow within its main step component**
+- **No separate review/sign steps** - Review and signature functionality must be part of the form step itself
+- **Session state preservation** - If a form is already signed, show the PDF preview directly without re-entering review mode
+- **Prevent duplicate signatures** - Once signed, forms should not allow re-signing unless explicitly cleared
+
+### Consistent Signature Positioning
+- **All PDF signatures must use standardized positions defined in the frontend generators**
+- **Backend PDF generation must match frontend signature coordinates exactly**
+- **W-4 Signature Position**: x: 150, y: 650 (from bottom-left origin in backend PyMuPDF)
+- **W-4 Signature Position**: x: 150, y: 142 (from bottom-left origin in frontend pdf-lib)
+- **I-9 Employee Signature Position**: x: 350, y: 650 (from bottom-left origin)
+- **Coordinate system**: Always document whether using top-left or bottom-left origin
+
 ## Government Compliance Requirements
 
 ### I-9 Employment Eligibility Verification

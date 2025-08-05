@@ -59,12 +59,8 @@ export default function JobDetailsStep({
     }
   }
 
-  // Calculate pay estimates
+  // Pay rate for display
   const payRate = 18.50 // Demo rate
-  const hoursPerWeek = 40
-  const weeklyPay = payRate * hoursPerWeek
-  const monthlyPay = weeklyPay * 4.33
-  const annualPay = weeklyPay * 52
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -97,10 +93,6 @@ export default function JobDetailsStep({
       employmentDetails: 'Employment Terms',
       startDate: 'Start Date',
       payRate: 'Pay Rate',
-      payEstimates: 'Estimated Earnings',
-      weeklyPay: 'Weekly',
-      monthlyPay: 'Monthly',
-      annualPay: 'Annual',
       acknowledgment: 'Job Offer Acceptance',
       acknowledgmentText: 'I have reviewed and accept all job details above.',
       acknowledgedOn: 'Acknowledged on'
@@ -116,10 +108,6 @@ export default function JobDetailsStep({
       employmentDetails: 'Términos de Empleo',
       startDate: 'Fecha de Inicio',
       payRate: 'Tarifa de Pago',
-      payEstimates: 'Ganancias Estimadas',
-      weeklyPay: 'Semanal',
-      monthlyPay: 'Mensual',
-      annualPay: 'Anual',
       acknowledgment: 'Aceptación de Oferta de Trabajo',
       acknowledgmentText: 'He revisado y acepto todos los detalles del trabajo anteriores.',
       acknowledgedOn: 'Reconocido el'
@@ -223,31 +211,6 @@ export default function JobDetailsStep({
               </CardContent>
             </Card>
 
-            {/* Pay Estimates */}
-            <Card className="bg-green-50 border-green-200">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-green-800">
-                  <DollarSign className="h-5 w-5" />
-                  <span>{t.payEstimates}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-sm text-green-700">{t.weeklyPay}</p>
-                    <p className="font-bold text-green-900">{formatCurrency(weeklyPay)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-green-700">{t.monthlyPay}</p>
-                    <p className="font-bold text-green-900">{formatCurrency(monthlyPay)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-green-700">{t.annualPay}</p>
-                    <p className="font-bold text-green-900">{formatCurrency(annualPay)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 

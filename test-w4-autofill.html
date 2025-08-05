@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test W-4 Autofill</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test W-4 Form Autofill</h1>
+        
+        <div class="step">
+            <h3>Step 1: Set up Personal Info Data</h3>
+            <p>This simulates data from the PersonalInfoStep being saved to sessionStorage.</p>
+            <button onclick="setupPersonalInfo()">Setup Personal Info Data</button>
+            <div id="personalInfoStatus"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Simulate W-4 Form with Empty Data</h3>
+            <p>This tests autofill when W-4 has empty data (like from cloud).</p>
+            <button onclick="testEmptyW4()">Test Empty W-4 Autofill</button>
+            <div id="emptyW4Status"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Simulate W-4 Form with Partial Data</h3>
+            <p>This tests autofill when W-4 has some fields but missing others.</p>
+            <button onclick="testPartialW4()">Test Partial W-4 Autofill</button>
+            <div id="partialW4Status"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Clear All Data</h3>
+            <p>Clear sessionStorage to reset the test.</p>
+            <button onclick="clearData()">Clear All Data</button>
+            <div id="clearStatus"></div>
+        </div>
+
+        <div class="step">
+            <h3>Current SessionStorage Data:</h3>
+            <pre id="storageDisplay"></pre>
+        </div>
+    </div>
+
+    <script>
+        function updateStorageDisplay() {
+            const display = document.getElementById('storageDisplay');
+            const data = {};
+            
+            // Get all onboarding-related data
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && (key.includes('onboarding_') || key.includes('personal'))) {
+                    try {
+                        data[key] = JSON.parse(sessionStorage.getItem(key));
+                    } catch {
+                        data[key] = sessionStorage.getItem(key);
+                    }
+                }
+            }
+            
+            display.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function setupPersonalInfo() {
+            const personalInfoData = {
+                personalInfo: {
+                    firstName: "John",
+                    middleInitial: "D",
+                    lastName: "Smith",
+                    ssn: "123-45-6789",
+                    address: "123 Main Street",
+                    aptNumber: "4B",
+                    city: "New York",
+                    state: "NY",
+                    zipCode: "10001",
+                    maritalStatus: "married",
+                    email: "john.smith@example.com",
+                    phone: "(555) 123-4567"
+                }
+            };
+            
+            sessionStorage.setItem('onboarding_personal-info_data', JSON.stringify(personalInfoData));
+            
+            document.getElementById('personalInfoStatus').innerHTML = 
+                '<span class="success">✓ Personal info data saved to sessionStorage</span>';
+            
+            updateStorageDisplay();
+        }
+
+        function testEmptyW4() {
+            // Simulate empty W-4 data from cloud
+            const emptyW4Data = {
+                formData: {}
+            };
+            
+            sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(emptyW4Data));
+            
+            // Now open the W-4 form to see if it autofills
+            window.open('http://localhost:3000/test-steps', '_blank');
+            
+            document.getElementById('emptyW4Status').innerHTML = 
+                '<span class="success">✓ Empty W-4 data set. Opening test page...</span><br>' +
+                '<small>Navigate to W-4 Form step to test autofill</small>';
+            
+            updateStorageDisplay();
+        }
+
+        function testPartialW4() {
+            // Simulate partial W-4 data (missing last_name and address fields)
+            const partialW4Data = {
+                formData: {
+                    first_name: "Johnny",  // Different from personal info
+                    filing_status: "single",
+                    extra_withholding: "100"
+                }
+            };
+            
+            sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(partialW4Data));
+            
+            // Now open the W-4 form to see if it autofills missing fields
+            window.open('http://localhost:3000/test-steps', '_blank');
+            
+            document.getElementById('partialW4Status').innerHTML = 
+                '<span class="success">✓ Partial W-4 data set. Opening test page...</span><br>' +
+                '<small>Should autofill last_name, ssn, address fields but keep existing first_name</small>';
+            
+            updateStorageDisplay();
+        }
+
+        function clearData() {
+            const keysToRemove = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && (key.includes('onboarding_') || key.includes('personal'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            keysToRemove.forEach(key => sessionStorage.removeItem(key));
+            
+            document.getElementById('clearStatus').innerHTML = 
+                '<span class="success">✓ Cleared ' + keysToRemove.length + ' items from sessionStorage</span>';
+            
+            updateStorageDisplay();
+        }
+
+        // Initial display
+        updateStorageDisplay();
+    </script>
+</body>
+</html>

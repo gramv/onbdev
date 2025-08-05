@@ -17,6 +17,16 @@ import { generateCleanI9Pdf } from '@/utils/i9PdfGeneratorClean'
 import { scrollToTop } from '@/utils/scrollHelpers'
 import axios from 'axios'
 
+// Helper function to create a simple hash of form data
+const createFormDataHash = (data: any): string => {
+  const relevantData = {
+    formData: data.formData,
+    supplementsData: data.supplementsData,
+    documentsData: data.documentsData?.extractedData // Only hash extracted data, not file contents
+  }
+  return JSON.stringify(relevantData)
+}
+
 export default function I9CompleteStep({
   currentStep,
   progress,
@@ -39,6 +49,7 @@ export default function I9CompleteStep({
   const [documentsComplete, setDocumentsComplete] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
   const [signatureData, setSignatureData] = useState<any>(null)
+  const [signedFormDataHash, setSignedFormDataHash] = useState<string | null>(null)
   
   // State for SSN validation
   const [ssnMismatch, setSsnMismatch] = useState<{hasWarning: boolean, acknowledged: boolean}>({hasWarning: false, acknowledged: false})
@@ -65,7 +76,8 @@ export default function I9CompleteStep({
     needsSupplements,
     isSigned,
     ssnMismatch,
-    signatureData
+    signatureData,
+    signedFormDataHash
   }
   
   // Debug log citizenship status and check for SSN mismatches
@@ -129,6 +141,9 @@ export default function I9CompleteStep({
         if (parsed.signatureData) {
           setSignatureData(parsed.signatureData)
         }
+        if (parsed.signedFormDataHash) {
+          setSignedFormDataHash(parsed.signedFormDataHash)
+        }
         if (parsed.ssnMismatch) setSsnMismatch(parsed.ssnMismatch)
         if (parsed.activeTab && !parsed.isSigned) {
           // Restore the tab they were on, unless they've already signed
@@ -172,9 +187,15 @@ export default function I9CompleteStep({
   useEffect(() => {
     if (activeTab === 'preview' && !pdfUrl && !isGeneratingPdf && documentsComplete) {
       console.log('Regenerating PDF on preview tab - formData citizenship_status:', formData.citizenship_status)
-      generateCompletePdf(documentsData)
+      // Include signature data if already signed
+      if (isSigned && signatureData) {
+        console.log('Including existing signature in PDF regeneration')
+        generateCompletePdf(documentsData, signatureData)
+      } else {
+        generateCompletePdf(documentsData)
+      }
     }
-  }, [activeTab, pdfUrl, isGeneratingPdf, documentsComplete])
+  }, [activeTab, pdfUrl, isGeneratingPdf, documentsComplete, isSigned, signatureData])
   
   // Cleanup PDF data when component unmounts to free memory
   useEffect(() => {
@@ -285,7 +306,9 @@ export default function I9CompleteStep({
       documentsComplete,
       needsSupplements,
       isSigned,
-      ssnMismatch
+      ssnMismatch,
+      signatureData,
+      signedFormDataHash
     }
     
     // Save to session storage immediately
@@ -296,34 +319,17 @@ export default function I9CompleteStep({
     
     // If going backwards, reset states appropriately
     if (newTabIndex < currentTabIndex) {
-      // Reset signed state if going back from preview
-      if (activeTab === 'preview' && isSigned) {
-        setIsSigned(false)
+      // Don't reset signed state if just navigating back
+      // User will need to explicitly change data to require re-signing
+      if (activeTab === 'preview') {
+        // Clear PDF to force regeneration with current data
         setPdfUrl(null)
       }
       
-      // Reset completion states for tabs ahead of where we're going
-      // BUT preserve the form data
-      if (newTab === 'form') {
-        // Don't reset formComplete if we're just navigating back
-        // This preserves the citizenship checkbox and form data
-        // Keep formComplete true if it was already true
-        if (!formComplete) {
-          // Only set to false if it wasn't already complete
-          setFormComplete(false)
-        }
-        setSupplementsComplete(false)
-        setDocumentsComplete(false)
-        // Regenerate PDF when returning to preview
-        setPdfUrl(null)
-      } else if (newTab === 'supplements') {
-        setSupplementsComplete(false)
-        setDocumentsComplete(false)
-        setPdfUrl(null)
-      } else if (newTab === 'documents') {
-        setDocumentsComplete(false)
-        setPdfUrl(null)
-      }
+      // Don't reset completion states when just navigating
+      // Only reset if data actually changes (handled in individual handlers)
+      // Clear PDF to force regeneration with current data
+      setPdfUrl(null)
     }
     
     // Allow navigation if tab is enabled
@@ -339,14 +345,32 @@ export default function I9CompleteStep({
     console.log('handleFormComplete - citizenship_status:', data.citizenship_status)
     console.log('handleFormComplete - Full data received:', Object.keys(data))
     
+    // Check if form data changed after signing
+    if (isSigned && signedFormDataHash) {
+      const newDataHash = createFormDataHash({
+        formData: { ...formData, ...data },
+        supplementsData,
+        documentsData
+      })
+      
+      if (newDataHash !== signedFormDataHash) {
+        console.log('Form data changed after signing - clearing signature')
+        setIsSigned(false)
+        setSignatureData(null)
+        setSignedFormDataHash(null)
+        setPdfUrl(null)
+      }
+    }
+    
     // Preserve all form data including citizenship status
-    setFormData(prev => ({ ...prev, ...data }))
+    const updatedFormData = { ...formData, ...data }
+    setFormData(updatedFormData)
     setFormComplete(true)
     
     // Save with complete form data
     const completeAutoSaveData = {
       activeTab: 'supplements',
-      formData: { ...formData, ...data },
+      formData: updatedFormData,  // Use the updated data
       supplementsData,
       documentsData,
       formComplete: true,
@@ -354,20 +378,58 @@ export default function I9CompleteStep({
       documentsComplete,
       needsSupplements,
       isSigned,
-      ssnMismatch
+      ssnMismatch,
+      signatureData,
+      signedFormDataHash
     }
     
+    // Save to session storage immediately
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeAutoSaveData))
     await saveProgress(currentStep.id, completeAutoSaveData)
     setActiveTab('supplements')
   }
   
   const handleSupplementsComplete = async () => {
+    // Check if supplements data changed after signing
+    if (isSigned && signedFormDataHash) {
+      const newDataHash = createFormDataHash({
+        formData,
+        supplementsData,
+        documentsData
+      })
+      
+      if (newDataHash !== signedFormDataHash) {
+        console.log('Supplements data changed after signing - clearing signature')
+        setIsSigned(false)
+        setSignatureData(null)
+        setSignedFormDataHash(null)
+        setPdfUrl(null)
+      }
+    }
+    
     setSupplementsComplete(true)
     await saveProgress(currentStep.id, { supplementsComplete: true })
     setActiveTab('documents')
   }
   
   const handleDocumentsComplete = async (data: any) => {
+    // Check if documents changed after signing
+    if (isSigned && signedFormDataHash) {
+      const newDataHash = createFormDataHash({
+        formData,
+        supplementsData,
+        documentsData: data
+      })
+      
+      if (newDataHash !== signedFormDataHash) {
+        console.log('Documents changed after signing - clearing signature')
+        setIsSigned(false)
+        setSignatureData(null)
+        setSignedFormDataHash(null)
+        setPdfUrl(null)
+      }
+    }
+    
     setDocumentsData(data)
     setDocumentsComplete(true)
     
@@ -500,8 +562,17 @@ export default function I9CompleteStep({
       return
     }
     
-    // Store signature data
+    // Store signature data and create hash of current form state
     setSignatureData(signature)
+    
+    // Create hash of current form data
+    const currentDataHash = createFormDataHash({
+      formData,
+      supplementsData,
+      documentsData
+    })
+    setSignedFormDataHash(currentDataHash)
+    
     const completeData = {
       formData,
       supplementsData,
@@ -509,6 +580,7 @@ export default function I9CompleteStep({
       signed: true,
       isSigned: true, // Include both for compatibility
       signatureData: signature,
+      signedFormDataHash: currentDataHash,
       completedAt: new Date().toISOString(),
       needsSupplements
     }
@@ -657,7 +729,6 @@ export default function I9CompleteStep({
               language={language}
               employeeId={employee?.id}
               showPreview={false}
-              key={`form-${activeTab}`} // Simplified key to prevent unnecessary re-renders
             />
           </TabsContent>
           
