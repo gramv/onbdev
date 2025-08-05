@@ -151,19 +151,20 @@ export async function generateCleanW4Pdf(formData: W4FormData): Promise<Uint8Arr
         // Position signature in the signature field area
         // Note: pdf-lib uses bottom-left origin like PyMuPDF
         firstPage.drawImage(signatureImage, {
-          x: 150,     // Left side of signature field
-          y: 142,     // From bottom (792 - 650 = 142 from top in pdf-lib coordinates)
+          x: 100,     // Left side of signature field
+          y: 102,     // From bottom (792 - 690 = 102) - properly aligned with Step 5
           width: scaledWidth,
           height: scaledHeight,
         })
         
         console.log('✓ Added signature to W-4 form')
         
-        // Add date text next to signature if not already in field
+        // Add date text next to signature
+        // The form field f1_14[0] is filled, but we also need visual text
         try {
           firstPage.drawText(dateFormatted, {
-            x: 400,  // Position next to signature
-            y: 152,  // Align with signature (matching new signature position)
+            x: 390,  // Position at the date field location based on field mapping
+            y: 82,   // Align with signature line (slightly below signature)
             size: 10,
             color: rgb(0, 0, 0),
           })
