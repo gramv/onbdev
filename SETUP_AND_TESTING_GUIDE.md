@@ -51,13 +51,13 @@ The `.env` file is already configured with default values:
 
 ```env
 # Groq API Configuration
-GROQ_API_KEY=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
+GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=llama-3.3-70b-versatile
 GROQ_MAX_TOKENS=4000
 GROQ_TEMPERATURE=0.1
 
 # JWT Configuration
-JWT_SECRET_KEY=hotel-onboarding-super-secret-key-2025
+JWT_SECRET_KEY=your_secure_jwt_secret_key_here
 JWT_ACCESS_TOKEN_EXPIRE_HOURS=72
 
 # Frontend URL
