@@ -907,6 +907,10 @@ class PDFFormFiller:
                 W4_FORM_FIELDS["employee_signature_date"]: self._format_date(employee_data.get('signature_date', datetime.now().strftime('%Y-%m-%d')))
             }
             
+            # DEBUG: Log which date field we're filling
+            print(f"DEBUG: Employee signature date field: {W4_FORM_FIELDS['employee_signature_date']}")
+            print(f"DEBUG: Employee signature date value: {field_mappings[W4_FORM_FIELDS['employee_signature_date']]}")
+            
             # CRITICAL: Handle Filing Status Checkboxes (IRS-compliant)
             filing_status = employee_data.get('filing_status', '')
             # Map frontend values to checkbox fields
@@ -928,6 +932,28 @@ class PDFFormFiller:
                 
                 for widget in widgets:
                     field_name = widget.field_name
+                    
+                    # DEBUG: Log all f1_14 and f1_15 fields
+                    if field_name and ("f1_14" in field_name or "f1_15" in field_name):
+                        print(f"DEBUG: Found date/employer field: '{field_name}' at rect: {list(widget.rect)}")
+                    
+                    # CRITICAL: Skip employer section fields - these should only be filled by manager
+                    if field_name and ("EmployerSection" in field_name or field_name.endswith("f1_15[0]")):
+                        print(f"⚠ SKIPPING EMPLOYER FIELD: '{field_name}' - Reserved for manager approval")
+                        continue
+                    
+                    # Also skip if this is the employer's date field that might be confused with employee date
+                    if field_name == "topmostSubform[0].Page1[0].EmployerSection[0].f1_14[0]":
+                        print(f"⚠ SKIPPING EMPLOYER DATE FIELD: '{field_name}' - First date of employment for manager only")
+                        continue
+                    
+                    # CRITICAL: The employee signature date field should be in Step 5, not employer section
+                    # Based on PDF analysis, both f1_14[0] and f1_15[0] at y=730 are in employer section
+                    # Skip the f1_15[0] field which is "First date of employment"
+                    if field_name == "topmostSubform[0].Page1[0].f1_15[0]":
+                        print(f"⚠ SKIPPING FIRST DATE OF EMPLOYMENT: '{field_name}' - This is for manager only")
+                        continue
+                    
                     if field_name in field_mappings:
                         field_value = field_mappings[field_name]
                         self._set_widget_value(widget, field_value)
@@ -1000,9 +1026,9 @@ class PDFFormFiller:
                 rect = fitz.Rect(350, 750, 500, 780)
             elif signature_type == "employee_w4":
                 # W-4 employee signature position 
-                # The actual signature line on W-4 is around y:650 from bottom-left origin
-                # This places it properly on the "Employee's signature" line
-                rect = fitz.Rect(150, 650, 300, 680)
+                # The actual signature line is in Step 5, around y:690 from bottom-left origin
+                # Position signature properly on the "Employee's signature" line
+                rect = fitz.Rect(100, 690, 350, 720)
             else:
                 # Default position
                 rect = fitz.Rect(150, 650, 300, 680)
