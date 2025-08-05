@@ -3,8 +3,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import W4FormClean from '@/components/W4FormClean'
 import ReviewAndSign from '@/components/ReviewAndSign'
+import PDFViewer from '@/components/PDFViewer'
 import { CheckCircle, CreditCard, FileText, AlertTriangle } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { FormSection } from '@/components/ui/form-section'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
@@ -12,6 +12,8 @@ import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { w4FormValidator } from '@/utils/stepValidators'
+import { generateCleanW4Pdf } from '@/utils/w4PdfGeneratorClean'
+import axios from 'axios'
 
 interface W4Translations {
   title: string
@@ -20,8 +22,6 @@ interface W4Translations {
   completionMessage: string
   importantInfoTitle: string
   importantInfo: string[]
-  fillFormTab: string
-  reviewTab: string
   formTitle: string
   reviewTitle: string
   reviewDescription: string
@@ -39,9 +39,10 @@ export default function W4FormStep({
 }: StepProps) {
   
   const [formData, setFormData] = useState<any>({})
-  const [activeTab, setActiveTab] = useState('form')
-  const [formValid, setFormValid] = useState(false)
+  const [showReview, setShowReview] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
+  const [autoFillNotification, setAutoFillNotification] = useState<string | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
   // Validation hook
   const { errors, fieldErrors, validate } = useStepValidation(w4FormValidator)
@@ -49,9 +50,9 @@ export default function W4FormStep({
   // Auto-save data
   const autoSaveData = {
     formData,
-    activeTab,
-    formValid,
-    isSigned
+    showReview,
+    isSigned,
+    pdfUrl
   }
 
   // Auto-save hook
@@ -61,14 +62,152 @@ export default function W4FormStep({
     }
   })
 
-  // Load existing data
+  // Load existing W-4 data and auto-fill from PersonalInfoStep
   useEffect(() => {
-    if (progress.completedSteps.includes(currentStep.id)) {
-      setIsSigned(true)
-      setFormValid(true)
-      setActiveTab('review')
+    const loadFormData = () => {
+      try {
+        // First, check session storage for saved data
+        const savedW4Data = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+        if (savedW4Data) {
+          try {
+            const parsed = JSON.parse(savedW4Data)
+            if (parsed.formData) {
+              setFormData(parsed.formData)
+            }
+            // If already signed, show PDF preview instead of review
+            if (parsed.isSigned || parsed.signed) {
+              setIsSigned(true)
+              setShowReview(false) // Don't show review, go straight to signed state
+              if (parsed.pdfUrl) {
+                setPdfUrl(parsed.pdfUrl)
+              }
+              return // Exit early, no need to process further
+            }
+          } catch (e) {
+            console.error('Failed to parse saved W-4 data:', e)
+          }
+        }
+        
+        // Check if this step is already completed in progress
+        if (progress.completedSteps.includes(currentStep.id)) {
+          setIsSigned(true)
+          setShowReview(false) // Don't show review for completed steps
+          return
+        }
+        
+        // Load existing W-4 data
+        const existingW4Data = sessionStorage.getItem('onboarding_w4-form_data')
+        let initialData: any = {}
+        
+        if (existingW4Data) {
+          const parsed = JSON.parse(existingW4Data)
+          initialData = parsed.formData || parsed
+          setFormData(initialData)
+          
+          // If we already have data, check if it was signed
+          if (parsed.isSigned) {
+            setIsSigned(true)
+            setShowReview(true)
+          }
+          
+          // Restore PDF URL if available
+          if (parsed.pdfUrl) {
+            setPdfUrl(parsed.pdfUrl)
+          }
+        }
+        
+        // Always try to autofill from personal info for empty fields
+        const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
+        
+        if (personalInfoData) {
+          const parsed = JSON.parse(personalInfoData)
+          const personalInfo = parsed.personalInfo || parsed
+          
+          if (personalInfo) {
+            // Map personal info to W-4 fields
+            const autoFilledData: any = { ...initialData }
+            let fieldsUpdated = 0
+            
+            // Name fields - only fill if empty
+            if (!autoFilledData.first_name && personalInfo.firstName) {
+              autoFilledData.first_name = personalInfo.firstName
+              fieldsUpdated++
+            }
+            
+            if (!autoFilledData.middle_initial && personalInfo.middleInitial) {
+              autoFilledData.middle_initial = personalInfo.middleInitial
+              fieldsUpdated++
+            }
+            
+            if (!autoFilledData.last_name && personalInfo.lastName) {
+              autoFilledData.last_name = personalInfo.lastName
+              fieldsUpdated++
+            }
+            
+            // SSN - only fill if empty
+            if (!autoFilledData.ssn && personalInfo.ssn) {
+              autoFilledData.ssn = personalInfo.ssn
+              fieldsUpdated++
+            }
+            
+            // Address fields - only fill if empty
+            if (!autoFilledData.address && personalInfo.address) {
+              autoFilledData.address = personalInfo.address
+              fieldsUpdated++
+            }
+            if (!autoFilledData.apt_number && personalInfo.aptNumber) {
+              autoFilledData.apt_number = personalInfo.aptNumber
+              fieldsUpdated++
+            }
+            if (!autoFilledData.city && personalInfo.city) {
+              autoFilledData.city = personalInfo.city
+              fieldsUpdated++
+            }
+            if (!autoFilledData.state && personalInfo.state) {
+              autoFilledData.state = personalInfo.state
+              fieldsUpdated++
+            }
+            if (!autoFilledData.zip_code && personalInfo.zipCode) {
+              autoFilledData.zip_code = personalInfo.zipCode
+              fieldsUpdated++
+            }
+            
+            // Determine filing status based on marital status - only fill if empty
+            if (!autoFilledData.filing_status && personalInfo.maritalStatus) {
+              if (personalInfo.maritalStatus === 'single' || 
+                  personalInfo.maritalStatus === 'divorced' || 
+                  personalInfo.maritalStatus === 'widowed') {
+                autoFilledData.filing_status = 'single'
+                fieldsUpdated++
+              } else if (personalInfo.maritalStatus === 'married') {
+                autoFilledData.filing_status = 'married_filing_jointly'
+                fieldsUpdated++
+              }
+            }
+            
+            // Update form data if any fields were filled
+            if (fieldsUpdated > 0) {
+              setFormData(autoFilledData)
+              
+              // Show notification
+              setAutoFillNotification(
+                language === 'es' 
+                  ? `Se han completado automáticamente ${fieldsUpdated} campos con su información personal.`
+                  : `${fieldsUpdated} fields have been auto-filled with your personal information.`
+              )
+              
+              // Clear notification after 5 seconds
+              setTimeout(() => setAutoFillNotification(null), 5000)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading W-4 data:', error)
+      }
     }
-  }, [currentStep.id, progress.completedSteps])
+    
+    loadFormData()
+  }, [currentStep.id, progress.completedSteps, language])
 
   const handleFormComplete = async (data: any) => {
     // Validate the form data
@@ -76,8 +215,7 @@ export default function W4FormStep({
     
     if (validation.valid) {
       setFormData(data)
-      setFormValid(true)
-      setActiveTab('review')
+      setShowReview(true)
     }
   }
 
@@ -85,66 +223,113 @@ export default function W4FormStep({
     const completeData = {
       formData,
       signed: true,
+      isSigned: true,
       signatureData,
       completedAt: new Date().toISOString()
     }
     
     setIsSigned(true)
+    
+    // Save to session storage immediately with both keys
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+      ...completeData,
+      showReview: true,
+      pdfUrl: null // Will be updated after PDF generation
+    }))
+    
+    // Also save to the alternate key for compatibility
+    sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(completeData))
+    
+    // Save progress to update controller's step data
+    await saveProgress(currentStep.id, completeData)
+    
     await markStepComplete(currentStep.id, completeData)
+    
+    // Generate PDF with signature using frontend generator
+    try {
+      console.log('Generating W-4 PDF with signature...')
+      
+      // Prepare form data for PDF generation
+      const pdfFormData = {
+        ...formData,
+        signatureData: {
+          signature: signatureData.signature,
+          signedAt: signatureData.signedAt || new Date().toISOString()
+        }
+      }
+      
+      // Generate PDF with transparent signature
+      const pdfBytes = await generateCleanW4Pdf(pdfFormData)
+      
+      // Convert to base64
+      let binary = ''
+      const chunkSize = 8192
+      for (let i = 0; i < pdfBytes.length; i += chunkSize) {
+        const chunk = pdfBytes.slice(i, i + chunkSize)
+        binary += String.fromCharCode.apply(null, Array.from(chunk))
+      }
+      const base64String = btoa(binary)
+      
+      setPdfUrl(base64String)
+      
+      // Update session storage with PDF URL
+      const updatedData = {
+        ...completeData,
+        showReview: true,
+        pdfUrl: base64String
+      }
+      sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedData))
+      sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(updatedData))
+      
+      // Also try to save to backend for persistence
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+      axios.post(
+        `${apiUrl}/api/onboarding/${employee?.id}/w4-form`,
+        {
+          form_data: formData,
+          signed: true,
+          signature_data: signatureData.signature,
+          completed_at: new Date().toISOString()
+        }
+      ).catch(err => {
+        console.error('Failed to save W-4 to backend:', err)
+        // Continue even if backend save fails
+      })
+      
+    } catch (error) {
+      console.error('Failed to generate W-4 PDF:', error)
+      
+      // Fallback to backend generation
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+        const response = await axios.post(
+          `${apiUrl}/api/onboarding/${employee?.id}/w4-form/generate-pdf`,
+          {
+            employee_data: {
+              ...formData,
+              signatureData
+            }
+          }
+        )
+        
+        if (response.data?.data?.pdf) {
+          setPdfUrl(response.data.data.pdf)
+          
+          // Update session storage with PDF URL
+          const updatedData = {
+            ...completeData,
+            showReview: true,
+            pdfUrl: response.data.data.pdf
+          }
+          sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedData))
+          sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(updatedData))
+        }
+      } catch (backendError) {
+        console.error('Backend PDF generation also failed:', backendError)
+      }
+    }
   }
 
-  const renderFormPreview = (data: any) => {
-    if (!data) return <div>No form data available</div>
-    
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-gray-600">First Name</label>
-            <p className="text-gray-900">{data.first_name || 'Not provided'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Middle Initial</label>
-            <p className="text-gray-900">{data.middle_initial || 'Not provided'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Last Name</label>
-            <p className="text-gray-900">{data.last_name || 'Not provided'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Social Security Number</label>
-            <p className="text-gray-900">{data.ssn ? '***-**-' + data.ssn.slice(-4) : 'Not provided'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Address</label>
-            <p className="text-gray-900">{data.address || 'Not provided'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">City, State, ZIP</label>
-            <p className="text-gray-900">
-              {[data.city, data.state, data.zip_code].filter(Boolean).join(', ') || 'Not provided'}
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Filing Status</label>
-            <p className="text-gray-900">{data.filing_status || 'Not provided'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Multiple Jobs or Spouse Works</label>
-            <p className="text-gray-900">{data.multiple_jobs ? 'Yes' : 'No'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Dependents Amount</label>
-            <p className="text-gray-900">${data.dependents_amount || '0'}</p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Extra Withholding</label>
-            <p className="text-gray-900">${data.extra_withholding || '0'}</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   const translations: Record<'en' | 'es', W4Translations> = {
     en: {
@@ -159,8 +344,6 @@ export default function W4FormStep({
         'Consider using the IRS Tax Withholding Estimator for accuracy',
         'Consult a tax professional if you have complex tax situations'
       ],
-      fillFormTab: 'Fill Form',
-      reviewTab: 'Preview & Sign',
       formTitle: 'Form W-4: Employee\'s Withholding Certificate',
       reviewTitle: 'Review W-4 Form',
       reviewDescription: 'Please review your tax withholding information and sign electronically',
@@ -178,8 +361,6 @@ export default function W4FormStep({
         'Considere usar el Estimador de Retención del IRS',
         'Consulte a un profesional de impuestos si tiene situaciones complejas'
       ],
-      fillFormTab: 'Llenar Formulario',
-      reviewTab: 'Revisar y Firmar',
       formTitle: 'Formulario W-4: Certificado de Retención del Empleado',
       reviewTitle: 'Revisar Formulario W-4',
       reviewDescription: 'Por favor revise su información de retención de impuestos y firme electrónicamente',
@@ -220,6 +401,16 @@ export default function W4FormStep({
           </Alert>
         )}
 
+        {/* Auto-fill Notification */}
+        {autoFillNotification && (
+          <Alert className="bg-blue-50 border-blue-200">
+            <CheckCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              {autoFillNotification}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Important Tax Information */}
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader className="pb-3">
@@ -237,71 +428,74 @@ export default function W4FormStep({
           </CardContent>
         </Card>
 
-        {/* Form Section */}
-        <FormSection
-          title={String(t.title || 'W-4 Tax Withholding')}
-          description={String(t.description || '')}
-          icon={<FileText />}
-          completed={isSigned}
-          required={true}
-        >
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="form" className="flex items-center space-x-2">
-                <FileText className="h-4 w-4" />
-                <span>{t.fillFormTab}</span>
-                {formValid && <CheckCircle className="h-3 w-3 text-green-600" />}
-              </TabsTrigger>
-              <TabsTrigger value="review" disabled={!formValid} className="flex items-center space-x-2">
-                <CheckCircle className="h-4 w-4" />
-                <span>{t.reviewTab}</span>
-                {isSigned && <CheckCircle className="h-3 w-3 text-green-600" />}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="form" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <span>{t.formTitle}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <W4FormClean
-                    initialData={formData}
-                    language={language}
-                    employeeId={employee?.id}
-                    onComplete={handleFormComplete}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="review" className="space-y-6">
-              {formData && (
-                <ReviewAndSign
-                  formType="w4-form"
-                  formData={formData}
-                  title={t.reviewTitle}
-                  description={t.reviewDescription}
+        {/* Show Form, Review, or Signed PDF */}
+        {isSigned && pdfUrl ? (
+          // Show PDF preview for already signed forms
+          <div className="space-y-6">
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                {t.completionMessage}
+              </AlertDescription>
+            </Alert>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5 text-green-600" />
+                  <span>{language === 'es' ? 'Vista previa del W-4 firmado' : 'Signed W-4 Preview'}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PDFViewer pdfData={pdfUrl} height="600px" />
+              </CardContent>
+            </Card>
+          </div>
+        ) : !showReview ? (
+          <FormSection
+            title={String(t.title || 'W-4 Tax Withholding')}
+            description={String(t.description || '')}
+            icon={<FileText />}
+            completed={isSigned}
+            required={true}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <span>{t.formTitle}</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <W4FormClean
+                  initialData={formData}
                   language={language}
-                  onSign={handleSign}
-                  onBack={() => setActiveTab('form')}
-                  renderPreview={renderFormPreview}
-                  usePDFPreview={true}
-                  pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
-                  federalCompliance={{
-                    formName: 'Form W-4, Employee\'s Withholding Certificate',
-                    retentionPeriod: 'For 4 years after the date the last tax return using the information was filed',
-                    requiresWitness: false
-                  }}
-                  agreementText={t.agreementText}
+                  employeeId={employee?.id}
+                  onComplete={handleFormComplete}
                 />
-              )}
-            </TabsContent>
-          </Tabs>
-        </FormSection>
+              </CardContent>
+            </Card>
+          </FormSection>
+        ) : (
+          <ReviewAndSign
+            formType="w4-form"
+            formData={formData}
+            title={t.reviewTitle}
+            description={t.reviewDescription}
+            language={language}
+            onSign={handleSign}
+            onBack={() => setShowReview(false)}
+            usePDFPreview={true}
+            pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
+            pdfUrl={pdfUrl}
+            federalCompliance={{
+              formName: 'Form W-4, Employee\'s Withholding Certificate',
+              retentionPeriod: 'For 4 years after the date the last tax return using the information was filed',
+              requiresWitness: false
+            }}
+            agreementText={t.agreementText}
+          />
+        )}
         </div>
       </StepContentWrapper>
     </StepContainer>

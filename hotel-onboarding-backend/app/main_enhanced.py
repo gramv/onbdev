@@ -3,7 +3,7 @@
 Hotel Employee Onboarding System API - Supabase Only Version
 Enhanced with standardized API response formats
 """
-from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile
+from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, FileResponse, Response
@@ -3238,7 +3238,7 @@ async def get_onboarding_progress(
             return unauthorized_response("Invalid session or token")
         
         # Get all form data for the session
-        form_data = await supabase_service.get_onboarding_form_data(session_id)
+        form_data = supabase_service.get_onboarding_form_data_by_session(session_id)
         
         # Calculate progress percentage
         completed_steps = len(session.completed_steps) if session.completed_steps else 0
@@ -3411,7 +3411,7 @@ async def get_onboarding_for_manager_review(
             raise HTTPException(status_code=404, detail="Employee not found")
         
         # Get all form data submitted by employee
-        form_data = await supabase_service.get_onboarding_form_data(session_id)
+        form_data = supabase_service.get_onboarding_form_data_by_session(session_id)
         
         # Get documents uploaded by employee
         documents = await supabase_service.get_onboarding_documents(session_id)
@@ -3538,7 +3538,7 @@ async def manager_approve_onboarding(
             raise HTTPException(status_code=403, detail="Access denied to this onboarding session")
         
         # Verify I-9 Section 2 is completed
-        i9_section2_data = await supabase_service.get_onboarding_form_data_by_step(
+        i9_section2_data = supabase_service.get_onboarding_form_data_by_step(
             session_id, 
             OnboardingStep.I9_SECTION2
         )
@@ -4892,23 +4892,59 @@ async def get_w4_form(employee_id: str):
 async def generate_i9_section1_pdf(employee_id: str):
     """Generate PDF for I-9 Section 1"""
     try:
-        # Get employee data
-        employee = supabase_service.get_employee_by_id_sync(employee_id)
-        if not employee:
-            return not_found_response("Employee not found")
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
         
-        # Get I-9 Section 1 data
-        i9_response = supabase_service.client.table('i9_forms')\
-            .select('*')\
-            .eq('employee_id', employee_id)\
-            .eq('section', 'section1')\
-            .execute()
-        
-        if not i9_response.data:
-            return not_found_response("I-9 Section 1 data not found")
-        
-        i9_data = i9_response.data[0]
-        form_data = i9_data.get('form_data', {})
+        # For test employees, use session data instead of database
+        if employee_id.startswith('test-'):
+            # Try to get I-9 data from onboarding_form_data table (which exists)
+            form_response = supabase_service.client.table('onboarding_form_data')\
+                .select('*')\
+                .eq('employee_id', employee_id)\
+                .eq('step_id', 'i9-complete')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if form_response.data:
+                form_data = form_response.data[0].get('form_data', {})
+            else:
+                # Return empty PDF for preview
+                form_data = {}
+        else:
+            # For real employees, check if i9_forms table exists
+            try:
+                i9_response = supabase_service.client.table('i9_forms')\
+                    .select('*')\
+                    .eq('employee_id', employee_id)\
+                    .eq('section', 'section1')\
+                    .execute()
+                
+                if not i9_response.data:
+                    return not_found_response("I-9 Section 1 data not found")
+                
+                i9_data = i9_response.data[0]
+                form_data = i9_data.get('form_data', {})
+            except Exception as e:
+                # If table doesn't exist, try onboarding_form_data
+                form_response = supabase_service.client.table('onboarding_form_data')\
+                    .select('*')\
+                    .eq('employee_id', employee_id)\
+                    .eq('step_id', 'i9-complete')\
+                    .order('updated_at', desc=True)\
+                    .limit(1)\
+                    .execute()
+                
+                if form_response.data:
+                    form_data = form_response.data[0].get('form_data', {})
+                else:
+                    form_data = {}
         
         # Initialize PDF form filler
         from .pdf_forms import PDFFormFiller
@@ -4937,17 +4973,18 @@ async def generate_i9_section1_pdf(employee_id: str):
             "i94_admission_number": form_data.get("foreign_passport_number", ""),
             "passport_number": form_data.get("foreign_passport_number", ""),
             "passport_country": form_data.get("country_of_issuance", ""),
-            "employee_signature_date": i9_data.get("completed_at", datetime.utcnow().isoformat())
+            "employee_signature_date": form_data.get("completed_at", datetime.utcnow().isoformat())
         }
         
         # Generate PDF
         pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
         
         # Add signature if available
-        if i9_data.get('signature_data'):
+        signature_data = form_data.get('signatureData') if form_data else None
+        if signature_data:
             pdf_bytes = pdf_filler.add_signature_to_pdf(
                 pdf_bytes, 
-                i9_data['signature_data'], 
+                signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
                 "employee_i9"
             )
         
@@ -4957,7 +4994,7 @@ async def generate_i9_section1_pdf(employee_id: str):
         return success_response(
             data={
                 "pdf": pdf_base64,
-                "filename": f"I9_Section1_{employee.first_name}_{employee.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                "filename": f"I9_Section1_{form_data.get('first_name', 'Employee')}_{form_data.get('last_name', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
             },
             message="I-9 Section 1 PDF generated successfully"
         )
@@ -4971,50 +5008,115 @@ async def generate_i9_section1_pdf(employee_id: str):
         )
 
 @app.post("/api/onboarding/{employee_id}/w4-form/generate-pdf")
-async def generate_w4_pdf(employee_id: str):
+async def generate_w4_pdf(employee_id: str, request: Request):
     """Generate PDF for W-4 form"""
     try:
-        # Get employee data
-        employee = supabase_service.get_employee_by_id_sync(employee_id)
-        if not employee:
-            return not_found_response("Employee not found")
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
         
-        # Get W-4 data
-        w4_response = supabase_service.client.table('w4_forms')\
-            .select('*')\
-            .eq('employee_id', employee_id)\
-            .eq('tax_year', 2025)\
-            .execute()
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
         
-        if not w4_response.data:
-            return not_found_response("W-4 form data not found")
-        
-        w4_data = w4_response.data[0]
-        form_data = w4_data.get('form_data', {})
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
+            w4_data = {"form_data": form_data}
+        # For test employees, use session data instead of database
+        elif employee_id.startswith('test-'):
+            # Try to get W-4 data from onboarding_form_data table (which exists)
+            form_response = supabase_service.client.table('onboarding_form_data')\
+                .select('*')\
+                .eq('employee_id', employee_id)\
+                .eq('step_id', 'w4-form')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if form_response.data:
+                w4_data = form_response.data[0]
+                form_data = w4_data.get('form_data', {})
+            else:
+                # Return empty PDF for preview
+                w4_data = {}
+                form_data = {}
+        else:
+            # For real employees, check if w4_forms table exists
+            if not employee_data_from_request:
+                try:
+                    w4_response = supabase_service.client.table('w4_forms')\
+                        .select('*')\
+                        .eq('employee_id', employee_id)\
+                        .eq('tax_year', 2025)\
+                        .execute()
+                    
+                    if not w4_response.data:
+                        return not_found_response("W-4 form data not found")
+                    
+                    w4_data = w4_response.data[0]
+                    form_data = w4_data.get('form_data', {})
+                except Exception as e:
+                    # If table doesn't exist, try onboarding_form_data
+                    form_response = supabase_service.client.table('onboarding_form_data')\
+                        .select('*')\
+                        .eq('employee_id', employee_id)\
+                        .eq('step_id', 'w4-form')\
+                        .order('updated_at', desc=True)\
+                        .limit(1)\
+                        .execute()
+                    
+                    if form_response.data:
+                        w4_data = form_response.data[0]
+                        form_data = w4_data.get('form_data', {})
+                    else:
+                        w4_data = {}
+                        form_data = {}
         
         # Initialize PDF form filler
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
+        # Calculate dependents amount with safe type conversion
+        qualifying_children = int(form_data.get("qualifying_children", 0) or 0)
+        other_dependents = int(form_data.get("other_dependents", 0) or 0)
+        dependents_amount = (qualifying_children * 2000) + (other_dependents * 500)
+
         # Map form data to PDF fields
         pdf_data = {
+            # Personal info
             "first_name": form_data.get("first_name", ""),
+            "middle_initial": form_data.get("middle_initial", ""),
             "last_name": form_data.get("last_name", ""),
-            "ssn": form_data.get("ssn", ""),
             "address": form_data.get("address", ""),
+            "apt_number": form_data.get("apt_number", ""),
             "city": form_data.get("city", ""),
             "state": form_data.get("state", ""),
-            "zip": form_data.get("zip_code", ""),
-            "filing_status_single": form_data.get("filing_status") == "single",
-            "filing_status_married_jointly": form_data.get("filing_status") == "married_filing_jointly",
-            "filing_status_married_separately": form_data.get("filing_status") == "married_filing_separately",
-            "filing_status_head": form_data.get("filing_status") == "head_of_household",
-            "multiple_jobs": form_data.get("multiple_jobs", False),
-            "dependents_children": form_data.get("qualifying_children", 0),
-            "dependents_other": form_data.get("other_dependents", 0),
-            "other_income": form_data.get("other_income", ""),
-            "deductions": form_data.get("deductions", ""),
-            "extra_withholding": form_data.get("extra_withholding", ""),
+            "zip_code": form_data.get("zip_code", ""),
+            "ssn": form_data.get("ssn", ""),
+            
+            # Filing status as string
+            "filing_status": form_data.get("filing_status", ""),
+            
+            # Multiple jobs as boolean
+            "multiple_jobs": bool(form_data.get("multiple_jobs", False)),
+            
+            # Dependents
+            "dependents_amount": dependents_amount,
+            "qualifying_children": qualifying_children,
+            "other_dependents": other_dependents,
+            
+            # Other adjustments - convert to numbers safely
+            "other_income": float(form_data.get("other_income", 0) or 0),
+            "deductions": float(form_data.get("deductions", 0) or 0),
+            "extra_withholding": float(form_data.get("extra_withholding", 0) or 0),
+            
+            # Signature date
             "signature_date": w4_data.get("completed_at", datetime.utcnow().isoformat())
         }
         
@@ -5022,10 +5124,11 @@ async def generate_w4_pdf(employee_id: str):
         pdf_bytes = pdf_filler.fill_w4_form(pdf_data)
         
         # Add signature if available
-        if w4_data.get('signature_data'):
+        signature_data = form_data.get('signatureData') if form_data else None
+        if signature_data:
             pdf_bytes = pdf_filler.add_signature_to_pdf(
                 pdf_bytes, 
-                w4_data['signature_data'], 
+                signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
                 "employee_w4"
             )
         
@@ -5035,7 +5138,7 @@ async def generate_w4_pdf(employee_id: str):
         return success_response(
             data={
                 "pdf": pdf_base64,
-                "filename": f"W4_2025_{employee.first_name}_{employee.last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                "filename": f"W4_2025_{form_data.get('first_name', 'Employee')}_{form_data.get('last_name', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
             },
             message="W-4 PDF generated successfully"
         )
@@ -5044,6 +5147,87 @@ async def generate_w4_pdf(employee_id: str):
         logger.error(f"Generate W-4 PDF error: {e}")
         return error_response(
             message="Failed to generate W-4 PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# =============================================================================
+# TEST/DEVELOPMENT ENDPOINTS
+# =============================================================================
+
+@app.post("/api/test/generate-onboarding-token")
+async def generate_test_onboarding_token(
+    employee_name: str = "Test Employee",
+    property_id: str = "demo-property-001"
+):
+    """Generate a test onboarding token for development/testing"""
+    try:
+        # Create test employee data
+        test_employee_id = f"test-emp-{uuid.uuid4().hex[:8]}"
+        
+        # Create test employee in memory (not saving to DB for test)
+        test_employee = {
+            "id": test_employee_id,
+            "firstName": employee_name.split()[0] if " " in employee_name else employee_name,
+            "lastName": employee_name.split()[1] if " " in employee_name else "User",
+            "email": f"{test_employee_id}@test.com",
+            "position": "Test Position",
+            "department": "Test Department",
+            "startDate": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),
+            "propertyId": property_id
+        }
+        
+        # Generate onboarding token
+        token_data = token_manager.create_onboarding_token(
+            employee_id=test_employee_id,
+            application_id=None,
+            expires_hours=168  # 7 days for testing
+        )
+        
+        # Build onboarding URL (using the correct /onboard route)
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        onboarding_url = f"{frontend_url}/onboard?token={token_data['token']}"
+        
+        # Store test employee data in session storage for token validation
+        # In production, this would be in the database
+        test_session_data = {
+            "employee": test_employee,
+            "property": {
+                "id": property_id,
+                "name": "Demo Hotel & Suites",
+                "address": "123 Demo Street, Demo City, DC 12345"
+            },
+            "progress": {
+                "currentStepIndex": 0,
+                "totalSteps": 11,
+                "completedSteps": [],
+                "percentComplete": 0,
+                "canProceed": True
+            }
+        }
+        
+        # Store in a temporary cache (in production, use Redis or database)
+        # Store the test employee data for retrieval when validating token
+        if not hasattr(app.state, 'test_employees'):
+            app.state.test_employees = {}
+        app.state.test_employees[test_employee_id] = test_employee
+        
+        return success_response(
+            data={
+                "token": token_data["token"],
+                "onboarding_url": onboarding_url,
+                "expires_at": token_data["expires_at"].isoformat(),
+                "expires_in_hours": token_data["expires_in_hours"],
+                "test_employee": test_employee,
+                "instructions": "Use the onboarding_url to test the employee onboarding flow"
+            },
+            message="Test onboarding token generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate test token error: {e}")
+        return error_response(
+            message=f"Failed to generate test token: {str(e)}",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
@@ -5095,28 +5279,68 @@ async def get_onboarding_session(token: str):
         
         # Use existing token verification logic for real tokens
         token_manager = OnboardingTokenManager()
-        token_data = token_manager.verify_token(token)
+        token_data = token_manager.verify_onboarding_token(token)
         
-        if not token_data:
-            return unauthorized_response("Invalid or expired onboarding token")
+        if not token_data or not token_data.get('valid'):
+            error_msg = token_data.get('error', 'Invalid token') if token_data else 'Invalid token'
+            return unauthorized_response(error_msg)
         
-        # Get employee and property data
-        db = await EnhancedSupabaseService.get_db()
-        
-        # Get employee data
-        employee_response = await db.table('employees').select('*').eq('id', token_data['employee_id']).single().execute()
-        if not employee_response.data:
-            return not_found_response("Employee not found")
-        
-        employee = employee_response.data
-        
-        # Get property data  
-        property_response = await db.table('properties').select('*').eq('id', employee['property_id']).single().execute()
-        property_data = property_response.data if property_response.data else {}
-        
-        # Get progress data
-        progress_response = await db.table('onboarding_progress').select('*').eq('employee_id', token_data['employee_id']).execute()
-        completed_steps = [p['step_id'] for p in progress_response.data if p.get('completed')]
+        # For test tokens, create test data
+        if token_data['employee_id'].startswith('test-emp-'):
+            # Extract the test employee data that was passed when token was created
+            # This ensures we use the actual name provided during token generation
+            employee_id = token_data['employee_id']
+            
+            # Check if we have stored test employee data
+            if hasattr(app.state, 'test_employees') and employee_id in app.state.test_employees:
+                # Use the stored test employee data
+                stored_employee = app.state.test_employees[employee_id]
+                employee = {
+                    'id': employee_id,
+                    'first_name': stored_employee.get('firstName', 'Test'),
+                    'last_name': stored_employee.get('lastName', 'Employee'),
+                    'email': stored_employee.get('email', f"{employee_id}@test.com"),
+                    'position': stored_employee.get('position', 'Test Position'),
+                    'department': stored_employee.get('department', 'Test Department'),
+                    'hire_date': stored_employee.get('startDate', datetime.now().date().isoformat()),
+                    'property_id': stored_employee.get('propertyId', 'test-property-001')
+                }
+            else:
+                # Fallback for tokens without stored data
+                employee = {
+                    'id': employee_id,
+                    'first_name': 'Test',
+                    'last_name': 'User',
+                    'email': f"{employee_id}@test.com",
+                    'position': 'Test Position',
+                    'department': 'Test Department',
+                    'hire_date': datetime.now().date().isoformat(),
+                    'property_id': 'test-property-001'
+                }
+            property_data = {
+                'id': 'test-property-001',
+                'name': 'Grand Plaza Hotel',
+                'address': '789 Main Street, New York, NY 10001'
+            }
+            completed_steps = []
+        else:
+            # Get real employee data from database
+            db = await EnhancedSupabaseService.get_db()
+            
+            # Get employee data
+            employee_response = await db.table('employees').select('*').eq('id', token_data['employee_id']).single().execute()
+            if not employee_response.data:
+                return not_found_response("Employee not found")
+            
+            employee = employee_response.data
+            
+            # Get property data  
+            property_response = await db.table('properties').select('*').eq('id', employee['property_id']).single().execute()
+            property_data = property_response.data if property_response.data else {}
+            
+            # Get progress data
+            progress_response = await db.table('onboarding_progress').select('*').eq('employee_id', token_data['employee_id']).execute()
+            completed_steps = [p['step_id'] for p in progress_response.data if p.get('completed')]
         
         # Calculate current step index (next incomplete step)
         from .config.onboarding_steps import ONBOARDING_STEPS
@@ -5127,6 +5351,9 @@ async def get_onboarding_session(token: str):
                 break
         else:
             current_step_index = len(ONBOARDING_STEPS) - 1  # All completed, stay on last step
+        
+        # Load saved form data from onboarding_form_data table by token
+        saved_form_data = supabase_service.get_onboarding_form_data(token)
         
         session_data = {
             "employee": {
@@ -5150,7 +5377,8 @@ async def get_onboarding_session(token: str):
                 "completedSteps": completed_steps,
                 "percentComplete": round((len(completed_steps) / len(ONBOARDING_STEPS)) * 100)
             },
-            "expiresAt": token_data.get('exp', datetime.now(timezone.utc) + timedelta(hours=24))
+            "expiresAt": token_data.get('expires_at').isoformat() if isinstance(token_data.get('expires_at'), datetime) else (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
+            "savedFormData": saved_form_data  # Include saved form data
         }
         
         return success_response(
@@ -5170,15 +5398,46 @@ async def get_onboarding_session(token: str):
 async def save_step_progress(
     employee_id: str,
     step_id: str,
-    request: Dict[str, Any]
+    request: Dict[str, Any],
+    authorization: str = Header(None)
 ):
     """
     Save progress for a specific step
     Implements saveProgress from OnboardingFlowController spec
     """
     try:
-        # Handle test mode
-        if employee_id == "demo-employee-001":
+        # Validate token if not demo mode
+        if employee_id != "demo-employee-001" and not employee_id.startswith("test-emp-"):
+            if not authorization or not authorization.startswith("Bearer "):
+                return unauthorized_response("Missing or invalid authorization header")
+            
+            token = authorization.split(" ")[1]
+            token_manager = OnboardingTokenManager()
+            token_data = token_manager.verify_onboarding_token(token)
+            
+            if not token_data or not token_data.get('valid'):
+                return unauthorized_response("Invalid or expired token")
+            
+            # Verify token matches employee
+            if token_data.get('employee_id') != employee_id:
+                return forbidden_response("Token does not match employee ID")
+        # Handle test mode - but still save to Supabase for test tokens
+        if employee_id == "demo-employee-001" or employee_id.startswith("test-emp-"):
+            # For test tokens, also save to Supabase if we have a valid token
+            if authorization and authorization.startswith("Bearer "):
+                token = authorization.split(" ")[1]
+                if token != "demo-token":
+                    # Save to Supabase for real test tokens
+                    # Handle both direct data and wrapped in formData field
+                    form_data = request if not isinstance(request, dict) or "formData" not in request else request.get("formData")
+                    saved = supabase_service.save_onboarding_form_data(
+                        token=token,
+                        employee_id=employee_id,
+                        step_id=step_id,
+                        form_data=form_data
+                    )
+                    logger.info(f"Test employee form data saved to Supabase: {saved}")
+            
             return success_response(
                 data={
                     "saved": True,
@@ -5187,9 +5446,23 @@ async def save_step_progress(
                 message="Demo progress saved successfully"
             )
         
-        db = await EnhancedSupabaseService.get_db()
+        # Save to Supabase for real employees
+        # Handle both direct data and wrapped in formData field
+        form_data = request if not isinstance(request, dict) or "formData" not in request else request.get("formData")
         
-        form_data = request.get('formData', {})
+        # Save to onboarding_form_data table
+        saved = supabase_service.save_onboarding_form_data(
+            token=token,
+            employee_id=employee_id,
+            step_id=step_id,
+            form_data=form_data
+        )
+        
+        if not saved:
+            logger.error(f"Failed to save form data to Supabase for employee {employee_id}, step {step_id}")
+        
+        # Also update the onboarding_progress table (existing logic)
+        db = await EnhancedSupabaseService.get_db()
         
         # Upsert progress record
         progress_data = {
@@ -5222,15 +5495,31 @@ async def save_step_progress(
 async def mark_step_complete(
     employee_id: str,
     step_id: str,
-    request: Dict[str, Any]
+    request: Dict[str, Any],
+    authorization: str = Header(None)
 ):
     """
     Mark a step as complete
     Implements markStepComplete from OnboardingFlowController spec
     """
     try:
+        # Validate token if not demo mode
+        if employee_id != "demo-employee-001" and not employee_id.startswith("test-emp-"):
+            if not authorization or not authorization.startswith("Bearer "):
+                return unauthorized_response("Missing or invalid authorization header")
+            
+            token = authorization.split(" ")[1]
+            token_manager = OnboardingTokenManager()
+            token_data = token_manager.verify_onboarding_token(token)
+            
+            if not token_data or not token_data.get('valid'):
+                return unauthorized_response("Invalid or expired token")
+            
+            # Verify token matches employee
+            if token_data.get('employee_id') != employee_id:
+                return forbidden_response("Token does not match employee ID")
         # Handle test mode
-        if employee_id == "demo-employee-001":
+        if employee_id == "demo-employee-001" or employee_id.startswith("test-emp-"):
             # Determine next step for demo
             from .config.onboarding_steps import ONBOARDING_STEPS
             current_index = next((i for i, step in enumerate(ONBOARDING_STEPS) if step['id'] == step_id), -1)

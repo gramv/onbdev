@@ -100,36 +100,36 @@ I9_FORM_FIELDS = {
 # CRITICAL: These are the EXACT field names from the official 2025 IRS W-4 PDF template
 # Any deviation from these names will result in legal non-compliance
 W4_FORM_FIELDS = {
-    # Step 1: Personal Information (EXACT IRS field names)
-    "first_name_and_middle_initial": "topmostSubform[0].Page1[0].Step1[0].f1_01[0]",  # Combined first name and middle initial field
-    "last_name": "topmostSubform[0].Page1[0].Step1[0].f1_02[0]",
-    "address": "topmostSubform[0].Page1[0].Step1[0].f1_03[0]",
-    "city_state_zip": "topmostSubform[0].Page1[0].Step1[0].f1_04[0]",  # Combined city, state, ZIP field
-    "social_security_number": "topmostSubform[0].Page1[0].Step1[0].f1_05[0]",
+    # Step 1: Personal Information (EXACT IRS field names from logs)
+    "first_name_and_middle_initial": "topmostSubform[0].Page1[0].Step1a[0].f1_01[0]",  # Combined first name and middle initial field
+    "last_name": "topmostSubform[0].Page1[0].Step1a[0].f1_02[0]",
+    "address": "topmostSubform[0].Page1[0].Step1a[0].f1_03[0]",
+    "city_state_zip": "topmostSubform[0].Page1[0].Step1a[0].f1_04[0]",  # Combined city, state, ZIP field
+    "social_security_number": "topmostSubform[0].Page1[0].f1_05[0]",
     
     # Step 1: Filing Status (EXACT IRS checkbox field names)
-    "filing_status_single": "topmostSubform[0].Page1[0].Step1[0].c1_1[0]",  # Single or Married filing separately
-    "filing_status_married_jointly": "topmostSubform[0].Page1[0].Step1[0].c1_1[1]",  # Married filing jointly or Qualifying surviving spouse
-    "filing_status_head_of_household": "topmostSubform[0].Page1[0].Step1[0].c1_1[2]",  # Head of household
+    "filing_status_single": "topmostSubform[0].Page1[0].c1_1[0]",  # Single or Married filing separately
+    "filing_status_married_jointly": "topmostSubform[0].Page1[0].c1_1[1]",  # Married filing jointly or Qualifying surviving spouse
+    "filing_status_head_of_household": "topmostSubform[0].Page1[0].c1_1[2]",  # Head of household
     
     # Step 2: Multiple Jobs or Spouse Works (EXACT IRS field names)
-    "step2_multiple_jobs_checkbox": "topmostSubform[0].Page1[0].Step2[0].c1_2[0]",  # Multiple jobs checkbox
+    "step2_multiple_jobs_checkbox": "topmostSubform[0].Page1[0].c1_2[0]",  # Multiple jobs checkbox
     
     # Step 3: Claim Dependents (EXACT IRS field names)
-    "step3_qualifying_children_amount": "topmostSubform[0].Page1[0].Step3[0].f1_06[0]",  # Qualifying children × $2,000
-    "step3_other_dependents_amount": "topmostSubform[0].Page1[0].Step3[0].f1_07[0]",  # Other dependents × $500
-    "step3_total_credits": "topmostSubform[0].Page1[0].Step3[0].f1_08[0]",  # Total credits amount
+    "step3_qualifying_children_amount": "topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]",  # Qualifying children × $2,000
+    "step3_other_dependents_amount": "topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]",  # Other dependents × $500
+    "step3_total_credits": "topmostSubform[0].Page1[0].f1_09[0]",  # Total credits amount
     
     # Step 4: Other Adjustments (EXACT IRS field names)
-    "step4a_other_income": "topmostSubform[0].Page1[0].Step4[0].f1_09[0]",  # Other income
-    "step4b_deductions": "topmostSubform[0].Page1[0].Step4[0].f1_10[0]",  # Deductions
-    "step4c_extra_withholding": "topmostSubform[0].Page1[0].Step4[0].f1_11[0]",  # Extra withholding
+    "step4a_other_income": "topmostSubform[0].Page1[0].f1_10[0]",  # Other income
+    "step4b_deductions": "topmostSubform[0].Page1[0].f1_11[0]",  # Deductions
+    "step4c_extra_withholding": "topmostSubform[0].Page1[0].f1_12[0]",  # Extra withholding
     
     # Step 5: Employee Signature (EXACT IRS field names)
-    "employee_signature_date": "topmostSubform[0].Page1[0].Step5[0].f1_12[0]",  # Date field
+    "employee_signature_date": "topmostSubform[0].Page1[0].f1_14[0]",  # Date field
     
     # Employer Section (Bottom of form - EXACT IRS field names)
-    "employer_name_address": "topmostSubform[0].Page1[0].EmployerSection[0].f1_13[0]",  # Employer's name and address
+    "employer_name_address": "topmostSubform[0].Page1[0].f1_15[0]",  # Employer's name and address
     "first_date_employment": "topmostSubform[0].Page1[0].EmployerSection[0].f1_14[0]",  # First date of employment
     "employer_identification_number": "topmostSubform[0].Page1[0].EmployerSection[0].f1_15[0]"  # EIN
 }
@@ -250,6 +250,15 @@ class PDFFormFiller:
         
         # Validate template files exist
         self._validate_template_files()
+    
+    def _safe_numeric(self, value, default=0):
+        """Safely convert value to numeric type"""
+        try:
+            if value is None or value == '':
+                return default
+            return float(str(value))
+        except (ValueError, TypeError):
+            return default
     
     def _validate_template_files(self):
         """Validate that required official form templates exist"""
@@ -504,7 +513,7 @@ class PDFFormFiller:
             # Get all form fields from the PDF
             for page_num in range(len(doc)):
                 page = doc[page_num]
-                widgets = page.widgets()
+                widgets = list(page.widgets())  # Convert generator to list
                 
                 for widget in widgets:
                     field_name = widget.field_name
@@ -640,7 +649,7 @@ class PDFFormFiller:
             
             for page_num in range(len(doc)):
                 page = doc[page_num]
-                widgets = page.widgets()
+                widgets = list(page.widgets())  # Convert generator to list
                 
                 print(f"Page {page_num + 1}: {len(widgets)} fields")
                 for widget in widgets:
@@ -657,7 +666,7 @@ class PDFFormFiller:
         try:
             for page_num in range(len(doc)):
                 page = doc[page_num]
-                widgets = page.widgets()
+                widgets = list(page.widgets())  # Convert generator to list
                 
                 for widget in widgets:
                     field_name = widget.field_name
@@ -773,7 +782,7 @@ class PDFFormFiller:
         try:
             for page_num in range(len(doc)):
                 page = doc[page_num]
-                widgets = page.widgets()
+                widgets = list(page.widgets())  # Convert generator to list
                 
                 for widget in widgets:
                     field_name = widget.field_name
@@ -816,7 +825,7 @@ class PDFFormFiller:
         try:
             for page_num in range(len(doc)):
                 page = doc[page_num]
-                widgets = page.widgets()
+                widgets = list(page.widgets())  # Convert generator to list
                 
                 for widget in widgets:
                     field_name = widget.field_name
@@ -884,14 +893,15 @@ class PDFFormFiller:
                 W4_FORM_FIELDS["social_security_number"]: employee_data.get('ssn', ''),
                 
                 # Step 3: Claim Dependents (IRS dollar amounts)
-                W4_FORM_FIELDS["step3_qualifying_children_amount"]: str(int(employee_data.get('dependents_amount', 0))) if employee_data.get('dependents_amount', 0) > 0 else '',
-                W4_FORM_FIELDS["step3_other_dependents_amount"]: str(int(employee_data.get('other_credits', 0))) if employee_data.get('other_credits', 0) > 0 else '',
-                W4_FORM_FIELDS["step3_total_credits"]: str(int(employee_data.get('dependents_amount', 0) + employee_data.get('other_credits', 0))) if (employee_data.get('dependents_amount', 0) + employee_data.get('other_credits', 0)) > 0 else '',
+                # Calculate the dollar amounts from the counts
+                W4_FORM_FIELDS["step3_qualifying_children_amount"]: str(int(self._safe_numeric(employee_data.get('qualifying_children', 0)) * 2000)) if self._safe_numeric(employee_data.get('qualifying_children', 0)) > 0 else '',
+                W4_FORM_FIELDS["step3_other_dependents_amount"]: str(int(self._safe_numeric(employee_data.get('other_dependents', 0)) * 500)) if self._safe_numeric(employee_data.get('other_dependents', 0)) > 0 else '',
+                W4_FORM_FIELDS["step3_total_credits"]: str(int(self._safe_numeric(employee_data.get('dependents_amount', 0)))) if self._safe_numeric(employee_data.get('dependents_amount', 0)) > 0 else '',
                 
                 # Step 4: Other Adjustments (IRS dollar amounts)
-                W4_FORM_FIELDS["step4a_other_income"]: str(int(employee_data.get('other_income', 0))) if employee_data.get('other_income', 0) > 0 else '',
-                W4_FORM_FIELDS["step4b_deductions"]: str(int(employee_data.get('deductions', 0))) if employee_data.get('deductions', 0) > 0 else '',
-                W4_FORM_FIELDS["step4c_extra_withholding"]: str(int(employee_data.get('extra_withholding', 0))) if employee_data.get('extra_withholding', 0) > 0 else '',
+                W4_FORM_FIELDS["step4a_other_income"]: str(int(self._safe_numeric(employee_data.get('other_income', 0)))) if self._safe_numeric(employee_data.get('other_income', 0)) > 0 else '',
+                W4_FORM_FIELDS["step4b_deductions"]: str(int(self._safe_numeric(employee_data.get('deductions', 0)))) if self._safe_numeric(employee_data.get('deductions', 0)) > 0 else '',
+                W4_FORM_FIELDS["step4c_extra_withholding"]: str(int(self._safe_numeric(employee_data.get('extra_withholding', 0)))) if self._safe_numeric(employee_data.get('extra_withholding', 0)) > 0 else '',
                 
                 # Step 5: Signature Date (IRS date format)
                 W4_FORM_FIELDS["employee_signature_date"]: self._format_date(employee_data.get('signature_date', datetime.now().strftime('%Y-%m-%d')))
@@ -899,21 +909,22 @@ class PDFFormFiller:
             
             # CRITICAL: Handle Filing Status Checkboxes (IRS-compliant)
             filing_status = employee_data.get('filing_status', '')
-            if filing_status == 'Single':
+            # Map frontend values to checkbox fields
+            if filing_status in ['single', 'Single', 'married_filing_separately']:
                 field_mappings[W4_FORM_FIELDS["filing_status_single"]] = True
-            elif filing_status == 'Married filing jointly':
+            elif filing_status in ['married_filing_jointly', 'Married filing jointly']:
                 field_mappings[W4_FORM_FIELDS["filing_status_married_jointly"]] = True
-            elif filing_status == 'Head of household':
+            elif filing_status in ['head_of_household', 'Head of household']:
                 field_mappings[W4_FORM_FIELDS["filing_status_head_of_household"]] = True
             
             # CRITICAL: Handle Step 2 Multiple Jobs Checkbox (IRS-compliant)
-            if employee_data.get('multiple_jobs_checkbox', False):
+            if employee_data.get('multiple_jobs', False) or employee_data.get('multiple_jobs_checkbox', False):
                 field_mappings[W4_FORM_FIELDS["step2_multiple_jobs_checkbox"]] = True
             
             # Apply all field mappings to the PDF form
             for page_num in range(len(doc)):
                 page = doc[page_num]
-                widgets = page.widgets()
+                widgets = list(page.widgets())  # Convert generator to list
                 
                 for widget in widgets:
                     field_name = widget.field_name
@@ -988,7 +999,9 @@ class PDFFormFiller:
                 # I-9 employer signature position (approximate)
                 rect = fitz.Rect(350, 750, 500, 780)
             elif signature_type == "employee_w4":
-                # W-4 employee signature position (approximate)
+                # W-4 employee signature position 
+                # The actual signature line on W-4 is around y:650 from bottom-left origin
+                # This places it properly on the "Employee's signature" line
                 rect = fitz.Rect(150, 650, 300, 680)
             else:
                 # Default position

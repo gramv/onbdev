@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle, FileText, Pen, AlertCircle, Eye, Loader2 } from 'lucide-react'
+import { CheckCircle, FileText, Pen, AlertCircle, Eye, Loader2, Info } from 'lucide-react'
 import SignatureCanvas from 'react-signature-canvas'
 import { format } from 'date-fns'
 import PDFViewer from './PDFViewer'
@@ -56,7 +56,6 @@ export default function ReviewAndSign({
   usePDFPreview = false,
   pdfUrl
 }: ReviewAndSignProps) {
-  const [showSignature, setShowSignature] = useState(false)
   const [hasAgreed, setHasAgreed] = useState(false)
   const [signatureError, setSignatureError] = useState('')
   const [isSigned, setIsSigned] = useState(false)
@@ -70,11 +69,9 @@ export default function ReviewAndSign({
       reviewTitle: 'Review Your Information',
       reviewDescription: 'Please carefully review all information before signing',
       editButton: 'Edit Information',
-      proceedToSign: 'Proceed to Sign',
       signatureTitle: 'Electronic Signature',
       signatureInstructions: 'Please sign in the box below using your mouse or touch screen',
       clearSignature: 'Clear',
-      cancelSignature: 'Cancel',
       submitSignature: 'Submit Signature',
       agreementLabel: 'I certify that the information provided is true and correct',
       signatureRequired: 'Please provide your signature',
@@ -90,11 +87,9 @@ export default function ReviewAndSign({
       reviewTitle: 'Revise Su Información',
       reviewDescription: 'Por favor revise cuidadosamente toda la información antes de firmar',
       editButton: 'Editar Información',
-      proceedToSign: 'Proceder a Firmar',
       signatureTitle: 'Firma Electrónica',
       signatureInstructions: 'Por favor firme en el cuadro a continuación usando su mouse o pantalla táctil',
       clearSignature: 'Limpiar',
-      cancelSignature: 'Cancelar',
       submitSignature: 'Enviar Firma',
       agreementLabel: 'Certifico que la información proporcionada es verdadera y correcta',
       signatureRequired: 'Por favor proporcione su firma',
@@ -118,7 +113,7 @@ export default function ReviewAndSign({
     }
     
     // Load PDF if endpoint is provided and PDF preview is enabled (skip if pdfUrl already provided)
-    if (usePDFPreview && pdfEndpoint && !showSignature && !pdfUrl) {
+    if (usePDFPreview && pdfEndpoint && !pdfUrl) {
       loadPDF()
     }
     
@@ -126,7 +121,7 @@ export default function ReviewAndSign({
     return () => {
       setPdfData(null)
     }
-  }, [usePDFPreview, pdfEndpoint, showSignature, pdfUrl])
+  }, [usePDFPreview, pdfEndpoint, pdfUrl])
   
   const loadPDF = async () => {
     if (!pdfEndpoint) return
@@ -141,28 +136,17 @@ export default function ReviewAndSign({
           employee_data: formData
         },
         {
-          responseType: 'arraybuffer',
           headers: {
             'Content-Type': 'application/json'
           }
         }
       )
       
-      // Convert response to base64 more efficiently
-      const uint8Array = new Uint8Array(response.data)
-      let binary = ''
-      const chunkSize = 8192 // Process in 8KB chunks to avoid memory spikes
-      
-      for (let i = 0; i < uint8Array.length; i += chunkSize) {
-        const chunk = uint8Array.slice(i, Math.min(i + chunkSize, uint8Array.length))
-        binary += String.fromCharCode.apply(null, Array.from(chunk))
-      }
-      
-      const base64 = btoa(binary)
-      
-      setPdfData(base64)
+      // Extract base64 string directly from JSON response
+      setPdfData(response.data.data.pdf)
     } catch (error) {
       console.error('Error loading PDF:', error)
+      console.error('PDF generation request data:', { employee_data: formData })
       setPdfError('Failed to load PDF preview')
     } finally {
       setLoadingPDF(false)
@@ -231,74 +215,140 @@ export default function ReviewAndSign({
 
   return (
     <div className="space-y-6">
-      {/* Review Section */}
-      {!showSignature && (
-        <>
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-            {description && (
-              <p className="text-gray-600">{description}</p>
-            )}
-          </div>
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
+        {description && (
+          <p className="text-gray-600">{description}</p>
+        )}
+      </div>
 
-          {/* Show PDF Preview or HTML Preview */}
-          {usePDFPreview && (pdfUrl || pdfEndpoint) ? (
-            <div className="space-y-4">
-              {loadingPDF ? (
-                <Card>
-                  <CardContent className="py-12">
-                    <div className="text-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
-                      <p className="text-gray-600">Generating PDF preview...</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : pdfError ? (
-                <Alert className="bg-red-50 border-red-200">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">
-                    {pdfError}
-                  </AlertDescription>
-                </Alert>
-              ) : (pdfUrl || pdfData) ? (
-                <PDFViewer
-                  pdfData={pdfUrl || pdfData}
-                  title={`${title} Preview`}
-                  height="600px"
-                  showToolbar={true}
-                />
-              ) : null}
-            </div>
-          ) : (
+      {/* Show PDF Preview or HTML Preview */}
+      {usePDFPreview && (pdfUrl || pdfEndpoint) ? (
+        <div className="space-y-4">
+          {loadingPDF ? (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Eye className="h-5 w-5" />
-                  <span>{t.reviewTitle}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                  {renderPreview && renderPreview(formData)}
+              <CardContent className="py-12">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-2" />
+                  <p className="text-gray-600">Generating PDF preview...</p>
                 </div>
               </CardContent>
             </Card>
-          )}
+          ) : pdfError ? (
+            <Alert className="bg-red-50 border-red-200">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {pdfError}
+              </AlertDescription>
+            </Alert>
+          ) : (pdfUrl || pdfData) ? (
+            <PDFViewer
+              pdfData={pdfUrl || pdfData}
+              title={`${title} Preview`}
+              height="400px"
+              showToolbar={true}
+            />
+          ) : null}
+        </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Eye className="h-5 w-5" />
+              <span>{t.reviewTitle}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+              {renderPreview && renderPreview(formData)}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {federalCompliance && (
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800">
-                <div className="space-y-1">
-                  <p className="font-medium">{federalCompliance.formName}</p>
-                  {federalCompliance.requiresWitness && (
-                    <p className="text-sm">{t.witnessRequired}</p>
-                  )}
-                </div>
+      {federalCompliance && (
+        <Alert className="bg-blue-50 border-blue-200">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <div className="space-y-1">
+              <p className="font-medium">{federalCompliance.formName}</p>
+              {federalCompliance.requiresWitness && (
+                <p className="text-sm">{t.witnessRequired}</p>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Signature Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Pen className="h-5 w-5" />
+            <span>{t.signatureTitle}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <p className="text-gray-600 text-sm">{t.signatureInstructions}</p>
+          
+          {/* Signature Canvas */}
+          <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+            <SignatureCanvas
+              ref={signatureRef}
+              canvasProps={{
+                className: 'w-full h-48 bg-white'
+              }}
+              backgroundColor="white"
+              penColor="black"
+            />
+          </div>
+          
+          {/* Electronic Signature Legal Notice */}
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-xs text-blue-800 flex items-start">
+              <Info className="h-3 w-3 mr-1 mt-0.5 flex-shrink-0" />
+              {language === 'es' 
+                ? 'Las firmas electrónicas tienen el mismo nivel de autenticidad y validez legal que las firmas físicas según la Ley ESIGN y UETA.'
+                : 'Electronic signatures have the same level of authenticity and legal validity as physical signatures under the ESIGN Act and UETA.'}
+            </p>
+          </div>
+
+          {/* Agreement Checkbox */}
+          <div className="space-y-3">
+            <label className="flex items-start space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hasAgreed}
+                onChange={(e) => {
+                  setHasAgreed(e.target.checked)
+                  setSignatureError('')
+                }}
+                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">
+                {agreementText || t.agreementLabel}
+              </span>
+            </label>
+          </div>
+
+          {/* Error Message */}
+          {signatureError && (
+            <Alert className="bg-red-50 border-red-200">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {signatureError}
               </AlertDescription>
             </Alert>
           )}
 
+          {/* Signature Label */}
+          {signatureLabel && (
+            <div className="text-sm text-gray-600 text-center">
+              {signatureLabel}
+            </div>
+          )}
+
+          {/* Action Buttons */}
           <div className="flex gap-4">
             {onBack && (
               <Button
@@ -310,101 +360,22 @@ export default function ReviewAndSign({
               </Button>
             )}
             <Button
-              onClick={() => setShowSignature(true)}
+              variant="outline"
+              onClick={handleClearSignature}
               className="flex-1"
             >
-              <Pen className="h-4 w-4 mr-2" />
-              {t.proceedToSign}
+              {t.clearSignature}
+            </Button>
+            <Button
+              onClick={handleSubmitSignature}
+              className="flex-1"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              {t.submitSignature}
             </Button>
           </div>
-        </>
-      )}
-
-      {/* Signature Section */}
-      {showSignature && (
-        <>
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.signatureTitle}</h2>
-            <p className="text-gray-600">{t.signatureInstructions}</p>
-          </div>
-
-          <Card>
-            <CardContent className="pt-6 space-y-6">
-              {/* Signature Canvas */}
-              <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
-                <SignatureCanvas
-                  ref={signatureRef}
-                  canvasProps={{
-                    className: 'w-full h-48 bg-white'
-                  }}
-                  backgroundColor="white"
-                  penColor="black"
-                />
-              </div>
-
-              {/* Agreement Checkbox */}
-              <div className="space-y-3">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={hasAgreed}
-                    onChange={(e) => {
-                      setHasAgreed(e.target.checked)
-                      setSignatureError('')
-                    }}
-                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {agreementText || t.agreementLabel}
-                  </span>
-                </label>
-              </div>
-
-              {/* Error Message */}
-              {signatureError && (
-                <Alert className="bg-red-50 border-red-200">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">
-                    {signatureError}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {/* Signature Label */}
-              {signatureLabel && (
-                <div className="text-sm text-gray-600 text-center">
-                  {signatureLabel}
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <Button
-                  variant="outline"
-                  onClick={handleClearSignature}
-                  className="flex-1"
-                >
-                  {t.clearSignature}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowSignature(false)}
-                  className="flex-1"
-                >
-                  {t.cancelSignature}
-                </Button>
-                <Button
-                  onClick={handleSubmitSignature}
-                  className="flex-1"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  {t.submitSignature}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

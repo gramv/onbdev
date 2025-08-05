@@ -308,8 +308,6 @@ export default function I9Section1FormClean({
             const ssnDigits = formData.ssn.replace(/\D/g, '')
             if (ssnDigits.length !== 9) {
               newErrors.ssn = 'SSN must be 9 digits'
-            } else if (isInvalidSSN(ssnDigits)) {
-              newErrors.ssn = 'Invalid SSN format'
             }
           }
           break

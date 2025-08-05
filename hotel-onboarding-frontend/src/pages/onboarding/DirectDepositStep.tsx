@@ -69,6 +69,23 @@ export default function DirectDepositStep({
 
   // Load existing data
   useEffect(() => {
+    // Try to load saved data from session storage
+    const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        if (parsed.formData) {
+          setFormData(parsed.formData)
+        }
+        if (parsed.isSigned) {
+          setIsSigned(true)
+          setIsValid(true)
+        }
+      } catch (e) {
+        console.error('Failed to parse saved direct deposit data:', e)
+      }
+    }
+    
     if (progress.completedSteps.includes(currentStep.id)) {
       setIsSigned(true)
       setIsValid(true)
@@ -76,13 +93,33 @@ export default function DirectDepositStep({
   }, [currentStep.id, progress.completedSteps])
 
   const handleFormComplete = async (data: any) => {
-    // Validate the form data
-    const validation = await validate(data)
+    // Transform nested data structure to flat structure for validation
+    const validationData = {
+      paymentMethod: data.paymentMethod,
+      accountType: data.primaryAccount?.accountType,
+      bankName: data.primaryAccount?.bankName,
+      routingNumber: data.primaryAccount?.routingNumber,
+      accountNumber: data.primaryAccount?.accountNumber,
+      confirmAccountNumber: data.primaryAccount?.accountNumberConfirm,
+      voidedCheckUploaded: data.voidedCheckUploaded,
+      accountVerified: data.accountVerified || data.voidedCheckUploaded
+    }
+    
+    // Validate the transformed data
+    const validation = await validate(validationData)
     
     if (validation.valid) {
       setFormData(data)
       setIsValid(true)
       setShowReview(true)
+      
+      // Save to session storage
+      sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+        formData: data,
+        isValid: true,
+        isSigned: false,
+        showReview: true
+      }))
     }
   }
 
@@ -99,6 +136,20 @@ export default function DirectDepositStep({
       signatureData,
       completedAt: new Date().toISOString()
     }
+    
+    // Save to session storage with signed status
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+      formData,
+      isValid: true,
+      isSigned: true,
+      showReview: false,
+      signed: true,
+      signatureData,
+      completedAt: completeData.completedAt
+    }))
+    
+    // Save progress to update controller's step data
+    await saveProgress(currentStep.id, completeData)
     
     await markStepComplete(currentStep.id, completeData)
     setShowReview(false)
@@ -252,11 +303,12 @@ export default function DirectDepositStep({
               <DirectDepositFormEnhanced
                 initialData={formData}
                 language={language}
-                onComplete={handleFormComplete}
+                onSave={handleFormComplete}
                 onValidationChange={(valid: boolean, errors: Record<string, string>) => {
                   setIsValid(valid)
                 }}
-                employeeId={employee?.id}
+                employee={employee}
+                property={property}
               />
             </div>
           </div>

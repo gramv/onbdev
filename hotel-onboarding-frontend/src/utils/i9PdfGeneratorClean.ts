@@ -330,37 +330,112 @@ export async function generateCleanI9Pdf(formData: I9FormData): Promise<Uint8Arr
       }
       
       // Fill document information (simplified to avoid errors)
-      const driversLicense = documentsList.find(doc => doc.documentType === 'drivers_license')
-      const ssnCard = documentsList.find(doc => doc.documentType === 'social_security_card')
       
-      if (driversLicense) {
+      // Handle List A documents first (establish identity AND work authorization)
+      const usPassport = documentsList.find(doc => doc.documentType === 'us_passport')
+      const permanentResidentCard = documentsList.find(doc => doc.documentType === 'permanent_resident_card')
+      const foreignPassport = documentsList.find(doc => doc.documentType === 'foreign_passport')
+      const employmentAuthCard = documentsList.find(doc => doc.documentType === 'employment_authorization_card')
+      
+      // Fill List A document fields if any List A document is present
+      if (usPassport) {
         try {
-          form.getTextField('List B Document 1 Title').setText("Driver's License")
-          form.getTextField('List B Issuing Authority 1').setText(driversLicense.issuingAuthority || '')
-          form.getTextField('List B Document Number 1').setText(driversLicense.documentNumber || '')
+          form.getTextField('Document Title 1').setText('U.S. Passport')
+          form.getTextField('Issuing Authority 1').setText('U.S. Department of State')
+          form.getTextField('Document Number 0 (if any)').setText(usPassport.documentNumber || '')
           
-          // Add expiration date for DL
-          if (driversLicense.expirationDate) {
-            form.getTextField('List B Expiration Date 1').setText(formatDateWithSlashes(driversLicense.expirationDate))
-            console.log(`✓ Added DL expiration date: ${driversLicense.expirationDate}`)
+          if (usPassport.expirationDate) {
+            form.getTextField('Expiration Date if any').setText(formatDateWithSlashes(usPassport.expirationDate))
           }
           
-          console.log('✓ Filled List B (Driver\'s License) fields')
+          console.log('✓ Filled List A (U.S. Passport) fields')
         } catch (e) {
-          console.error('✗ Failed to fill List B fields:', e)
+          console.error('✗ Failed to fill U.S. Passport fields:', e)
+        }
+      } else if (permanentResidentCard) {
+        try {
+          form.getTextField('Document Title 1').setText('Permanent Resident Card')
+          form.getTextField('Issuing Authority 1').setText('USCIS')
+          form.getTextField('Document Number 0 (if any)').setText(permanentResidentCard.documentNumber || '')
+          
+          if (permanentResidentCard.expirationDate) {
+            form.getTextField('Expiration Date if any').setText(formatDateWithSlashes(permanentResidentCard.expirationDate))
+          }
+          
+          console.log('✓ Filled List A (Permanent Resident Card) fields')
+        } catch (e) {
+          console.error('✗ Failed to fill Permanent Resident Card fields:', e)
+        }
+      } else if (foreignPassport) {
+        try {
+          const issuingCountry = foreignPassport.issuingCountry || foreignPassport.issuingAuthority || ''
+          form.getTextField('Document Title 1').setText('Foreign Passport')
+          form.getTextField('Issuing Authority 1').setText(issuingCountry)
+          form.getTextField('Document Number 0 (if any)').setText(foreignPassport.documentNumber || '')
+          
+          if (foreignPassport.expirationDate) {
+            form.getTextField('Expiration Date if any').setText(formatDateWithSlashes(foreignPassport.expirationDate))
+          }
+          
+          console.log('✓ Filled List A (Foreign Passport) fields')
+        } catch (e) {
+          console.error('✗ Failed to fill Foreign Passport fields:', e)
+        }
+      } else if (employmentAuthCard) {
+        try {
+          form.getTextField('Document Title 1').setText('Employment Authorization Document')
+          form.getTextField('Issuing Authority 1').setText('USCIS')
+          form.getTextField('Document Number 0 (if any)').setText(employmentAuthCard.documentNumber || '')
+          
+          if (employmentAuthCard.expirationDate) {
+            form.getTextField('Expiration Date if any').setText(formatDateWithSlashes(employmentAuthCard.expirationDate))
+          }
+          
+          console.log('✓ Filled List A (Employment Authorization Document) fields')
+        } catch (e) {
+          console.error('✗ Failed to fill Employment Authorization Document fields:', e)
         }
       }
       
-      if (ssnCard) {
-        try {
-          form.getTextField('List C Document Title 1').setText('Social Security Card')
-          form.getTextField('List C Issuing Authority 1').setText('Social Security Administration')
-          // Use user-entered SSN from formData, not OCR-extracted SSN
-          form.getTextField('List C Document Number 1').setText(formData.ssn || '')
-          console.log('✓ Filled List C (SSN) fields')
-        } catch (e) {
-          console.error('✗ Failed to fill List C fields:', e)
+      // Handle List B and List C documents (only if no List A document was used)
+      const hasListADocument = usPassport || permanentResidentCard || foreignPassport || employmentAuthCard
+      
+      const driversLicense = documentsList.find(doc => doc.documentType === 'drivers_license')
+      const ssnCard = documentsList.find(doc => doc.documentType === 'social_security_card')
+      
+      // Only fill List B and List C if no List A document was provided
+      if (!hasListADocument) {
+        if (driversLicense) {
+          try {
+            form.getTextField('List B Document 1 Title').setText("Driver's License")
+            form.getTextField('List B Issuing Authority 1').setText(driversLicense.issuingAuthority || '')
+            form.getTextField('List B Document Number 1').setText(driversLicense.documentNumber || '')
+            
+            // Add expiration date for DL
+            if (driversLicense.expirationDate) {
+              form.getTextField('List B Expiration Date 1').setText(formatDateWithSlashes(driversLicense.expirationDate))
+              console.log(`✓ Added DL expiration date: ${driversLicense.expirationDate}`)
+            }
+            
+            console.log('✓ Filled List B (Driver\'s License) fields')
+          } catch (e) {
+            console.error('✗ Failed to fill List B fields:', e)
+          }
         }
+        
+        if (ssnCard) {
+          try {
+            form.getTextField('List C Document Title 1').setText('Social Security Card')
+            form.getTextField('List C Issuing Authority 1').setText('Social Security Administration')
+            // Use user-entered SSN from formData, not OCR-extracted SSN
+            form.getTextField('List C Document Number 1').setText(formData.ssn || '')
+            console.log('✓ Filled List C (SSN) fields')
+          } catch (e) {
+            console.error('✗ Failed to fill List C fields:', e)
+          }
+        }
+      } else {
+        console.log('ℹ️ Skipping List B/C documents since List A document was provided')
       }
       
       // Add Section 2 verification date

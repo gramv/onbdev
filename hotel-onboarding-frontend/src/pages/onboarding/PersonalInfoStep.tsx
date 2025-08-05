@@ -56,16 +56,35 @@ export default function PersonalInfoStep({
       try {
         // Try to load from session storage first
         const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
-        console.log('Loading saved data:', savedData)
+        console.log('PersonalInfoStep - Loading saved data:', savedData)
         if (savedData) {
           const parsed = JSON.parse(savedData)
-          console.log('Parsed data:', parsed)
+          console.log('PersonalInfoStep - Parsed data:', parsed)
+          
+          // Handle both nested structure (expected) and flat structure (from cloud)
           if (parsed.personalInfo) {
+            // Nested structure - expected format
             setPersonalInfoData(parsed.personalInfo)
+          } else if (parsed.firstName || parsed.lastName || parsed.phone) {
+            // Flat structure - data directly in parsed object
+            console.log('PersonalInfoStep - Detected flat structure from cloud')
+            setPersonalInfoData(parsed)
           }
+          
           if (parsed.emergencyContacts) {
             setEmergencyContactsData(parsed.emergencyContacts)
+          } else if (parsed.primaryContact) {
+            // Handle flat emergency contacts structure
+            setEmergencyContactsData({
+              primaryContact: parsed.primaryContact,
+              secondaryContact: parsed.secondaryContact || {},
+              medicalInfo: parsed.medicalInfo || '',
+              allergies: parsed.allergies || '',
+              medications: parsed.medications || '',
+              medicalConditions: parsed.medicalConditions || ''
+            })
           }
+          
           if (parsed.activeTab) {
             setActiveTab(parsed.activeTab)
           }
@@ -96,29 +115,33 @@ export default function PersonalInfoStep({
     }
   }, [isStepComplete, currentStep.id, formData, markStepComplete, progress.completedSteps])
 
-  const handlePersonalInfoSave = useCallback((data: any) => {
+  const handlePersonalInfoSave = useCallback(async (data: any) => {
     console.log('Saving personal info:', data)
     setPersonalInfoData(data)
-    // Immediately save to session storage
+    // Immediately save to session storage and backend
     const updatedFormData = {
       personalInfo: data,
       emergencyContacts: emergencyContactsData,
       activeTab
     }
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedFormData))
-  }, [emergencyContactsData, activeTab, currentStep.id])
+    // Also save to backend (this will trigger sync status updates in the portal)
+    await saveProgress(currentStep.id, updatedFormData)
+  }, [emergencyContactsData, activeTab, currentStep.id, saveProgress])
 
-  const handleEmergencyContactsSave = useCallback((data: any) => {
+  const handleEmergencyContactsSave = useCallback(async (data: any) => {
     console.log('Saving emergency contacts:', data)
     setEmergencyContactsData(data)
-    // Immediately save to session storage
+    // Immediately save to session storage and backend
     const updatedFormData = {
       personalInfo: personalInfoData,
       emergencyContacts: data,
       activeTab
     }
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(updatedFormData))
-  }, [personalInfoData, activeTab, currentStep.id])
+    // Also save to backend (this will trigger sync status updates in the portal)
+    await saveProgress(currentStep.id, updatedFormData)
+  }, [personalInfoData, activeTab, currentStep.id, saveProgress])
 
   const handlePersonalInfoValidationChange = useCallback((isValid: boolean) => {
     setPersonalInfoValid(isValid)

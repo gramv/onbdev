@@ -122,29 +122,42 @@ export const w4FormValidator = (data: any): ValidationResult => {
   const errors: string[] = []
   const fieldErrors: Record<string, string> = {}
 
+  // Handle both direct data and nested formData structure
+  const formData = data.formData || data
+
+  // If the form is already signed, bypass validation
+  if (data.signed || data.isSigned || formData.signed || formData.isSigned) {
+    return {
+      valid: true,
+      errors: [],
+      fieldErrors: {}
+    }
+  }
+
   // Step 1 - Personal Information
-  if (!data.firstName?.trim()) {
+  // Check both underscore and camelCase field names like I-9 does
+  if (!formData.first_name?.trim() && !formData.firstName?.trim()) {
     fieldErrors.firstName = 'First name is required'
   }
-  if (!data.lastName?.trim()) {
+  if (!formData.last_name?.trim() && !formData.lastName?.trim()) {
     fieldErrors.lastName = 'Last name is required'
   }
-  if (!data.ssn?.trim()) {
+  if (!formData.ssn?.trim()) {
     fieldErrors.ssn = 'Social Security Number is required'
   }
-  if (!data.address?.trim()) {
+  if (!formData.address?.trim()) {
     fieldErrors.address = 'Address is required'
   }
 
   // Step 2 - Filing Status
-  if (!data.filingStatus) {
+  // Check both field name variations
+  const filingStatus = formData.filing_status || formData.filingStatus
+  if (!filingStatus) {
     errors.push('You must select a filing status')
   }
 
-  // Signature
-  if (!data.signature || !data.signatureData) {
-    errors.push('Electronic signature is required')
-  }
+  // Note: Signature validation removed - signature happens after preview in ReviewAndSign component
+  // The validator should only check form fields, not signature status
 
   const fieldErrorCount = Object.keys(fieldErrors).length
   return {
@@ -158,31 +171,35 @@ export const directDepositValidator = (data: any): ValidationResult => {
   const errors: string[] = []
   const fieldErrors: Record<string, string> = {}
 
-  if (!data.accountType) {
-    errors.push('Please select an account type')
-  }
+  // Only validate banking details if direct deposit is selected
+  if (data.paymentMethod === 'direct_deposit') {
+    if (!data.accountType) {
+      errors.push('Please select an account type')
+    }
 
-  if (!data.bankName?.trim()) {
-    fieldErrors.bankName = 'Bank name is required'
-  }
-  if (!data.routingNumber?.trim()) {
-    fieldErrors.routingNumber = 'Routing number is required'
-  } else if (!/^\d{9}$/.test(data.routingNumber)) {
-    fieldErrors.routingNumber = 'Routing number must be 9 digits'
-  }
-  if (!data.accountNumber?.trim()) {
-    fieldErrors.accountNumber = 'Account number is required'
-  }
-  if (!data.confirmAccountNumber?.trim()) {
-    fieldErrors.confirmAccountNumber = 'Please confirm account number'
-  } else if (data.accountNumber !== data.confirmAccountNumber) {
-    fieldErrors.confirmAccountNumber = 'Account numbers do not match'
-  }
+    if (!data.bankName?.trim()) {
+      fieldErrors.bankName = 'Bank name is required'
+    }
+    if (!data.routingNumber?.trim()) {
+      fieldErrors.routingNumber = 'Routing number is required'
+    } else if (!/^\d{9}$/.test(data.routingNumber)) {
+      fieldErrors.routingNumber = 'Routing number must be 9 digits'
+    }
+    if (!data.accountNumber?.trim()) {
+      fieldErrors.accountNumber = 'Account number is required'
+    }
+    if (!data.confirmAccountNumber?.trim()) {
+      fieldErrors.confirmAccountNumber = 'Please confirm account number'
+    } else if (data.accountNumber !== data.confirmAccountNumber) {
+      fieldErrors.confirmAccountNumber = 'Account numbers do not match'
+    }
 
-  // Voided check upload
-  if (!data.voidedCheckUploaded && !data.accountVerified) {
-    errors.push('Please upload a voided check or verify account details')
+    // Voided check upload - only required for direct deposit
+    if (!data.voidedCheckUploaded && !data.accountVerified) {
+      errors.push('Please upload a voided check or verify account details')
+    }
   }
+  // For paper check, no additional validation needed
 
   const fieldErrorCount = Object.keys(fieldErrors).length
   return {

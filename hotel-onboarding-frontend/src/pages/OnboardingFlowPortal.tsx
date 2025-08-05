@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { scrollToTop, scrollToErrorContainer } from '@/utils/scrollHelpers'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { SyncIndicator, SyncBadge } from '@/components/ui/sync-indicator'
+import { useSyncStatus } from '@/hooks/useSyncStatus'
 
 // Import the new infrastructure
 import { OnboardingFlowController, StepProps } from '../controllers/OnboardingFlowController'
@@ -55,6 +57,9 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
   const [saveStatus, setSaveStatus] = useState<any>({ saving: false, lastSaved: null, error: null })
 
   const token = searchParams.get('token') || (testMode ? 'demo-token' : null)
+  
+  // Sync status hook
+  const { syncStatus, lastSyncTime, syncError, startSync, syncSuccess, syncError: reportSyncError, syncOffline, isOnline } = useSyncStatus()
 
   // Initialize session
   useEffect(() => {
@@ -67,23 +72,56 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
 
       try {
         setLoading(true)
+        
+        // Clear old session data when using a new token
+        const lastToken = sessionStorage.getItem('current_onboarding_token')
+        if (lastToken && lastToken !== token) {
+          // Clear all onboarding-related sessionStorage
+          const keysToRemove: string[] = []
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i)
+            if (key && (key.includes('onboarding_') || key.includes('personal_info') || key.includes('company_policies') || key.includes('document_upload'))) {
+              keysToRemove.push(key)
+            }
+          }
+          keysToRemove.forEach(key => sessionStorage.removeItem(key))
+        }
+        sessionStorage.setItem('current_onboarding_token', token)
+        
         const sessionData = await flowController.initializeOnboarding(token)
         setSession(sessionData)
         setCurrentStep(flowController.getCurrentStep())
         setProgress(flowController.getProgress())
         
-        // Load any saved data from session storage for all steps
-        flowController.steps.forEach(step => {
-          const savedData = sessionStorage.getItem(`onboarding_${step.id}_data`)
-          if (savedData) {
-            try {
-              const parsed = JSON.parse(savedData)
-              flowController.setStepData(step.id, parsed)
-            } catch (e) {
-              console.error(`Failed to parse saved data for step ${step.id}:`, e)
+        // Load saved data from cloud first, then merge with local
+        if (sessionData.savedFormData && Object.keys(sessionData.savedFormData).length > 0) {
+          console.log('Loading saved form data from cloud:', sessionData.savedFormData)
+          
+          // Load cloud data and save to sessionStorage
+          Object.entries(sessionData.savedFormData).forEach(([stepId, formData]) => {
+            if (formData && Object.keys(formData).length > 0) {
+              console.log(`Setting cloud data for step ${stepId}:`, formData)
+              flowController.setStepData(stepId, formData)
+              // Save to sessionStorage for offline access
+              sessionStorage.setItem(`onboarding_${stepId}_data`, JSON.stringify(formData))
             }
-          }
-        })
+          })
+        } else {
+          // No cloud data, check local storage
+          console.log('No cloud data found, checking local storage')
+          flowController.steps.forEach(step => {
+            const savedData = sessionStorage.getItem(`onboarding_${step.id}_data`)
+            if (savedData) {
+              try {
+                const parsed = JSON.parse(savedData)
+                console.log(`Loading local data for step ${step.id}:`, parsed)
+                flowController.setStepData(step.id, parsed)
+              } catch (e) {
+                console.error(`Failed to parse saved data for step ${step.id}:`, e)
+              }
+            }
+          })
+        }
         
         setError(null)
       } catch (err) {
@@ -118,8 +156,8 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       // Get current form data from session storage for personal-info step
       let currentStepData = flowController.getStepData(currentStep.id)
       
-      // Special handling for personal-info step to get data from session storage
-      if (currentStep.id === 'personal-info') {
+      // Special handling for personal-info, w4-form and direct-deposit steps to get data from session storage
+      if (currentStep.id === 'personal-info' || currentStep.id === 'w4-form' || currentStep.id === 'direct-deposit') {
         const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
         if (savedData) {
           try {
@@ -180,14 +218,30 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
       // Update controller's step data
       if (data) {
         flowController.setStepData(stepId, data)
+        // Also save to sessionStorage immediately
+        sessionStorage.setItem(`onboarding_${stepId}_data`, JSON.stringify(data))
       }
+      
+      // Start sync indicator
+      startSync()
       
       // Save to backend
       await flowController.saveProgress(stepId, data)
+      console.log(`Progress saved for step ${stepId}`)
+      
+      // Mark sync as successful
+      syncSuccess()
     } catch (err) {
       console.error('Failed to save progress:', err)
+      // Report sync error
+      reportSyncError(err instanceof Error ? err.message : 'Failed to save progress')
+      
+      // If offline, mark as saved locally
+      if (!isOnline) {
+        syncOffline()
+      }
     }
-  }, [currentStep, flowController])
+  }, [currentStep, flowController, startSync, syncSuccess, reportSyncError, isOnline, syncOffline])
 
   const handleStepComplete = useCallback(async (stepId: string, data?: any) => {
     try {
@@ -345,6 +399,25 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
               </span>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Sync Status Indicator - Full on desktop */}
+              <div className="hidden md:block">
+                <SyncIndicator
+                  status={syncStatus}
+                  lastSyncTime={lastSyncTime}
+                  error={syncError}
+                  showDetails={true}
+                  className="text-sm"
+                />
+              </div>
+              
+              {/* Sync Status Badge - Mobile */}
+              <div className="block md:hidden">
+                <SyncBadge
+                  status={syncStatus}
+                  className="w-8 h-8"
+                />
+              </div>
+              
               {/* Language Toggle */}
               <button
                 onClick={() => handleLanguageChange(language === 'en' ? 'es' : 'en')}
@@ -432,12 +505,6 @@ export default function OnboardingFlowPortal({ testMode = false }: OnboardingFlo
             </CardContent>
           </Card>
 
-          {/* Save Status Indicator */}
-          {saveStatus.lastSaved && (
-            <div className="text-center text-sm text-gray-500">
-              Last saved: {saveStatus.lastSaved.toLocaleTimeString()}
-            </div>
-          )}
         </div>
       </main>
     </div>

@@ -31,6 +31,7 @@ export interface OnboardingFlowSession {
   progress: OnboardingProgress
   sessionToken: string
   expiresAt: Date
+  savedFormData?: Record<string, any>
 }
 
 export interface StepProps {
@@ -89,8 +90,11 @@ export class OnboardingFlowController {
     { id: 'final-review', name: 'Final Review', order: 11, required: true, estimatedMinutes: 5, governmentRequired: false }
   ]
 
+  private apiUrl: string
+  
   constructor() {
     this.autoSaveManager = new AutoSaveManager()
+    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
   }
 
   /**
@@ -124,7 +128,8 @@ export class OnboardingFlowController {
             canProceed: true
           },
           sessionToken: token,
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+          savedFormData: {}
         }
 
         this.session = mockSession
@@ -134,7 +139,7 @@ export class OnboardingFlowController {
 
       // Try to validate token and load session data from API
       try {
-        const response = await fetch(`/api/onboarding/session/${token}`)
+        const response = await fetch(`${this.apiUrl}/api/onboarding/session/${token}`)
         
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -151,7 +156,8 @@ export class OnboardingFlowController {
             canProceed: true
           },
           sessionToken: token,
-          expiresAt: new Date(sessionData.expiresAt)
+          expiresAt: new Date(sessionData.expiresAt),
+          savedFormData: sessionData.savedFormData || {}
         }
 
         // Set current step index based on progress
@@ -211,13 +217,13 @@ export class OnboardingFlowController {
         return
       }
 
-      const response = await fetch(`/api/onboarding/${this.session.employee.id}/complete/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/complete/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.session.sessionToken}`
         },
-        body: JSON.stringify({ formData: data })
+        body: JSON.stringify(data || {})
       })
 
       if (!response.ok) {
@@ -255,16 +261,19 @@ export class OnboardingFlowController {
       // Handle demo mode
       if (this.session.employee.id === 'demo-employee-001' || this.session.sessionToken === 'demo-token') {
         console.log(`Demo mode: Saved progress for step ${stepId}`, data)
+        if (data) {
+          this.setStepData(stepId, data)
+        }
         return
       }
 
-      const response = await fetch(`/api/onboarding/${this.session.employee.id}/progress/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/progress/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.session.sessionToken}`
         },
-        body: JSON.stringify({ formData: data })
+        body: JSON.stringify(data || {})
       })
 
       if (!response.ok) {
@@ -273,12 +282,18 @@ export class OnboardingFlowController {
 
       // Update local session data if needed
       // This would be extended to update form data cache
+      if (data) {
+        this.setStepData(stepId, data)
+      }
 
     } catch (error) {
       console.error('Failed to save progress:', error)
       // In demo mode, don't throw errors for save failures
       if (this.session.employee.id === 'demo-employee-001' || this.session.sessionToken === 'demo-token') {
         console.warn('API failed, but continuing in demo mode:', error)
+        if (data) {
+          this.setStepData(stepId, data)
+        }
         return
       }
       throw error

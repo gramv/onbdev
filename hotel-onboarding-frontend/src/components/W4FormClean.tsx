@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,10 +7,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ChevronRight, ChevronLeft, Eye, Calculator, DollarSign, Users } from 'lucide-react'
-import PDFViewerWithControls from './PDFViewerWithControls'
-import DigitalSignatureCapture from './DigitalSignatureCapture'
-import axios from 'axios'
-import { generateW4Pdf } from '@/utils/w4PdfGenerator'
 
 interface W4FormCleanProps {
   onComplete: (data: any) => void
@@ -62,9 +58,6 @@ export default function W4FormClean({
   employeeId
 }: W4FormCleanProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [showReview, setShowReview] = useState(false)
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
   
   const [formData, setFormData] = useState<FormData>({
     first_name: initialData.first_name || '',
@@ -86,6 +79,31 @@ export default function W4FormClean({
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Update form data when initialData changes
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('W4FormClean - Updating form data from initialData:', initialData)
+      setFormData({
+        first_name: initialData.first_name || '',
+        middle_initial: initialData.middle_initial || '',
+        last_name: initialData.last_name || '',
+        address: initialData.address || '',
+        apt_number: initialData.apt_number || '',
+        city: initialData.city || '',
+        state: initialData.state || '',
+        zip_code: initialData.zip_code || '',
+        ssn: initialData.ssn || '',
+        filing_status: initialData.filing_status || 'single',
+        multiple_jobs: initialData.multiple_jobs || false,
+        qualifying_children: initialData.qualifying_children || 0,
+        other_dependents: initialData.other_dependents || 0,
+        other_income: initialData.other_income || '',
+        deductions: initialData.deductions || '',
+        extra_withholding: initialData.extra_withholding || ''
+      })
+    }
+  }, [initialData])
 
   const steps = [
     {
@@ -177,7 +195,17 @@ export default function W4FormClean({
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1)
       } else {
-        generatePdfPreview()
+        // Ensure numeric fields default to 0 before completing
+        const finalFormData = {
+          ...formData,
+          qualifying_children: formData.qualifying_children || 0,
+          other_dependents: formData.other_dependents || 0,
+          other_income: formData.other_income || '0',
+          deductions: formData.deductions || '0',
+          extra_withholding: formData.extra_withholding || '0'
+        }
+        // Pass the form data directly to parent
+        onComplete(finalFormData)
       }
     }
   }
@@ -192,128 +220,6 @@ export default function W4FormClean({
     const childrenAmount = formData.qualifying_children * 2000
     const otherAmount = formData.other_dependents * 500
     return childrenAmount + otherAmount
-  }
-
-  const generatePdfPreview = async () => {
-    setIsGeneratingPdf(true)
-    try {
-      // Convert string amounts to numbers for PDF generation
-      const pdfData = {
-        ...formData,
-        qualifying_children: Number(formData.qualifying_children) || 0,
-        other_dependents: Number(formData.other_dependents) || 0,
-        other_income: formData.other_income ? Number(formData.other_income.replace(/[^0-9.-]/g, '')) : undefined,
-        deductions: formData.deductions ? Number(formData.deductions.replace(/[^0-9.-]/g, '')) : undefined,
-        extra_withholding: formData.extra_withholding ? Number(formData.extra_withholding.replace(/[^0-9.-]/g, '')) : undefined,
-      }
-      
-      // Generate PDF client-side using official W-4 form
-      const pdfBytes = await generateW4Pdf(pdfData)
-      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' })
-      const url = URL.createObjectURL(pdfBlob)
-      setPdfUrl(url)
-      
-      // Save to backend if real employee ID
-      if (employeeId && !employeeId.startsWith('test-')) {
-        try {
-          await axios.post(`/api/onboarding/${employeeId}/w4-form`, {
-            formData: pdfData,
-            signed: false
-          })
-        } catch (error) {
-          console.error('Error saving to backend:', error)
-        }
-      }
-      
-      setShowReview(true)
-    } catch (error) {
-      console.error('Error generating PDF:', error)
-      setShowReview(true)
-    } finally {
-      setIsGeneratingPdf(false)
-    }
-  }
-
-  const handleSign = async (signatureData: any) => {
-    try {
-      if (employeeId && !employeeId.startsWith('test-')) {
-        await axios.post(`/api/onboarding/${employeeId}/w4-form`, {
-          formData,
-          signed: true,
-          signatureData: signatureData.signature,
-          completedAt: new Date().toISOString()
-        })
-      }
-      
-      onComplete({
-        ...formData,
-        signature: signatureData,
-        completedAt: new Date().toISOString()
-      })
-    } catch (error) {
-      console.error('Error saving signed form:', error)
-      onComplete({
-        ...formData,
-        signature: signatureData,
-        completedAt: new Date().toISOString()
-      })
-    }
-  }
-
-  // Show review and sign view
-  if (showReview) {
-    return (
-      <div className="max-w-6xl mx-auto space-y-6 p-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Review Form W-4</CardTitle>
-            <p className="text-sm text-gray-600">
-              Employee's Withholding Certificate
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* PDF Preview */}
-            <PDFViewerWithControls 
-              pdfUrl={pdfUrl} 
-              title="Form W-4 - Employee's Withholding Certificate"
-              initialZoom={100}
-            />
-            
-            {/* Federal Compliance Notice */}
-            <Alert>
-              <AlertDescription>
-                <strong>By signing below, you certify that:</strong>
-                <ul className="list-disc list-inside mt-2">
-                  <li>The information you have provided is correct and complete</li>
-                  <li>You understand this form affects your federal income tax withholding</li>
-                  <li>You may be subject to a penalty if you provide false information</li>
-                </ul>
-              </AlertDescription>
-            </Alert>
-            
-            {/* Signature Capture */}
-            <DigitalSignatureCapture
-              documentName="Form W-4 - Employee's Withholding Certificate"
-              signerName={`${formData.first_name} ${formData.last_name}`}
-              signerTitle="Employee"
-              acknowledgments={[
-                "I declare that this certificate, to the best of my knowledge and belief, is true, correct, and complete",
-                "I understand that false statements may result in penalties under federal tax law"
-              ]}
-              requireIdentityVerification={true}
-              language={language}
-              onSignatureComplete={(signatureData) => {
-                handleSign({ signature: signatureData.signatureData })
-              }}
-              onCancel={() => {
-                setShowReview(false)
-                setCurrentStep(steps.length - 1)
-              }}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    )
   }
 
   const progress = ((currentStep + 1) / steps.length) * 100
@@ -689,17 +595,12 @@ export default function W4FormClean({
             <Button
               type="button"
               onClick={handleNext}
-              disabled={isGeneratingPdf}
             >
               {currentStep === steps.length - 1 ? (
-                isGeneratingPdf ? (
-                  <>Generating Preview...</>
-                ) : (
-                  <>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Preview & Sign
-                  </>
-                )
+                <>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Continue to Preview
+                </>
               ) : (
                 <>
                   Next
