@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import DigitalSignatureCapture from '@/components/DigitalSignatureCapture'
+import ReviewAndSign from '@/components/ReviewAndSign'
 import { CheckCircle, Building, FileText, ScrollText, PenTool, Check, Shield, Briefcase, Lock, Heart, ArrowRight, ArrowLeft } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
@@ -994,29 +995,29 @@ export default function CompanyPoliciesStep({
 
               {/* Digital Signature Section - Only show when form is complete */}
               {isFormComplete && allSectionsComplete && !isSigned && (
-                <Card className="border-green-200 bg-green-50">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 text-green-800">
-                      <CheckCircle className="h-5 w-5" />
-                      <span>{t.signatureTitle}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <DigitalSignatureCapture
-                      documentName="Company Policy Acknowledgment"
-                      signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
-                      signerTitle={employee?.position}
-                      acknowledgments={[
-                        'I have read and understand all company policies',
-                        'I agree to the terms of employment',
-                        'I have provided my initials on required sections'
-                      ]}
-                      requireIdentityVerification={false}
-                      language={language}
-                      onSignatureComplete={handleSignature}
-                    />
-                  </CardContent>
-                </Card>
+                <ReviewAndSign
+                  formType="company_policies"
+                  formTitle="Company Policy Acknowledgment"
+                  formData={{
+                    companyPoliciesInitials,
+                    eeoInitials,
+                    sexualHarassmentInitials,
+                    acknowledgmentChecked,
+                    ...formData
+                  }}
+                  documentName="Company Policy Acknowledgment"
+                  signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
+                  signerTitle={employee?.position}
+                  onSign={handleSignature}
+                  acknowledgments={[
+                    'I have read and understand all company policies',
+                    'I agree to the terms of employment',
+                    'I have provided my initials on required sections'
+                  ]}
+                  language={language}
+                  usePDFPreview={true}
+                  pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`}
+                />
               )}
 
               {/* Instructions for incomplete form */}

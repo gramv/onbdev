@@ -35,6 +35,7 @@ from .supabase_service_enhanced import EnhancedSupabaseService
 from .email_service import email_service
 from .document_storage import DocumentStorageService
 from .policy_document_generator import PolicyDocumentGenerator
+# from .scheduler import OnboardingScheduler  # Temporarily disabled - missing apscheduler
 
 # Import PDF API router
 from .pdf_api import router as pdf_router
@@ -49,6 +50,13 @@ from .response_utils import (
     ResponseFormatter, ResponseMiddleware, success_response, error_response,
     not_found_response, unauthorized_response, forbidden_response,
     validation_error_response, standardize_response, ErrorCode
+)
+
+# Import property access control
+from .property_access_control import (
+    PropertyAccessController, get_property_access_controller,
+    require_property_access, require_application_access, require_employee_access,
+    require_manager_with_property_access, require_onboarding_access
 )
 
 load_dotenv()
@@ -135,19 +143,38 @@ app.include_router(pdf_router)
 # Initialize enhanced services
 onboarding_orchestrator = None
 form_update_service = None
+onboarding_scheduler = None
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
-    global onboarding_orchestrator, form_update_service
+    global onboarding_orchestrator, form_update_service, onboarding_scheduler
     
     # Initialize enhanced services (supabase_service is already initialized in __init__)
     onboarding_orchestrator = OnboardingOrchestrator(supabase_service)
     form_update_service = FormUpdateService(supabase_service)
     
+    # Initialize property access controller
+    get_property_access_controller._instance = PropertyAccessController(supabase_service)
+    
+    # Initialize and start the scheduler for reminders
+    # onboarding_scheduler = OnboardingScheduler(supabase_service, email_service)  # Disabled - missing apscheduler
+    # onboarding_scheduler.start()
+    print("⚠️ Scheduler disabled - missing apscheduler module")
+    
     # Initialize test data
     await initialize_test_data()
     print("✅ Supabase-enabled backend started successfully")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up services on shutdown"""
+    global onboarding_scheduler
+    
+    # Stop the scheduler if it's running
+    if onboarding_scheduler:
+        onboarding_scheduler.stop()
+        print("✅ Scheduler stopped gracefully")
 
 async def initialize_test_data():
     """Initialize Supabase database with test data"""
@@ -499,40 +526,45 @@ async def get_manager_applications(
     search: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     department: Optional[str] = Query(None),
-    current_user: User = Depends(require_manager_role)
+    current_user: User = Depends(require_manager_with_property_access)
 ):
-    """Get applications for manager's property using Supabase"""
+    """Get applications for manager's property using Supabase with enhanced access control"""
     try:
-        # Get manager's properties from Supabase
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        if not manager_properties:
+        # Get property access controller
+        access_controller = get_property_access_controller()
+        
+        # Get manager's accessible property IDs
+        property_ids = access_controller.get_manager_accessible_properties(current_user)
+        
+        if not property_ids:
             return success_response(
                 data=[],
                 message="No applications found - manager not assigned to any property"
             )
         
-        property_id = manager_properties[0].id
-        
-        # Get applications from Supabase
-        applications = await supabase_service.get_applications_by_property(property_id)
+        # Get applications from all manager's properties
+        all_applications = []
+        for property_id in property_ids:
+            applications = await supabase_service.get_applications_by_property(property_id)
+            all_applications.extend(applications)
         
         # Apply filters
         if search:
             search_lower = search.lower()
-            applications = [app for app in applications if 
+            all_applications = [app for app in all_applications if 
                           search_lower in app.applicant_data.get('first_name', '').lower() or
                           search_lower in app.applicant_data.get('last_name', '').lower() or
                           search_lower in app.applicant_data.get('email', '').lower()]
         
         if status and status != 'all':
-            applications = [app for app in applications if app.status == status]
+            all_applications = [app for app in all_applications if app.status == status]
         
         if department and department != 'all':
-            applications = [app for app in applications if app.department == department]
+            all_applications = [app for app in all_applications if app.department == department]
         
         # Convert to standardized format
         result = []
-        for app in applications:
+        for app in all_applications:
             app_data = ApplicationData(
                 id=app.id,
                 property_id=app.property_id,
@@ -666,10 +698,19 @@ async def create_property(
         
         result = await supabase_service.create_property(property_data)
         
-        return {
-            "message": "Property created successfully",
-            "property": result.get("property", property_data)
-        }
+        if result.get("success"):
+            return {
+                "message": "Property created successfully",
+                "property": result.get("property", property_data)
+            }
+        else:
+            # If property creation failed, return appropriate error
+            error_message = result.get("error", "Failed to create property")
+            details = result.get("details", "")
+            raise HTTPException(
+                status_code=403 if "permission" in error_message.lower() else 500,
+                detail=f"{error_message}. {details}".strip()
+            )
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create property: {str(e)}")
@@ -981,18 +1022,35 @@ async def get_hr_applications(
         )
 
 @app.get("/manager/property")
-async def get_manager_property(current_user: User = Depends(require_manager_role)):
-    """Get manager's assigned property details using Supabase"""
+async def get_manager_property(current_user: User = Depends(require_manager_with_property_access)):
+    """Get manager's assigned property details using Supabase with enhanced access control"""
     try:
-        # Get manager's properties
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        if not manager_properties:
-            raise HTTPException(status_code=404, detail="Manager not assigned to any property")
+        # Get property access controller
+        access_controller = get_property_access_controller()
         
-        # Return the first property (assuming single property assignment for now)
-        property_obj = manager_properties[0]
+        # Get manager's accessible properties
+        property_ids = access_controller.get_manager_accessible_properties(current_user)
         
-        return {
+        if not property_ids:
+            return error_response(
+                message="Manager not assigned to any property",
+                error_code=ErrorCode.AUTHORIZATION_ERROR,
+                status_code=403,
+                detail="Manager account is not configured with property access"
+            )
+        
+        # Get the first property details (assuming single property assignment for now)
+        property_obj = supabase_service.get_property_by_id_sync(property_ids[0])
+        
+        if not property_obj:
+            return error_response(
+                message="Property not found",
+                error_code=ErrorCode.RESOURCE_NOT_FOUND,
+                status_code=404,
+                detail="Assigned property no longer exists"
+            )
+        
+        property_data = {
             "id": property_obj.id,
             "name": property_obj.name,
             "address": property_obj.address,
@@ -1004,46 +1062,78 @@ async def get_manager_property(current_user: User = Depends(require_manager_role
             "created_at": property_obj.created_at.isoformat() if property_obj.created_at else None
         }
         
-    except HTTPException:
-        raise
+        return success_response(
+            data=property_data,
+            message="Manager property retrieved successfully"
+        )
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve manager property: {str(e)}")
+        logger.error(f"Failed to retrieve manager property: {e}")
+        return error_response(
+            message="Failed to retrieve manager property",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail="An error occurred while fetching property data"
+        )
 
 @app.get("/manager/dashboard-stats")
-async def get_manager_dashboard_stats(current_user: User = Depends(require_manager_role)):
-    """Get dashboard statistics for manager's property using Supabase"""
+async def get_manager_dashboard_stats(current_user: User = Depends(require_manager_with_property_access)):
+    """Get dashboard statistics for manager's property using Supabase with enhanced access control"""
     try:
-        # Get manager's properties
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        if not manager_properties:
-            raise HTTPException(status_code=404, detail="Manager not assigned to any property")
+        # Get property access controller
+        access_controller = get_property_access_controller()
         
-        property_id = manager_properties[0].id
+        # Get manager's accessible property IDs
+        property_ids = access_controller.get_manager_accessible_properties(current_user)
         
-        # Get applications and employees for this property
-        applications = await supabase_service.get_applications_by_property(property_id)
-        employees = await supabase_service.get_employees_by_property(property_id)
+        if not property_ids:
+            return error_response(
+                message="Manager not assigned to any property",
+                error_code=ErrorCode.AUTHORIZATION_ERROR,
+                status_code=403,
+                detail="Manager account is not configured with property access"
+            )
         
-        # Calculate stats
-        pending_applications = len([app for app in applications if app.status == "pending"])
-        approved_applications = len([app for app in applications if app.status == "approved"])
-        total_employees = len(employees)
-        active_employees = len([emp for emp in employees if emp.employment_status == "active"])
-        onboarding_in_progress = len([emp for emp in employees if emp.onboarding_status == OnboardingStatus.IN_PROGRESS])
+        # Aggregate stats across all manager's properties
+        total_applications = []
+        total_employees = []
         
-        return {
+        for property_id in property_ids:
+            # Get applications and employees for each property
+            applications = await supabase_service.get_applications_by_property(property_id)
+            employees = await supabase_service.get_employees_by_property(property_id)
+            
+            total_applications.extend(applications)
+            total_employees.extend(employees)
+        
+        # Calculate aggregated stats
+        pending_applications = len([app for app in total_applications if app.status == "pending"])
+        approved_applications = len([app for app in total_applications if app.status == "approved"])
+        active_employees = len([emp for emp in total_employees if emp.employment_status == "active"])
+        onboarding_in_progress = len([emp for emp in total_employees if emp.onboarding_status == OnboardingStatus.IN_PROGRESS])
+        
+        stats_data = {
             "pendingApplications": pending_applications,
             "approvedApplications": approved_applications,
-            "totalApplications": len(applications),
-            "totalEmployees": total_employees,
+            "totalApplications": len(total_applications),
+            "totalEmployees": len(total_employees),
             "activeEmployees": active_employees,
             "onboardingInProgress": onboarding_in_progress
         }
         
-    except HTTPException:
-        raise
+        return success_response(
+            data=stats_data,
+            message="Manager dashboard statistics retrieved successfully"
+        )
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve manager dashboard stats: {str(e)}")
+        logger.error(f"Failed to retrieve manager dashboard stats: {e}")
+        return error_response(
+            message="Failed to retrieve dashboard statistics",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail="An error occurred while fetching dashboard data"
+        )
 
 @app.get("/api/employees/{id}/welcome-data")
 async def get_employee_welcome_data(
@@ -1105,11 +1195,16 @@ async def get_employees(
     try:
         # Get employees based on user role
         if current_user.role == "manager":
-            # Manager can only see employees from their properties
-            manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-            if not manager_properties:
-                return []
-            property_ids = [prop.id for prop in manager_properties]
+            # Manager can only see employees from their properties - use access controller
+            access_controller = get_property_access_controller()
+            property_ids = access_controller.get_manager_accessible_properties(current_user)
+            
+            if not property_ids:
+                return success_response(
+                    data=[],
+                    message="No employees found - manager not assigned to any property"
+                )
+            
             employees = await supabase_service.get_employees_by_properties(property_ids)
         elif current_user.role == "hr":
             # HR can see all employees, optionally filtered by property
@@ -1157,6 +1252,7 @@ async def get_employees(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve employees: {str(e)}")
 
 @app.post("/applications/{id}/approve")
+@require_application_access()
 async def approve_application(
     id: str,
     job_title: str = Form(...),
@@ -1169,19 +1265,14 @@ async def approve_application(
     special_instructions: str = Form(""),
     current_user: User = Depends(require_manager_role)
 ):
-    """Approve application using Supabase"""
+    """Approve application using Supabase with enhanced access control"""
     try:
         # Get application from Supabase
         application = await supabase_service.get_application_by_id(id)
         if not application:
-            raise HTTPException(status_code=404, detail="Application not found")
+            return not_found_response("Application not found")
         
-        # Verify manager access
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        property_ids = [prop.id for prop in manager_properties]
-        
-        if application.property_id not in property_ids:
-            raise HTTPException(status_code=403, detail="Access denied")
+        # Access control is handled by the decorator
         
         # Update application status
         await supabase_service.update_application_status(id, "approved", current_user.id)
@@ -1292,24 +1383,20 @@ async def approve_application(
         raise HTTPException(status_code=500, detail=f"Approval failed: {str(e)}")
 
 @app.post("/applications/{id}/approve-enhanced")
+@require_application_access()
 async def approve_application_enhanced(
     id: str,
     request: ApplicationApprovalRequest,
     current_user: User = Depends(require_manager_role)
 ):
-    """Enhanced application approval that redirects to employee setup"""
+    """Enhanced application approval that redirects to employee setup with enhanced access control"""
     try:
         # Get application from Supabase
         application = await supabase_service.get_application_by_id(id)
         if not application:
             return not_found_response("Application not found")
         
-        # Verify manager access
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        property_ids = [prop.id for prop in manager_properties]
-        
-        if application.property_id not in property_ids:
-            return forbidden_response("Access denied to this application")
+        # Access control is handled by the decorator
         
         if application.status != "pending":
             return error_response(
@@ -1359,24 +1446,20 @@ async def approve_application_enhanced(
         )
 
 @app.post("/applications/{id}/reject")
+@require_application_access()
 async def reject_application(
     id: str,
     rejection_reason: str = Form(...),
     current_user: User = Depends(require_manager_role)
 ):
-    """Reject application with reason (Manager only) using Supabase"""
+    """Reject application with reason (Manager only) using Supabase with enhanced access control"""
     try:
         # Get application
         application = await supabase_service.get_application_by_id(id)
         if not application:
-            raise HTTPException(status_code=404, detail="Application not found")
+            return not_found_response("Application not found")
         
-        # Verify manager access
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        property_ids = [prop.id for prop in manager_properties]
-        
-        if application.property_id not in property_ids:
-            raise HTTPException(status_code=403, detail="Access denied")
+        # Access control is handled by the decorator
         
         if application.status != "pending":
             raise HTTPException(status_code=400, detail="Application is not pending")
@@ -1406,21 +1489,20 @@ async def reject_application(
         raise HTTPException(status_code=500, detail=f"Failed to reject application: {str(e)}")
 
 @app.post("/applications/{id}/reject-enhanced")
+@require_application_access()
 async def reject_application_enhanced(
     id: str,
     request: ApplicationRejectionRequest,
     current_user: User = Depends(require_manager_role)
 ):
-    """Enhanced application rejection with talent pool and email options"""
+    """Enhanced application rejection with talent pool and email options with enhanced access control"""
     try:
         # Get application
         application = await supabase_service.get_application_by_id(id)
         if not application:
             return not_found_response("Application not found")
         
-        # Verify manager access
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        property_ids = [prop.id for prop in manager_properties]
+        # Access control is handled by the decorator
         
         if application.property_id not in property_ids:
             return forbidden_response("Access denied to this application")
@@ -3382,21 +3464,26 @@ def _get_next_step(current_step: OnboardingStep, session: OnboardingSession) -> 
 # ===== MANAGER REVIEW APIs =====
 
 @app.get("/api/manager/onboarding/{session_id}/review")
+@require_onboarding_access()
 async def get_onboarding_for_manager_review(
     session_id: str,
     current_user: User = Depends(require_manager_role)
 ):
-    """Get onboarding session for manager review"""
+    """Get onboarding session for manager review with enhanced access control"""
     try:
         # Get session
         session = await onboarding_orchestrator.get_session_by_id(session_id)
         
         if not session:
-            raise HTTPException(status_code=404, detail="Onboarding session not found")
+            return not_found_response("Onboarding session not found")
         
-        # Verify manager has access to this session
-        if session.manager_id != current_user.id:
-            raise HTTPException(status_code=403, detail="Access denied to this onboarding session")
+        # Enhanced access control: verify manager has access to the session's property
+        access_controller = get_property_access_controller()
+        
+        # Check both manager ID and property access
+        if (session.manager_id != current_user.id and 
+            not access_controller.validate_manager_property_access(current_user, session.property_id)):
+            return forbidden_response("Access denied to this onboarding session")
         
         # Verify session is in manager review phase
         if session.status != OnboardingStatus.MANAGER_REVIEW:
@@ -3434,6 +3521,7 @@ async def get_onboarding_for_manager_review(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve onboarding session: {str(e)}")
 
 @app.post("/api/manager/onboarding/{session_id}/i9-section2")
+@require_onboarding_access()
 async def complete_i9_section2(
     session_id: str,
     form_data: Dict[str, Any],
@@ -3519,6 +3607,7 @@ async def complete_i9_section2(
         raise HTTPException(status_code=500, detail=f"Failed to complete I-9 Section 2: {str(e)}")
 
 @app.post("/api/manager/onboarding/{session_id}/approve")
+@require_onboarding_access()
 async def manager_approve_onboarding(
     session_id: str,
     signature_data: Dict[str, Any],
@@ -3614,6 +3703,7 @@ async def manager_approve_onboarding(
         raise HTTPException(status_code=500, detail=f"Failed to approve onboarding: {str(e)}")
 
 @app.post("/api/manager/onboarding/{session_id}/request-changes")
+@require_onboarding_access()
 async def manager_request_changes(
     session_id: str,
     requested_changes: List[Dict[str, str]],  # [{"form": "personal_info", "reason": "..."}]
@@ -4341,13 +4431,12 @@ async def create_employee_setup(
     setup_data: ManagerEmployeeSetup,
     current_user: User = Depends(require_manager_role)
 ):
-    """Manager creates initial employee setup matching pages 1-2 of hire packet"""
+    """Manager creates initial employee setup matching pages 1-2 of hire packet with enhanced access control"""
     try:
-        # Verify manager has access to the property
-        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-        property_ids = [prop.id for prop in manager_properties]
+        # Verify manager has access to the property using access controller
+        access_controller = get_property_access_controller()
         
-        if setup_data.property_id not in property_ids:
+        if not access_controller.validate_manager_property_access(current_user, setup_data.property_id):
             return forbidden_response("Manager does not have access to this property")
         
         # Get property details
@@ -4524,6 +4613,7 @@ async def create_employee_setup(
         )
 
 @app.get("/api/manager/employee-setup/{application_id}")
+@require_application_access()
 async def get_application_for_setup(
     application_id: str,
     current_user: User = Depends(require_manager_role)
@@ -4599,10 +4689,12 @@ async def save_i9_section1(
 ):
     """Save I-9 Section 1 data for an employee"""
     try:
-        # Validate employee exists
-        employee = supabase_service.get_employee_by_id_sync(employee_id)
-        if not employee:
-            return not_found_response("Employee not found")
+        # For test employees, skip validation
+        if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
+            # Validate employee exists for real employees
+            employee = supabase_service.get_employee_by_id_sync(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
         
         # Store I-9 Section 1 data
         i9_data = {
@@ -4636,19 +4728,24 @@ async def save_i9_section1(
                 .insert(i9_data)\
                 .execute()
         
-        # Update employee onboarding progress
-        progress_update = {
-            f"onboarding_progress.i9_section1": {
-                "completed": data.get("signed", False),
-                "completed_at": data.get("completedAt"),
-                "data": data
-            }
-        }
-        
-        supabase_service.client.table('employees')\
-            .update(progress_update)\
-            .eq('id', employee_id)\
-            .execute()
+        # Update employee onboarding progress (only for real employees)
+        if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
+            try:
+                progress_update = {
+                    f"onboarding_progress.i9_section1": {
+                        "completed": data.get("signed", False),
+                        "completed_at": data.get("completedAt"),
+                        "data": data
+                    }
+                }
+                
+                supabase_service.client.table('employees')\
+                    .update(progress_update)\
+                    .eq('id', employee_id)\
+                    .execute()
+            except Exception as e:
+                # Log but don't fail if employee table update fails
+                logger.warning(f"Could not update employee progress: {e}")
         
         return success_response(
             data={"message": "I-9 Section 1 saved successfully"},
@@ -4663,6 +4760,117 @@ async def save_i9_section1(
             status_code=500
         )
 
+@app.post("/api/onboarding/{employee_id}/i9-section2")
+async def save_i9_section2(
+    employee_id: str,
+    data: dict
+):
+    """Save I-9 Section 2 document metadata for an employee"""
+    try:
+        # For test employees, skip validation
+        if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
+            # Validate employee exists for real employees
+            employee = supabase_service.get_employee_by_id_sync(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+        
+        # Store I-9 Section 2 data
+        i9_data = {
+            "employee_id": employee_id,
+            "section": "section2",
+            "form_data": {
+                "documentSelection": data.get("documentSelection"),
+                "uploadedDocuments": data.get("uploadedDocuments", []),
+                "verificationComplete": data.get("verificationComplete", False)
+            },
+            "signed": data.get("verificationComplete", False),
+            "completed_at": data.get("completedAt"),
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        # Check if record exists
+        existing = supabase_service.client.table('i9_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('section', 'section2')\
+            .execute()
+        
+        if existing.data:
+            # Update existing record
+            response = supabase_service.client.table('i9_forms')\
+                .update(i9_data)\
+                .eq('employee_id', employee_id)\
+                .eq('section', 'section2')\
+                .execute()
+        else:
+            # Insert new record
+            response = supabase_service.client.table('i9_forms')\
+                .insert(i9_data)\
+                .execute()
+        
+        # Store document metadata in separate table for better querying
+        try:
+            for doc in data.get("uploadedDocuments", []):
+                doc_metadata = {
+                    "employee_id": employee_id,
+                    "document_id": doc.get("id"),
+                    "document_type": doc.get("type"),
+                    "document_name": doc.get("documentType"),
+                    "file_name": doc.get("fileName"),
+                    "file_size": doc.get("fileSize"),
+                    "uploaded_at": doc.get("uploadedAt"),
+                    "ocr_data": doc.get("ocrData"),
+                    "created_at": datetime.utcnow().isoformat()
+                }
+                
+                # Check if document metadata exists
+                existing_doc = supabase_service.client.table('i9_section2_documents')\
+                    .select('*')\
+                    .eq('document_id', doc.get("id"))\
+                    .execute()
+                
+                if not existing_doc.data:
+                    # Insert document metadata
+                    supabase_service.client.table('i9_section2_documents')\
+                        .insert(doc_metadata)\
+                        .execute()
+        except Exception as doc_error:
+            logger.warning(f"Could not save document metadata to i9_section2_documents table: {doc_error}")
+            # Continue with main form saving even if document metadata fails
+        
+        # Update employee onboarding progress (only for real employees)
+        if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
+            try:
+                progress_update = {
+                    f"onboarding_progress.i9_section2": {
+                        "completed": data.get("verificationComplete", False),
+                        "completed_at": data.get("completedAt"),
+                        "data": data
+                    }
+                }
+                
+                supabase_service.client.table('employees')\
+                    .update(progress_update)\
+                    .eq('id', employee_id)\
+                    .execute()
+            except Exception as e:
+                # Log but don't fail if employee table update fails
+                logger.warning(f"Could not update employee progress: {e}")
+        
+        return success_response(
+            data={"message": "I-9 Section 2 saved successfully"},
+            message="Document metadata saved"
+        )
+        
+    except Exception as e:
+        logger.error(f"Save I-9 Section 2 error: {e}")
+        return error_response(
+            message="Failed to save I-9 Section 2",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
 @app.post("/api/onboarding/{employee_id}/w4-form")
 async def save_w4_form(
     employee_id: str,
@@ -4670,56 +4878,96 @@ async def save_w4_form(
 ):
     """Save W-4 form data for an employee"""
     try:
-        # Validate employee exists
+        # For test employees, use the standard onboarding_form_data approach
+        if employee_id.startswith('test-'):
+            # Extract form data
+            form_data = data if not isinstance(data, dict) or "formData" not in data else data.get("formData")
+            
+            # Save to onboarding_form_data table using the standard method
+            saved = supabase_service.save_onboarding_form_data(
+                token=employee_id,  # Use employee_id as token for test employees
+                employee_id=employee_id,
+                step_id='w4-form',
+                form_data=data  # Save the complete data including signatures
+            )
+            
+            if saved:
+                return success_response(
+                    data={"message": "W-4 form saved successfully"},
+                    message="Form data saved"
+                )
+            else:
+                return error_response(
+                    message="Failed to save W-4 form data",
+                    error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+                    status_code=500
+                )
+        
+        # For real employees, validate they exist first
         employee = supabase_service.get_employee_by_id_sync(employee_id)
         if not employee:
             return not_found_response("Employee not found")
         
-        # Store W-4 data
-        w4_data = {
-            "employee_id": employee_id,
-            "form_data": data.get("formData", {}),
-            "signed": data.get("signed", False),
-            "signature_data": data.get("signatureData"),
-            "completed_at": data.get("completedAt"),
-            "tax_year": 2025,  # Current tax year
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
-        }
-        
-        # Check if record exists
-        existing = supabase_service.client.table('w4_forms')\
-            .select('*')\
-            .eq('employee_id', employee_id)\
-            .eq('tax_year', 2025)\
-            .execute()
-        
-        if existing.data:
-            # Update existing record
-            response = supabase_service.client.table('w4_forms')\
-                .update(w4_data)\
+        # Try to save to w4_forms table, fall back to onboarding_form_data if it doesn't exist
+        try:
+            # Store W-4 data
+            w4_data = {
+                "employee_id": employee_id,
+                "form_data": data.get("formData", {}),
+                "signed": data.get("signed", False),
+                "signature_data": data.get("signatureData"),
+                "completed_at": data.get("completedAt"),
+                "tax_year": 2025,  # Current tax year
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat()
+            }
+            
+            # Check if record exists
+            existing = supabase_service.client.table('w4_forms')\
+                .select('*')\
                 .eq('employee_id', employee_id)\
                 .eq('tax_year', 2025)\
                 .execute()
-        else:
-            # Insert new record
-            response = supabase_service.client.table('w4_forms')\
-                .insert(w4_data)\
-                .execute()
-        
-        # Update employee onboarding progress
-        progress_update = {
-            f"onboarding_progress.w4_form": {
-                "completed": data.get("signed", False),
-                "completed_at": data.get("completedAt"),
-                "data": data
+            
+            if existing.data:
+                # Update existing record
+                response = supabase_service.client.table('w4_forms')\
+                    .update(w4_data)\
+                    .eq('employee_id', employee_id)\
+                    .eq('tax_year', 2025)\
+                    .execute()
+            else:
+                # Insert new record
+                response = supabase_service.client.table('w4_forms')\
+                    .insert(w4_data)\
+                    .execute()
+            
+            # Update employee onboarding progress
+            progress_update = {
+                f"onboarding_progress.w4_form": {
+                    "completed": data.get("signed", False),
+                    "completed_at": data.get("completedAt"),
+                    "data": data
+                }
             }
-        }
-        
-        supabase_service.client.table('employees')\
-            .update(progress_update)\
-            .eq('id', employee_id)\
-            .execute()
+            
+            supabase_service.client.table('employees')\
+                .update(progress_update)\
+                .eq('id', employee_id)\
+                .execute()
+                
+        except Exception as table_error:
+            logger.warning(f"w4_forms table error, falling back to onboarding_form_data: {table_error}")
+            # Fallback to onboarding_form_data table
+            saved = supabase_service.save_onboarding_form_data(
+                token=employee_id,  # Use employee_id as token
+                employee_id=employee_id,
+                step_id='w4-form',
+                form_data=data  # Save the complete data including signatures
+            )
+            
+            if not saved:
+                raise Exception("Failed to save to fallback table")
         
         return success_response(
             data={"message": "W-4 form saved successfully"},
@@ -4734,6 +4982,126 @@ async def save_w4_form(
             status_code=500
         )
 
+@app.post("/api/onboarding/{employee_id}/direct-deposit")
+async def save_direct_deposit(
+    employee_id: str,
+    data: dict
+):
+    """Save direct deposit data for an employee"""
+    try:
+        # For test employees, use the standard onboarding_form_data approach
+        if employee_id.startswith('test-'):
+            # Save to onboarding_form_data table using the standard method
+            saved = supabase_service.save_onboarding_form_data(
+                token=employee_id,  # Use employee_id as token for test employees
+                employee_id=employee_id,
+                step_id='direct-deposit',
+                form_data=data  # Save the complete data including signatures
+            )
+            
+            if saved:
+                return success_response(
+                    data={"saved": True},
+                    message="Direct deposit data saved successfully"
+                )
+            else:
+                return error_response(
+                    message="Failed to save direct deposit data",
+                    status_code=500
+                )
+        
+        # For production, get actual employee
+        employee = await supabase_service.get_employee_by_id(employee_id)
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        # Save direct deposit data
+        # TODO: Implement actual Supabase table for direct deposit
+        saved = supabase_service.save_onboarding_form_data(
+            token=employee_id,
+            employee_id=employee_id,
+            step_id='direct-deposit',
+            form_data=data
+        )
+        
+        if saved:
+            return success_response(
+                data={"saved": True},
+                message="Direct deposit data saved successfully"
+            )
+        else:
+            return error_response(
+                message="Failed to save direct deposit data",
+                status_code=500
+            )
+            
+    except Exception as e:
+        logger.error(f"Error saving direct deposit data: {e}")
+        return error_response(
+            message=f"Error saving direct deposit data: {str(e)}",
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/health-insurance")
+async def save_health_insurance(
+    employee_id: str,
+    data: dict
+):
+    """Save health insurance data for an employee"""
+    try:
+        # For test employees, use the standard onboarding_form_data approach
+        if employee_id.startswith('test-'):
+            # Save to onboarding_form_data table using the standard method
+            saved = supabase_service.save_onboarding_form_data(
+                token=employee_id,  # Use employee_id as token for test employees
+                employee_id=employee_id,
+                step_id='health-insurance',
+                form_data=data  # Save the complete data including signatures
+            )
+            
+            if saved:
+                return success_response(
+                    data={"saved": True},
+                    message="Health insurance data saved successfully"
+                )
+            else:
+                return error_response(
+                    message="Failed to save health insurance data",
+                    status_code=500
+                )
+        
+        # For production, get actual employee
+        employee = await supabase_service.get_employee_by_id(employee_id)
+        if not employee:
+            return not_found_response("Employee not found")
+        
+        # Save health insurance data
+        # TODO: Implement actual Supabase table for health insurance
+        saved = supabase_service.save_onboarding_form_data(
+            token=employee_id,
+            employee_id=employee_id,
+            step_id='health-insurance',
+            form_data=data
+        )
+        
+        if saved:
+            return success_response(
+                data={"saved": True},
+                message="Health insurance data saved successfully"
+            )
+        else:
+            return error_response(
+                message="Failed to save health insurance data",
+                status_code=500
+            )
+            
+    except Exception as e:
+        logger.error(f"Error saving health insurance data: {e}")
+        return error_response(
+            message=f"Error saving health insurance data: {str(e)}",
+            status_code=500
+        )
+
 @app.post("/api/onboarding/{employee_id}/i9-complete")
 async def save_i9_complete(
     employee_id: str,
@@ -4745,7 +5113,10 @@ async def save_i9_complete(
         # For demo mode, skip employee validation
         # In production, ensure proper employee validation
         employee = None
-        if employee_id != 'demo-employee-001':
+        # Check if it's a test/demo employee
+        if employee_id.startswith('test-emp-') or employee_id == 'demo-employee-001':
+            logger.info(f"Test/Demo mode: Processing I-9 complete for {employee_id}")
+        else:
             try:
                 employee = await supabase_service.get_employee_by_id(employee_id)
                 if not employee:
@@ -4753,8 +5124,6 @@ async def save_i9_complete(
             except Exception as e:
                 logger.warning(f"Could not validate employee {employee_id}: {e}")
                 # For demo/test purposes, continue without validation
-        else:
-            logger.info(f"Demo mode: Processing I-9 complete for {employee_id}")
         
         # Extract signature metadata
         signature_metadata = None
@@ -4842,25 +5211,170 @@ async def save_i9_complete(
             status_code=500
         )
 
+@app.get("/api/onboarding/{employee_id}/i9-complete")
+async def get_i9_complete(employee_id: str):
+    """Get complete I-9 form data for an employee"""
+    try:
+        # Get from onboarding_form_data table
+        i9_data = supabase_service.get_onboarding_form_data_by_employee(employee_id, 'i9-complete')
+        
+        # The frontend expects the same nested structure it sent
+        # If the data exists but doesn't have the expected structure, return it as-is
+        # Otherwise return empty object
+        if i9_data:
+            # Check if it already has the expected structure
+            if isinstance(i9_data, dict) and ('formData' in i9_data or 'citizenship_status' in i9_data):
+                # Data is either already in the right structure or has citizenship_status at root
+                return {
+                    "success": True,
+                    "data": i9_data
+                }
+            else:
+                # Data might be flattened, return as-is 
+                return {
+                    "success": True,
+                    "data": i9_data
+                }
+        else:
+            return {
+                "success": True,
+                "data": {}
+            }
+    except Exception as e:
+        logger.error(f"Failed to get I-9 complete data: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 @app.get("/api/onboarding/{employee_id}/i9-section1")
 async def get_i9_section1(employee_id: str):
     """Get I-9 Section 1 data for an employee"""
     try:
+        # Get from dedicated I-9 table
         response = supabase_service.client.table('i9_forms')\
             .select('*')\
             .eq('employee_id', employee_id)\
             .eq('section', 'section1')\
             .execute()
         
-        if response.data:
-            return success_response(data=response.data[0])
-        else:
-            return success_response(data=None)
+        if response.data and len(response.data) > 0:
+            data = response.data[0]
+            # Return in the format expected by frontend
+            return success_response(data={
+                "form_data": data.get("form_data", {}),
+                "signed": data.get("signed", False),
+                "signature_data": data.get("signature_data"),
+                "completed_at": data.get("completed_at"),
+                "pdf_url": data.get("form_data", {}).get("pdfUrl")
+            })
+        
+        # Fallback to onboarding_form_data table
+        form_data_response = supabase_service.get_onboarding_form_data_by_employee(
+            employee_id=employee_id,
+            step_id='i9-section1'
+        )
+        
+        if form_data_response:
+            return success_response(data=form_data_response)
+        
+        return success_response(data=None)
             
     except Exception as e:
         logger.error(f"Get I-9 Section 1 error: {e}")
         return error_response(
             message="Failed to retrieve I-9 Section 1",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/onboarding/{employee_id}/personal-info")
+async def get_personal_info(employee_id: str):
+    """Get personal info and emergency contacts for an employee"""
+    try:
+        # Get personal info data using the helper method
+        personal_data = supabase_service.get_onboarding_form_data_by_employee(employee_id, 'personal-info')
+        
+        if personal_data:
+            # Return the data as-is (it's already in the correct structure)
+            return success_response(
+                data=personal_data,
+                message="Personal info retrieved successfully"
+            )
+        else:
+            return success_response(
+                data={},
+                message="No personal info found"
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to get personal info data: {e}")
+        return error_response(
+            message="Failed to retrieve personal info",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/onboarding/{employee_id}/i9-section2")
+async def get_i9_section2(employee_id: str):
+    """Get I-9 Section 2 documents for an employee"""
+    try:
+        # Get from I-9 forms table
+        forms_response = supabase_service.client.table('i9_forms')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .eq('section', 'section2')\
+            .execute()
+        
+        # Get document metadata
+        docs_response = supabase_service.client.table('i9_section2_documents')\
+            .select('*')\
+            .eq('employee_id', employee_id)\
+            .execute()
+        
+        result_data = {}
+        
+        if forms_response.data and len(forms_response.data) > 0:
+            form_data = forms_response.data[0].get("form_data", {})
+            result_data = {
+                "documentSelection": form_data.get("documentSelection"),
+                "verificationComplete": form_data.get("verificationComplete", False),
+                "completedAt": form_data.get("completedAt")
+            }
+        
+        if docs_response.data:
+            result_data["documents"] = docs_response.data
+            result_data["uploadedDocuments"] = [
+                {
+                    "id": doc.get("document_id"),
+                    "type": doc.get("document_type"),
+                    "documentType": doc.get("document_name"),
+                    "fileName": doc.get("file_name"),
+                    "fileSize": doc.get("file_size"),
+                    "uploadedAt": doc.get("uploaded_at"),
+                    "ocrData": doc.get("ocr_data", {})
+                }
+                for doc in docs_response.data
+            ]
+        
+        if result_data:
+            return success_response(data=result_data)
+        
+        # Fallback to onboarding_form_data table
+        form_data_response = supabase_service.get_onboarding_form_data_by_employee(
+            employee_id=employee_id,
+            step_id='i9-section2'
+        )
+        
+        if form_data_response:
+            return success_response(data=form_data_response)
+        
+        return success_response(data=None)
+            
+    except Exception as e:
+        logger.error(f"Get I-9 Section 2 error: {e}")
+        return error_response(
+            message="Failed to retrieve I-9 Section 2",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
@@ -4889,9 +5403,13 @@ async def get_w4_form(employee_id: str):
         )
 
 @app.post("/api/onboarding/{employee_id}/i9-section1/generate-pdf")
-async def generate_i9_section1_pdf(employee_id: str):
+async def generate_i9_section1_pdf(employee_id: str, request: Request):
     """Generate PDF for I-9 Section 1"""
     try:
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
+        
         # For test employees, skip employee lookup
         if employee_id.startswith('test-'):
             employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
@@ -4901,8 +5419,11 @@ async def generate_i9_section1_pdf(employee_id: str):
             if not employee:
                 return not_found_response("Employee not found")
         
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
         # For test employees, use session data instead of database
-        if employee_id.startswith('test-'):
+        elif employee_id.startswith('test-'):
             # Try to get I-9 data from onboarding_form_data table (which exists)
             form_response = supabase_service.client.table('onboarding_form_data')\
                 .select('*')\
@@ -5151,6 +5672,323 @@ async def generate_w4_pdf(employee_id: str, request: Request):
             status_code=500
         )
 
+@app.post("/api/onboarding/{employee_id}/direct-deposit/generate-pdf")
+async def generate_direct_deposit_pdf(employee_id: str, request: Request):
+    """Generate PDF for Direct Deposit Authorization"""
+    try:
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
+        
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+        
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
+        else:
+            # Try to get saved form data
+            form_response = supabase_service.client.table('onboarding_form_data')\
+                .select('*')\
+                .eq('employee_id', employee_id)\
+                .eq('step_id', 'direct-deposit')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if form_response.data:
+                form_data = form_response.data[0].get('form_data', {})
+            else:
+                form_data = {}
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Map form data to PDF data - handling both nested and flat structures
+        pdf_data = {
+            "firstName": form_data.get("firstName") or form_data.get("formData", {}).get("firstName", "") or employee.get("first_name", ""),
+            "lastName": form_data.get("lastName") or form_data.get("formData", {}).get("lastName", "") or employee.get("last_name", ""),
+            "employee_id": employee_id,
+            "email": form_data.get("email") or form_data.get("formData", {}).get("email", "") or employee.get("email", ""),
+            "ssn": form_data.get("ssn") or form_data.get("formData", {}).get("ssn", ""),
+            "paymentMethod": form_data.get("paymentMethod") or form_data.get("formData", {}).get("paymentMethod", ""),
+            "primaryAccount": form_data.get("primaryAccount") or form_data.get("formData", {}).get("primaryAccount", {}) or {
+                "bankName": form_data.get("bankName", ""),
+                "accountType": form_data.get("accountType", ""),
+                "routingNumber": form_data.get("routingNumber", ""),
+                "accountNumber": form_data.get("accountNumber", ""),
+            },
+            "signatureData": form_data.get("signatureData") or form_data.get("formData", {}).get("signatureData", ""),
+            "property": {"name": "Hotel Property"},  # You may want to get this from employee data
+        }
+        
+        # Generate PDF
+        pdf_bytes = pdf_filler.create_direct_deposit_pdf(pdf_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"DirectDeposit_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Direct Deposit PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate Direct Deposit PDF error: {e}")
+        return error_response(
+            message="Failed to generate Direct Deposit PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/health-insurance/generate-pdf")
+async def generate_health_insurance_pdf(employee_id: str, request: Request):
+    """Generate PDF for Health Insurance Enrollment"""
+    try:
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
+        
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+        
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
+        else:
+            # Try to get saved form data
+            form_response = supabase_service.client.table('onboarding_form_data')\
+                .select('*')\
+                .eq('employee_id', employee_id)\
+                .eq('step_id', 'health-insurance')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if form_response.data:
+                form_data = form_response.data[0].get('form_data', {})
+            else:
+                form_data = {}
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Map form data to PDF data
+        pdf_data = {
+            "firstName": form_data.get("firstName") or form_data.get("formData", {}).get("firstName", ""),
+            "lastName": form_data.get("lastName") or form_data.get("formData", {}).get("lastName", ""),
+            "employee_id": employee_id,
+            "medicalPlan": form_data.get("medicalPlan") or form_data.get("formData", {}).get("medicalPlan", ""),
+            "dentalPlan": form_data.get("dentalPlan") or form_data.get("formData", {}).get("dentalPlan", ""),
+            "visionPlan": form_data.get("visionPlan") or form_data.get("formData", {}).get("visionPlan", ""),
+            "isWaived": form_data.get("isWaived") or form_data.get("formData", {}).get("isWaived", False),
+            "waiverReason": form_data.get("waiverReason") or form_data.get("formData", {}).get("waiverReason", ""),
+            "dependents": form_data.get("dependents") or form_data.get("formData", {}).get("dependents", []),
+        }
+        
+        # Generate PDF
+        pdf_bytes = pdf_filler.create_health_insurance_form(pdf_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"HealthInsurance_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Health Insurance PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate Health Insurance PDF error: {e}")
+        return error_response(
+            message="Failed to generate Health Insurance PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/weapons-policy/generate-pdf")
+async def generate_weapons_policy_pdf(employee_id: str, request: Request):
+    """Generate PDF for Weapons Prohibition Policy"""
+    try:
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
+        
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            property_name = "Test Hotel"
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+            
+            # Get property name
+            property_id = employee.get("property_id")
+            if property_id:
+                property_data = await supabase_service.get_property_by_id(property_id)
+                property_name = property_data.get("name", "Hotel") if property_data else "Hotel"
+            else:
+                property_name = "Hotel"
+        
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
+        else:
+            # For weapons policy, we use employee data
+            form_data = {
+                "firstName": employee.get("first_name", ""),
+                "lastName": employee.get("last_name", ""),
+            }
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Map form data to PDF data
+        pdf_data = {
+            "firstName": form_data.get("firstName", ""),
+            "lastName": form_data.get("lastName", ""),
+            "property_name": property_name,
+            "employee_id": employee_id,
+        }
+        
+        # Generate PDF
+        pdf_bytes = pdf_filler.create_weapons_policy_pdf(pdf_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"WeaponsPolicy_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Weapons Policy PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate Weapons Policy PDF error: {e}")
+        return error_response(
+            message="Failed to generate Weapons Policy PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/company-policies/generate-pdf")
+async def generate_company_policies_pdf(employee_id: str, request: Request):
+    """Generate PDF for Company Policies"""
+    try:
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
+        
+        # For test/demo employees, skip employee lookup
+        if employee_id.startswith('test-') or employee_id.startswith('demo-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            property_name = "Test Hotel"
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+            
+            # Get property name
+            property_id = employee.get("property_id")
+            if property_id:
+                property_data = await supabase_service.get_property_by_id(property_id)
+                property_name = property_data.get("name", "Hotel") if property_data else "Hotel"
+            else:
+                property_name = "Hotel"
+        
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
+        else:
+            # Try to fetch saved company policies data
+            saved_policies = await supabase_service.get_onboarding_step_data(
+                employee_id, "company-policies"
+            )
+            
+            logger.info(f"Fetched saved policies for {employee_id}: {saved_policies}")
+            
+            if saved_policies and saved_policies.get("form_data"):
+                # Use saved form data which includes initials
+                form_data = saved_policies["form_data"]
+                logger.info(f"Using saved form_data: {form_data}")
+                # Ensure firstName and lastName are set
+                if not form_data.get("firstName"):
+                    form_data["firstName"] = employee.get("first_name", "")
+                if not form_data.get("lastName"):
+                    form_data["lastName"] = employee.get("last_name", "")
+            else:
+                logger.info(f"No saved policies found, using fallback data")
+                # Fallback to basic employee data
+                form_data = {
+                    "firstName": employee.get("first_name", ""),
+                    "lastName": employee.get("last_name", ""),
+                    "companyPoliciesInitials": "",
+                    "eeoInitials": "",
+                    "sexualHarassmentInitials": "",
+                }
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Map form data to PDF data - include all form fields for initials and signature
+        pdf_data = {
+            **form_data,  # Include all form data (initials, signature, etc.)
+            "firstName": form_data.get("firstName", employee.get("first_name", "")),
+            "lastName": form_data.get("lastName", employee.get("last_name", "")),
+            "property_name": property_name,
+            "employee_id": employee_id,
+        }
+        
+        logger.info(f"PDF data being sent to generator: {pdf_data}")
+        
+        # Generate PDF
+        pdf_bytes = pdf_filler.create_company_policies_pdf(pdf_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"CompanyPolicies_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Company Policies PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate Company Policies PDF error: {e}")
+        return error_response(
+            message="Failed to generate Company Policies PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
 # =============================================================================
 # TEST/DEVELOPMENT ENDPOINTS
 # =============================================================================
@@ -5352,8 +6190,18 @@ async def get_onboarding_session(token: str):
         else:
             current_step_index = len(ONBOARDING_STEPS) - 1  # All completed, stay on last step
         
-        # Load saved form data from onboarding_form_data table by token
-        saved_form_data = supabase_service.get_onboarding_form_data(token)
+        # Load saved form data from onboarding_form_data table by employee_id (for test tokens)
+        # or by token (for real tokens)
+        if token_data['employee_id'].startswith('test-emp-'):
+            saved_form_data = {}
+            # Get all form data for this employee
+            all_steps = ['personal-info', 'i9-complete', 'i9-section1', 'i9-section2', 'w4-form', 'company-policies', 'direct-deposit']
+            for step_id in all_steps:
+                step_data = supabase_service.get_onboarding_form_data_by_employee(token_data['employee_id'], step_id)
+                if step_data:
+                    saved_form_data[step_id] = step_data
+        else:
+            saved_form_data = supabase_service.get_onboarding_form_data(token)
         
         session_data = {
             "employee": {
@@ -5387,7 +6235,9 @@ async def get_onboarding_session(token: str):
         )
         
     except Exception as e:
+        import traceback
         logger.error(f"Get onboarding session error: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         return error_response(
             message="Failed to load onboarding session",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
@@ -5395,6 +6245,7 @@ async def get_onboarding_session(token: str):
         )
 
 @app.post("/api/onboarding/{employee_id}/progress/{step_id}")
+@app.post("/api/onboarding/{employee_id}/save-progress/{step_id}")
 async def save_step_progress(
     employee_id: str,
     step_id: str,
@@ -6262,11 +7113,13 @@ async def verify_document_integrity(
 @app.post("/api/documents/process")
 async def process_document_with_ai(
     file: UploadFile = File(...),
-    document_type: str = Form(...)
+    document_type: str = Form(...),
+    employee_id: Optional[str] = Form(None)
 ):
     """
     Process uploaded document with GROQ AI to extract I-9 relevant information
     Uses Llama 3.3 70B model for document analysis
+    Also saves document to Supabase storage
     """
     try:
         # Validate file type
@@ -6277,6 +7130,22 @@ async def process_document_with_ai(
         
         # Read file content
         file_content = await file.read()
+        
+        # Save to Supabase storage if employee_id is provided
+        storage_result = None
+        if employee_id and supabase_service:
+            try:
+                storage_result = await supabase_service.upload_employee_document(
+                    employee_id=employee_id,
+                    document_type=document_type,
+                    file_data=file_content,
+                    file_name=file.filename,
+                    content_type=file.content_type
+                )
+                logger.info(f"Document saved to Supabase storage: {storage_result.get('public_url')}")
+            except Exception as storage_error:
+                logger.error(f"Failed to save document to storage: {storage_error}")
+                # Continue processing even if storage fails
         
         # Convert to base64
         file_base64 = base64.b64encode(file_content).decode('utf-8')

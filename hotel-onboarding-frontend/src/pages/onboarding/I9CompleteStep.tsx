@@ -95,93 +95,146 @@ export default function I9CompleteStep({
   // Auto-save hook
   const { saveStatus } = useAutoSave(autoSaveData, {
     onSave: async (data) => {
+      console.log('I9CompleteStep - Saving data with citizenship_status:', data.formData?.citizenship_status)
       await saveProgress(currentStep.id, data)
+      // Also save to sessionStorage
+      sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(data))
     }
   })
   
   // Load existing data
   useEffect(() => {
-    // Check if already completed
-    if (progress.completedSteps.includes(currentStep.id)) {
-      setIsSigned(true)
-      setFormComplete(true)
-      setSupplementsComplete(true)
-      setDocumentsComplete(true)
-      setActiveTab('preview')
-    }
-    
-    // Load saved data
-    const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData)
-        console.log('Loading saved I9 data:', {
-          hasFormData: !!parsed.formData,
-          citizenship_status: parsed.formData?.citizenship_status,
-          formComplete: parsed.formComplete
-        })
-        
-        if (parsed.formData) {
-          setFormData(parsed.formData)
-          console.log('Set formData with citizenship_status:', parsed.formData.citizenship_status)
+    const loadData = async () => {
+      // Check if already completed
+      if (progress.completedSteps.includes(currentStep.id)) {
+        setIsSigned(true)
+        setFormComplete(true)
+        setSupplementsComplete(true)
+        setDocumentsComplete(true)
+        setActiveTab('preview')
+      }
+      
+      let dataToUse = null
+      
+      // Load saved data from session storage
+      const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+      if (savedData) {
+        try {
+          dataToUse = JSON.parse(savedData)
+          console.log('Loading saved I9 data from session:', {
+            hasFormData: !!dataToUse.formData,
+            citizenship_status: dataToUse.formData?.citizenship_status,
+            formComplete: dataToUse.formComplete
+          })
+        } catch (e) {
+          console.error('Failed to parse saved data:', e)
         }
-        if (parsed.supplementsData) setSupplementsData(parsed.supplementsData)
-        if (parsed.documentsData) setDocumentsData(parsed.documentsData)
-        if (parsed.needsSupplements) setNeedsSupplements(parsed.needsSupplements)
-        if (parsed.formComplete) setFormComplete(parsed.formComplete)
-        if (parsed.supplementsComplete) setSupplementsComplete(parsed.supplementsComplete)
-        if (parsed.documentsComplete) setDocumentsComplete(parsed.documentsComplete)
-        if (parsed.isSigned) {
-          setIsSigned(parsed.isSigned)
-          // Only go to preview if all other steps are complete
-          if (parsed.formComplete && parsed.supplementsComplete && parsed.documentsComplete) {
+      }
+
+      // ALWAYS check cloud data if we have an employee ID
+      if (employee?.id && !employee.id.startsWith('demo-')) {
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+          const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/i9-complete`)
+          if (response.ok) {
+            const result = await response.json()
+            if (result.success && result.data && Object.keys(result.data).length > 0) {
+              console.log('I9CompleteStep - Loaded data from cloud:', result.data)
+              
+              // Check if cloud data has actual content
+              const cloudHasFormData = result.data.formData && 
+                (result.data.formData.citizenship_status || result.data.formData.last_name)
+              
+              if (cloudHasFormData || !dataToUse) {
+                // Use cloud data if it has content or if we have no local data
+                dataToUse = result.data
+                // Update session storage with cloud data
+                sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(result.data))
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load I-9 data from cloud:', error)
+        }
+      }
+      
+      // Now apply whatever data we decided to use
+      if (dataToUse) {
+        // Handle both nested and flat data structures
+        if (dataToUse.formData) {
+          // Data has nested structure (expected)
+          setFormData(dataToUse.formData)
+          console.log('Set formData with citizenship_status:', dataToUse.formData.citizenship_status)
+        } else if (dataToUse.citizenship_status || dataToUse.last_name || dataToUse.first_name) {
+          // Data is flat (from backend) - use it as formData
+          setFormData(dataToUse)
+          console.log('Set formData from flat structure with citizenship_status:', dataToUse.citizenship_status)
+        }
+        
+        if (dataToUse.supplementsData) setSupplementsData(dataToUse.supplementsData)
+        if (dataToUse.documentsData) setDocumentsData(dataToUse.documentsData)
+        if (dataToUse.needsSupplements) setNeedsSupplements(dataToUse.needsSupplements)
+        if (dataToUse.formComplete) setFormComplete(dataToUse.formComplete)
+        if (dataToUse.supplementsComplete) setSupplementsComplete(dataToUse.supplementsComplete)
+        if (dataToUse.documentsComplete) setDocumentsComplete(dataToUse.documentsComplete)
+        if (dataToUse.isSigned) {
+          setIsSigned(dataToUse.isSigned)
+          if (dataToUse.formComplete && dataToUse.supplementsComplete && dataToUse.documentsComplete) {
             setActiveTab('preview')
           }
         }
-        if (parsed.signatureData) {
-          setSignatureData(parsed.signatureData)
+        if (dataToUse.signatureData) setSignatureData(dataToUse.signatureData)
+        if (dataToUse.signedFormDataHash) setSignedFormDataHash(dataToUse.signedFormDataHash)
+        if (dataToUse.ssnMismatch) setSsnMismatch(dataToUse.ssnMismatch)
+        if (dataToUse.activeTab && !dataToUse.isSigned) {
+          setActiveTab(dataToUse.activeTab)
         }
-        if (parsed.signedFormDataHash) {
-          setSignedFormDataHash(parsed.signedFormDataHash)
+      }
+      
+      // Auto-fill from personal info - but preserve existing I-9 specific fields
+      // Only auto-fill if we don't have I-9 data already (check if formData was just set from cloud)
+      const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
+      if (personalInfoData) {
+        try {
+          const parsedData = JSON.parse(personalInfoData)
+          const personalInfo = parsedData.personalInfo || parsedData || {}
+          
+          // Only auto-fill if we don't already have this data from cloud
+          setFormData(prevData => {
+            // If we already have last_name from cloud, don't auto-fill
+            if (prevData.last_name) {
+              return prevData
+            }
+            
+            const mappedData = {
+              last_name: personalInfo.lastName || '',
+              first_name: personalInfo.firstName || '',
+              middle_initial: personalInfo.middleInitial || '',
+              date_of_birth: personalInfo.dateOfBirth || '',
+              ssn: personalInfo.ssn || '',
+              email: personalInfo.email || '',
+              phone: personalInfo.phone || '',
+              address: personalInfo.address || '',
+              apt_number: personalInfo.aptNumber || personalInfo.apartment || '',
+              city: personalInfo.city || '',
+              state: personalInfo.state || '',
+              zip_code: personalInfo.zipCode || ''
+            }
+            
+            // IMPORTANT: Merge with existing formData to preserve citizenship_status and other I-9 specific fields
+            return {
+              ...prevData,  // Keep existing data including citizenship_status
+              ...mappedData // Override with personal info fields
+            }
+          })
+        } catch (e) {
+          console.error('Failed to parse personal info data:', e)
         }
-        if (parsed.ssnMismatch) setSsnMismatch(parsed.ssnMismatch)
-        if (parsed.activeTab && !parsed.isSigned) {
-          // Restore the tab they were on, unless they've already signed
-          setActiveTab(parsed.activeTab)
-        }
-      } catch (e) {
-        console.error('Failed to parse saved data:', e)
       }
     }
     
-    // Auto-fill from personal info
-    const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
-    if (personalInfoData && !formData.last_name) {
-      try {
-        const parsedData = JSON.parse(personalInfoData)
-        const personalInfo = parsedData.personalInfo || parsedData || {}
-        
-        const mappedData = {
-          last_name: personalInfo.lastName || '',
-          first_name: personalInfo.firstName || '',
-          middle_initial: personalInfo.middleInitial || '',
-          date_of_birth: personalInfo.dateOfBirth || '',
-          ssn: personalInfo.ssn || '',
-          email: personalInfo.email || '',
-          phone: personalInfo.phone || '',
-          address: personalInfo.address || '',
-          apt_number: personalInfo.aptNumber || personalInfo.apartment || '',
-          city: personalInfo.city || '',
-          state: personalInfo.state || '',
-          zip_code: personalInfo.zipCode || ''
-        }
-        
-        setFormData(mappedData)
-      } catch (e) {
-        console.error('Failed to parse personal info data:', e)
-      }
-    }
-  }, [currentStep.id, progress.completedSteps])
+    loadData()
+  }, [currentStep.id, progress.completedSteps, employee])
   
   // Regenerate PDF when returning to preview tab
   useEffect(() => {
@@ -386,6 +439,22 @@ export default function I9CompleteStep({
     // Save to session storage immediately
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeAutoSaveData))
     await saveProgress(currentStep.id, completeAutoSaveData)
+    
+    // Also save to I-9 Section 1 endpoint for cloud storage
+    if (employee?.id && !employee.id.startsWith('demo-')) {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {
+          formData: updatedFormData,
+          signed: false,
+          formValid: true
+        })
+        console.log('I-9 Section 1 data saved to cloud')
+      } catch (error) {
+        console.error('Failed to save I-9 Section 1 to cloud:', error)
+      }
+    }
+    
     setActiveTab('supplements')
   }
   
@@ -582,15 +651,45 @@ export default function I9CompleteStep({
       signatureData: signature,
       signedFormDataHash: currentDataHash,
       completedAt: new Date().toISOString(),
-      needsSupplements
+      needsSupplements,
+      pdfUrl: pdfUrl // Include the PDF URL
     }
     
     // Save to backend if we have an employee ID
-    if (employee?.id) {
+    if (employee?.id && !employee.id.startsWith('demo-')) {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-complete`, completeData)
-        console.log('I-9 complete data saved to backend')
+        
+        // Save I-9 Section 1 with signature
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {
+          formData,
+          signed: true,
+          signatureData: signature.signature,
+          completedAt: completeData.completedAt,
+          pdfUrl: pdfUrl
+        })
+        console.log('I-9 Section 1 with signature saved to cloud')
+        
+        // Save I-9 Section 2 documents if we have them
+        if (documentsData && documentsData.uploadedDocuments) {
+          const documentMetadata = documentsData.uploadedDocuments.map((doc: any) => ({
+            id: doc.id,
+            type: doc.type,
+            documentType: doc.documentType,
+            fileName: doc.fileName,
+            fileSize: doc.fileSize,
+            uploadedAt: doc.uploadedAt,
+            ocrData: doc.ocrData
+          }))
+          
+          await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section2`, {
+            documentSelection: documentsData.documentSelection || '',
+            uploadedDocuments: documentMetadata,
+            verificationComplete: true,
+            completedAt: completeData.completedAt
+          })
+          console.log('I-9 Section 2 documents saved to cloud')
+        }
       } catch (error) {
         console.error('Failed to save I-9 data to backend:', error)
         // Continue even if backend save fails - data is in session storage
@@ -827,6 +926,7 @@ export default function I9CompleteStep({
             <DocumentUploadEnhanced
               onComplete={handleDocumentsComplete}
               language={language}
+              initialData={documentsData}
             />
           </TabsContent>
           

@@ -1045,59 +1045,36 @@ class EnhancedSupabaseService:
             return []
     
     async def create_property(self, property_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new property using admin privileges - BYPASS RLS FOR PROPERTIES"""
+        """Create a new property using standard client with RLS policies"""
         try:
-            # First try admin client if available
-            if hasattr(self, 'admin_client') and self.admin_client:
-                try:
-                    result = self.admin_client.table('properties').insert(property_data).execute()
-                    if result.data:
-                        logger.info(f"Property created successfully with admin client: {property_data.get('name')}")
-                        return {"success": True, "property": result.data[0]}
-                except Exception as admin_error:
-                    logger.warning(f"Admin client failed: {admin_error}, trying alternative approach")
+            # Use the standard client - RLS policies will handle authorization
+            result = self.client.table('properties').insert(property_data).execute()
             
-            # Alternative approach: Use RPC function to bypass RLS
-            try:
-                # Create a custom RPC call that can bypass RLS
-                rpc_result = self.client.rpc('create_property_bypass_rls', {
-                    'property_data': property_data
-                }).execute()
-                
-                if rpc_result.data:
-                    logger.info(f"Property created successfully with RPC: {property_data.get('name')}")
-                    return {"success": True, "property": rpc_result.data}
-                    
-            except Exception as rpc_error:
-                logger.warning(f"RPC method failed: {rpc_error}, trying direct insert")
-            
-            # Final fallback: Try direct insert (may fail due to RLS)
-            try:
-                # Add special headers to attempt bypassing RLS
-                headers = {'Prefer': 'return=representation'}
-                result = self.client.table('properties').insert(property_data).execute()
-                
-                if result.data:
-                    logger.info(f"Property created successfully with direct insert: {property_data.get('name')}")
-                    return {"success": True, "property": result.data[0]}
-                else:
-                    # If no data returned but no error, consider it success
-                    logger.warning("Property insert completed but no data returned")
-                    return {"success": True, "property": property_data}
-                    
-            except Exception as direct_error:
-                # Special handling for RLS errors
-                if "row-level security policy" in str(direct_error).lower():
-                    logger.error(f"RLS policy blocking property creation: {direct_error}")
-                    # Return success anyway for development purposes
-                    logger.warning("Bypassing RLS error for development - property may not be actually created")
-                    return {"success": True, "property": property_data, "warning": "RLS bypass attempted"}
-                else:
-                    raise direct_error
+            if result.data:
+                logger.info(f"Property created successfully: {property_data.get('name')}")
+                return {"success": True, "property": result.data[0]}
+            else:
+                # If no data returned, it might be due to RLS
+                logger.warning("Property insert completed but no data returned - check RLS policies")
+                return {"success": False, "error": "Property creation failed - please check database permissions"}
                 
         except Exception as e:
-            logger.error(f"All property creation methods failed: {e}")
-            raise Exception(f"Property creation failed: {str(e)}")
+            error_msg = str(e)
+            
+            # Provide helpful error messages for common issues
+            if "row-level security" in error_msg.lower() or "rls" in error_msg.lower():
+                logger.error(f"RLS policy blocking property creation: {e}")
+                return {
+                    "success": False, 
+                    "error": "Database permissions error. Please ensure RLS policies are configured for HR users.",
+                    "details": "Run the supabase_rls_setup.sql script in your Supabase SQL editor"
+                }
+            elif "duplicate key" in error_msg.lower():
+                logger.error(f"Property with this ID already exists: {e}")
+                return {"success": False, "error": "Property ID already exists"}
+            else:
+                logger.error(f"Property creation failed: {e}")
+                return {"success": False, "error": f"Property creation failed: {error_msg}"}
     
     async def assign_manager_to_property(self, manager_id: str, property_id: str) -> bool:
         """Assign a manager to a property"""
@@ -1199,6 +1176,61 @@ class EnhancedSupabaseService:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             future = executor.submit(asyncio.run, self.get_applications_by_email_and_property(email, property_id))
             return future.result()
+    
+    def get_application_by_id_sync(self, application_id: str) -> Optional[JobApplication]:
+        """Synchronous wrapper for get_application_by_id"""
+        import asyncio
+        import concurrent.futures
+        
+        # Use thread pool to run async function
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(asyncio.run, self.get_application_by_id(application_id))
+            return future.result()
+    
+    def get_employee_by_id_sync(self, employee_id: str) -> Optional[Employee]:
+        """Synchronous wrapper for get_employee_by_id"""
+        import asyncio
+        import concurrent.futures
+        
+        # Use thread pool to run async function
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(asyncio.run, self.get_employee_by_id(employee_id))
+            return future.result()
+    
+    def get_onboarding_session_by_id_sync(self, session_id: str) -> Optional[OnboardingSession]:
+        """Synchronous wrapper for get_onboarding_session_by_id"""
+        import asyncio
+        import concurrent.futures
+        
+        # Use thread pool to run async function
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(asyncio.run, self.get_onboarding_session_by_id(session_id))
+            return future.result()
+    
+    async def get_onboarding_session_by_id(self, session_id: str) -> Optional[OnboardingSession]:
+        """Get onboarding session by ID"""
+        try:
+            response = self.client.table('onboarding_sessions').select('*').eq('id', session_id).execute()
+            
+            if response.data:
+                session_data = response.data[0]
+                return OnboardingSession(
+                    id=session_data['id'],
+                    employee_id=session_data['employee_id'],
+                    application_id=session_data.get('application_id'),
+                    property_id=session_data['property_id'],
+                    manager_id=session_data.get('manager_id'),
+                    token=session_data.get('token'),
+                    status=OnboardingStatus(session_data.get('status', 'not_started')),
+                    expires_at=datetime.fromisoformat(session_data['expires_at']) if session_data.get('expires_at') else None,
+                    created_at=datetime.fromisoformat(session_data['created_at']) if session_data.get('created_at') else datetime.now(timezone.utc),
+                    updated_at=datetime.fromisoformat(session_data['updated_at']) if session_data.get('updated_at') else datetime.now(timezone.utc)
+                )
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting onboarding session by ID {session_id}: {e}")
+            return None
 
     # Dashboard Statistics Methods
     async def get_properties_count(self) -> int:
@@ -1241,22 +1273,45 @@ class EnhancedSupabaseService:
         """Get all properties"""
         try:
             response = self.client.table('properties').select('*').execute()
+            logger.info(f"Raw properties from DB: {len(response.data)} properties found")
+            
             properties = []
             for row in response.data:
-                properties.append(Property(
-                    id=row['id'],
-                    name=row['name'],
-                    address=row['address'],
-                    city=row['city'],
-                    state=row['state'],
-                    zip_code=row['zip_code'],
-                    phone=row.get('phone', ''),
-                    is_active=row.get('is_active', True),
-                    created_at=datetime.fromisoformat(row['created_at'].replace('Z', '+00:00')) if row.get('created_at') else None
-                ))
+                try:
+                    # Handle various datetime formats
+                    created_at = None
+                    if row.get('created_at'):
+                        created_at_str = row['created_at']
+                        # Handle timezone-aware timestamps
+                        if 'T' in created_at_str:
+                            created_at_str = created_at_str.replace('Z', '+00:00')
+                            if '+' not in created_at_str and '-' not in created_at_str[-6:]:
+                                created_at_str += '+00:00'
+                        created_at = datetime.fromisoformat(created_at_str)
+                    
+                    prop = Property(
+                        id=row['id'],
+                        name=row['name'],
+                        address=row['address'],
+                        city=row.get('city', ''),  # Make city optional
+                        state=row.get('state', ''),  # Make state optional
+                        zip_code=row.get('zip_code', ''),  # Make zip optional
+                        phone=row.get('phone', ''),
+                        is_active=row.get('is_active', True),
+                        created_at=created_at
+                    )
+                    properties.append(prop)
+                    logger.debug(f"Added property: {prop.name} ({prop.id})")
+                except Exception as prop_error:
+                    logger.error(f"Error parsing property {row.get('id', 'unknown')}: {prop_error}")
+                    logger.error(f"Property data: {row}")
+                    
+            logger.info(f"Returning {len(properties)} properties")
             return properties
         except Exception as e:
             logger.error(f"Error getting all properties: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     async def get_all_applications(self) -> List[JobApplication]:
@@ -1868,6 +1923,247 @@ class EnhancedSupabaseService:
             logger.error(f"Failed to get all onboarding data: {e}")
             return []
     
+    def get_onboarding_form_data_by_employee(self, employee_id: str, step_id: str = None) -> Dict[str, Any]:
+        """Get onboarding form data for an employee and optional step"""
+        try:
+            query = self.client.table("onboarding_form_data").select("*").eq("employee_id", employee_id)
+            
+            if step_id:
+                query = query.eq("step_id", step_id)
+            
+            result = query.execute()
+            
+            if result.data:
+                if step_id:
+                    # Return single step data
+                    return result.data[0].get("form_data", {}) if result.data else {}
+                else:
+                    # Return all steps as dict
+                    return {item["step_id"]: item["form_data"] for item in result.data}
+            
+            return {}
+        except Exception as e:
+            logger.error(f"Failed to get onboarding form data by employee: {e}")
+            return {}
+    
+    # ==========================================
+    # DOCUMENT STORAGE METHODS (Supabase Storage)
+    # ==========================================
+    
+    async def create_storage_bucket(self, bucket_name: str, public: bool = False) -> bool:
+        """Create a storage bucket in Supabase"""
+        try:
+            # Check if bucket already exists
+            existing_buckets = self.client.storage.list_buckets()
+            if any(bucket['name'] == bucket_name for bucket in existing_buckets):
+                logger.info(f"Bucket {bucket_name} already exists")
+                return True
+            
+            # Create new bucket
+            response = self.client.storage.create_bucket(
+                bucket_name,
+                {'public': public}
+            )
+            logger.info(f"Created storage bucket: {bucket_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create storage bucket {bucket_name}: {e}")
+            return False
+    
+    async def upload_document_to_storage(self, bucket_name: str, file_path: str, file_data: bytes, 
+                                        content_type: str = 'application/octet-stream') -> Dict[str, Any]:
+        """Upload document to Supabase storage"""
+        try:
+            # Ensure bucket exists
+            await self.create_storage_bucket(bucket_name)
+            
+            # Upload file
+            response = self.client.storage.from_(bucket_name).upload(
+                file_path,
+                file_data,
+                file_options={
+                    "content-type": content_type,
+                    "upsert": True  # Overwrite if exists
+                }
+            )
+            
+            # Get public URL
+            public_url = self.client.storage.from_(bucket_name).get_public_url(file_path)
+            
+            # Store metadata in database
+            metadata = {
+                "id": str(uuid.uuid4()),
+                "bucket": bucket_name,
+                "path": file_path,
+                "size": len(file_data),
+                "content_type": content_type,
+                "public_url": public_url,
+                "uploaded_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Store metadata in documents table
+            self.client.table("documents").insert(metadata).execute()
+            
+            logger.info(f"Document uploaded to storage: {bucket_name}/{file_path}")
+            return metadata
+            
+        except Exception as e:
+            logger.error(f"Failed to upload document: {e}")
+            raise
+    
+    async def upload_employee_document(self, employee_id: str, document_type: str, 
+                                      file_data: bytes, file_name: str, 
+                                      content_type: str = 'application/pdf') -> Dict[str, Any]:
+        """Upload employee document to Supabase storage"""
+        try:
+            # Create file path: employee_id/document_type/timestamp_filename
+            timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
+            file_path = f"{employee_id}/{document_type}/{timestamp}_{file_name}"
+            
+            # Upload to onboarding-documents bucket
+            result = await self.upload_document_to_storage(
+                bucket_name="onboarding-documents",
+                file_path=file_path,
+                file_data=file_data,
+                content_type=content_type
+            )
+            
+            # Add employee reference
+            result["employee_id"] = employee_id
+            result["document_type"] = document_type
+            result["original_filename"] = file_name
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to upload employee document: {e}")
+            raise
+    
+    async def upload_generated_pdf(self, employee_id: str, form_type: str, 
+                                  pdf_data: bytes, signed: bool = False) -> Dict[str, Any]:
+        """Upload generated PDF to Supabase storage"""
+        try:
+            # Create file path: employee_id/form_type/timestamp_form.pdf
+            timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
+            status = "signed" if signed else "draft"
+            file_name = f"{form_type}_{status}_{timestamp}.pdf"
+            file_path = f"{employee_id}/{form_type}/{file_name}"
+            
+            # Upload to generated-pdfs bucket
+            result = await self.upload_document_to_storage(
+                bucket_name="generated-pdfs",
+                file_path=file_path,
+                file_data=pdf_data,
+                content_type="application/pdf"
+            )
+            
+            # Add metadata
+            result["employee_id"] = employee_id
+            result["form_type"] = form_type
+            result["is_signed"] = signed
+            result["generated_at"] = datetime.now(timezone.utc).isoformat()
+            
+            # Store PDF metadata in database
+            pdf_metadata = {
+                "id": str(uuid.uuid4()),
+                "employee_id": employee_id,
+                "form_type": form_type,
+                "storage_path": file_path,
+                "storage_url": result["public_url"],
+                "is_signed": signed,
+                "generated_at": result["generated_at"]
+            }
+            
+            self.client.table("generated_pdfs").insert(pdf_metadata).execute()
+            
+            logger.info(f"Generated PDF uploaded: {form_type} for employee {employee_id}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to upload generated PDF: {e}")
+            raise
+    
+    async def get_document_from_storage(self, bucket_name: str, file_path: str) -> bytes:
+        """Download document from Supabase storage"""
+        try:
+            response = self.client.storage.from_(bucket_name).download(file_path)
+            logger.info(f"Document downloaded from storage: {bucket_name}/{file_path}")
+            return response
+        except Exception as e:
+            logger.error(f"Failed to download document: {e}")
+            raise
+    
+    async def delete_document_from_storage(self, bucket_name: str, file_path: str) -> bool:
+        """Delete document from Supabase storage"""
+        try:
+            response = self.client.storage.from_(bucket_name).remove([file_path])
+            
+            # Also delete metadata from database
+            self.client.table("documents").delete().eq("path", file_path).execute()
+            
+            logger.info(f"Document deleted from storage: {bucket_name}/{file_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to delete document: {e}")
+            return False
+    
+    async def list_employee_documents(self, employee_id: str) -> List[Dict[str, Any]]:
+        """List all documents for an employee from storage"""
+        try:
+            # Get from documents table
+            result = self.client.table("documents").select("*").eq(
+                "path", f"{employee_id}/%"
+            ).execute()
+            
+            documents = []
+            for doc in result.data:
+                documents.append({
+                    "id": doc["id"],
+                    "path": doc["path"],
+                    "size": doc["size"],
+                    "content_type": doc["content_type"],
+                    "public_url": doc["public_url"],
+                    "uploaded_at": doc["uploaded_at"]
+                })
+            
+            return documents
+            
+        except Exception as e:
+            logger.error(f"Failed to list employee documents: {e}")
+            return []
+    
+    async def get_employee_generated_pdfs(self, employee_id: str) -> List[Dict[str, Any]]:
+        """Get all generated PDFs for an employee"""
+        try:
+            result = self.client.table("generated_pdfs").select("*").eq(
+                "employee_id", employee_id
+            ).order("generated_at", desc=True).execute()
+            
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get employee generated PDFs: {e}")
+            return []
+    
+    async def initialize_storage_buckets(self) -> bool:
+        """Initialize required storage buckets"""
+        try:
+            # Create onboarding-documents bucket for uploaded documents
+            await self.create_storage_bucket("onboarding-documents", public=False)
+            
+            # Create generated-pdfs bucket for system-generated PDFs
+            await self.create_storage_bucket("generated-pdfs", public=False)
+            
+            # Create employee-photos bucket for profile photos
+            await self.create_storage_bucket("employee-photos", public=True)
+            
+            logger.info("Storage buckets initialized successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize storage buckets: {e}")
+            return False
+    
     # ==========================================
     # EMPLOYEE SEARCH & MANAGEMENT METHODS (Phase 1.4)
     # ==========================================
@@ -2075,6 +2371,139 @@ class EnhancedSupabaseService:
         except Exception as e:
             logger.error(f"Failed to create audit entry: {e}")
             return False
+    
+    # ==========================================
+    # SCHEDULER SUPPORT METHODS
+    # ==========================================
+    
+    async def get_expiring_onboarding_sessions(self, hours: int = 48) -> List[Dict[str, Any]]:
+        """Get onboarding sessions expiring within specified hours"""
+        try:
+            expiry_cutoff = datetime.now(timezone.utc) + timedelta(hours=hours)
+            
+            # Get sessions that are not completed and expiring soon
+            result = self.client.table("onboarding_sessions").select("*").lt(
+                "expires_at", expiry_cutoff.isoformat()
+            ).in_(
+                "status", ["initiated", "in_progress", "employee_completed"]
+            ).execute()
+            
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get expiring sessions: {e}")
+            return []
+    
+    async def update_last_reminder_sent(self, session_id: str) -> bool:
+        """Update the last reminder sent timestamp for a session"""
+        try:
+            result = self.client.table("onboarding_sessions").update({
+                "last_reminder_sent": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq("id", session_id).execute()
+            
+            return len(result.data) > 0
+            
+        except Exception as e:
+            logger.error(f"Failed to update last reminder sent: {e}")
+            return False
+    
+    async def get_hr_users(self) -> List[Dict[str, Any]]:
+        """Get all active HR users"""
+        try:
+            result = self.client.table("users").select("*").eq(
+                "role", "hr"
+            ).eq("is_active", True).execute()
+            
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get HR users: {e}")
+            return []
+    
+    async def get_onboarding_stats(self) -> Dict[str, int]:
+        """Get onboarding statistics for HR summary"""
+        try:
+            stats = {
+                "pending_manager_review": 0,
+                "pending_hr_review": 0,
+                "expiring_in_24h": 0,
+                "completed_today": 0,
+                "total_active": 0
+            }
+            
+            # Get sessions pending manager review
+            manager_result = self.client.table("onboarding_sessions").select("id").eq(
+                "status", "employee_completed"
+            ).execute()
+            stats["pending_manager_review"] = len(manager_result.data) if manager_result.data else 0
+            
+            # Get sessions pending HR review
+            hr_result = self.client.table("onboarding_sessions").select("id").eq(
+                "status", "manager_approved"
+            ).execute()
+            stats["pending_hr_review"] = len(hr_result.data) if hr_result.data else 0
+            
+            # Get sessions expiring in 24 hours
+            expiry_cutoff = datetime.now(timezone.utc) + timedelta(hours=24)
+            expiring_result = self.client.table("onboarding_sessions").select("id").lt(
+                "expires_at", expiry_cutoff.isoformat()
+            ).in_(
+                "status", ["initiated", "in_progress"]
+            ).execute()
+            stats["expiring_in_24h"] = len(expiring_result.data) if expiring_result.data else 0
+            
+            # Get total active sessions
+            active_result = self.client.table("onboarding_sessions").select("id").in_(
+                "status", ["initiated", "in_progress", "employee_completed", "manager_approved"]
+            ).execute()
+            stats["total_active"] = len(active_result.data) if active_result.data else 0
+            
+            return stats
+            
+        except Exception as e:
+            logger.error(f"Failed to get onboarding stats: {e}")
+            return {
+                "pending_manager_review": 0,
+                "pending_hr_review": 0,
+                "expiring_in_24h": 0,
+                "completed_today": 0,
+                "total_active": 0
+            }
+    
+    async def get_onboarding_step_data(self, employee_id: str, step_id: str) -> Dict[str, Any]:
+        """
+        Retrieve saved onboarding step data for a specific employee and step
+        """
+        try:
+            # Try onboarding_form_data table first (this is where data is actually saved)
+            form_result = self.client.table("onboarding_form_data").select("*").eq(
+                "employee_id", employee_id
+            ).eq("step_id", step_id).order("created_at", desc=True).limit(1).execute()
+            
+            if form_result.data and len(form_result.data) > 0:
+                logger.info(f"Found saved data in onboarding_form_data for {employee_id}/{step_id}")
+                return form_result.data[0]
+            
+            # Try onboarding_progress table as fallback (if it exists)
+            try:
+                progress_result = self.client.table("onboarding_progress").select("*").eq(
+                    "employee_id", employee_id
+                ).eq("step_id", step_id).execute()
+                
+                if progress_result.data and len(progress_result.data) > 0:
+                    logger.info(f"Found saved data in onboarding_progress for {employee_id}/{step_id}")
+                    return progress_result.data[0]
+            except Exception as progress_error:
+                # Table might not exist, that's okay
+                logger.debug(f"onboarding_progress table not accessible: {progress_error}")
+            
+            logger.info(f"No saved data found for {employee_id}/{step_id}")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to get onboarding step data for employee {employee_id}, step {step_id}: {e}")
+            return None
 
 
 # Global instance

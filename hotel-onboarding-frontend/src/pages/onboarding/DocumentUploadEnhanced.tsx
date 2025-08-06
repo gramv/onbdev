@@ -129,10 +129,12 @@ const DOCUMENT_OPTIONS: DocumentOption[] = [
 
 export default function DocumentUploadEnhanced({
   onComplete,
-  language = 'en'
+  language = 'en',
+  initialData
 }: {
   onComplete: (data: any) => void
   language?: 'en' | 'es'
+  initialData?: any
 }) {
   const [documentChoice, setDocumentChoice] = useState<'passport' | 'dl_ssn' | 'other'>('')
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
@@ -140,29 +142,59 @@ export default function DocumentUploadEnhanced({
   const [isProcessing, setIsProcessing] = useState(false)
   const [ssn, setSsn] = useState('')
   
-  // Load saved state on mount
+  // Load saved state on mount - prioritize initialData from parent over sessionStorage
   useEffect(() => {
-    const savedData = sessionStorage.getItem('document_upload_data')
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData)
-        if (parsed.documentChoice) setDocumentChoice(parsed.documentChoice)
-        if (parsed.selectedDocuments) setSelectedDocuments(parsed.selectedDocuments)
-        if (parsed.ssn) setSsn(parsed.ssn)
-        if (parsed.uploadedDocuments) {
-          // Restore uploaded documents but not the actual File objects
-          const restoredDocs = parsed.uploadedDocuments.map((doc: any) => ({
-            ...doc,
-            file: null, // Can't restore File objects from JSON
-            status: doc.status === 'complete' ? 'complete' : 'error'
-          }))
-          setUploadedDocuments(restoredDocs)
+    // First check if we have initialData from parent (cloud sync)
+    if (initialData) {
+      console.log('DocumentUploadEnhanced - Loading from initialData:', initialData)
+      if (initialData.documentChoice) setDocumentChoice(initialData.documentChoice)
+      if (initialData.selectedDocuments) setSelectedDocuments(initialData.selectedDocuments)
+      if (initialData.ssn) setSsn(initialData.ssn)
+      if (initialData.uploadedDocuments) {
+        // Restore uploaded documents but not the actual File objects
+        const restoredDocs = initialData.uploadedDocuments.map((doc: any) => ({
+          ...doc,
+          file: null, // Can't restore File objects from JSON
+          status: doc.status === 'complete' ? 'complete' : 'error'
+        }))
+        setUploadedDocuments(restoredDocs)
+      }
+      // Also handle extractedData if present
+      if (initialData.extractedData && initialData.extractedData.length > 0) {
+        // Map extractedData back to uploadedDocuments format
+        const docsFromExtracted = initialData.extractedData.map((doc: any) => ({
+          id: doc.id || `doc-${Date.now()}-${Math.random()}`,
+          file: null,
+          type: doc.type || doc.documentType,
+          status: 'complete' as const,
+          extractedData: doc
+        }))
+        setUploadedDocuments(docsFromExtracted)
+      }
+    } else {
+      // Fallback to sessionStorage if no initialData
+      const savedData = sessionStorage.getItem('document_upload_data')
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData)
+          if (parsed.documentChoice) setDocumentChoice(parsed.documentChoice)
+          if (parsed.selectedDocuments) setSelectedDocuments(parsed.selectedDocuments)
+          if (parsed.ssn) setSsn(parsed.ssn)
+          if (parsed.uploadedDocuments) {
+            // Restore uploaded documents but not the actual File objects
+            const restoredDocs = parsed.uploadedDocuments.map((doc: any) => ({
+              ...doc,
+              file: null, // Can't restore File objects from JSON
+              status: doc.status === 'complete' ? 'complete' : 'error'
+            }))
+            setUploadedDocuments(restoredDocs)
+          }
+        } catch (e) {
+          console.error('Failed to parse saved document data:', e)
         }
-      } catch (e) {
-        console.error('Failed to parse saved document data:', e)
       }
     }
-  }, [])
+  }, [initialData])
   
   // Save state whenever it changes
   useEffect(() => {
@@ -423,7 +455,7 @@ export default function DocumentUploadEnhanced({
     onComplete({ 
       uploadedDocuments: uploadedDocuments.map(doc => ({
         type: doc.type,
-        fileName: doc.file?.name || 'Previously uploaded'
+        fileName: doc.file?.name || `${doc.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`
       })),
       extractedData,
       ssn: documentChoice === 'passport' ? ssn : undefined
@@ -750,7 +782,7 @@ export default function DocumentUploadEnhanced({
               <div className="flex items-center space-x-3">
                 <FileText className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="font-medium">{doc.file.name}</p>
+                  <p className="font-medium">{doc.file?.name || `${doc.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`}</p>
                   {doc.status === 'uploading' && (
                     <p className="text-sm text-gray-600">{t.upload}...</p>
                   )}

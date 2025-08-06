@@ -43,7 +43,7 @@ export default function PersonalInfoStep({
   // Auto-save hook
   const { saveStatus } = useAutoSave(formData, {
     onSave: async (data) => {
-      // First save to progress/controller
+      // Save to both cloud and local storage
       await saveProgress(currentStep.id, data)
       // Store in session storage as backup
       sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(data))
@@ -54,39 +54,72 @@ export default function PersonalInfoStep({
   useEffect(() => {
     const loadExistingData = async () => {
       try {
+        let dataToUse = null
+        
         // Try to load from session storage first
         const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
         console.log('PersonalInfoStep - Loading saved data:', savedData)
         if (savedData) {
-          const parsed = JSON.parse(savedData)
-          console.log('PersonalInfoStep - Parsed data:', parsed)
-          
-          // Handle both nested structure (expected) and flat structure (from cloud)
-          if (parsed.personalInfo) {
-            // Nested structure - expected format
-            setPersonalInfoData(parsed.personalInfo)
-          } else if (parsed.firstName || parsed.lastName || parsed.phone) {
-            // Flat structure - data directly in parsed object
-            console.log('PersonalInfoStep - Detected flat structure from cloud')
-            setPersonalInfoData(parsed)
+          try {
+            dataToUse = JSON.parse(savedData)
+            console.log('PersonalInfoStep - Parsed data from session:', dataToUse)
+          } catch (e) {
+            console.error('Failed to parse session data:', e)
+          }
+        }
+        
+        // ALWAYS check cloud data if we have an employee ID (not just when no local data)
+        if (employee?.id && !employee.id.startsWith('demo-')) {
+          try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+            const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/personal-info`)
+            if (response.ok) {
+              const result = await response.json()
+              if (result.success && result.data && Object.keys(result.data).length > 0) {
+                console.log('PersonalInfoStep - Loaded data from cloud:', result.data)
+                
+                // Use cloud data if it exists and has content
+                // Check if cloud data has actual values (not just empty structure)
+                const cloudHasData = result.data.personalInfo && 
+                  Object.values(result.data.personalInfo).some(v => v && v !== '')
+                
+                if (cloudHasData || !dataToUse) {
+                  // Use cloud data if it has content or if we have no local data
+                  dataToUse = result.data
+                  // Update session storage with cloud data
+                  sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(result.data))
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Failed to load personal info from cloud:', error)
+          }
+        }
+        
+        // Now apply whatever data we decided to use
+        if (dataToUse) {
+          // Handle both nested structure (expected) and flat structure
+          if (dataToUse.personalInfo) {
+            setPersonalInfoData(dataToUse.personalInfo)
+          } else if (dataToUse.firstName || dataToUse.lastName || dataToUse.phone) {
+            setPersonalInfoData(dataToUse)
           }
           
-          if (parsed.emergencyContacts) {
-            setEmergencyContactsData(parsed.emergencyContacts)
-          } else if (parsed.primaryContact) {
-            // Handle flat emergency contacts structure
+          if (dataToUse.emergencyContacts) {
+            setEmergencyContactsData(dataToUse.emergencyContacts)
+          } else if (dataToUse.primaryContact) {
             setEmergencyContactsData({
-              primaryContact: parsed.primaryContact,
-              secondaryContact: parsed.secondaryContact || {},
-              medicalInfo: parsed.medicalInfo || '',
-              allergies: parsed.allergies || '',
-              medications: parsed.medications || '',
-              medicalConditions: parsed.medicalConditions || ''
+              primaryContact: dataToUse.primaryContact,
+              secondaryContact: dataToUse.secondaryContact || {},
+              medicalInfo: dataToUse.medicalInfo || '',
+              allergies: dataToUse.allergies || '',
+              medications: dataToUse.medications || '',
+              medicalConditions: dataToUse.medicalConditions || ''
             })
           }
           
-          if (parsed.activeTab) {
-            setActiveTab(parsed.activeTab)
+          if (dataToUse.activeTab) {
+            setActiveTab(dataToUse.activeTab)
           }
         }
         
@@ -103,7 +136,7 @@ export default function PersonalInfoStep({
       }
     }
     loadExistingData()
-  }, [currentStep.id, progress.completedSteps])
+  }, [currentStep.id, progress.completedSteps, employee])
 
   // Check completion status
   const isStepComplete = personalInfoValid && emergencyContactsValid

@@ -173,30 +173,41 @@ export const directDepositValidator = (data: any): ValidationResult => {
 
   // Only validate banking details if direct deposit is selected
   if (data.paymentMethod === 'direct_deposit') {
-    if (!data.accountType) {
+    // Check for account type - handle both flat and nested structure
+    const accountType = data.accountType || data.primaryAccount?.accountType
+    if (!accountType) {
       errors.push('Please select an account type')
     }
 
-    if (!data.bankName?.trim()) {
+    // Check bank name - handle both flat and nested structure
+    const bankName = data.bankName || data.primaryAccount?.bankName
+    if (!bankName?.trim()) {
       fieldErrors.bankName = 'Bank name is required'
     }
-    if (!data.routingNumber?.trim()) {
+    
+    // Check routing number - handle both flat and nested structure
+    const routingNumber = data.routingNumber || data.primaryAccount?.routingNumber
+    if (!routingNumber?.trim()) {
       fieldErrors.routingNumber = 'Routing number is required'
-    } else if (!/^\d{9}$/.test(data.routingNumber)) {
+    } else if (!/^\d{9}$/.test(routingNumber)) {
       fieldErrors.routingNumber = 'Routing number must be 9 digits'
     }
-    if (!data.accountNumber?.trim()) {
+    
+    // Check account number - handle both flat and nested structure
+    const accountNumber = data.accountNumber || data.primaryAccount?.accountNumber
+    const confirmAccountNumber = data.confirmAccountNumber || data.primaryAccount?.accountNumberConfirm
+    if (!accountNumber?.trim()) {
       fieldErrors.accountNumber = 'Account number is required'
     }
-    if (!data.confirmAccountNumber?.trim()) {
+    if (!confirmAccountNumber?.trim()) {
       fieldErrors.confirmAccountNumber = 'Please confirm account number'
-    } else if (data.accountNumber !== data.confirmAccountNumber) {
+    } else if (accountNumber !== confirmAccountNumber) {
       fieldErrors.confirmAccountNumber = 'Account numbers do not match'
     }
 
     // Voided check upload - only required for direct deposit
-    if (!data.voidedCheckUploaded && !data.accountVerified) {
-      errors.push('Please upload a voided check or verify account details')
+    if (!data.voidedCheckUploaded && !data.bankLetterUploaded && !data.accountVerified) {
+      errors.push('Please upload a voided check or bank letter for verification')
     }
   }
   // For paper check, no additional validation needed
@@ -235,19 +246,23 @@ export const healthInsuranceValidator = (data: any): ValidationResult => {
   const errors: string[] = []
   const fieldErrors: Record<string, string> = {}
 
-  // Check if plan selection is made
-  if (!data.planType) {
+  // Check if either waived or plan selected
+  if (!data.isWaived && !data.medicalPlan) {
     errors.push('Please select a health insurance plan or decline coverage')
   }
 
-  // If enrolling, check for required information
-  if (data.planType && data.planType !== 'decline') {
-    if (!data.effectiveDate) {
-      fieldErrors.effectiveDate = 'Coverage effective date is required'
+  // If enrolling (not waived), check for required information
+  if (!data.isWaived && data.medicalPlan) {
+    // Check if coverage tier requires dependents
+    if ((data.medicalTier === 'employee_spouse' || 
+         data.medicalTier === 'employee_children' || 
+         data.medicalTier === 'family') && 
+        (!data.dependents || data.dependents.length === 0)) {
+      errors.push('Dependent information is required for the selected coverage tier')
     }
     
-    // Check dependent information if applicable
-    if (data.addDependents && data.dependents) {
+    // Check dependent information if provided
+    if (data.dependents && data.dependents.length > 0) {
       data.dependents.forEach((dep: any, index: number) => {
         if (!dep.firstName?.trim()) {
           fieldErrors[`dependent_${index}_firstName`] = 'Dependent first name is required'
@@ -262,6 +277,11 @@ export const healthInsuranceValidator = (data: any): ValidationResult => {
           fieldErrors[`dependent_${index}_relationship`] = 'Dependent relationship is required'
         }
       })
+      
+      // Verify IRS confirmation if dependents are added
+      if (!data.irsDependentConfirmation) {
+        errors.push('Please confirm the IRS dependent certification')
+      }
     }
   }
 

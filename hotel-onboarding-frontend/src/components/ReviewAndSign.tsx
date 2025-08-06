@@ -27,6 +27,7 @@ interface ReviewAndSignProps {
   pdfEndpoint?: string // Optional endpoint to generate PDF
   usePDFPreview?: boolean // Whether to show PDF preview instead of HTML
   pdfUrl?: string | null // Direct PDF URL to display
+  onPdfGenerated?: (pdfData: string) => void // Callback when PDF is generated
 }
 
 export interface SignatureData {
@@ -54,7 +55,8 @@ export default function ReviewAndSign({
   federalCompliance,
   pdfEndpoint,
   usePDFPreview = false,
-  pdfUrl
+  pdfUrl,
+  onPdfGenerated
 }: ReviewAndSignProps) {
   const [hasAgreed, setHasAgreed] = useState(false)
   const [signatureError, setSignatureError] = useState('')
@@ -112,8 +114,13 @@ export default function ReviewAndSign({
       // For now, we'll use placeholder data
     }
     
+    // If pdfUrl is already provided, use it directly
+    if (pdfUrl) {
+      setPdfData(pdfUrl)
+      // Don't call onPdfGenerated here as it's already saved
+    }
     // Load PDF if endpoint is provided and PDF preview is enabled (skip if pdfUrl already provided)
-    if (usePDFPreview && pdfEndpoint && !pdfUrl) {
+    else if (usePDFPreview && pdfEndpoint) {
       loadPDF()
     }
     
@@ -143,7 +150,13 @@ export default function ReviewAndSign({
       )
       
       // Extract base64 string directly from JSON response
-      setPdfData(response.data.data.pdf)
+      const pdfBase64 = response.data.data.pdf
+      setPdfData(pdfBase64)
+      
+      // Call the callback if provided
+      if (onPdfGenerated && pdfBase64) {
+        onPdfGenerated(pdfBase64)
+      }
     } catch (error) {
       console.error('Error loading PDF:', error)
       console.error('PDF generation request data:', { employee_data: formData })

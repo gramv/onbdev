@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Analyze and fix all HR and manager workflows to implement proper three-phase processing (Application → Manager Approval → Employee Onboarding → Manager Review → HR Final Approval). Fix broken manager application approval with job detail setting, manager onboarding review with I-9 Section 2 completion, and HR final approval workflow. Ensure proper role-based access control and consistent API responses throughout the manager and HR systems.

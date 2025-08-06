@@ -111,8 +111,12 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
         headers: { Authorization: `Bearer ${token}` }
       })
       
+      // Handle wrapped response format
+      const managersData = response.data.data || response.data
+      const managersList = Array.isArray(managersData) ? managersData : []
+      
       // Transform the data to match the expected interface
-      const transformedManagers = response.data.map((manager: any) => ({
+      const transformedManagers = managersList.map((manager: any) => ({
         id: manager.id,
         email: manager.email,
         first_name: manager.first_name,
@@ -144,7 +148,9 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
       const response = await axios.get('http://127.0.0.1:8000/hr/properties', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setProperties(response.data || [])
+      // Handle wrapped response format
+      const propertiesData = response.data.data || response.data
+      setProperties(Array.isArray(propertiesData) ? propertiesData : [])
     } catch (error) {
       console.error('Failed to fetch properties:', error)
       toast({
