@@ -102,7 +102,9 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
   const fetchProperties = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:8000/hr/properties', axiosConfig)
-      setProperties(response.data)
+      // Handle wrapped response format
+      const propertiesData = response.data.data || response.data
+      setProperties(Array.isArray(propertiesData) ? propertiesData : [])
       onStatsUpdate()
     } catch (error) {
       console.error('Error fetching properties:', error)
@@ -121,7 +123,10 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
       // This would be a separate endpoint to get all managers
       // For now, we'll extract managers from users endpoint if available
       const response = await axios.get('http://127.0.0.1:8000/hr/users', axiosConfig)
-      const managerUsers = response.data.filter((user: any) => user.role === 'manager')
+      // Handle wrapped response format
+      const usersData = response.data.data || response.data
+      const usersList = Array.isArray(usersData) ? usersData : []
+      const managerUsers = usersList.filter((user: any) => user.role === 'manager')
       setManagers(managerUsers)
     } catch (error) {
       console.error('Error fetching managers:', error)

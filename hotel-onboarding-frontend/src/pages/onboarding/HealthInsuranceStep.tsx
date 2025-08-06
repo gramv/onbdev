@@ -6,9 +6,11 @@ import ReviewAndSign from '@/components/ReviewAndSign'
 import { CheckCircle, Heart, Users, AlertTriangle } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
+import { StepContentWrapper } from '@/components/onboarding/StepContentWrapper'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { healthInsuranceValidator } from '@/utils/stepValidators'
+import axios from 'axios'
 
 export default function HealthInsuranceStep({
   currentStep,
@@ -45,20 +47,63 @@ export default function HealthInsuranceStep({
 
   // Load existing data
   useEffect(() => {
+    console.log('HealthInsuranceStep - Loading data for step:', currentStep.id)
+    
+    // Try to load saved data from session storage
+    const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        console.log('HealthInsuranceStep - Found saved data:', parsed)
+        
+        // Check for different data structures
+        if (parsed.formData) {
+          console.log('HealthInsuranceStep - Setting formData from parsed.formData')
+          setFormData(parsed.formData)
+        } else if (parsed.medicalPlan !== undefined || parsed.isWaived !== undefined) {
+          // Direct data structure
+          console.log('HealthInsuranceStep - Setting formData from direct structure')
+          setFormData(parsed)
+        }
+        
+        if (parsed.isSigned || parsed.signed) {
+          console.log('HealthInsuranceStep - Form was previously signed')
+          setIsSigned(true)
+          setIsValid(true)
+        }
+      } catch (e) {
+        console.error('Failed to parse saved health insurance data:', e)
+      }
+    }
+    
     if (progress.completedSteps.includes(currentStep.id)) {
+      console.log('HealthInsuranceStep - Step marked as complete in progress')
       setIsSigned(true)
       setIsValid(true)
     }
   }, [currentStep.id, progress.completedSteps])
 
   const handleFormSave = async (data: any) => {
+    console.log('HealthInsuranceStep - handleFormSave called with data:', data)
     // Validate the form data
     const validation = await validate(data)
+    console.log('Validation result:', validation)
     
     if (validation.valid) {
+      console.log('Validation passed, saving data and showing review')
       setFormData(data)
       setIsValid(true)
       setShowReview(true)
+      
+      // Save to session storage
+      sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+        formData: data,
+        isValid: true,
+        isSigned: false,
+        showReview: true
+      }))
+    } else {
+      console.log('Validation failed:', validation.errors)
     }
   }
 
@@ -69,12 +114,44 @@ export default function HealthInsuranceStep({
   const handleDigitalSignature = async (signatureData: any) => {
     setIsSigned(true)
     
+    // Create complete data with both nested and flat structure for compatibility
     const completeData = {
+      // Include flat structure for validator
+      ...formData,
+      // Also include nested structure for consistency
       formData,
       signed: true,
+      isSigned: true, // Include both for compatibility
       signatureData,
       completedAt: new Date().toISOString()
     }
+    
+    // Save to backend if we have an employee ID
+    if (employee?.id) {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/health-insurance`, completeData)
+        console.log('Health insurance data saved to backend')
+      } catch (error) {
+        console.error('Failed to save health insurance data to backend:', error)
+        // Continue even if backend save fails - data is in session storage
+      }
+    }
+    
+    // Save to session storage with signed status
+    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+      ...formData, // Include flat structure in session storage too
+      formData,
+      isValid: true,
+      isSigned: true,
+      showReview: false,
+      signed: true,
+      signatureData,
+      completedAt: completeData.completedAt
+    }))
+    
+    // Save progress to update controller's step data - this ensures data is available for validation
+    await saveProgress(currentStep.id, completeData)
     
     await markStepComplete(currentStep.id, completeData)
     setShowReview(false)
@@ -151,6 +228,8 @@ export default function HealthInsuranceStep({
             ]}
             language={language}
             description={t.reviewDescription}
+            usePDFPreview={true}
+            pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/onboarding/${employee?.id || 'test-employee'}/health-insurance/generate-pdf`}
           />
           </div>
         </StepContentWrapper>
@@ -202,7 +281,8 @@ export default function HealthInsuranceStep({
               initialData={formData}
               language={language}
               onSave={handleFormSave}
-              onValidationChange={(valid: boolean, errors: Record<string, string>) => {
+              onValidationChange={(valid: boolean, errors?: Record<string, string>) => {
+                console.log('HealthInsuranceStep - onValidationChange called, valid:', valid)
                 setIsValid(valid)
               }}
             />

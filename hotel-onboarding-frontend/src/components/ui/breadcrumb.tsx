@@ -83,6 +83,21 @@ export function Breadcrumb({ items, className }: BreadcrumbProps) {
   )
 }
 
+// Dashboard-specific breadcrumb component
+interface DashboardBreadcrumbProps {
+  dashboard: string
+  currentPage: string
+  className?: string
+}
+
+export function DashboardBreadcrumb({ dashboard, currentPage, className }: DashboardBreadcrumbProps) {
+  const items: BreadcrumbItem[] = [
+    { label: dashboard, href: '#' },
+    { label: currentPage, current: true }
+  ]
+  return <Breadcrumb items={items} className={className} />
+}
+
 // Example usage function - creates breadcrumb items for common use cases
 export function createBreadcrumbItems(path: string[]): BreadcrumbItem[] {
   return path.map((item, index) => ({

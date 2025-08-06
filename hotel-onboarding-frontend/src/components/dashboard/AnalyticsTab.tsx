@@ -119,9 +119,14 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
           axios.get(`${baseUrl}/hr/analytics/employee-trends`)
         ])
         
-        setAnalyticsOverview(overviewRes.data)
-        setPropertyPerformance(propertyRes.data)
-        setEmployeeTrends(employeeRes.data)
+        // Handle wrapped response format
+        const overviewData = overviewRes.data.data || overviewRes.data
+        const propertyData = propertyRes.data.data || propertyRes.data
+        const employeeData = employeeRes.data.data || employeeRes.data
+        
+        setAnalyticsOverview(overviewData)
+        setPropertyPerformance(propertyData)
+        setEmployeeTrends(employeeData)
       } else {
         // Manager-specific analytics
         const [overviewRes, employeeRes] = await Promise.all([
@@ -129,8 +134,12 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
           axios.get(`${baseUrl}/manager/analytics/employee-trends`)
         ])
         
-        setAnalyticsOverview(overviewRes.data)
-        setEmployeeTrends(employeeRes.data)
+        // Handle wrapped response format
+        const overviewData = overviewRes.data.data || overviewRes.data
+        const employeeData = employeeRes.data.data || employeeRes.data
+        
+        setAnalyticsOverview(overviewData)
+        setEmployeeTrends(employeeData)
       }
     } catch (error) {
       console.error('Failed to fetch analytics data:', error)

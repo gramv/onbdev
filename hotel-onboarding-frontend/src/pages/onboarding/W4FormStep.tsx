@@ -62,24 +62,50 @@ export default function W4FormStep({
     }
   })
 
-  // Load existing W-4 data and auto-fill from PersonalInfoStep
+  // Load existing W-4 data from cloud/session storage
   useEffect(() => {
-    const loadFormData = () => {
+    const loadFormData = async () => {
       try {
-        // First, check session storage for saved data
+        // First, check session storage (may have cloud data already loaded by portal)
         const savedW4Data = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
+        console.log('W4FormStep - Loading saved data:', savedW4Data)
+        
         if (savedW4Data) {
           try {
             const parsed = JSON.parse(savedW4Data)
+            console.log('W4FormStep - Parsed data:', parsed)
+            
+            // Handle both nested structure (expected) and flat structure (from cloud)
+            let dataToLoad = {}
             if (parsed.formData) {
-              setFormData(parsed.formData)
+              // Nested structure - expected format
+              dataToLoad = parsed.formData
+            } else if (parsed.form_data) {
+              // Cloud structure with form_data field
+              dataToLoad = parsed.form_data
+              // Also restore signature state
+              if (parsed.signed) {
+                setIsSigned(true)
+                setShowReview(false)
+              }
+              if (parsed.pdf_url) {
+                setPdfUrl(parsed.pdf_url)
+              }
+            } else {
+              // Flat structure - data directly in parsed object
+              dataToLoad = parsed
             }
+            
+            if (dataToLoad && Object.keys(dataToLoad).length > 0) {
+              setFormData(dataToLoad)
+            }
+            
             // If already signed, show PDF preview instead of review
             if (parsed.isSigned || parsed.signed) {
               setIsSigned(true)
               setShowReview(false) // Don't show review, go straight to signed state
-              if (parsed.pdfUrl) {
-                setPdfUrl(parsed.pdfUrl)
+              if (parsed.pdfUrl || parsed.pdf_url) {
+                setPdfUrl(parsed.pdfUrl || parsed.pdf_url)
               }
               return // Exit early, no need to process further
             }

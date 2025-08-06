@@ -88,8 +88,8 @@ class OnboardingTokenManager:
                 "employee_id": payload.get("employee_id"),
                 "application_id": payload.get("application_id"),
                 "token_id": payload.get("jti"),
-                "issued_at": datetime.fromtimestamp(payload.get("iat"), timezone.utc),
-                "expires_at": datetime.fromtimestamp(payload.get("exp"), timezone.utc)
+                "issued_at": datetime.fromtimestamp(payload.get("iat"), timezone.utc) if payload.get("iat") else datetime.now(timezone.utc),
+                "expires_at": datetime.fromtimestamp(payload.get("exp"), timezone.utc) if payload.get("exp") else None
             }
             
         except jwt.ExpiredSignatureError:

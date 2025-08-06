@@ -182,6 +182,17 @@ export default function HealthInsuranceForm({
   const [showErrors, setShowErrors] = useState(false)
   const [isValid, setIsValid] = useState(false)
 
+  // Update form data when initialData changes (for navigation back)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('HealthInsuranceForm - Updating from initialData:', initialData)
+      setFormData(prevData => ({
+        ...prevData,
+        ...initialData
+      }))
+    }
+  }, [initialData])
+
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
       en: {
@@ -372,10 +383,17 @@ export default function HealthInsuranceForm({
   };
 
   const handleSubmit = () => {
+    console.log('Health Insurance Form - handleSubmit called')
+    console.log('Form data:', formData)
     setShowErrors(true) // Show all errors when user tries to submit
-    if (validateForm()) {
+    const isFormValid = validateForm()
+    console.log('Is form valid?', isFormValid)
+    if (isFormValid) {
+      console.log('Calling onSave with formData:', formData)
       onSave(formData)
       if (onNext) onNext()
+    } else {
+      console.log('Form validation failed')
     }
   }
 

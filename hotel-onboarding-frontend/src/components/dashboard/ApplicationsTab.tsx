@@ -220,7 +220,9 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       const response = await axios.get('http://127.0.0.1:8000/hr/properties', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setProperties(response.data)
+      // Handle wrapped response format
+      const propertiesData = response.data.data || response.data
+      setProperties(Array.isArray(propertiesData) ? propertiesData : [])
     } catch (error) {
       console.error('Error fetching properties:', error)
     }

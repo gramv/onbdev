@@ -172,7 +172,9 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       const response = await axios.get(`http://127.0.0.1:8000/api/employees/${employeeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setSelectedEmployee(response.data)
+      // Handle wrapped response format
+      const employeeData = response.data.data || response.data
+      setSelectedEmployee(employeeData)
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to fetch employee details')
       console.error('Error fetching employee details:', err)

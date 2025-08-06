@@ -12,6 +12,7 @@ import { useStepValidation } from '@/hooks/useStepValidation'
 import { directDepositValidator } from '@/utils/stepValidators'
 import { ValidationSummary } from '@/components/ui/validation-summary'
 import { FormSection } from '@/components/ui/form-section'
+import axios from 'axios'
 
 export default function DirectDepositStep({
   currentStep,
@@ -69,15 +70,27 @@ export default function DirectDepositStep({
 
   // Load existing data
   useEffect(() => {
+    console.log('DirectDepositStep - Loading data for step:', currentStep.id)
+    
     // Try to load saved data from session storage
     const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData)
+        console.log('DirectDepositStep - Found saved data:', parsed)
+        
+        // Check for different data structures
         if (parsed.formData) {
+          console.log('DirectDepositStep - Setting formData from parsed.formData')
           setFormData(parsed.formData)
+        } else if (parsed.paymentMethod || parsed.primaryAccount) {
+          // Direct data structure
+          console.log('DirectDepositStep - Setting formData from direct structure')
+          setFormData(parsed)
         }
-        if (parsed.isSigned) {
+        
+        if (parsed.isSigned || parsed.signed) {
+          console.log('DirectDepositStep - Form was previously signed')
           setIsSigned(true)
           setIsValid(true)
         }
@@ -87,6 +100,7 @@ export default function DirectDepositStep({
     }
     
     if (progress.completedSteps.includes(currentStep.id)) {
+      console.log('DirectDepositStep - Step marked as complete in progress')
       setIsSigned(true)
       setIsValid(true)
     }
@@ -102,7 +116,8 @@ export default function DirectDepositStep({
       accountNumber: data.primaryAccount?.accountNumber,
       confirmAccountNumber: data.primaryAccount?.accountNumberConfirm,
       voidedCheckUploaded: data.voidedCheckUploaded,
-      accountVerified: data.accountVerified || data.voidedCheckUploaded
+      bankLetterUploaded: data.bankLetterUploaded,
+      accountVerified: data.accountVerified || data.voidedCheckUploaded || data.bankLetterUploaded
     }
     
     // Validate the transformed data
@@ -130,15 +145,36 @@ export default function DirectDepositStep({
   const handleDigitalSignature = async (signatureData: any) => {
     setIsSigned(true)
     
+    // Create complete data with both nested and flat structure for compatibility
     const completeData = {
+      // Include flattened primary account data for validator
+      ...(formData.primaryAccount || {}),
+      // Include all form data
+      ...formData,
+      // Keep nested structure too
       formData,
       signed: true,
+      isSigned: true, // Include both for compatibility
       signatureData,
       completedAt: new Date().toISOString()
     }
     
-    // Save to session storage with signed status
+    // Save to backend if we have an employee ID
+    if (employee?.id) {
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/direct-deposit`, completeData)
+        console.log('Direct deposit data saved to backend')
+      } catch (error) {
+        console.error('Failed to save direct deposit data to backend:', error)
+        // Continue even if backend save fails - data is in session storage
+      }
+    }
+    
+    // Save to session storage with signed status and flat structure
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+      ...(formData.primaryAccount || {}), // Include flattened data
+      ...formData,
       formData,
       isValid: true,
       isSigned: true,
@@ -240,6 +276,8 @@ export default function DirectDepositStep({
                 t.acknowledgments.update
               ]}
               language={language}
+              usePDFPreview={true}
+              pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/onboarding/${employee?.id || 'test-employee'}/direct-deposit/generate-pdf`}
             />
           </FormSection>
           </div>

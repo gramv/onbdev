@@ -125,12 +125,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string, providedReturnUrl?: string): Promise<void> => {
     try {
       // Send as JSON body to match updated backend
-      const response = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/login`, {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         email,
         password
       })
       
-      const { token: newToken, user: userData, expires_at } = response.data
+      // Handle wrapped response format from backend
+      const responseData = response.data.data || response.data
+      const { token: newToken, user: userData, expires_at } = responseData
       
       // Store auth data
       setToken(newToken)

@@ -86,6 +86,13 @@ export default function EnhancedManagerDashboard() {
 
   useEffect(() => {
     fetchDashboardData()
+    
+    // Set up auto-refresh every 30 seconds
+    const refreshInterval = setInterval(() => {
+      fetchDashboardData()
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(refreshInterval)
   }, [])
 
   const fetchDashboardData = async () => {
@@ -104,66 +111,54 @@ export default function EnhancedManagerDashboard() {
       })
       setApplications(applicationsResponse.data)
 
-      // In a real implementation, fetch pending onboardings and active employees
-      // For now, using mock data
-      const mockPendingOnboardings: PendingOnboarding[] = [
-        {
+      // Fetch pending onboarding sessions for manager review
+      try {
+        const onboardingResponse = await axios.get('http://127.0.0.1:8000/api/manager/onboarding/pending', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        
+        // Transform the response data to match our interface
+        const pendingOnboardingData = onboardingResponse.data.map((item: any) => ({
           session: {
-            id: '1',
-            employee_id: 'emp1',
-            status: 'employee_completed',
-            current_step: 'manager_review',
-            progress_percentage: 90,
-            created_at: '2025-01-20T10:00:00Z',
-            employee_completed_at: '2025-01-22T15:30:00Z',
-            expires_at: '2025-01-27T10:00:00Z',
-            form_data: {
-              personal_info: { firstName: 'John', lastName: 'Doe', email: 'john.doe@email.com' },
-              health_insurance: { medicalPlan: 'hra_6k', totalCost: 59.91 },
-              direct_deposit: { bankName: 'Chase Bank', accountType: 'checking' }
-            }
+            id: item.id,
+            employee_id: item.employee_id,
+            status: item.status,
+            current_step: item.current_step,
+            progress_percentage: item.progress_percentage || 90,
+            created_at: item.created_at,
+            employee_completed_at: item.employee_completed_at,
+            expires_at: item.expires_at,
+            form_data: item.form_data || {}
           },
           employee: {
-            id: 'emp1',
-            name: 'John Doe',
-            email: 'john.doe@email.com',
-            position: 'Front Desk Agent',
-            department: 'Front Desk',
-            hire_date: '2025-01-25',
-            personal_info: {}
+            id: item.employee_id,
+            name: item.employee_name || `${item.form_data?.personal_info?.firstName || ''} ${item.form_data?.personal_info?.lastName || ''}`.trim(),
+            email: item.employee_email || item.form_data?.personal_info?.email || '',
+            position: item.position || '',
+            department: item.department || '',
+            hire_date: item.start_date || '',
+            personal_info: item.form_data?.personal_info || {}
           },
-          days_pending: 2
-        },
-        {
-          session: {
-            id: '2',
-            employee_id: 'emp2',
-            status: 'employee_completed',
-            current_step: 'manager_review',
-            progress_percentage: 90,
-            created_at: '2025-01-21T14:00:00Z',
-            employee_completed_at: '2025-01-23T11:15:00Z',
-            expires_at: '2025-01-28T14:00:00Z',
-            form_data: {
-              personal_info: { firstName: 'Maria', lastName: 'Garcia', email: 'maria.garcia@email.com' },
-              health_insurance: { medicalPlan: 'minimum_essential', totalCost: 7.77 },
-              direct_deposit: { bankName: 'Bank of America', accountType: 'checking' }
-            }
-          },
-          employee: {
-            id: 'emp2',
-            name: 'Maria Garcia',
-            email: 'maria.garcia@email.com',
-            position: 'Housekeeper',
-            department: 'Housekeeping',
-            hire_date: '2025-01-26',
-            personal_info: {}
-          },
-          days_pending: 1
-        }
-      ]
-
-      setPendingOnboardings(mockPendingOnboardings)
+          days_pending: Math.ceil((new Date().getTime() - new Date(item.employee_completed_at || item.created_at).getTime()) / (1000 * 60 * 60 * 24))
+        }))
+        
+        setPendingOnboardings(pendingOnboardingData)
+      } catch (error) {
+        console.error('Failed to fetch pending onboarding sessions:', error)
+        // Set empty array if fetch fails
+        setPendingOnboardings([])
+      }
+      
+      // Fetch active employees
+      try {
+        const employeesResponse = await axios.get('http://127.0.0.1:8000/api/manager/employees', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setActiveEmployees(employeesResponse.data)
+      } catch (error) {
+        console.error('Failed to fetch active employees:', error)
+        setActiveEmployees([])
+      }
 
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
@@ -178,15 +173,43 @@ export default function EnhancedManagerDashboard() {
     try {
       setSubmitting(true)
       
-      // API call would go here
-      console.log('Submitting review:', {
-        sessionId: selectedOnboarding.session.id,
-        action: reviewAction,
-        comments: reviewComments
+      // Determine the API endpoint based on action
+      let endpoint = ''
+      let payload: any = {}
+      
+      if (reviewAction === 'approve') {
+        endpoint = `http://127.0.0.1:8000/api/manager/onboarding/${selectedOnboarding.session.id}/approve`
+        payload = {
+          manager_signature: `Manager approved on ${new Date().toISOString()}`,
+          comments: reviewComments
+        }
+      } else if (reviewAction === 'request_changes') {
+        endpoint = `http://127.0.0.1:8000/api/manager/onboarding/${selectedOnboarding.session.id}/request-changes`
+        payload = {
+          requested_changes: reviewComments,
+          forms_to_update: [] // Could be specified based on what needs changes
+        }
+      } else if (reviewAction === 'reject') {
+        endpoint = `http://127.0.0.1:8000/api/manager/onboarding/${selectedOnboarding.session.id}/reject`
+        payload = {
+          reason: reviewComments
+        }
+      }
+      
+      // Make the API call
+      const response = await axios.post(endpoint, payload, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       })
-
-      // Mock success - in real implementation, make API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      if (response.data) {
+        toast({
+          title: "Review Submitted",
+          description: `Onboarding session ${reviewAction === 'approve' ? 'approved' : reviewAction === 'request_changes' ? 'sent back for changes' : 'rejected'} successfully.`,
+        })
+      }
 
       // Update local state
       setPendingOnboardings(prev => 

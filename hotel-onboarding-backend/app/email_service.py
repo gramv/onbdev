@@ -36,11 +36,16 @@ class EmailService:
             self.smtp_username and 
             self.smtp_password and 
             self.smtp_username != "your-email@gmail.com" and
-            self.smtp_password != "your-app-password"
+            self.smtp_password != "your-app-specific-password"
         )
+        
+        # Check if we should force dev mode
+        self.environment = os.getenv("ENVIRONMENT", "development")
+        self.force_dev_mode = self.environment == "development" and not self.is_configured
         
         if not self.is_configured:
             logger.warning("Email service not configured. Email notifications will be logged only.")
+            logger.info("To enable email sending, configure SMTP settings in .env file")
     
     async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
         """Send an email with HTML and optional text content"""
@@ -626,6 +631,215 @@ class EmailService:
         """
         
         return await self.send_email(employee_email, subject, html_content, text_content)
+    
+    async def send_onboarding_reminder(self, to_email: str, employee_name: str, 
+                                      days_remaining: int, onboarding_url: str) -> bool:
+        """Send reminder email for expiring onboarding session"""
+        
+        subject = f"Reminder: Complete Your Onboarding - {days_remaining} Days Remaining"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #f59e0b; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+                .content {{ padding: 20px; background-color: #f9fafb; }}
+                .button {{ display: inline-block; background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }}
+                .footer {{ background-color: #e5e7eb; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }}
+                .warning {{ background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #f59e0b; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>⏰ Onboarding Reminder</h1>
+                </div>
+                <div class="content">
+                    <p>Dear {employee_name},</p>
+                    
+                    <div class="warning">
+                        <p><strong>Your onboarding session will expire in {days_remaining} day{'s' if days_remaining != 1 else ''}!</strong></p>
+                        <p>Please complete your onboarding process as soon as possible to ensure a smooth start to your new position.</p>
+                    </div>
+                    
+                    <p>Click the button below to continue where you left off:</p>
+                    
+                    <div style="text-align: center;">
+                        <a href="{onboarding_url}" class="button">Continue Onboarding</a>
+                    </div>
+                    
+                    <p><strong>What happens if the session expires?</strong></p>
+                    <ul>
+                        <li>You'll need to contact HR to restart the process</li>
+                        <li>This may delay your start date</li>
+                        <li>Some information may need to be re-entered</li>
+                    </ul>
+                    
+                    <p>If you have any questions or need assistance, please contact HR immediately.</p>
+                    
+                    <p>Thank you,<br>
+                    HR Department</p>
+                </div>
+                <div class="footer">
+                    <p>🔒 This is a secure onboarding link. Please do not share it with others.</p>
+                    <p>This is an automated reminder from the Hotel Onboarding System.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Onboarding Reminder
+        
+        Dear {employee_name},
+        
+        Your onboarding session will expire in {days_remaining} day{'s' if days_remaining != 1 else ''}!
+        
+        Please complete your onboarding process as soon as possible to ensure a smooth start to your new position.
+        
+        Continue your onboarding here:
+        {onboarding_url}
+        
+        What happens if the session expires?
+        - You'll need to contact HR to restart the process
+        - This may delay your start date
+        - Some information may need to be re-entered
+        
+        If you have any questions or need assistance, please contact HR immediately.
+        
+        Thank you,
+        HR Department
+        
+        ---
+        🔒 This is a secure onboarding link. Please do not share it with others.
+        This is an automated reminder from the Hotel Onboarding System.
+        """
+        
+        return await self.send_email(to_email, subject, html_content, text_content)
+    
+    async def send_hr_daily_summary(self, to_email: str, hr_name: str, 
+                                   pending_manager: int, pending_hr: int, 
+                                   expiring_soon: int) -> bool:
+        """Send daily summary email to HR"""
+        
+        subject = "Daily Onboarding Summary Report"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+                .content {{ padding: 20px; background-color: #f9fafb; }}
+                .stats-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }}
+                .stat-card {{ background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; }}
+                .stat-number {{ font-size: 28px; font-weight: bold; color: #2563eb; }}
+                .stat-label {{ color: #6b7280; font-size: 14px; margin-top: 5px; }}
+                .footer {{ background-color: #e5e7eb; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }}
+                .alert {{ background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #f59e0b; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>📊 Daily Onboarding Summary</h1>
+                    <p style="margin: 0; opacity: 0.9;">{datetime.now().strftime('%B %d, %Y')}</p>
+                </div>
+                <div class="content">
+                    <p>Good morning {hr_name},</p>
+                    
+                    <p>Here's your daily onboarding status summary:</p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{pending_manager}</div>
+                            <div class="stat-label">Pending Manager Review</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{pending_hr}</div>
+                            <div class="stat-label">Pending HR Approval</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{expiring_soon}</div>
+                            <div class="stat-label">Expiring in 24 Hours</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{pending_manager + pending_hr}</div>
+                            <div class="stat-label">Total Pending Actions</div>
+                        </div>
+                    </div>
+                    
+                    {f'''<div class="alert">
+                        <p><strong>⚠️ Attention Required:</strong></p>
+                        <p>{expiring_soon} onboarding session{'s are' if expiring_soon != 1 else ' is'} expiring within 24 hours. Please review and follow up with the employees.</p>
+                    </div>''' if expiring_soon > 0 else ''}
+                    
+                    <p><strong>Recommended Actions:</strong></p>
+                    <ul>
+                        {f'<li>Review {pending_hr} onboarding submission{"s" if pending_hr != 1 else ""} awaiting HR approval</li>' if pending_hr > 0 else ''}
+                        {f'<li>Follow up with managers on {pending_manager} pending review{"s" if pending_manager != 1 else ""}</li>' if pending_manager > 0 else ''}
+                        {f'<li>Contact employees with expiring sessions immediately</li>' if expiring_soon > 0 else ''}
+                        {f'<li>No urgent actions required today</li>' if pending_manager + pending_hr + expiring_soon == 0 else ''}
+                    </ul>
+                    
+                    <p>Log in to the HR Dashboard to view details and take action.</p>
+                    
+                    <p>Have a productive day!</p>
+                    
+                    <p>Best regards,<br>
+                    Hotel Onboarding System</p>
+                </div>
+                <div class="footer">
+                    <p>This is an automated daily summary from the Hotel Onboarding System.</p>
+                    <p>Report generated at {datetime.now().strftime('%I:%M %p %Z')}</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Daily Onboarding Summary - {datetime.now().strftime('%B %d, %Y')}
+        
+        Good morning {hr_name},
+        
+        Here's your daily onboarding status summary:
+        
+        STATISTICS:
+        - Pending Manager Review: {pending_manager}
+        - Pending HR Approval: {pending_hr}
+        - Expiring in 24 Hours: {expiring_soon}
+        - Total Pending Actions: {pending_manager + pending_hr}
+        
+        {'⚠️ ATTENTION: ' + str(expiring_soon) + ' onboarding session(s) expiring within 24 hours!' if expiring_soon > 0 else ''}
+        
+        RECOMMENDED ACTIONS:
+        {f'- Review {pending_hr} onboarding submission(s) awaiting HR approval' if pending_hr > 0 else ''}
+        {f'- Follow up with managers on {pending_manager} pending review(s)' if pending_manager > 0 else ''}
+        {f'- Contact employees with expiring sessions immediately' if expiring_soon > 0 else ''}
+        {'- No urgent actions required today' if pending_manager + pending_hr + expiring_soon == 0 else ''}
+        
+        Log in to the HR Dashboard to view details and take action.
+        
+        Have a productive day!
+        
+        Best regards,
+        Hotel Onboarding System
+        
+        ---
+        This is an automated daily summary from the Hotel Onboarding System.
+        Report generated at {datetime.now().strftime('%I:%M %p %Z')}
+        """
+        
+        return await self.send_email(to_email, subject, html_content, text_content)
 
 # Create global email service instance
 email_service = EmailService()

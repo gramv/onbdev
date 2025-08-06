@@ -3,7 +3,7 @@
   warnings.warn(message, UserWarning)
 WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
 INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-INFO:     Started server process [78354]
+INFO:     Started server process [78225]
 INFO:     Waiting for application startup.
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
 INFO:     Application startup complete.
@@ -11,304 +11,28 @@ INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
 ✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
 ✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
 ✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:57857 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63223 - "GET /healthz HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:57994 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63223 - "GET /healthz HTTP/1.1" 200 OK
+ERROR:app.main_enhanced:Get onboarding session error: 'NoneType' object cannot be interpreted as an integer
+INFO:     127.0.0.1:63256 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 500 Internal Server Error
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58001 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63223 - "GET /healthz HTTP/1.1" 200 OK
+ERROR:app.main_enhanced:Get onboarding session error: 'NoneType' object cannot be interpreted as an integer
+INFO:     127.0.0.1:63258 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 500 Internal Server Error
+ERROR:app.main_enhanced:Get onboarding session error: 'NoneType' object cannot be interpreted as an integer
+INFO:     127.0.0.1:63335 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 500 Internal Server Error
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58240 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63452 - "GET /healthz HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58242 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63454 - "GET /healthz HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58402 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63454 - "GET /healthz HTTP/1.1" 200 OK
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58421 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58448 - "OPTIONS /api/onboarding/test-emp-756bada2/complete/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58448 - "POST /api/onboarding/test-emp-756bada2/complete/i9-complete HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-
-=== DEBUG: W-4 PDF Fields ===
-Debug error: object of type 'generator' has no len()
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[1]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[2]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_2[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_11[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_12[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_13[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_14[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_15[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_08[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_11[0]' - verify IRS compliance
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-
-=== DEBUG: W-4 PDF Fields ===
-Debug error: object of type 'generator' has no len()
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[1]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[2]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_2[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_11[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_12[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_13[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_14[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_15[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_08[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_11[0]' - verify IRS compliance
-INFO:     127.0.0.1:58465 - "POST /api/onboarding/test-emp-756bada2/w4-form/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58466 - "POST /api/onboarding/test-emp-756bada2/w4-form/generate-pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63599 - "GET /healthz HTTP/1.1" 200 OK
+ERROR:app.main_enhanced:Get onboarding session error: 'NoneType' object cannot be interpreted as an integer
+INFO:     127.0.0.1:63811 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 500 Internal Server Error
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58476 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58499 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY "HTTP/2 200 OK"
-INFO:     127.0.0.1:58563 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58565 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY "HTTP/2 200 OK"
-INFO:     127.0.0.1:58572 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "OPTIONS /api/onboarding/test-emp-756bada2/complete/welcome HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "POST /api/onboarding/test-emp-756bada2/complete/welcome HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "OPTIONS /api/onboarding/test-emp-756bada2/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "POST /api/onboarding/test-emp-756bada2/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "POST /api/onboarding/test-emp-756bada2/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "OPTIONS /api/onboarding/test-emp-756bada2/complete/job-details HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "POST /api/onboarding/test-emp-756bada2/complete/job-details HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "OPTIONS /api/onboarding/test-emp-756bada2/complete/company-policies HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58574 - "POST /api/onboarding/test-emp-756bada2/complete/company-policies HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58626 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58641 - "OPTIONS /api/onboarding/test-emp-756bada2/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:58641 - "POST /api/onboarding/test-emp-756bada2/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58643 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58641 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:58643 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58641 - "POST /api/onboarding/test-emp-756bada2/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58641 - "GET /healthz HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "document_number": "123456789",
-  "first_name": "Janice",
-  "last_name": "Sample",
-  "date_of_birth": "1994-06-01",
-  "issue_date": "2024-06-01",
-  "expiration_date": "2032-06-01",
-  "issuing_authority": "Tennessee",
-  "address": "123 Main St, Apt 1, Nashville, TN 37210",
-  "class": "M",
-  "restrictions": "None",
-  "height": "5'-06\"",
-  "weight": "",
-  "eye_color": "Brown"
-}
-INFO:     127.0.0.1:58689 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "ssn": "000-00-0000",
-  "first_name": "Barry",
-  "last_name": "Sousa",
-  "issuing_authority": "Social Security Administration"
-}
-INFO:     127.0.0.1:58716 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:58716 - "POST /api/onboarding/test-emp-756bada2/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58727 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58727 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58790 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58803 - "OPTIONS /api/onboarding/test-emp-756bada2/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A&id=eq.test-emp-756bada2 "HTTP/2 400 Bad Request"
-ERROR:app.supabase_service_enhanced:Error getting employee by ID: {'message': 'invalid input syntax for type uuid: "test-emp-756bada2"', 'code': '22P02', 'hint': None, 'details': None}
-INFO:     127.0.0.1:58803 - "POST /api/onboarding/test-emp-756bada2/i9-complete HTTP/1.1" 404 Not Found
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTc1NmJhZGEyIiwiYXBwbGljYXRpb25faWQiOm51bGwsInRva2VuX3R5cGUiOiJvbmJvYXJkaW5nIiwiaWF0IjoxNzU0MzM0MzE4LCJleHAiOjE3NTQ5MzkxMTgsImp0aSI6IkJRcnpKWnFpOGwzem9iU0NUN3R0TWcifQ.2tHgmJGZsIxwnMKYivCZsyHgkEbOMx0AQ7LTm2v2AFY&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:58803 - "POST /api/onboarding/test-emp-756bada2/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58805 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58803 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58803 - "POST /api/onboarding/test-emp-756bada2/complete/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:58824 - "POST /api/onboarding/test-emp-756bada2/complete/i9-complete HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-
-=== DEBUG: W-4 PDF Fields ===
-Debug error: object of type 'generator' has no len()
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[1]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[2]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_2[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_11[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_12[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_13[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_14[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_15[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_08[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_11[0]' - verify IRS compliance
-INFO:     127.0.0.1:58845 - "POST /api/onboarding/test-emp-756bada2/w4-form/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-
-=== DEBUG: W-4 PDF Fields ===
-Debug error: object of type 'generator' has no len()
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[1]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[2]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_2[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_11[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_12[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_13[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_14[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_15[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_08[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_11[0]' - verify IRS compliance
-INFO:     127.0.0.1:58846 - "POST /api/onboarding/test-emp-756bada2/w4-form/generate-pdf HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:58938 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59049 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59066 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59197 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59311 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59347 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59530 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59700 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59723 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59860 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:59972 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60280 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60282 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60350 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60411 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60455 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60553 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60598 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60696 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60736 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60819 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60866 - "OPTIONS /api/onboarding/test-emp-756bada2/complete/w4-form HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60866 - "POST /api/onboarding/test-emp-756bada2/complete/w4-form HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60866 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:60979 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:61026 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [78354]
+INFO:     127.0.0.1:63893 - "GET /healthz HTTP/1.1" 200 OK

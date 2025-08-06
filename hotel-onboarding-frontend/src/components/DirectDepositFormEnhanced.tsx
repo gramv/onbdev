@@ -119,10 +119,24 @@ export default function DirectDepositFormEnhanced({
   const [showErrors, setShowErrors] = useState(false)
   const [isValid, setIsValid] = useState(false)
 
+  // Update form data when initialData changes (for navigation back)
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      console.log('DirectDepositFormEnhanced - Updating from initialData:', initialData)
+      setFormData(prevData => ({
+        ...prevData,
+        ...initialData,
+        // Ensure primaryAccount is properly merged
+        primaryAccount: {
+          ...prevData.primaryAccount,
+          ...(initialData.primaryAccount || {})
+        }
+      }))
+    }
+  }, [initialData])
+
   // Auto-save hook configuration
-  const { saveStatus } = useAutoSave(formData, {
-    key: 'direct-deposit-form',
-    debounceMs: 2000,
+  const { saveStatus, triggerSave } = useAutoSave(formData, {
     onSave: async (data) => {
       // Save to sessionStorage
       sessionStorage.setItem('direct_deposit_form_data', JSON.stringify(data))
@@ -130,7 +144,9 @@ export default function DirectDepositFormEnhanced({
       if (onSave && Object.keys(touchedFields).length > 0) {
         onSave(data)
       }
-    }
+    },
+    delay: 2000,
+    enabled: true
   })
 
   const t = (key: string) => {
@@ -156,6 +172,7 @@ export default function DirectDepositFormEnhanced({
         'account_number': 'Account Number',
         'confirm_account': 'Confirm Account Number',
         'account_type': 'Account Type',
+        'select_account_type': 'Select account type',
         'checking': 'Checking',
         'savings': 'Savings',
         'deposit_amount': 'Deposit Amount',
@@ -202,6 +219,10 @@ export default function DirectDepositFormEnhanced({
         'paper_check_option': 'Cheque en Papel',
         'direct_deposit_desc': 'Depósito electrónico rápido y seguro a su cuenta bancaria',
         'paper_check_desc': 'Cheque físico disponible para recoger el día de pago',
+        'account_type': 'Tipo de Cuenta',
+        'select_account_type': 'Seleccionar tipo de cuenta',
+        'checking': 'Corriente',
+        'savings': 'Ahorros',
         'next': 'Siguiente',
         'back': 'Atrás',
         'save_continue': 'Guardar y Continuar'
@@ -359,7 +380,7 @@ export default function DirectDepositFormEnhanced({
     // Mark field as touched
     const fieldKey = `additionalAccounts.${index}.${field}`
     setTouchedFields(prev => ({ ...prev, [fieldKey]: true }))
-    setSaveStatus('unsaved')
+    // Trigger save on next change (handled by useAutoSave hook)
     
     // Clear error when user starts typing
     if (errors[fieldKey]) {
@@ -565,7 +586,7 @@ export default function DirectDepositFormEnhanced({
                     onValueChange={(value) => handleInputChange('primaryAccount.accountType', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder={t('select_account_type')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="checking">{t('checking')}</SelectItem>
@@ -738,7 +759,7 @@ export default function DirectDepositFormEnhanced({
                           onValueChange={(value) => handleAdditionalAccountChange(index, 'accountType', value)}
                         >
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder={t('select_account_type')} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="checking">{t('checking')}</SelectItem>
@@ -853,7 +874,7 @@ export default function DirectDepositFormEnhanced({
                       voidedCheckUploaded: true,
                       voidedCheckDocument: document
                     }))
-                    setSaveStatus('unsaved')
+                    // Trigger save on next change (handled by useAutoSave hook)
                   }}
                   onUploadError={(error) => {
                     console.error('Failed to upload voided check:', error)
@@ -877,7 +898,7 @@ export default function DirectDepositFormEnhanced({
                       bankLetterUploaded: true,
                       bankLetterDocument: document
                     }))
-                    setSaveStatus('unsaved')
+                    // Trigger save on next change (handled by useAutoSave hook)
                   }}
                   onUploadError={(error) => {
                     console.error('Failed to upload bank letter:', error)
