@@ -1,0 +1,86 @@
+INFO:     Will watch for changes in these directories: ['/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [34023] using StatReload
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:passlib.handlers.bcrypt:(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/opt/homebrew/lib/python3.13/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+INFO:     Started server process [34038]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+✅ Test data initialized:
+   HR: hr@hoteltest.com (Token: hr_test_001)
+   Manager: manager@hoteltest.com (Token: mgr_test_001)
+   Property: Grand Plaza Hotel (ID: prop_test_001)
+   Application: John Doe - Front Desk Agent (ID: app_test_001)
+   Employees: 5 test employees created
+   Application URL: http://localhost:8000/apply/prop_test_001
+INFO:     127.0.0.1:64484 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64486 - "POST /secret/create-hr?email=hr%40hoteltest.com&password=admin123&secret_key=hotel-admin-2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64488 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64490 - "POST /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64492 - "POST /hr/properties/0ea92d0e-6b1a-4a96-8080-b150b93533d7/qr-code HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64498 - "POST /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64500 - "POST /hr/properties/2399a858-4a80-4a3f-b3c4-42b44e615f89/qr-code HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64502 - "POST /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64504 - "POST /hr/properties/00c0b0ac-8f44-4005-9a7a-ad746335012e/qr-code HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64506 - "POST /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64508 - "POST /hr/properties/0b7e3849-7b30-49cc-8514-d0aa636228f2/qr-code HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64510 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:64512 - "POST /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64518 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64524 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:64526 - "POST /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64532 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64534 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:64540 - "POST /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64542 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64544 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:64546 - "POST /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64553 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64559 - "POST /apply/0ea92d0e-6b1a-4a96-8080-b150b93533d7 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64561 - "POST /apply/0ea92d0e-6b1a-4a96-8080-b150b93533d7 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64563 - "POST /apply/0ea92d0e-6b1a-4a96-8080-b150b93533d7 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64565 - "POST /apply/0ea92d0e-6b1a-4a96-8080-b150b93533d7 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64567 - "POST /apply/0ea92d0e-6b1a-4a96-8080-b150b93533d7 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64569 - "POST /apply/0ea92d0e-6b1a-4a96-8080-b150b93533d7 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64571 - "POST /apply/2399a858-4a80-4a3f-b3c4-42b44e615f89 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64573 - "POST /apply/2399a858-4a80-4a3f-b3c4-42b44e615f89 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64575 - "POST /apply/2399a858-4a80-4a3f-b3c4-42b44e615f89 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64577 - "POST /apply/2399a858-4a80-4a3f-b3c4-42b44e615f89 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64579 - "POST /apply/2399a858-4a80-4a3f-b3c4-42b44e615f89 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64581 - "POST /apply/2399a858-4a80-4a3f-b3c4-42b44e615f89 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64583 - "POST /apply/00c0b0ac-8f44-4005-9a7a-ad746335012e HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64585 - "POST /apply/00c0b0ac-8f44-4005-9a7a-ad746335012e HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64587 - "POST /apply/00c0b0ac-8f44-4005-9a7a-ad746335012e HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64589 - "POST /apply/00c0b0ac-8f44-4005-9a7a-ad746335012e HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64591 - "POST /apply/00c0b0ac-8f44-4005-9a7a-ad746335012e HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64593 - "POST /apply/00c0b0ac-8f44-4005-9a7a-ad746335012e HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64595 - "POST /apply/0b7e3849-7b30-49cc-8514-d0aa636228f2 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64597 - "POST /apply/0b7e3849-7b30-49cc-8514-d0aa636228f2 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64599 - "POST /apply/0b7e3849-7b30-49cc-8514-d0aa636228f2 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64605 - "POST /apply/0b7e3849-7b30-49cc-8514-d0aa636228f2 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64607 - "POST /apply/0b7e3849-7b30-49cc-8514-d0aa636228f2 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:64609 - "POST /apply/0b7e3849-7b30-49cc-8514-d0aa636228f2 HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:65036 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65036 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65158 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65158 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65488 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65488 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49188 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49188 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49502 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49507 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49508 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49549 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49549 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49918 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49918 - "GET /properties/prop_test_001/info HTTP/1.1" 200 OK
