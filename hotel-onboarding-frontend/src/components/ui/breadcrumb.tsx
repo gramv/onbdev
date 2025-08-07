@@ -1,115 +1,108 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { ChevronRight, MoreHorizontal } from "lucide-react"
+import React from 'react'
+import { ChevronRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-import { cn } from "@/lib/utils"
+export interface BreadcrumbItem {
+  label: string
+  href?: string // Optional - if provided, item is clickable (visual-only)
+  current?: boolean // Mark current page
+}
 
-const Breadcrumb = React.forwardRef<
-  HTMLElement,
-  React.ComponentPropsWithoutRef<"nav"> & {
-    separator?: React.ReactNode
-  }
->(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />)
-Breadcrumb.displayName = "Breadcrumb"
+interface BreadcrumbProps {
+  items: BreadcrumbItem[]
+  className?: string
+}
 
-const BreadcrumbList = React.forwardRef<
-  HTMLOListElement,
-  React.ComponentPropsWithoutRef<"ol">
->(({ className, ...props }, ref) => (
-  <ol
-    ref={ref}
-    className={cn(
-      "flex flex-wrap items-center gap-1.5 break-words text-sm text-zinc-500 sm:gap-2.5 dark:text-zinc-400",
-      className
-    )}
-    {...props}
-  />
-))
-BreadcrumbList.displayName = "BreadcrumbList"
-
-const BreadcrumbItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentPropsWithoutRef<"li">
->(({ className, ...props }, ref) => (
-  <li
-    ref={ref}
-    className={cn("inline-flex items-center gap-1.5", className)}
-    {...props}
-  />
-))
-BreadcrumbItem.displayName = "BreadcrumbItem"
-
-const BreadcrumbLink = React.forwardRef<
-  HTMLAnchorElement,
-  React.ComponentPropsWithoutRef<"a"> & {
-    asChild?: boolean
-  }
->(({ asChild, className, ...props }, ref) => {
-  const Comp = asChild ? Slot : "a"
+export function Breadcrumb({ items, className }: BreadcrumbProps) {
+  // Handle mobile responsive display - show first, ellipsis, and last 2 items if more than 4
+  const displayItems = items.length > 4 
+    ? [items[0], { label: '...', href: undefined }, ...items.slice(-2)]
+    : items
 
   return (
-    <Comp
-      ref={ref}
-      className={cn("transition-colors hover:text-zinc-950 dark:hover:text-zinc-50", className)}
-      {...props}
-    />
+    <nav 
+      className={cn(
+        "flex items-center text-sm text-muted-foreground overflow-hidden",
+        className
+      )} 
+      aria-label="Breadcrumb navigation"
+    >
+      <ol className="flex items-center min-w-0">
+        {displayItems.map((item, index) => {
+          const isEllipsis = item.label === '...'
+          const isCurrent = item.current
+          const isClickable = item.href && !isCurrent
+
+          return (
+            <li key={`${item.label}-${index}`} className="flex items-center min-w-0">
+              {index > 0 && (
+                <ChevronRight 
+                  className="h-4 w-4 mx-2 text-muted-foreground/50 flex-shrink-0" 
+                  aria-hidden="true"
+                />
+              )}
+              
+              {isEllipsis ? (
+                <span 
+                  className="px-1 text-muted-foreground/70 text-xs"
+                  aria-label="More breadcrumb items"
+                >
+                  ...
+                </span>
+              ) : isClickable ? (
+                <a
+                  href={item.href || '#'}
+                  className={cn(
+                    "text-sm hover:text-foreground transition-colors duration-200",
+                    "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-sm px-1",
+                    "truncate min-w-0 cursor-pointer"
+                  )}
+                  aria-label={`Navigate to ${item.label}`}
+                  onClick={(e) => e.preventDefault()} // Prevent actual navigation
+                >
+                  <span className="truncate">{item.label}</span>
+                </a>
+              ) : (
+                <span 
+                  className={cn(
+                    "min-w-0 px-1",
+                    isCurrent 
+                      ? "text-foreground font-medium text-sm" 
+                      : "text-muted-foreground text-sm"
+                  )}
+                  aria-current={isCurrent ? "page" : undefined}
+                >
+                  <span className="truncate">{item.label}</span>
+                </span>
+              )}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
   )
-})
-BreadcrumbLink.displayName = "BreadcrumbLink"
+}
 
-const BreadcrumbPage = React.forwardRef<
-  HTMLSpanElement,
-  React.ComponentPropsWithoutRef<"span">
->(({ className, ...props }, ref) => (
-  <span
-    ref={ref}
-    role="link"
-    aria-disabled="true"
-    aria-current="page"
-    className={cn("font-normal text-zinc-950 dark:text-zinc-50", className)}
-    {...props}
-  />
-))
-BreadcrumbPage.displayName = "BreadcrumbPage"
+// Dashboard-specific breadcrumb component
+interface DashboardBreadcrumbProps {
+  dashboard: string
+  currentPage: string
+  className?: string
+}
 
-const BreadcrumbSeparator = ({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<"li">) => (
-  <li
-    role="presentation"
-    aria-hidden="true"
-    className={cn("[&>svg]:w-3.5 [&>svg]:h-3.5", className)}
-    {...props}
-  >
-    {children ?? <ChevronRight />}
-  </li>
-)
-BreadcrumbSeparator.displayName = "BreadcrumbSeparator"
+export function DashboardBreadcrumb({ dashboard, currentPage, className }: DashboardBreadcrumbProps) {
+  const items: BreadcrumbItem[] = [
+    { label: dashboard, href: '#' },
+    { label: currentPage, current: true }
+  ]
+  return <Breadcrumb items={items} className={className} />
+}
 
-const BreadcrumbEllipsis = ({
-  className,
-  ...props
-}: React.ComponentProps<"span">) => (
-  <span
-    role="presentation"
-    aria-hidden="true"
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More</span>
-  </span>
-)
-BreadcrumbEllipsis.displayName = "BreadcrumbElipssis"
-
-export {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
+// Example usage function - creates breadcrumb items for common use cases
+export function createBreadcrumbItems(path: string[]): BreadcrumbItem[] {
+  return path.map((item, index) => ({
+    label: item,
+    href: index === path.length - 1 ? undefined : '#', // Last item is current, no href
+    current: index === path.length - 1
+  }))
 }

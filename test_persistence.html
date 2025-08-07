@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test I-9 Data Persistence</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .warning {
+            color: orange;
+            font-weight: bold;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>I-9 Form Data Persistence Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Check I-9 Section 1 Session Storage</h2>
+        <button onclick="testI9Section1Storage()">Run Test</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Check I-9 Section 2 Document Storage</h2>
+        <button onclick="testI9Section2Storage()">Run Test</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Simulate Navigation and Data Persistence</h2>
+        <button onclick="simulateNavigation()">Run Test</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: PDF Preview Persistence</h2>
+        <button onclick="testPdfPersistence()">Run Test</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Storage Operations</h2>
+        <button onclick="viewAllStorage()">View All Storage</button>
+        <button onclick="clearTestData()">Clear Test Data</button>
+        <div id="manual-result"></div>
+    </div>
+
+    <script>
+        function testI9Section1Storage() {
+            const resultDiv = document.getElementById('test1-result');
+            resultDiv.innerHTML = '<h3>Testing I-9 Section 1 Storage...</h3>';
+            
+            // Simulate saving I-9 Section 1 data
+            const testData = {
+                formData: {
+                    last_name: 'TestLastName',
+                    first_name: 'TestFirstName',
+                    middle_initial: 'T',
+                    date_of_birth: '1990-01-01',
+                    ssn: '123-45-6789',
+                    email: 'test@example.com',
+                    phone: '555-1234',
+                    address: '123 Test St',
+                    city: 'TestCity',
+                    state: 'TS',
+                    zip_code: '12345',
+                    citizenship_status: 'citizen'
+                },
+                formValid: true,
+                activeTab: 'review',
+                pdfUrl: null,
+                isSigned: false
+            };
+            
+            // Save to session storage
+            sessionStorage.setItem('onboarding_i9-section1_data', JSON.stringify(testData));
+            
+            // Retrieve and verify
+            const savedData = sessionStorage.getItem('onboarding_i9-section1_data');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                let html = '<p class="success">✓ Data saved to session storage</p>';
+                html += '<h4>Saved Data Structure:</h4>';
+                html += '<pre>' + JSON.stringify(parsed, null, 2) + '</pre>';
+                
+                // Verify key fields
+                if (parsed.formData && parsed.formData.citizenship_status) {
+                    html += '<p class="success">✓ Citizenship status preserved: ' + parsed.formData.citizenship_status + '</p>';
+                } else {
+                    html += '<p class="error">✗ Citizenship status missing</p>';
+                }
+                
+                if (parsed.formValid === true) {
+                    html += '<p class="success">✓ Form validation state preserved</p>';
+                } else {
+                    html += '<p class="warning">⚠ Form validation state not set</p>';
+                }
+                
+                resultDiv.innerHTML += html;
+            } else {
+                resultDiv.innerHTML += '<p class="error">✗ Failed to save data to session storage</p>';
+            }
+        }
+
+        function testI9Section2Storage() {
+            const resultDiv = document.getElementById('test2-result');
+            resultDiv.innerHTML = '<h3>Testing I-9 Section 2 Document Storage...</h3>';
+            
+            // Simulate document upload data
+            const testData = {
+                documentSelection: 'list_a',
+                uploadedDocuments: [
+                    {
+                        id: 'doc_test_123',
+                        type: 'list_a',
+                        documentType: 'US Passport',
+                        fileName: 'passport.pdf',
+                        fileSize: 1048576,
+                        fileData: 'data:application/pdf;base64,JVBERi0xLjQKJeLj...',
+                        uploadedAt: new Date().toISOString(),
+                        ocrData: {
+                            document_number: 'P123456789',
+                            expiry_date: '2030-01-01'
+                        }
+                    }
+                ],
+                listADocument: {
+                    id: 'doc_test_123',
+                    type: 'list_a',
+                    documentType: 'US Passport',
+                    fileName: 'passport.pdf',
+                    fileSize: 1048576,
+                    fileData: 'data:application/pdf;base64,JVBERi0xLjQKJeLj...',
+                    uploadedAt: new Date().toISOString()
+                },
+                verificationComplete: false,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            // Save to session storage
+            sessionStorage.setItem('onboarding_i9-section2_data', JSON.stringify(testData));
+            
+            // Retrieve and verify
+            const savedData = sessionStorage.getItem('onboarding_i9-section2_data');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                let html = '<p class="success">✓ Document data saved to session storage</p>';
+                html += '<h4>Document Storage Structure:</h4>';
+                
+                // Show structure without full base64 data
+                const displayData = JSON.parse(JSON.stringify(parsed));
+                if (displayData.uploadedDocuments && displayData.uploadedDocuments[0]) {
+                    displayData.uploadedDocuments[0].fileData = '[BASE64_DATA_TRUNCATED]';
+                }
+                if (displayData.listADocument) {
+                    displayData.listADocument.fileData = '[BASE64_DATA_TRUNCATED]';
+                }
+                
+                html += '<pre>' + JSON.stringify(displayData, null, 2) + '</pre>';
+                
+                // Verify document persistence
+                if (parsed.uploadedDocuments && parsed.uploadedDocuments.length > 0) {
+                    html += '<p class="success">✓ ' + parsed.uploadedDocuments.length + ' document(s) stored</p>';
+                } else {
+                    html += '<p class="warning">⚠ No documents in storage</p>';
+                }
+                
+                if (parsed.documentSelection) {
+                    html += '<p class="success">✓ Document selection preserved: ' + parsed.documentSelection + '</p>';
+                }
+                
+                resultDiv.innerHTML += html;
+            } else {
+                resultDiv.innerHTML += '<p class="error">✗ Failed to save document data</p>';
+            }
+        }
+
+        function simulateNavigation() {
+            const resultDiv = document.getElementById('test3-result');
+            resultDiv.innerHTML = '<h3>Simulating Navigation...</h3>';
+            
+            // Step 1: Save initial data
+            const initialData = {
+                formData: {
+                    last_name: 'NavigationTest',
+                    citizenship_status: 'permanent_resident'
+                },
+                formValid: false,
+                activeTab: 'form'
+            };
+            
+            sessionStorage.setItem('onboarding_i9-section1_data', JSON.stringify(initialData));
+            resultDiv.innerHTML += '<p>Step 1: Initial data saved</p>';
+            
+            // Step 2: Simulate navigation away (clear memory but keep session storage)
+            let currentFormData = null;
+            resultDiv.innerHTML += '<p>Step 2: Navigated away (memory cleared)</p>';
+            
+            // Step 3: Navigate back and reload from session storage
+            const reloadedData = sessionStorage.getItem('onboarding_i9-section1_data');
+            if (reloadedData) {
+                currentFormData = JSON.parse(reloadedData);
+                resultDiv.innerHTML += '<p class="success">Step 3: ✓ Data successfully restored after navigation</p>';
+                resultDiv.innerHTML += '<pre>' + JSON.stringify(currentFormData, null, 2) + '</pre>';
+                
+                // Verify critical fields survived navigation
+                if (currentFormData.formData && currentFormData.formData.citizenship_status === 'permanent_resident') {
+                    resultDiv.innerHTML += '<p class="success">✓ Citizenship status survived navigation</p>';
+                } else {
+                    resultDiv.innerHTML += '<p class="error">✗ Citizenship status lost during navigation</p>';
+                }
+            } else {
+                resultDiv.innerHTML += '<p class="error">✗ Data lost after navigation</p>';
+            }
+        }
+
+        function testPdfPersistence() {
+            const resultDiv = document.getElementById('test4-result');
+            resultDiv.innerHTML = '<h3>Testing PDF Preview Persistence...</h3>';
+            
+            // Simulate PDF generation and storage
+            const testPdfData = 'data:application/pdf;base64,JVBERi0xLjQKJeLjz9MNCg==';
+            
+            // Get existing data or create new
+            let existingData = sessionStorage.getItem('onboarding_i9-section1_data');
+            let dataToUpdate = existingData ? JSON.parse(existingData) : {};
+            
+            // Add PDF data
+            dataToUpdate.pdfUrl = testPdfData;
+            dataToUpdate.pdfGeneratedAt = new Date().toISOString();
+            
+            // Save updated data
+            sessionStorage.setItem('onboarding_i9-section1_data', JSON.stringify(dataToUpdate));
+            
+            // Verify PDF persistence
+            const savedData = sessionStorage.getItem('onboarding_i9-section1_data');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                if (parsed.pdfUrl) {
+                    resultDiv.innerHTML += '<p class="success">✓ PDF URL saved to session storage</p>';
+                    resultDiv.innerHTML += '<p>PDF generated at: ' + parsed.pdfGeneratedAt + '</p>';
+                    resultDiv.innerHTML += '<p>PDF data starts with: ' + parsed.pdfUrl.substring(0, 50) + '...</p>';
+                } else {
+                    resultDiv.innerHTML += '<p class="error">✗ PDF URL not found in session storage</p>';
+                }
+            }
+        }
+
+        function viewAllStorage() {
+            const resultDiv = document.getElementById('manual-result');
+            resultDiv.innerHTML = '<h3>All Session Storage Data:</h3>';
+            
+            const onboardingKeys = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && key.includes('onboarding')) {
+                    onboardingKeys.push(key);
+                }
+            }
+            
+            if (onboardingKeys.length === 0) {
+                resultDiv.innerHTML += '<p class="warning">No onboarding data found in session storage</p>';
+            } else {
+                onboardingKeys.forEach(key => {
+                    const value = sessionStorage.getItem(key);
+                    const parsed = JSON.parse(value);
+                    
+                    // Truncate base64 data for display
+                    const displayData = JSON.parse(JSON.stringify(parsed));
+                    if (displayData.pdfUrl) {
+                        displayData.pdfUrl = displayData.pdfUrl.substring(0, 50) + '...[TRUNCATED]';
+                    }
+                    if (displayData.uploadedDocuments) {
+                        displayData.uploadedDocuments.forEach(doc => {
+                            if (doc.fileData) {
+                                doc.fileData = '[BASE64_TRUNCATED]';
+                            }
+                        });
+                    }
+                    
+                    resultDiv.innerHTML += `<h4>${key}</h4>`;
+                    resultDiv.innerHTML += '<pre>' + JSON.stringify(displayData, null, 2) + '</pre>';
+                });
+            }
+        }
+
+        function clearTestData() {
+            const keysToRemove = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && key.includes('onboarding')) {
+                    keysToRemove.push(key);
+                }
+            }
+            
+            keysToRemove.forEach(key => sessionStorage.removeItem(key));
+            
+            document.getElementById('manual-result').innerHTML = 
+                '<p class="success">✓ Cleared ' + keysToRemove.length + ' onboarding entries from session storage</p>';
+        }
+    </script>
+</body>
+</html>

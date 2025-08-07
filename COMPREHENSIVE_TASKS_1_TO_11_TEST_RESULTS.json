@@ -1,0 +1,144 @@
+{
+  "total_tests": 23,
+  "passed_tests": 10,
+  "success_rate": 0.43478260869565216,
+  "detailed_results": {
+    "task_1": {
+      "property_creation": {
+        "passed": true,
+        "message": "Property with QR code exists",
+        "timestamp": "2025-07-27T23:26:36.748534"
+      },
+      "qr_endpoint": {
+        "passed": false,
+        "message": "QR endpoint failed: 404",
+        "timestamp": "2025-07-27T23:26:36.757894"
+      }
+    },
+    "task_2": {
+      "public_info": {
+        "passed": true,
+        "message": "Public property info accessible",
+        "timestamp": "2025-07-27T23:26:36.761527"
+      },
+      "no_auth_required": {
+        "passed": true,
+        "message": "Public access without auth",
+        "timestamp": "2025-07-27T23:26:36.762685"
+      }
+    },
+    "task_3": {
+      "valid_submission": {
+        "passed": true,
+        "message": "Application ID: 35ba32c3-294e-471d-a74f-495e422c4e85",
+        "timestamp": "2025-07-27T23:26:36.766798"
+      },
+      "invalid_rejection": {
+        "passed": true,
+        "message": "Validation status: 422",
+        "timestamp": "2025-07-27T23:26:36.770248"
+      }
+    },
+    "task_4": {
+      "manager_access": {
+        "passed": false,
+        "message": "Access failed: 404",
+        "timestamp": "2025-07-27T23:26:36.771413"
+      },
+      "approval_functionality": {
+        "passed": false,
+        "message": "Approval process working",
+        "timestamp": "2025-07-27T23:26:36.772466"
+      }
+    },
+    "task_5": {
+      "dashboard_access": {
+        "passed": false,
+        "message": "Dashboard access failed: 404",
+        "timestamp": "2025-07-27T23:26:36.773508"
+      },
+      "application_management": {
+        "passed": false,
+        "message": "Management failed: 404",
+        "timestamp": "2025-07-27T23:26:36.774482"
+      }
+    },
+    "task_6": {
+      "form_accessibility": {
+        "passed": false,
+        "message": "Frontend server not running",
+        "timestamp": "2025-07-27T23:26:36.776889"
+      },
+      "form_integration": {
+        "passed": true,
+        "message": "Form submission integration working",
+        "timestamp": "2025-07-27T23:26:36.778453"
+      }
+    },
+    "task_7": {
+      "end_to_end_workflow": {
+        "passed": false,
+        "message": "Manager review step failed",
+        "timestamp": "2025-07-27T23:26:36.780617"
+      }
+    },
+    "task_8": {
+      "hr_dashboard_access": {
+        "passed": false,
+        "message": "HR dashboard failed: 404",
+        "timestamp": "2025-07-27T23:26:36.781625"
+      },
+      "hr_oversight": {
+        "passed": false,
+        "message": "HR oversight failed: 401",
+        "timestamp": "2025-07-27T23:26:36.791486"
+      }
+    },
+    "task_9": {
+      "status_tracking": {
+        "passed": false,
+        "message": "Failed: 404",
+        "timestamp": "2025-07-27T23:26:36.792623"
+      },
+      "status_change": {
+        "passed": false,
+        "message": "Status change working",
+        "timestamp": "2025-07-27T23:26:36.793842"
+      }
+    },
+    "task_10": {
+      "multiple_statuses": {
+        "passed": false,
+        "message": "Results: {'approved': False, 'rejected': False, 'talent_pool': False}",
+        "timestamp": "2025-07-27T23:26:36.800240"
+      },
+      "status_history": {
+        "passed": false,
+        "message": "Failed: 404",
+        "timestamp": "2025-07-27T23:26:36.801124"
+      }
+    },
+    "task_11": {
+      "enhanced_validation": {
+        "passed": true,
+        "message": "Validation status: 422",
+        "timestamp": "2025-07-27T23:26:36.802253"
+      },
+      "duplicate_prevention": {
+        "passed": true,
+        "message": "Duplicate prevention working",
+        "timestamp": "2025-07-27T23:26:36.804505"
+      },
+      "enhanced_fields": {
+        "passed": true,
+        "message": "Enhanced fields working",
+        "timestamp": "2025-07-27T23:26:36.805522"
+      },
+      "position_specific": {
+        "passed": true,
+        "message": "Results: {'Front Desk': True, 'Housekeeping': True, 'Food & Beverage': True, 'Maintenance': True}",
+        "timestamp": "2025-07-27T23:26:36.810069"
+      }
+    }
+  }
+}

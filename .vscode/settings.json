@@ -1,0 +1,12 @@
+{
+    "kiroAgent.configureMCP": "Enabled",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./hotel-onboarding-backend",
+        "-p",
+        "*test.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true
+}
