@@ -78,6 +78,13 @@ from .property_access_control import (
     require_manager_with_property_access, require_onboarding_access
 )
 
+# Import bulk operation service (Task 7)
+from .bulk_operation_service import (
+    BulkOperationService, BulkOperationType, BulkOperationStatus,
+    BulkApplicationOperations, BulkEmployeeOperations, 
+    BulkCommunicationService, BulkOperationAuditService
+)
+
 load_dotenv()
 
 app = FastAPI(
@@ -148,6 +155,11 @@ app.add_middleware(
 token_manager = OnboardingTokenManager()
 password_manager = PasswordManager()
 supabase_service = EnhancedSupabaseService()
+bulk_operation_service = BulkOperationService()
+bulk_application_ops = BulkApplicationOperations()
+bulk_employee_ops = BulkEmployeeOperations()
+bulk_communication_service = BulkCommunicationService()
+bulk_audit_service = BulkOperationAuditService()
 
 # Initialize GROQ client
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -557,11 +569,21 @@ async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
         total_employees = await supabase_service.get_employees_count()
         pending_applications = await supabase_service.get_pending_applications_count()
         
+        # Get additional statistics
+        approved_applications = await supabase_service.get_approved_applications_count()
+        total_applications = await supabase_service.get_total_applications_count()
+        active_employees = await supabase_service.get_active_employees_count()
+        onboarding_in_progress = await supabase_service.get_onboarding_in_progress_count()
+        
         stats_data = DashboardStatsData(
             totalProperties=total_properties,
             totalManagers=total_managers,
             totalEmployees=total_employees,
-            pendingApplications=pending_applications
+            pendingApplications=pending_applications,
+            approvedApplications=approved_applications,
+            totalApplications=total_applications,
+            activeEmployees=active_employees,
+            onboardingInProgress=onboarding_in_progress
         )
         
         return success_response(
@@ -1748,6 +1770,72 @@ async def get_managers(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve managers: {str(e)}")
 
+@app.post("/hr/managers")
+async def create_manager(
+    email: str = Form(...),
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    property_id: Optional[str] = Form(None),
+    password: str = Form(...),
+    current_user: User = Depends(require_hr_role)
+):
+    """Create a new manager (HR only) using Supabase"""
+    try:
+        # Validate email uniqueness
+        existing_user = supabase_service.get_user_by_email_sync(email.lower().strip())
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email address already exists")
+        
+        # Validate names
+        if not first_name.strip() or not last_name.strip():
+            raise HTTPException(status_code=400, detail="First name and last name are required")
+        
+        # Validate password strength
+        if len(password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+        
+        # Create manager user
+        manager_id = str(uuid.uuid4())
+        password_hash = supabase_service.hash_password(password)
+        
+        manager_data = {
+            "id": manager_id,
+            "email": email.lower().strip(),
+            "first_name": first_name.strip(),
+            "last_name": last_name.strip(),
+            "role": "manager",
+            "property_id": property_id if property_id and property_id != 'none' else None,
+            "password_hash": password_hash,
+            "is_active": True,  # Ensure managers are created as active
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Create user in Supabase
+        result = supabase_service.client.table('users').insert(manager_data).execute()
+        
+        if result.data:
+            created_manager = result.data[0]
+            
+            # Assign to property if specified
+            if property_id and property_id != 'none':
+                try:
+                    await supabase_service.assign_manager_to_property(property_id, manager_id)
+                except Exception as e:
+                    logger.warning(f"Failed to assign manager to property: {e}")
+            
+            return success_response(
+                data=created_manager,
+                message="Manager created successfully"
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create manager")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to create manager: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create manager: {str(e)}")
+
 @app.get("/hr/employees")
 async def get_hr_employees(
     property_id: Optional[str] = Query(None),
@@ -2239,6 +2327,367 @@ async def bulk_talent_pool_notify(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk notification failed: {str(e)}")
+
+# ==========================================
+# ENHANCED BULK OPERATIONS WITH PROGRESS TRACKING (Task 7)
+# ==========================================
+
+@app.post("/api/v2/bulk-operations")
+async def create_bulk_operation(
+    operation_type: BulkOperationType = Form(...),
+    operation_name: str = Form(...),
+    description: Optional[str] = Form(None),
+    target_ids: List[str] = Form(...),
+    configuration: Optional[str] = Form("{}"),  # JSON string
+    property_id: Optional[str] = Form(None),
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Create a new bulk operation with progress tracking"""
+    try:
+        # Parse configuration JSON
+        config = json.loads(configuration) if configuration else {}
+        
+        # Prepare operation data
+        operation_data = {
+            "operation_type": operation_type,
+            "operation_name": operation_name,
+            "description": description or "",
+            "initiated_by": current_user.id,
+            "property_id": property_id or getattr(current_user, "property_id", None),
+            "target_ids": target_ids,
+            "configuration": config
+        }
+        
+        # Create bulk operation
+        operation = await bulk_operation_service.create_bulk_operation(
+            operation_data,
+            user_role=current_user.role
+        )
+        
+        return success_response(
+            data=operation,
+            message=f"Bulk operation created successfully"
+        )
+        
+    except PermissionError as e:
+        return forbidden_response(str(e))
+    except Exception as e:
+        logger.error(f"Failed to create bulk operation: {e}")
+        return error_response(f"Failed to create bulk operation: {str(e)}")
+
+@app.post("/api/v2/bulk-operations/{operation_id}/start")
+async def start_bulk_operation(
+    operation_id: str,
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Start processing a bulk operation"""
+    try:
+        # Verify ownership or admin access
+        operation = await bulk_operation_service.get_operation(operation_id)
+        
+        if not operation:
+            return not_found_response("Operation not found")
+        
+        # Check permissions
+        if current_user.role != "hr" and operation["initiated_by"] != current_user.id:
+            return forbidden_response("You don't have permission to start this operation")
+        
+        # Start processing
+        result = await bulk_operation_service.start_processing(operation_id)
+        
+        return success_response(
+            data=result,
+            message="Bulk operation started successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to start bulk operation: {e}")
+        return error_response(f"Failed to start operation: {str(e)}")
+
+@app.get("/api/v2/bulk-operations/{operation_id}/progress")
+async def get_bulk_operation_progress(
+    operation_id: str,
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Get progress of a bulk operation"""
+    try:
+        # Get operation progress
+        progress = await bulk_operation_service.get_progress(operation_id)
+        
+        if not progress:
+            return not_found_response("Operation not found")
+        
+        # Check permissions
+        if current_user.role != "hr" and progress["initiated_by"] != current_user.id:
+            return forbidden_response("You don't have permission to view this operation")
+        
+        return success_response(data=progress)
+        
+    except Exception as e:
+        logger.error(f"Failed to get operation progress: {e}")
+        return error_response(f"Failed to get progress: {str(e)}")
+
+@app.post("/api/v2/bulk-operations/{operation_id}/cancel")
+async def cancel_bulk_operation(
+    operation_id: str,
+    reason: str = Form(...),
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Cancel a bulk operation"""
+    try:
+        # Get operation
+        operation = await bulk_operation_service.get_operation(operation_id)
+        
+        if not operation:
+            return not_found_response("Operation not found")
+        
+        # Check permissions
+        if current_user.role != "hr" and operation["initiated_by"] != current_user.id:
+            return forbidden_response("You don't have permission to cancel this operation")
+        
+        # Cancel operation
+        result = await bulk_operation_service.cancel_operation(
+            operation_id,
+            cancelled_by=current_user.id,
+            reason=reason
+        )
+        
+        return success_response(
+            data=result,
+            message="Operation cancelled successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to cancel operation: {e}")
+        return error_response(f"Failed to cancel operation: {str(e)}")
+
+@app.get("/api/v2/bulk-operations")
+async def list_bulk_operations(
+    status: Optional[BulkOperationStatus] = None,
+    operation_type: Optional[BulkOperationType] = None,
+    property_id: Optional[str] = None,
+    initiated_by: Optional[str] = None,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """List bulk operations with filters"""
+    try:
+        # Build filters
+        filters = {}
+        if status:
+            filters["status"] = status
+        if operation_type:
+            filters["operation_type"] = operation_type
+        
+        # Managers can only see their property's operations
+        if current_user.role == "manager":
+            filters["property_id"] = current_user.property_id
+        elif property_id:
+            filters["property_id"] = property_id
+            
+        if initiated_by:
+            filters["initiated_by"] = initiated_by
+        
+        # Get operations
+        operations = await bulk_operation_service.list_operations(
+            filters=filters,
+            limit=limit,
+            offset=offset
+        )
+        
+        return success_response(data=operations)
+        
+    except Exception as e:
+        logger.error(f"Failed to list operations: {e}")
+        return error_response(f"Failed to list operations: {str(e)}")
+
+@app.post("/api/v2/bulk-operations/{operation_id}/retry")
+async def retry_failed_items(
+    operation_id: str,
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Retry failed items in a bulk operation"""
+    try:
+        # Get operation
+        operation = await bulk_operation_service.get_operation(operation_id)
+        
+        if not operation:
+            return not_found_response("Operation not found")
+        
+        # Check permissions
+        if current_user.role != "hr" and operation["initiated_by"] != current_user.id:
+            return forbidden_response("You don't have permission to retry this operation")
+        
+        # Retry failed items
+        retry_operation = await bulk_operation_service.retry_failed_items(operation_id)
+        
+        return success_response(
+            data=retry_operation,
+            message="Retry operation created successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to retry operation: {e}")
+        return error_response(f"Failed to retry operation: {str(e)}")
+
+# Specialized bulk operation endpoints
+
+@app.post("/api/v2/bulk-operations/applications/approve")
+async def bulk_approve_applications_v2(
+    application_ids: List[str] = Form(...),
+    send_offer_letters: bool = Form(True),
+    schedule_onboarding: bool = Form(True),
+    notify_candidates: bool = Form(True),
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Bulk approve applications with enhanced options"""
+    try:
+        # Create bulk approval operation
+        operation = await bulk_application_ops.bulk_approve(
+            application_ids=application_ids,
+            approved_by=current_user.id,
+            options={
+                "send_offer_letters": send_offer_letters,
+                "schedule_onboarding": schedule_onboarding,
+                "notify_candidates": notify_candidates
+            }
+        )
+        
+        # Start processing immediately
+        await bulk_operation_service.start_processing(operation["id"])
+        
+        return success_response(
+            data={"operation_id": operation["id"]},
+            message=f"Bulk approval started for {len(application_ids)} applications"
+        )
+        
+    except Exception as e:
+        logger.error(f"Bulk approval failed: {e}")
+        return error_response(f"Bulk approval failed: {str(e)}")
+
+@app.post("/api/v2/bulk-operations/employees/onboard")
+async def bulk_onboard_employees(
+    employee_data: str = Form(...),  # JSON array of employee objects
+    start_date: date = Form(...),
+    send_welcome_email: bool = Form(True),
+    create_accounts: bool = Form(True),
+    assign_training: bool = Form(True),
+    current_user: User = Depends(require_hr_role)
+):
+    """Bulk onboard multiple employees"""
+    try:
+        # Parse employee data
+        employees = json.loads(employee_data)
+        
+        # Create bulk onboarding operation
+        operation = await bulk_employee_ops.bulk_onboard(
+            employees=employees,
+            initiated_by=current_user.id,
+            start_date=start_date.isoformat(),
+            options={
+                "send_welcome_email": send_welcome_email,
+                "create_accounts": create_accounts,
+                "assign_training": assign_training
+            }
+        )
+        
+        # Start processing
+        await bulk_operation_service.start_processing(operation["id"])
+        
+        return success_response(
+            data={"operation_id": operation["id"]},
+            message=f"Bulk onboarding started for {len(employees)} employees"
+        )
+        
+    except json.JSONDecodeError:
+        return validation_error_response("Invalid employee data format")
+    except Exception as e:
+        logger.error(f"Bulk onboarding failed: {e}")
+        return error_response(f"Bulk onboarding failed: {str(e)}")
+
+@app.post("/api/v2/bulk-operations/communications/email")
+async def send_bulk_email_campaign(
+    name: str = Form(...),
+    recipient_ids: List[str] = Form(...),
+    template: str = Form(...),
+    variables: str = Form("{}"),  # JSON string
+    schedule_for: Optional[datetime] = Form(None),
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Create and send bulk email campaign"""
+    try:
+        # Parse variables
+        vars_dict = json.loads(variables) if variables else {}
+        
+        # Create email campaign
+        campaign = await bulk_communication_service.create_email_campaign(
+            name=name,
+            recipients=recipient_ids,
+            template=template,
+            variables=vars_dict,
+            scheduled_for=schedule_for
+        )
+        
+        # Send immediately if not scheduled
+        if not schedule_for:
+            results = await bulk_communication_service.send_campaign(campaign["id"])
+            return success_response(
+                data=results,
+                message=f"Email campaign sent to {len(recipient_ids)} recipients"
+            )
+        else:
+            return success_response(
+                data=campaign,
+                message=f"Email campaign scheduled for {schedule_for}"
+            )
+        
+    except json.JSONDecodeError:
+        return validation_error_response("Invalid variables format")
+    except Exception as e:
+        logger.error(f"Email campaign failed: {e}")
+        return error_response(f"Email campaign failed: {str(e)}")
+
+@app.get("/api/v2/bulk-operations/{operation_id}/audit-log")
+async def get_bulk_operation_audit_log(
+    operation_id: str,
+    current_user: User = Depends(require_hr_role)
+):
+    """Get audit log for a bulk operation"""
+    try:
+        # Get audit trail
+        audit_trail = await bulk_audit_service.get_audit_trail(operation_id)
+        
+        if not audit_trail:
+            return not_found_response("No audit log found for this operation")
+        
+        return success_response(data=audit_trail)
+        
+    except Exception as e:
+        logger.error(f"Failed to get audit log: {e}")
+        return error_response(f"Failed to get audit log: {str(e)}")
+
+@app.get("/api/v2/bulk-operations/compliance-report")
+async def generate_compliance_report(
+    start_date: date = Query(...),
+    end_date: date = Query(...),
+    operation_types: Optional[List[str]] = Query(None),
+    current_user: User = Depends(require_hr_role)
+):
+    """Generate compliance report for bulk operations"""
+    try:
+        # Generate report
+        report = await bulk_audit_service.generate_compliance_report(
+            start_date=datetime.combine(start_date, datetime.min.time()),
+            end_date=datetime.combine(end_date, datetime.max.time()),
+            operation_types=operation_types
+        )
+        
+        return success_response(data=report)
+        
+    except Exception as e:
+        logger.error(f"Failed to generate compliance report: {e}")
+        return error_response(f"Failed to generate report: {str(e)}")
 
 # ==========================================
 # APPLICATION HISTORY & ENHANCED WORKFLOW (Phase 1.2)

@@ -1,1 +1,0 @@
-{"detail":[{"type":"value_error","loc":["body","employee_data","ssn"],"msg":"Value error, FEDERAL COMPLIANCE: Invalid SSN area number 987. This SSN format is not issued by the Social Security Administration.","input":"987-65-4321","ctx":{"error":{}}}]}

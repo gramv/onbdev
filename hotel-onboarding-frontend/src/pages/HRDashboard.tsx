@@ -56,7 +56,10 @@ export default function HRDashboard() {
       }
       
       const response = await axios.get('http://127.0.0.1:8000/hr/dashboard-stats', axiosConfig)
-      setStats(response.data)
+      // Handle the standardized API response format
+      const statsData = response.data.data || response.data
+      console.log('Dashboard Stats Response:', statsData)
+      setStats(statsData)
       if (retryCount > 0) {
         showSuccessToast('Dashboard refreshed', 'Stats have been updated successfully')
       }
