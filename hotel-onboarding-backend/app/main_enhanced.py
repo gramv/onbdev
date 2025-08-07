@@ -5,7 +5,7 @@ Enhanced with standardized API response formats
 """
 from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, FileResponse, Response
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, timedelta, timezone
@@ -26,9 +26,22 @@ logger = logging.getLogger(__name__)
 # Import our enhanced models and authentication
 from .models import *
 from .models_enhanced import *
-from .auth import OnboardingTokenManager, PasswordManager
+from .auth import (
+    OnboardingTokenManager, PasswordManager, 
+    get_current_user, get_current_user_optional,
+    require_manager_role, require_hr_role, require_hr_or_manager_role,
+    security
+)
 from .services.onboarding_orchestrator import OnboardingOrchestrator
 from .services.form_update_service import FormUpdateService
+
+# Import Task 2 Models
+from .models import (
+    AuditLog, AuditLogAction, Notification, NotificationChannel,
+    NotificationPriority, NotificationStatus, NotificationType,
+    AnalyticsEvent, AnalyticsEventType, ReportTemplate, ReportType,
+    ReportFormat, ReportSchedule, SavedFilter
+)
 
 # Import Supabase service and email service
 from .supabase_service_enhanced import EnhancedSupabaseService
@@ -39,6 +52,12 @@ from .policy_document_generator import PolicyDocumentGenerator
 
 # Import PDF API router
 from .pdf_api import router as pdf_router
+
+# Import WebSocket router and manager
+from .websocket_router import router as websocket_router
+from .websocket_manager import websocket_manager
+from .analytics_router import router as analytics_router
+from .notification_router import router as notification_router
 
 # Import OCR service
 from .i9_ocr_service import I9DocumentOCRService
@@ -128,7 +147,6 @@ app.add_middleware(
 # Initialize services
 token_manager = OnboardingTokenManager()
 password_manager = PasswordManager()
-security = HTTPBearer()
 supabase_service = EnhancedSupabaseService()
 
 # Initialize GROQ client
@@ -139,6 +157,9 @@ ocr_service = I9DocumentOCRService(groq_client)
 
 # Include PDF API router
 app.include_router(pdf_router)
+app.include_router(websocket_router)
+app.include_router(analytics_router)
+app.include_router(notification_router)
 
 # Initialize enhanced services
 onboarding_orchestrator = None
@@ -175,6 +196,10 @@ async def shutdown_event():
     if onboarding_scheduler:
         onboarding_scheduler.stop()
         print("✅ Scheduler stopped gracefully")
+    
+    # Shutdown WebSocket manager
+    await websocket_manager.shutdown()
+    print("✅ WebSocket manager stopped gracefully")
 
 async def initialize_test_data():
     """Initialize Supabase database with test data"""
@@ -234,76 +259,6 @@ async def initialize_test_data():
     except Exception as e:
         logger.error(f"Test data initialization error: {e}")
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
-    """JWT token validation with Supabase lookup"""
-    token = credentials.credentials
-    
-    try:
-        payload = jwt.decode(token, os.getenv("JWT_SECRET_KEY", "fallback-secret"), algorithms=["HS256"])
-        token_type = payload.get("token_type")
-        
-        if token_type == "manager_auth":
-            manager_id = payload.get("manager_id")
-            user = supabase_service.get_user_by_id_sync(manager_id)
-            if not user or user.role != "manager":
-                raise HTTPException(
-                    status_code=401, 
-                    detail="Manager not found"
-                )
-            return user
-            
-        elif token_type == "hr_auth":
-            user_id = payload.get("user_id")
-            user = supabase_service.get_user_by_id_sync(user_id)
-            if not user or user.role != "hr":
-                raise HTTPException(
-                    status_code=401, 
-                    detail="HR user not found"
-                )
-            return user
-        
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid token type"
-        )
-        
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=401, 
-            detail="Token expired"
-        )
-    except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=401, 
-            detail="Invalid token"
-        )
-
-def require_manager_role(current_user: User = Depends(get_current_user)) -> User:
-    """Require manager role"""
-    if current_user.role != "manager":
-        raise HTTPException(
-            status_code=403, 
-            detail="Manager access required"
-        )
-    return current_user
-
-def require_hr_role(current_user: User = Depends(get_current_user)) -> User:
-    """Require HR role"""
-    if current_user.role != "hr":
-        raise HTTPException(
-            status_code=403, 
-            detail="HR access required"
-        )
-    return current_user
-
-def require_hr_or_manager_role(current_user: User = Depends(get_current_user)) -> User:
-    """Require HR or Manager role"""
-    if current_user.role not in ["hr", "manager"]:
-        raise HTTPException(
-            status_code=403, 
-            detail="HR or Manager access required"
-        )
-    return current_user
 
 @app.get("/healthz")
 async def healthz():
@@ -7208,6 +7163,430 @@ async def process_document_with_ai(
         logger.error(f"Document processing error: {str(e)}")
         return error_response(
             message="Failed to process document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# ============================================================================
+# Task 2: Database Schema Enhancement API Endpoints
+# ============================================================================
+
+# Audit Log Endpoints
+@app.get("/api/audit-logs")
+async def get_audit_logs(
+    current_user: User = Depends(get_current_user),
+    user_id: Optional[str] = None,
+    property_id: Optional[str] = None,
+    resource_type: Optional[str] = None,
+    action: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    """Get audit logs with optional filtering (HR only)"""
+    try:
+        # Check if user is HR
+        if current_user.role != UserRole.HR.value:
+            return error_response(
+                message="Only HR users can access audit logs",
+                error_code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+                status_code=403
+            )
+        
+        filters = {}
+        if user_id:
+            filters["user_id"] = user_id
+        if property_id:
+            filters["property_id"] = property_id
+        if resource_type:
+            filters["resource_type"] = resource_type
+        if action:
+            filters["action"] = action
+        if date_from:
+            filters["date_from"] = date_from
+        if date_to:
+            filters["date_to"] = date_to
+        
+        logs = await supabase_service.get_audit_logs(filters, limit, offset)
+        
+        return success_response(
+            data=logs,
+            message=f"Retrieved {len(logs)} audit logs"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get audit logs: {e}")
+        return error_response(
+            message="Failed to retrieve audit logs",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Notification Endpoints
+@app.get("/api/notifications")
+async def get_notifications(
+    current_user: User = Depends(get_current_user),
+    status: Optional[str] = None,
+    unread_only: bool = False,
+    limit: int = 50
+):
+    """Get notifications for current user"""
+    try:
+        user_id = current_user.id
+        property_id = current_user.property_id if current_user.role == UserRole.MANAGER.value else None
+        
+        notifications = await supabase_service.get_notifications(
+            user_id=user_id,
+            property_id=property_id,
+            status=status,
+            unread_only=unread_only,
+            limit=limit
+        )
+        
+        return success_response(
+            data=notifications,
+            message=f"Retrieved {len(notifications)} notifications"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get notifications: {e}")
+        return error_response(
+            message="Failed to retrieve notifications",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/notifications/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Mark a notification as read"""
+    try:
+        success = await supabase_service.mark_notification_read(notification_id)
+        
+        if success:
+            return success_response(
+                data={"notification_id": notification_id},
+                message="Notification marked as read"
+            )
+        else:
+            return error_response(
+                message="Failed to mark notification as read",
+                error_code=ErrorCode.RESOURCE_NOT_FOUND,
+                status_code=404
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to mark notification as read: {e}")
+        return error_response(
+            message="Failed to update notification",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/notifications/mark-read")
+async def mark_notifications_read_bulk(
+    notification_ids: List[str],
+    current_user: User = Depends(get_current_user)
+):
+    """Mark multiple notifications as read"""
+    try:
+        success = await supabase_service.mark_notifications_read_bulk(notification_ids)
+        
+        if success:
+            return success_response(
+                data={"count": len(notification_ids)},
+                message=f"Marked {len(notification_ids)} notifications as read"
+            )
+        else:
+            return error_response(
+                message="Failed to mark notifications as read",
+                error_code=ErrorCode.PROCESSING_ERROR,
+                status_code=400
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to mark notifications as read: {e}")
+        return error_response(
+            message="Failed to update notifications",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Analytics Endpoints
+@app.post("/api/analytics/track")
+async def track_analytics_event(
+    request: Request,
+    event_type: AnalyticsEventType,
+    event_name: str,
+    session_id: str,
+    properties: Optional[Dict[str, Any]] = None,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """Track an analytics event"""
+    try:
+        event_data = {
+            "event_type": event_type.value,
+            "event_name": event_name,
+            "session_id": session_id,
+            "properties": properties or {}
+        }
+        
+        if current_user:
+            event_data["user_id"] = current_user.id
+            if current_user.property_id:
+                event_data["property_id"] = current_user.property_id
+        
+        # Add browser information from request headers
+        event_data["user_agent"] = request.headers.get("user-agent")
+        event_data["ip_address"] = request.client.host if request.client else None
+        
+        result = await supabase_service.create_analytics_event(event_data)
+        
+        return success_response(
+            data={"event_id": result.get("id") if result else None},
+            message="Event tracked"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to track analytics event: {e}")
+        # Don't fail the request for analytics errors
+        return success_response(
+            data=None,
+            message="Analytics tracking failed silently"
+        )
+
+@app.get("/api/analytics/events")
+async def get_analytics_events(
+    current_user: User = Depends(get_current_user),
+    event_type: Optional[str] = None,
+    event_name: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    aggregation: Optional[str] = None,
+    limit: int = 1000
+):
+    """Get analytics events (HR only)"""
+    try:
+        # Check if user is HR
+        if current_user.role != UserRole.HR.value:
+            return error_response(
+                message="Only HR users can access analytics",
+                error_code=ErrorCode.INSUFFICIENT_PERMISSIONS,
+                status_code=403
+            )
+        
+        filters = {}
+        if event_type:
+            filters["event_type"] = event_type
+        if event_name:
+            filters["event_name"] = event_name
+        if date_from:
+            filters["date_from"] = date_from
+        if date_to:
+            filters["date_to"] = date_to
+        
+        events = await supabase_service.get_analytics_events(filters, aggregation, limit)
+        
+        return success_response(
+            data=events,
+            message="Analytics data retrieved"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get analytics events: {e}")
+        return error_response(
+            message="Failed to retrieve analytics",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Report Template Endpoints
+@app.get("/api/reports/templates")
+async def get_report_templates(
+    current_user: User = Depends(get_current_user),
+    report_type: Optional[str] = None,
+    active_only: bool = True
+):
+    """Get report templates"""
+    try:
+        user_id = current_user.id
+        property_id = current_user.property_id if current_user.role == UserRole.MANAGER.value else None
+        
+        templates = await supabase_service.get_report_templates(
+            user_id=user_id,
+            property_id=property_id,
+            report_type=report_type,
+            active_only=active_only
+        )
+        
+        return success_response(
+            data=templates,
+            message=f"Retrieved {len(templates)} report templates"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get report templates: {e}")
+        return error_response(
+            message="Failed to retrieve report templates",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/reports/templates")
+async def create_report_template(
+    template: ReportTemplate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new report template"""
+    try:
+        template_data = template.dict()
+        template_data["created_by"] = current_user.id
+        
+        # Managers can only create property-specific templates
+        if current_user.role == UserRole.MANAGER.value:
+            template_data["property_id"] = current_user.property_id
+        
+        result = await supabase_service.create_report_template(template_data)
+        
+        if result:
+            return success_response(
+                data=result,
+                message="Report template created"
+            )
+        else:
+            return error_response(
+                message="Failed to create report template",
+                error_code=ErrorCode.PROCESSING_ERROR,
+                status_code=400
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to create report template: {e}")
+        return error_response(
+            message="Failed to create report template",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.put("/api/reports/templates/{template_id}")
+async def update_report_template(
+    template_id: str,
+    updates: Dict[str, Any],
+    current_user: User = Depends(get_current_user)
+):
+    """Update a report template"""
+    try:
+        result = await supabase_service.update_report_template(template_id, updates)
+        
+        if result:
+            return success_response(
+                data=result,
+                message="Report template updated"
+            )
+        else:
+            return error_response(
+                message="Failed to update report template",
+                error_code=ErrorCode.RESOURCE_NOT_FOUND,
+                status_code=404
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to update report template: {e}")
+        return error_response(
+            message="Failed to update report template",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.delete("/api/reports/templates/{template_id}")
+async def delete_report_template(
+    template_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a report template"""
+    try:
+        success = await supabase_service.delete_report_template(template_id)
+        
+        if success:
+            return success_response(
+                data={"template_id": template_id},
+                message="Report template deleted"
+            )
+        else:
+            return error_response(
+                message="Failed to delete report template",
+                error_code=ErrorCode.RESOURCE_NOT_FOUND,
+                status_code=404
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to delete report template: {e}")
+        return error_response(
+            message="Failed to delete report template",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# Saved Filter Endpoints
+@app.get("/api/filters")
+async def get_saved_filters(
+    filter_type: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get saved filters for current user"""
+    try:
+        user_id = current_user.id
+        
+        filters = await supabase_service.get_saved_filters(user_id, filter_type)
+        
+        return success_response(
+            data=filters,
+            message=f"Retrieved {len(filters)} saved filters"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get saved filters: {e}")
+        return error_response(
+            message="Failed to retrieve saved filters",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/filters")
+async def create_saved_filter(
+    filter_data: SavedFilter,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new saved filter"""
+    try:
+        data = filter_data.dict()
+        data["user_id"] = current_user.id
+        
+        # Managers can only create property-specific filters
+        if current_user.role == UserRole.MANAGER.value:
+            data["property_id"] = current_user.property_id
+        
+        result = await supabase_service.create_saved_filter(data)
+        
+        if result:
+            return success_response(
+                data=result,
+                message="Saved filter created"
+            )
+        else:
+            return error_response(
+                message="Failed to create saved filter",
+                error_code=ErrorCode.PROCESSING_ERROR,
+                status_code=400
+            )
+            
+    except Exception as e:
+        logger.error(f"Failed to create saved filter: {e}")
+        return error_response(
+            message="Failed to create saved filter",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )

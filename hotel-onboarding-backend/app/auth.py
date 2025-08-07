@@ -7,9 +7,21 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from passlib.context import CryptContext
 import os
+import logging
 from dotenv import load_dotenv
+from fastapi import HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 load_dotenv()
+
+# Import User model and supabase service (avoiding circular imports)
+from .models import User
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# HTTP Bearer security scheme
+security = HTTPBearer()
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -180,3 +192,149 @@ class PasswordManager:
     def generate_secure_code(length: int = 8) -> str:
         """Generate a secure random code for access codes"""
         return secrets.token_urlsafe(length)[:length].upper()
+
+
+def create_token(user_id: str, role: str, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a JWT token for WebSocket authentication
+    
+    Args:
+        user_id: User ID
+        role: User role (hr, manager, employee)
+        expires_delta: Token expiration time (default: 24 hours)
+    
+    Returns:
+        JWT token string
+    """
+    if expires_delta is None:
+        expires_delta = timedelta(hours=24)
+    
+    expire = datetime.now(timezone.utc) + expires_delta
+    
+    payload = {
+        "sub": user_id,
+        "role": role,
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "token_type": "websocket_auth"
+    }
+    
+    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return token
+
+
+def decode_token(token: str) -> Optional[Dict[str, Any]]:
+    """
+    Decode and verify a JWT token
+    
+    Args:
+        token: JWT token string
+        
+    Returns:
+        Decoded token payload if valid, None otherwise
+    """
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        logger.warning("Token has expired")
+        return None
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Invalid token: {e}")
+        return None
+
+
+# Import supabase service here to avoid circular imports
+def get_supabase_service():
+    """Get supabase service instance to avoid circular imports"""
+    from .supabase_service_enhanced import EnhancedSupabaseService
+    return EnhancedSupabaseService()
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
+    """JWT token validation with Supabase lookup"""
+    token = credentials.credentials
+    
+    try:
+        payload = jwt.decode(token, os.getenv("JWT_SECRET_KEY", "fallback-secret"), algorithms=["HS256"])
+        token_type = payload.get("token_type")
+        
+        # Get supabase service instance
+        supabase_service = get_supabase_service()
+        
+        if token_type == "manager_auth":
+            manager_id = payload.get("manager_id")
+            user = supabase_service.get_user_by_id_sync(manager_id)
+            if not user or user.role != "manager":
+                raise HTTPException(
+                    status_code=401, 
+                    detail="Manager not found"
+                )
+            return user
+            
+        elif token_type == "hr_auth":
+            user_id = payload.get("user_id")
+            user = supabase_service.get_user_by_id_sync(user_id)
+            if not user or user.role != "hr":
+                raise HTTPException(
+                    status_code=401, 
+                    detail="HR user not found"
+                )
+            return user
+        
+        raise HTTPException(
+            status_code=401, 
+            detail="Invalid token type"
+        )
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401, 
+            detail="Token expired"
+        )
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=401, 
+            detail="Invalid token"
+        )
+
+
+def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[User]:
+    """Optional JWT token validation - returns None if no token provided"""
+    if not credentials:
+        return None
+    
+    try:
+        return get_current_user(credentials)
+    except HTTPException:
+        return None
+
+
+def require_manager_role(current_user: User = Depends(get_current_user)) -> User:
+    """Require manager role"""
+    if current_user.role != "manager":
+        raise HTTPException(
+            status_code=403, 
+            detail="Manager access required"
+        )
+    return current_user
+
+
+def require_hr_role(current_user: User = Depends(get_current_user)) -> User:
+    """Require HR role"""
+    if current_user.role != "hr":
+        raise HTTPException(
+            status_code=403, 
+            detail="HR access required"
+        )
+    return current_user
+
+
+def require_hr_or_manager_role(current_user: User = Depends(get_current_user)) -> User:
+    """Require HR or Manager role"""
+    if current_user.role not in ["hr", "manager"]:
+        raise HTTPException(
+            status_code=403, 
+            detail="HR or Manager access required"
+        )
+    return current_user
