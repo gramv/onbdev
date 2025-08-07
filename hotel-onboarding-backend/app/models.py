@@ -1449,3 +1449,212 @@ class DocumentAccessLog(BaseModel):
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
     purpose: Optional[str] = None
+
+# ============================================================================
+# Task 2: Database Schema Enhancement Models
+# ============================================================================
+
+class AuditLogAction(str, Enum):
+    """Types of audit log actions"""
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    VIEW = "view"
+    APPROVE = "approve"
+    REJECT = "reject"
+    SUBMIT = "submit"
+    LOGIN = "login"
+    LOGOUT = "logout"
+    EXPORT = "export"
+    IMPORT = "import"
+    ASSIGN = "assign"
+    UNASSIGN = "unassign"
+
+class AuditLog(BaseModel):
+    """Comprehensive audit logging model"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    user_id: str
+    user_email: str
+    user_role: UserRole
+    action: AuditLogAction
+    resource_type: str  # e.g., "employee", "application", "property"
+    resource_id: str
+    property_id: Optional[str] = None
+    description: str
+    old_values: Optional[Dict[str, Any]] = None
+    new_values: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    session_id: Optional[str] = None
+    success: bool = True
+    error_message: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class NotificationChannel(str, Enum):
+    """Notification delivery channels"""
+    EMAIL = "email"
+    SMS = "sms"
+    IN_APP = "in_app"
+    WEBHOOK = "webhook"
+
+class NotificationPriority(str, Enum):
+    """Notification priority levels"""
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+    URGENT = "urgent"
+
+class NotificationStatus(str, Enum):
+    """Notification delivery status"""
+    PENDING = "pending"
+    SENT = "sent"
+    DELIVERED = "delivered"
+    READ = "read"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+class NotificationType(str, Enum):
+    """Types of notifications"""
+    APPLICATION_SUBMITTED = "application_submitted"
+    APPLICATION_APPROVED = "application_approved"
+    APPLICATION_REJECTED = "application_rejected"
+    ONBOARDING_STARTED = "onboarding_started"
+    ONBOARDING_COMPLETED = "onboarding_completed"
+    DOCUMENT_REQUIRED = "document_required"
+    DEADLINE_REMINDER = "deadline_reminder"
+    SYSTEM_ALERT = "system_alert"
+    TASK_ASSIGNED = "task_assigned"
+    COMPLIANCE_WARNING = "compliance_warning"
+
+class Notification(BaseModel):
+    """Notification model for multi-channel alerts"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+    type: NotificationType
+    priority: NotificationPriority = NotificationPriority.NORMAL
+    status: NotificationStatus = NotificationStatus.PENDING
+    channel: NotificationChannel
+    recipient_id: str
+    recipient_email: Optional[str] = None
+    recipient_phone: Optional[str] = None
+    sender_id: Optional[str] = None
+    property_id: Optional[str] = None
+    subject: str
+    message: str
+    html_content: Optional[str] = None
+    data: Dict[str, Any] = Field(default_factory=dict)
+    scheduled_for: Optional[datetime] = None
+    sent_at: Optional[datetime] = None
+    delivered_at: Optional[datetime] = None
+    read_at: Optional[datetime] = None
+    failed_at: Optional[datetime] = None
+    retry_count: int = 0
+    max_retries: int = 3
+    error_message: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class AnalyticsEventType(str, Enum):
+    """Types of analytics events"""
+    PAGE_VIEW = "page_view"
+    FORM_SUBMIT = "form_submit"
+    BUTTON_CLICK = "button_click"
+    FILE_UPLOAD = "file_upload"
+    SEARCH = "search"
+    FILTER = "filter"
+    EXPORT = "export"
+    ERROR = "error"
+    PERFORMANCE = "performance"
+    CUSTOM = "custom"
+
+class AnalyticsEvent(BaseModel):
+    """Analytics event tracking model"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    event_type: AnalyticsEventType
+    event_name: str
+    user_id: Optional[str] = None
+    session_id: str
+    property_id: Optional[str] = None
+    page_url: Optional[str] = None
+    page_title: Optional[str] = None
+    referrer_url: Optional[str] = None
+    user_agent: Optional[str] = None
+    ip_address: Optional[str] = None
+    device_type: Optional[str] = None  # desktop, mobile, tablet
+    browser: Optional[str] = None
+    os: Optional[str] = None
+    screen_resolution: Optional[str] = None
+    duration_ms: Optional[int] = None
+    properties: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class ReportType(str, Enum):
+    """Types of reports"""
+    EMPLOYEE_STATUS = "employee_status"
+    COMPLIANCE = "compliance"
+    ONBOARDING_PROGRESS = "onboarding_progress"
+    APPLICATION_METRICS = "application_metrics"
+    PROPERTY_SUMMARY = "property_summary"
+    USER_ACTIVITY = "user_activity"
+    DOCUMENT_STATUS = "document_status"
+    AUDIT_LOG = "audit_log"
+    CUSTOM = "custom"
+
+class ReportFormat(str, Enum):
+    """Report output formats"""
+    PDF = "pdf"
+    EXCEL = "excel"
+    CSV = "csv"
+    JSON = "json"
+    HTML = "html"
+
+class ReportSchedule(str, Enum):
+    """Report schedule frequencies"""
+    ONCE = "once"
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+    YEARLY = "yearly"
+
+class ReportTemplate(BaseModel):
+    """Report template configuration model"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: Optional[datetime] = None
+    name: str
+    description: Optional[str] = None
+    type: ReportType
+    format: ReportFormat
+    schedule: Optional[ReportSchedule] = None
+    schedule_config: Optional[Dict[str, Any]] = None  # cron expression, time, day of week, etc.
+    filters: Dict[str, Any] = Field(default_factory=dict)
+    columns: List[str] = Field(default_factory=list)
+    grouping: Optional[List[str]] = None
+    sorting: Optional[Dict[str, str]] = None  # column: asc/desc
+    aggregations: Optional[Dict[str, str]] = None  # column: sum/avg/count/etc
+    property_id: Optional[str] = None  # null for global reports
+    created_by: str
+    is_active: bool = True
+    last_run_at: Optional[datetime] = None
+    next_run_at: Optional[datetime] = None
+    recipients: List[str] = Field(default_factory=list)
+    email_subject: Optional[str] = None
+    email_body: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class SavedFilter(BaseModel):
+    """Saved filter configuration for dashboards and lists"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    name: str
+    description: Optional[str] = None
+    filter_type: str  # "employee", "application", "property", etc.
+    filters: Dict[str, Any]
+    user_id: str
+    property_id: Optional[str] = None
+    is_default: bool = False
+    is_shared: bool = False
+    metadata: Dict[str, Any] = Field(default_factory=dict)

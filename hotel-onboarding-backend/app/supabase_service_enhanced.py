@@ -35,7 +35,12 @@ from cryptography.fernet import Fernet
 from .models import (
     User, Property, JobApplication, Employee, 
     ApplicationStatus, UserRole, JobApplicationData,
-    OnboardingSession, OnboardingStatus, OnboardingStep
+    OnboardingSession, OnboardingStatus, OnboardingStep,
+    # Task 2 Models
+    AuditLog, AuditLogAction, Notification, NotificationChannel,
+    NotificationPriority, NotificationStatus, NotificationType,
+    AnalyticsEvent, AnalyticsEventType, ReportTemplate, ReportType,
+    ReportFormat, ReportSchedule, SavedFilter
 )
 
 # Configure logging
@@ -2504,6 +2509,344 @@ class EnhancedSupabaseService:
         except Exception as e:
             logger.error(f"Failed to get onboarding step data for employee {employee_id}, step {step_id}: {e}")
             return None
+
+    # ============================================================================
+    # Task 2: Database Schema Enhancement Methods
+    # ============================================================================
+    
+    # Audit Log Methods
+    async def create_audit_log(self, audit_log: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a comprehensive audit log entry"""
+        try:
+            # Ensure required fields
+            if "id" not in audit_log:
+                audit_log["id"] = str(uuid.uuid4())
+            if "timestamp" not in audit_log:
+                audit_log["timestamp"] = datetime.now(timezone.utc).isoformat()
+            
+            result = self.admin_client.table("audit_logs").insert(audit_log).execute()
+            
+            if result.data:
+                logger.info(f"Audit log created: {audit_log['action']} on {audit_log['resource_type']}")
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+            return None
+    
+    async def get_audit_logs(self, filters: Optional[Dict[str, Any]] = None, 
+                            limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """Retrieve audit logs with optional filtering"""
+        try:
+            query = self.admin_client.table("audit_logs").select("*")
+            
+            if filters:
+                if "user_id" in filters:
+                    query = query.eq("user_id", filters["user_id"])
+                if "property_id" in filters:
+                    query = query.eq("property_id", filters["property_id"])
+                if "resource_type" in filters:
+                    query = query.eq("resource_type", filters["resource_type"])
+                if "action" in filters:
+                    query = query.eq("action", filters["action"])
+                if "date_from" in filters:
+                    query = query.gte("timestamp", filters["date_from"])
+                if "date_to" in filters:
+                    query = query.lte("timestamp", filters["date_to"])
+            
+            result = query.order("timestamp", desc=True).limit(limit).offset(offset).execute()
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get audit logs: {e}")
+            return []
+    
+    # Notification Methods
+    async def create_notification(self, notification: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new notification"""
+        try:
+            # Ensure required fields
+            if "id" not in notification:
+                notification["id"] = str(uuid.uuid4())
+            if "created_at" not in notification:
+                notification["created_at"] = datetime.now(timezone.utc).isoformat()
+            if "status" not in notification:
+                notification["status"] = "pending"
+            
+            result = self.client.table("notifications").insert(notification).execute()
+            
+            if result.data:
+                logger.info(f"Notification created: {notification['type']} for {notification['recipient_id']}")
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to create notification: {e}")
+            return None
+    
+    async def get_notifications(self, user_id: Optional[str] = None, 
+                               property_id: Optional[str] = None,
+                               status: Optional[str] = None,
+                               unread_only: bool = False,
+                               limit: int = 50) -> List[Dict[str, Any]]:
+        """Get notifications with optional filtering"""
+        try:
+            query = self.client.table("notifications").select("*")
+            
+            if user_id:
+                query = query.eq("recipient_id", user_id)
+            if property_id:
+                query = query.eq("property_id", property_id)
+            if status:
+                query = query.eq("status", status)
+            if unread_only:
+                query = query.neq("status", "read")
+            
+            result = query.order("created_at", desc=True).limit(limit).execute()
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get notifications: {e}")
+            return []
+    
+    async def mark_notification_read(self, notification_id: str) -> bool:
+        """Mark a notification as read"""
+        try:
+            result = self.client.table("notifications").update({
+                "status": "read",
+                "read_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq("id", notification_id).execute()
+            
+            if result.data:
+                logger.info(f"Notification {notification_id} marked as read")
+                return True
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to mark notification as read: {e}")
+            return False
+    
+    async def mark_notifications_read_bulk(self, notification_ids: List[str]) -> bool:
+        """Mark multiple notifications as read"""
+        try:
+            result = self.client.table("notifications").update({
+                "status": "read",
+                "read_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).in_("id", notification_ids).execute()
+            
+            if result.data:
+                logger.info(f"Marked {len(notification_ids)} notifications as read")
+                return True
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to mark notifications as read: {e}")
+            return False
+    
+    # Analytics Event Methods
+    async def create_analytics_event(self, event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Track an analytics event"""
+        try:
+            # Ensure required fields
+            if "id" not in event:
+                event["id"] = str(uuid.uuid4())
+            if "timestamp" not in event:
+                event["timestamp"] = datetime.now(timezone.utc).isoformat()
+            
+            result = self.client.table("analytics_events").insert(event).execute()
+            
+            if result.data:
+                logger.debug(f"Analytics event tracked: {event['event_type']} - {event['event_name']}")
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to create analytics event: {e}")
+            return None
+    
+    async def get_analytics_events(self, filters: Optional[Dict[str, Any]] = None,
+                                  aggregation: Optional[str] = None,
+                                  limit: int = 1000) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
+        """Retrieve analytics events with optional aggregation"""
+        try:
+            query = self.client.table("analytics_events").select("*")
+            
+            if filters:
+                if "user_id" in filters:
+                    query = query.eq("user_id", filters["user_id"])
+                if "property_id" in filters:
+                    query = query.eq("property_id", filters["property_id"])
+                if "event_type" in filters:
+                    query = query.eq("event_type", filters["event_type"])
+                if "event_name" in filters:
+                    query = query.eq("event_name", filters["event_name"])
+                if "date_from" in filters:
+                    query = query.gte("timestamp", filters["date_from"])
+                if "date_to" in filters:
+                    query = query.lte("timestamp", filters["date_to"])
+            
+            result = query.order("timestamp", desc=True).limit(limit).execute()
+            
+            if aggregation and result.data:
+                # Perform client-side aggregation
+                return self._aggregate_analytics(result.data, aggregation)
+            
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get analytics events: {e}")
+            return []
+    
+    def _aggregate_analytics(self, events: List[Dict[str, Any]], aggregation: str) -> Dict[str, Any]:
+        """Perform client-side aggregation of analytics data"""
+        aggregated = {
+            "total_events": len(events),
+            "unique_users": len(set(e.get("user_id") for e in events if e.get("user_id"))),
+            "unique_sessions": len(set(e.get("session_id") for e in events if e.get("session_id"))),
+        }
+        
+        if aggregation == "by_event_type":
+            event_types = {}
+            for event in events:
+                event_type = event.get("event_type", "unknown")
+                event_types[event_type] = event_types.get(event_type, 0) + 1
+            aggregated["by_event_type"] = event_types
+            
+        elif aggregation == "by_page":
+            pages = {}
+            for event in events:
+                page = event.get("page_title", "unknown")
+                pages[page] = pages.get(page, 0) + 1
+            aggregated["by_page"] = pages
+            
+        elif aggregation == "by_property":
+            properties = {}
+            for event in events:
+                prop_id = event.get("property_id", "global")
+                properties[prop_id] = properties.get(prop_id, 0) + 1
+            aggregated["by_property"] = properties
+        
+        return aggregated
+    
+    # Report Template Methods
+    async def create_report_template(self, template: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new report template"""
+        try:
+            # Ensure required fields
+            if "id" not in template:
+                template["id"] = str(uuid.uuid4())
+            if "created_at" not in template:
+                template["created_at"] = datetime.now(timezone.utc).isoformat()
+            
+            result = self.client.table("report_templates").insert(template).execute()
+            
+            if result.data:
+                logger.info(f"Report template created: {template['name']}")
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to create report template: {e}")
+            return None
+    
+    async def get_report_templates(self, user_id: Optional[str] = None,
+                                  property_id: Optional[str] = None,
+                                  report_type: Optional[str] = None,
+                                  active_only: bool = True) -> List[Dict[str, Any]]:
+        """Get report templates with optional filtering"""
+        try:
+            query = self.client.table("report_templates").select("*")
+            
+            if user_id:
+                query = query.eq("created_by", user_id)
+            if property_id:
+                # Get templates for this property or global templates
+                query = query.or_(f"property_id.eq.{property_id},property_id.is.null")
+            if report_type:
+                query = query.eq("type", report_type)
+            if active_only:
+                query = query.eq("is_active", True)
+            
+            result = query.order("created_at", desc=True).execute()
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get report templates: {e}")
+            return []
+    
+    async def update_report_template(self, template_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update a report template"""
+        try:
+            updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+            
+            result = self.client.table("report_templates").update(updates).eq("id", template_id).execute()
+            
+            if result.data:
+                logger.info(f"Report template {template_id} updated")
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to update report template: {e}")
+            return None
+    
+    async def delete_report_template(self, template_id: str) -> bool:
+        """Delete a report template (soft delete by marking inactive)"""
+        try:
+            result = self.client.table("report_templates").update({
+                "is_active": False,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }).eq("id", template_id).execute()
+            
+            if result.data:
+                logger.info(f"Report template {template_id} deleted")
+                return True
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to delete report template: {e}")
+            return False
+    
+    # Saved Filter Methods
+    async def create_saved_filter(self, filter_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a saved filter for dashboards"""
+        try:
+            if "id" not in filter_data:
+                filter_data["id"] = str(uuid.uuid4())
+            if "created_at" not in filter_data:
+                filter_data["created_at"] = datetime.now(timezone.utc).isoformat()
+            
+            result = self.client.table("saved_filters").insert(filter_data).execute()
+            
+            if result.data:
+                logger.info(f"Saved filter created: {filter_data['name']}")
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to create saved filter: {e}")
+            return None
+    
+    async def get_saved_filters(self, user_id: str, filter_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get saved filters for a user"""
+        try:
+            query = self.client.table("saved_filters").select("*")
+            
+            # Get user's filters and shared filters
+            query = query.or_(f"user_id.eq.{user_id},is_shared.eq.true")
+            
+            if filter_type:
+                query = query.eq("filter_type", filter_type)
+            
+            result = query.order("created_at", desc=True).execute()
+            return result.data if result.data else []
+            
+        except Exception as e:
+            logger.error(f"Failed to get saved filters: {e}")
+            return []
 
 
 # Global instance

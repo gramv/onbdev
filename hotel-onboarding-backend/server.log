@@ -1,891 +1,175 @@
-INFO:     Will watch for changes in these directories: ['/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend']
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [81342]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [79276] using StatReload
-/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
-* 'schema_extra' has been renamed to 'json_schema_extra'
-  warnings.warn(message, UserWarning)
-WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
-INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-INFO:     Started server process [79288]
-INFO:     Waiting for application startup.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
-INFO:     Application startup complete.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
 ✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
 ✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
 ⚠️ Scheduler disabled - missing apscheduler module
 ✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:64081 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64083 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:64086 - "GET /healthz HTTP/1.1" 200 OK
-ERROR:app.main_enhanced:Get onboarding session error: 'NoneType' object cannot be interpreted as an integer
-INFO:     127.0.0.1:64170 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 500 Internal Server Error
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:64214 - "GET /healthz HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'app/main_enhanced.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [79288]
-/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
-* 'schema_extra' has been renamed to 'json_schema_extra'
-  warnings.warn(message, UserWarning)
+INFO:     127.0.0.1:54921 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.freshhr%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:54961 - "POST /auth/login HTTP/1.1" 200 OK
 WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
 INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-INFO:     Started server process [79557]
-INFO:     Waiting for application startup.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
-INFO:     Application startup complete.
-ERROR:app.main_enhanced:Get onboarding session error: 'NoneType' object cannot be interpreted as an integer
-ERROR:app.main_enhanced:Traceback: Traceback (most recent call last):
-  File "/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/main_enhanced.py", line 6120, in get_onboarding_session
-    token_data = token_manager.verify_onboarding_token(token)
-  File "/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/auth.py", line 91, in verify_onboarding_token
-    "issued_at": datetime.fromtimestamp(payload.get("iat"), timezone.utc),
-                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: 'NoneType' object cannot be interpreted as an integer
-
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-⚠️ Scheduler disabled - missing apscheduler module
-✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:64367 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54965 - "GET /api/notifications?limit=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55209 - "GET /health HTTP/1.1" 404 Not Found
 INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:64526 - "GET /healthz HTTP/1.1" 200 OK
-WARNING:  StatReload detected changes in 'app/auth.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [79557]
-/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
-* 'schema_extra' has been renamed to 'json_schema_extra'
-  warnings.warn(message, UserWarning)
+INFO:     127.0.0.1:55217 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55263 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.freshhr%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:55265 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.testuser%40example.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:     127.0.0.1:55266 - "POST /auth/login HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55269 - "GET /api/manager/profile HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55270 - "GET /api/manager/dashboard HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55271 - "GET /api/hr/dashboard HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55272 - "GET /api/manager/applications HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55273 - "GET /api/manager/applications/3a68cf18-7bcc-46fd-b810-ba459bb4feb5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55274 - "GET /api/hr/audit-logs HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55275 - "POST /api/manager/preferences HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55276 - "POST /api/analytics/track HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55277 - "GET /api/hr/report-templates HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55278 - "GET /api/websocket/info HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55280 - "GET /api/websocket/health HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55281 - "POST /api/websocket/broadcast HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55282 - "GET /api/manager/statistics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55283 - "GET /api/manager/applications/search?status=pending&search=test&limit=10 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55284 - "POST /api/manager/applications/bulk HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55285 - "GET /api/manager/performance HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55286 - "GET /api/analytics/dashboard HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55287 - "POST /api/analytics/reports/generate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55288 - "POST /api/analytics/export HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55289 - "GET /api/analytics/trends?period=monthly HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55290 - "POST /api/notifications/send HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55291 - "GET /api/notifications/user HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55292 - "GET /api/notifications/templates HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55293 - "POST /api/notifications/preferences HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:55294 - "POST /api/notifications/broadcast HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55295 - "GET /api/manager/analytics HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55296 - "POST /api/websocket/notify HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55297 - "GET /api/manager/dashboard/realtime-status HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55298 - "GET /api/manager/dashboard HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55299 - "POST /api/events/application-submitted HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55303 - "GET /docs HTTP/1.1" 200 OK
+/opt/homebrew/lib/python3.13/site-packages/fastapi/openapi/utils.py:246: UserWarning: Duplicate Operation ID add_signature_to_i9_api_forms_i9_add_signature_post for function add_signature_to_i9 at /Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/pdf_api.py
+  warnings.warn(message, stacklevel=1)
+/opt/homebrew/lib/python3.13/site-packages/fastapi/openapi/utils.py:246: UserWarning: Duplicate Operation ID add_signature_to_w4_api_forms_w4_add_signature_post for function add_signature_to_w4 at /Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/pdf_api.py
+  warnings.warn(message, stacklevel=1)
+/opt/homebrew/lib/python3.13/site-packages/fastapi/openapi/utils.py:246: UserWarning: Duplicate Operation ID get_notifications_api_notifications_get for function get_notifications at /Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend/app/main_enhanced.py
+  warnings.warn(message, stacklevel=1)
+INFO:     127.0.0.1:55313 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55326 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.freshhr%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:55363 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.testuser%40example.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:     127.0.0.1:55389 - "POST /auth/login HTTP/1.1" 403 Forbidden
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.freshhr%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:55460 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.testuser%40example.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:     127.0.0.1:55462 - "POST /auth/login HTTP/1.1" 403 Forbidden
+INFO:     127.0.0.1:55463 - "GET /api/properties HTTP/1.1" 404 Not Found
 WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
 INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
-INFO:     Started server process [79935]
-INFO:     Waiting for application startup.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
-INFO:     Application startup complete.
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-⚠️ Scheduler disabled - missing apscheduler module
-✅ Supabase-enabled backend started successfully
-INFO:     127.0.0.1:64684 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:64697 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64699 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:64697 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:64832 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:     127.0.0.1:65015 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65017 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:     127.0.0.1:65038 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65015 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65015 - "OPTIONS /api/onboarding/test-emp-082798/complete/welcome HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65015 - "POST /api/onboarding/test-emp-082798/complete/welcome HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:     127.0.0.1:65057 - "GET /api/onboarding/test-emp-082798/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:     127.0.0.1:65057 - "GET /api/onboarding/test-emp-082798/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65074 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:     127.0.0.1:65149 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65150 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65149 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:     127.0.0.1:65168 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65149 - "OPTIONS /api/onboarding/test-emp-082798/complete/welcome HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65149 - "POST /api/onboarding/test-emp-082798/complete/welcome HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:     127.0.0.1:65178 - "GET /api/onboarding/test-emp-082798/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:     127.0.0.1:65179 - "GET /api/onboarding/test-emp-082798/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65149 - "OPTIONS /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65168 - "OPTIONS /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65149 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65168 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65149 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65150 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65169 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65206 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65208 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65168 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65206 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65208 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65206 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65293 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65293 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65306 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65293 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65293 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65306 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65306 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65293 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65293 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65293 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65345 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65296 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65343 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65293 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65343 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65296 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65343 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65296 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65343 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65296 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65343 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65296 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65396 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65398 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65396 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65396 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65398 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65396 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65396 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65420 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65398 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65398 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65443 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65445 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65457 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65447 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65449 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65451 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65457 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65445 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65451 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65445 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65445 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65451 - "OPTIONS /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65457 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65449 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65451 - "POST /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65445 - "POST /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:65504 - "POST /api/onboarding/test-emp-082798/progress/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65506 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:65504 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65504 - "POST /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49165 - "OPTIONS /api/onboarding/test-emp-082798/complete/job-details HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49165 - "POST /api/onboarding/test-emp-082798/complete/job-details HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49200 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49351 - "OPTIONS /api/onboarding/test-emp-082798/company-policies/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49353 - "OPTIONS /api/onboarding/test-emp-082798/company-policies/generate-pdf HTTP/1.1" 200 OK
-INFO:app.main_enhanced:PDF data being sent to generator: {'companyPoliciesInitials': 'GV', 'eeoInitials': 'GV', 'sexualHarassmentInitials': 'GV', 'acknowledgmentChecked': True, 'currentSection': 5, 'isSigned': False, 'signatureData': None, 'section1Complete': True, 'section2Complete': True, 'section3Complete': True, 'section4Complete': True, 'section5Complete': False, 'firstName': 'Test', 'lastName': 'Employee', 'property_name': 'Test Hotel', 'employee_id': 'test-emp-082798'}
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-INFO:     127.0.0.1:49351 - "POST /api/onboarding/test-emp-082798/company-policies/generate-pdf HTTP/1.1" 200 OK
-INFO:app.main_enhanced:PDF data being sent to generator: {'companyPoliciesInitials': 'GV', 'eeoInitials': 'GV', 'sexualHarassmentInitials': 'GV', 'acknowledgmentChecked': True, 'currentSection': 5, 'isSigned': False, 'signatureData': None, 'section1Complete': True, 'section2Complete': True, 'section3Complete': True, 'section4Complete': True, 'section5Complete': False, 'firstName': 'Test', 'lastName': 'Employee', 'property_name': 'Test Hotel', 'employee_id': 'test-emp-082798'}
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-INFO:     127.0.0.1:49353 - "POST /api/onboarding/test-emp-082798/company-policies/generate-pdf HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49379 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49415 - "OPTIONS /api/onboarding/test-emp-082798/progress/company-policies HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:49415 - "POST /api/onboarding/test-emp-082798/progress/company-policies HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49417 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49415 - "OPTIONS /api/onboarding/test-emp-082798/complete/company-policies HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49417 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49415 - "POST /api/onboarding/test-emp-082798/complete/company-policies HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49415 - "POST /api/onboarding/test-emp-082798/complete/company-policies HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:     127.0.0.1:49453 - "GET /api/onboarding/test-emp-082798/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:     127.0.0.1:49454 - "GET /api/onboarding/test-emp-082798/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49464 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49464 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49464 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49608 - "OPTIONS /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:49608 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49611 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49608 - "OPTIONS /api/onboarding/test-emp-082798/i9-section1 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49611 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?select=%2A&employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms "HTTP/2 201 Created"
-INFO:     127.0.0.1:49608 - "POST /api/onboarding/test-emp-082798/i9-section1 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:49639 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49641 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49639 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49688 - "OPTIONS /api/documents/process HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "document_number": "123456789",
-  "first_name": "Janice",
-  "last_name": "Sample",
-  "date_of_birth": "1994-06-01",
-  "issue_date": "2024-06-01",
-  "expiration_date": "2032-06-01",
-  "issuing_authority": "Tennessee",
-  "address": "123 Main St, Apt 1, Nashville, TN 37210",
-  "class": "M",
-  "restrictions": "None",
-  "height": "5'-06\"",
-  "weight": "",
-  "eye_color": "Brown"
-}
-INFO:     127.0.0.1:49688 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49728 - "GET /healthz HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "ssn": "000-00-0000",
-  "first_name": "Barry",
-  "last_name": "Sousa",
-  "issuing_authority": "Social Security Administration"
-}
-INFO:     127.0.0.1:49788 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:49808 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49811 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49808 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?select=%2A&employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49867 - "POST /api/onboarding/test-emp-082798/i9-section1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49867 - "OPTIONS /api/onboarding/test-emp-082798/i9-section2 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?select=%2A&employee_id=eq.test-emp-082798&section=eq.section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms "HTTP/2 201 Created"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_section2_documents?select=%2A&document_id=eq.None "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_section2_documents "HTTP/2 400 Bad Request"
-WARNING:app.main_enhanced:Could not save document metadata to i9_section2_documents table: {'message': 'null value in column "document_id" of relation "i9_section2_documents" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (99742024-8b2f-450c-b7ac-b9cdfc32e419, test-emp-082798, null, drivers_license, null, TN_D200_PR_Adult_CLASS-M_DL.jpg, null, null, null, null, 2025-08-06 20:51:40.915959+00).'}
-INFO:     127.0.0.1:49867 - "POST /api/onboarding/test-emp-082798/i9-section2 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:49867 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49888 - "OPTIONS /api/onboarding/test-emp-082798/complete/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49882 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49867 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49888 - "POST /api/onboarding/test-emp-082798/complete/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49888 - "POST /api/onboarding/test-emp-082798/complete/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49964 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:     127.0.0.1:49966 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:49973 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.company-policies "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:     127.0.0.1:49964 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49964 - "POST /api/onboarding/test-emp-082798/complete/welcome HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:     127.0.0.1:49987 - "GET /api/onboarding/test-emp-082798/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.personal-info "HTTP/2 200 OK"
-INFO:     127.0.0.1:49988 - "GET /api/onboarding/test-emp-082798/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49964 - "OPTIONS /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49964 - "POST /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50006 - "POST /api/onboarding/test-emp-082798/complete/personal-info HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50006 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50006 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50006 - "OPTIONS /api/onboarding/test-emp-082798/complete/job-details HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50006 - "POST /api/onboarding/test-emp-082798/complete/job-details HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50060 - "OPTIONS /api/onboarding/test-emp-082798/complete/company-policies HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50060 - "POST /api/onboarding/test-emp-082798/complete/company-policies HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:     127.0.0.1:50061 - "GET /api/onboarding/test-emp-082798/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-082798&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:     127.0.0.1:50062 - "GET /api/onboarding/test-emp-082798/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50111 - "OPTIONS /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50111 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50113 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50113 - "OPTIONS /api/onboarding/test-emp-082798/i9-section1 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?select=%2A&employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50113 - "POST /api/onboarding/test-emp-082798/i9-section1 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50111 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:50111 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50113 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50111 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50173 - "GET /healthz HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.DRIVERS_LICENSE with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "document_number": "123456789",
-  "first_name": "Janice",
-  "last_name": "Sample",
-  "date_of_birth": "1994-06-01",
-  "issue_date": "2024-06-01",
-  "expiration_date": "2032-06-01",
-  "issuing_authority": "Tennessee",
-  "address": "123 Main St, Apt 1, Nashville, TN 37210",
-  "class": "M",
-  "restrictions": "None",
-  "height": "5'-06\"",
-  "weight": "",
-  "eye_color": "Brown"
-}
-INFO:     127.0.0.1:50324 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50324 - "GET /healthz HTTP/1.1" 200 OK
-INFO:app.i9_ocr_service:Processing document type: I9DocumentType.SSN_CARD with Groq Vision API
-INFO:httpx:HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
-INFO:app.i9_ocr_service:Groq API response: {
-  "ssn": "000-00-0000",
-  "first_name": "Barry",
-  "last_name": "Sousa",
-  "issuing_authority": "Social Security Administration"
-}
-INFO:     127.0.0.1:50391 - "POST /api/documents/process HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:50391 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50405 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50391 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50425 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?select=%2A&employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?employee_id=eq.test-emp-082798&section=eq.section1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50459 - "POST /api/onboarding/test-emp-082798/i9-section1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50459 - "OPTIONS /api/onboarding/test-emp-082798/i9-section2 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?select=%2A&employee_id=eq.test-emp-082798&section=eq.section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_forms?employee_id=eq.test-emp-082798&section=eq.section2 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_section2_documents?select=%2A&document_id=eq.None "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/i9_section2_documents "HTTP/2 400 Bad Request"
-WARNING:app.main_enhanced:Could not save document metadata to i9_section2_documents table: {'message': 'null value in column "document_id" of relation "i9_section2_documents" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (2bc959c9-a6d9-4345-b489-fb84481d522e, test-emp-082798, null, drivers_license, null, TN_D200_PR_Adult_CLASS-M_DL.jpg, null, null, null, null, 2025-08-06 20:52:46.975418+00).'}
-INFO:     127.0.0.1:50459 - "POST /api/onboarding/test-emp-082798/i9-section2 HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: PATCH https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.i9-complete "HTTP/2 200 OK"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:50474 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50459 - "POST /api/onboarding/test-emp-082798/progress/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50459 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50459 - "OPTIONS /api/onboarding/test-emp-082798/complete/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50459 - "POST /api/onboarding/test-emp-082798/complete/i9-complete HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50530 - "POST /api/onboarding/test-emp-082798/complete/i9-complete HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50530 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50530 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50617 - "OPTIONS /api/onboarding/test-emp-082798/w4-form/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50618 - "OPTIONS /api/onboarding/test-emp-082798/w4-form/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-
-=== DEBUG: W-4 PDF Fields ===
-Page 1: 18 fields
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_05[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].c1_1[0]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].c1_1[1]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].c1_1[2]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].c1_2[0]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_09[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_10[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_11[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_12[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_13[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_14[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_15[0]' | Type: Text | Value: ''
-Page 2: 0 fields
-Page 3: 11 fields
-  - Field: 'topmostSubform[0].Page3[0].f3_01[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_02[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_03[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_04[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_05[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_06[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_07[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_08[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_09[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_10[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_11[0]' | Type: Text | Value: ''
-Page 4: 0 fields
-Total fields: 29
-==================================================
-DEBUG: Employee signature date field: topmostSubform[0].Page1[0].f1_14[0]
-DEBUG: Employee signature date value: 2025-08-06T20:53:03.296740
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' with value 'goutham G'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' with value 'vemula'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' with value '5 gray st'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' with value 'jersey city, IN 07302'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_05[0]' with value '000-00-0000'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].c1_1[0]' with value 'True'
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[1]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[2]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_2[0]' - verify IRS compliance
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' with value '4000'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' with value ''
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_09[0]' with value '4000'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_10[0]' with value ''
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_11[0]' with value ''
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_12[0]' with value ''
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_13[0]' - verify IRS compliance
-DEBUG: Found date/employer field: 'topmostSubform[0].Page1[0].f1_14[0]' at rect: [389.79998779296875, 729.9990234375, 467.25, 743.998046875]
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_14[0]' with value '2025-08-06T20:53:03.296740'
-DEBUG: Found date/employer field: 'topmostSubform[0].Page1[0].f1_15[0]' at rect: [469.0, 729.9990234375, 576.0, 743.998046875]
-⚠ SKIPPING EMPLOYER FIELD: 'topmostSubform[0].Page1[0].f1_15[0]' - Reserved for manager approval
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_08[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_11[0]' - verify IRS compliance
-INFO:     127.0.0.1:50617 - "POST /api/onboarding/test-emp-082798/w4-form/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-
-=== DEBUG: W-4 PDF Fields ===
-Page 1: 18 fields
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_05[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].c1_1[0]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].c1_1[1]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].c1_1[2]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].c1_2[0]' | Type: CheckBox | Value: 'Off'
-  - Field: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_09[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_10[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_11[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_12[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_13[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_14[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page1[0].f1_15[0]' | Type: Text | Value: ''
-Page 2: 0 fields
-Page 3: 11 fields
-  - Field: 'topmostSubform[0].Page3[0].f3_01[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_02[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_03[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_04[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_05[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_06[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_07[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_08[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_09[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_10[0]' | Type: Text | Value: ''
-  - Field: 'topmostSubform[0].Page3[0].f3_11[0]' | Type: Text | Value: ''
-Page 4: 0 fields
-Total fields: 29
-==================================================
-DEBUG: Employee signature date field: topmostSubform[0].Page1[0].f1_14[0]
-DEBUG: Employee signature date value: 2025-08-06T20:53:03.418132
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_01[0]' with value 'goutham G'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_02[0]' with value 'vemula'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_03[0]' with value '5 gray st'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step1a[0].f1_04[0]' with value 'jersey city, IN 07302'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_05[0]' with value '000-00-0000'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].c1_1[0]' with value 'True'
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[1]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_1[2]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].c1_2[0]' - verify IRS compliance
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]' with value '4000'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]' with value ''
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_09[0]' with value '4000'
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_10[0]' with value ''
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_11[0]' with value ''
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_12[0]' with value ''
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page1[0].f1_13[0]' - verify IRS compliance
-DEBUG: Found date/employer field: 'topmostSubform[0].Page1[0].f1_14[0]' at rect: [389.79998779296875, 729.9990234375, 467.25, 743.998046875]
-✓ IRS COMPLIANCE: Filled field 'topmostSubform[0].Page1[0].f1_14[0]' with value '2025-08-06T20:53:03.418132'
-DEBUG: Found date/employer field: 'topmostSubform[0].Page1[0].f1_15[0]' at rect: [469.0, 729.9990234375, 576.0, 743.998046875]
-⚠ SKIPPING EMPLOYER FIELD: 'topmostSubform[0].Page1[0].f1_15[0]' - Reserved for manager approval
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_01[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_02[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_03[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_04[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_05[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_06[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_07[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_08[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_09[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_10[0]' - verify IRS compliance
-⚠ UNMAPPED FIELD: 'topmostSubform[0].Page3[0].f3_11[0]' - verify IRS compliance
-INFO:     127.0.0.1:50618 - "POST /api/onboarding/test-emp-082798/w4-form/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50677 - "OPTIONS /api/onboarding/test-emp-082798/progress/w4-form HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:50677 - "POST /api/onboarding/test-emp-082798/progress/w4-form HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50679 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50682 - "OPTIONS /api/onboarding/test-emp-082798/complete/w4-form HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50677 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50682 - "POST /api/onboarding/test-emp-082798/complete/w4-form HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50692 - "OPTIONS /api/onboarding/test-emp-082798/w4-form HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.test-emp-082798&step_id=eq.w4-form "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:     127.0.0.1:50692 - "POST /api/onboarding/test-emp-082798/w4-form HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50695 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50721 - "POST /api/onboarding/test-emp-082798/complete/w4-form HTTP/1.1" 200 OK
-INFO:app.document_storage:Document stored: f124f2ee-85cb-4f11-91d3-bf39162be416 - Type: voided_check - Employee: test-emp-082798
-INFO:app.main_enhanced:Test document uploaded: f124f2ee-85cb-4f11-91d3-bf39162be416
-INFO:     127.0.0.1:50838 - "POST /api/test/documents/upload HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50838 - "OPTIONS /api/onboarding/test-emp-082798/direct-deposit/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50869 - "OPTIONS /api/onboarding/test-emp-082798/direct-deposit/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-INFO:     127.0.0.1:50838 - "POST /api/onboarding/test-emp-082798/direct-deposit/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-INFO:     127.0.0.1:50869 - "POST /api/onboarding/test-emp-082798/direct-deposit/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50916 - "OPTIONS /api/onboarding/test-emp-082798/direct-deposit HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.test-emp-082798&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:     127.0.0.1:50916 - "POST /api/onboarding/test-emp-082798/direct-deposit HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50916 - "OPTIONS /api/onboarding/test-emp-082798/progress/direct-deposit HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.direct-deposit "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:     127.0.0.1:50916 - "POST /api/onboarding/test-emp-082798/progress/direct-deposit HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50919 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50916 - "OPTIONS /api/onboarding/test-emp-082798/complete/direct-deposit HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50919 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50916 - "POST /api/onboarding/test-emp-082798/complete/direct-deposit HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:50956 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50916 - "POST /api/onboarding/test-emp-082798/complete/direct-deposit HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51064 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51064 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51178 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51213 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51429 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51464 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51570 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51574 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51680 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:51923 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52064 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52065 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52069 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52176 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52428 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52568 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52571 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52568 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52680 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:52923 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53054 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53056 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53068 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53174 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53419 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53551 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53553 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53553 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53673 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:53916 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54047 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54049 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54061 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54061 - "OPTIONS /api/onboarding/test-emp-082798/complete/trafficking-awareness HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54061 - "POST /api/onboarding/test-emp-082798/complete/trafficking-awareness HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54095 - "POST /api/onboarding/test-emp-082798/complete/trafficking-awareness HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54163 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54163 - "OPTIONS /api/onboarding/test-emp-082798/weapons-policy/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54182 - "OPTIONS /api/onboarding/test-emp-082798/weapons-policy/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-INFO:     127.0.0.1:54163 - "POST /api/onboarding/test-emp-082798/weapons-policy/generate-pdf HTTP/1.1" 200 OK
-✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
-✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
-INFO:     127.0.0.1:54182 - "POST /api/onboarding/test-emp-082798/weapons-policy/generate-pdf HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54249 - "OPTIONS /api/onboarding/test-emp-082798/progress/weapons-policy HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=id&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTA4Mjc5OCIsInByb3BlcnR5X2lkIjoidGVzdC1wcm9wZXJ0eS0xMjMiLCJ0b2tlbl90eXBlIjoib25ib2FyZGluZyIsImV4cCI6MTc1NTExNzgxMX0.wTScWUiuEWV86YqHx5md5wW2B9ulNEdSFwRNfGcJ6Ro&step_id=eq.weapons-policy "HTTP/2 200 OK"
-INFO:httpx:HTTP Request: POST https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data "HTTP/2 201 Created"
-INFO:app.main_enhanced:Test employee form data saved to Supabase: True
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54249 - "POST /api/onboarding/test-emp-082798/progress/weapons-policy HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54251 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54251 - "OPTIONS /api/onboarding/test-emp-082798/complete/weapons-policy HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54251 - "POST /api/onboarding/test-emp-082798/complete/weapons-policy HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54249 - "GET /healthz HTTP/1.1" 200 OK
-INFO:     127.0.0.1:54249 - "POST /api/onboarding/test-emp-082798/complete/weapons-policy HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54504 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54555 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54558 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54555 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54756 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54871 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:54947 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:55024 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:55075 - "GET /healthz HTTP/1.1" 200 OK
-INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
-INFO:     127.0.0.1:55075 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/audit_logs?select=%2A&order=timestamp.desc&limit=100&offset=0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55464 - "GET /api/audit-logs HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55468 - "POST /api/analytics/track HTTP/1.1" 422 Unprocessable Content
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:55470 - "GET /api/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55472 - "GET /api/ws/connections HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55473 - "GET /api/events HTTP/1.1" 404 Not Found
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+ERROR:app.services.onboarding_orchestrator:Failed to get pending HR approvals: 'EnhancedSupabaseService' object has no attribute 'get_onboarding_sessions_by_status'
+INFO:     127.0.0.1:55474 - "GET /api/hr/onboarding/pending HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55476 - "POST /api/manager/employee-setup HTTP/1.1" 403 Forbidden
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55478 - "GET /api/analytics/dashboard HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55480 - "POST /api/analytics/custom-report HTTP/1.1" 422 Unprocessable Content
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55482 - "POST /api/analytics/export HTTP/1.1" 422 Unprocessable Content
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55484 - "GET /api/analytics/trends?period=monthly HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55486 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55488 - "POST /api/notifications HTTP/1.1" 405 Method Not Allowed
+INFO:     127.0.0.1:55489 - "GET /api/forms/i9/fields HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55490 - "GET /api/documents HTTP/1.1" 404 Not Found
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+ERROR:app.main_enhanced:Failed to get compliance dashboard: name 'compliance_engine' is not defined
+INFO:     127.0.0.1:55491 - "GET /api/compliance/dashboard HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:55525 - "POST /api/hr/create-test-manager HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.freshhr%40test.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:55667 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55671 - "POST /api/properties HTTP/1.1" 404 Not Found
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+ERROR:app.main_enhanced:Failed to get compliance dashboard: name 'compliance_engine' is not defined
+INFO:     127.0.0.1:55672 - "GET /api/compliance/dashboard HTTP/1.1" 500 Internal Server Error
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55674 - "GET /api/notifications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55677 - "POST /api/notifications HTTP/1.1" 405 Method Not Allowed
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.testuser%40example.com "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:     127.0.0.1:55678 - "POST /auth/login HTTP/1.1" 403 Forbidden
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55679 - "GET /api/analytics/dashboard HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/audit_logs?select=%2A&order=timestamp.desc&limit=100&offset=0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55681 - "GET /api/audit-logs HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:55683 - "GET /api/employees HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.7ba78d45-9352-43ec-88a4-aef5614124d7 "HTTP/2 200 OK"
+ERROR:app.services.onboarding_orchestrator:Failed to get pending HR approvals: 'EnhancedSupabaseService' object has no attribute 'get_onboarding_sessions_by_status'
+INFO:     127.0.0.1:55685 - "GET /api/hr/onboarding/pending HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55687 - "GET /healthz HTTP/1.1" 200 OK

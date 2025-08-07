@@ -2,6 +2,141 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Commands
+
+### Backend
+```bash
+cd hotel-onboarding-backend
+
+# Using Poetry (existing structure - transitioning away)
+poetry install                   # Install dependencies
+poetry run python app.main_enhanced.py  # Run server with Poetry
+
+# Using Python directly (preferred approach)
+python3 -m venv venv             # Create virtual environment  
+source venv/bin/activate         # Activate (Linux/Mac)
+pip install poetry               # Install Poetry temporarily
+poetry export -f requirements.txt --output requirements.txt  # Export dependencies
+pip install -r requirements.txt  # Install from requirements
+python3 -m uvicorn app.main_enhanced:app --host 0.0.0.0 --port 8000 --reload  # Run server
+
+# Testing
+python3 test_property_access_control_comprehensive.py  # Run property access tests
+python3 test_tasks_1_2_3_integration.py               # Run integration tests
+python3 test_websocket_basic.py                       # Test WebSocket functionality
+
+# Database operations  
+python3 update_manager_authentication_middleware.py    # Update auth middleware
+python3 verify_implementation.py                      # Verify system implementation
+```
+
+### Frontend
+```bash
+cd hotel-onboarding-frontend
+npm install                      # Install dependencies
+npm run dev                      # Start dev server on port 3000
+npm run dev:clean               # Clean cache and restart dev server
+npm run build                   # Build for production
+npm run lint                    # Run ESLint
+npm run test                    # Run Jest tests  
+npm run test:watch              # Run tests in watch mode
+```
+
+## High-Level Architecture
+
+### System Design Pattern
+The system uses a **stateless employee onboarding architecture** where:
+- **Managers/HR have persistent accounts** with role-based access control
+- **Employees use temporary JWT tokens** (7-day expiry) - no accounts needed
+- **Property-based isolation** ensures managers only see their property's data
+- **Modular form architecture** allows sending individual forms for updates
+
+### Backend Architecture (FastAPI + Supabase)
+
+#### Service Layer Pattern
+The backend uses a service-oriented architecture with clear separation:
+- **`app/main_enhanced.py`**: Primary API entry point with all endpoint definitions
+- **`app/supabase_service_enhanced.py`**: Database abstraction layer for all Supabase operations
+- **`app/auth.py`**: JWT token management and authentication middleware
+- **`app/property_access_control.py`**: Property-based access control enforcement
+- **`app/websocket_manager.py` + `app/websocket_router.py`**: Real-time WebSocket connections
+
+#### Authentication Flow
+1. **Manager/HR Login**: Username/password → JWT with role and property_id claims
+2. **Employee Access**: Manager approval → Generate 7-day JWT → Unique onboarding URL
+3. **Middleware Chain**: 
+   - `get_current_user()` extracts JWT claims
+   - `require_manager_property_access()` enforces property isolation
+   - `require_hr_role()` restricts HR-only endpoints
+
+#### Database Access Pattern
+All database operations go through `SupabaseServiceEnhanced` class which:
+- Manages connection pooling and retries
+- Enforces Row Level Security (RLS) policies
+- Handles property-based data filtering at the service level
+- Provides transaction support for complex operations
+
+### Frontend Architecture (React + TypeScript)
+
+#### Component Hierarchy
+```
+App.tsx
+├── AuthContext (global auth state)
+├── LanguageContext (i18n support)
+├── WebSocketContext (real-time updates)
+└── Routes
+    ├── /onboard → OnboardingPortal (employee flow)
+    ├── /manager → ManagerDashboard (manager functions)  
+    └── /hr → HRDashboard (HR oversight)
+```
+
+#### Step Component Pattern
+All onboarding steps follow a strict props-based pattern:
+- **Direct props only** - Never use `useOutletContext()`
+- **Standardized interface** - All steps receive the same `StepProps`
+- **Session storage** for progress persistence
+- **Integrated signature flow** within each form component
+
+#### Form State Management
+- **React Hook Form** for form state and validation
+- **Zod schemas** for type-safe validation
+- **Session storage** for auto-save and progress tracking
+- **PDF generation** happens client-side first, then server validates
+
+### WebSocket Architecture
+Real-time updates use a hub-and-spoke pattern:
+- **WebSocketManager** maintains active connections by user_id
+- **Property-based rooms** for broadcasting updates
+- **Event types**: dashboard updates, form submissions, notifications
+- **Automatic reconnection** with exponential backoff
+
+### Critical Implementation Rules
+
+#### Brick-by-Brick Methodology
+**NEVER attempt to build everything at once**. Always:
+1. Build one component/endpoint completely
+2. Test it thoroughly in isolation
+3. Connect it to the next component
+4. Verify the integration works
+5. Move to the next component
+
+#### Property Access Control
+Every database query MUST respect property boundaries:
+```python
+# CORRECT - Filter by property_id
+employees = await supabase.get_employees_by_property(property_id)
+
+# WRONG - Global query without filtering
+employees = await supabase.get_all_employees()  # Security violation!
+```
+
+#### Federal Compliance Integration
+I-9 and W-4 forms have special requirements:
+- **Signature coordinates must match exactly** between frontend and backend
+- **Compliance deadlines** are enforced (I-9 Section 1 by day 1, Section 2 within 3 days)
+- **Audit trail** required for all form modifications
+- **Document retention** policies enforced programmatically
+
 ## Agent OS Integration
 
 This project uses **Agent OS** - a system for better planning and executing software development tasks with AI agents. Agent OS ensures consistent, high-quality code generation aligned with our specific standards and requirements.
@@ -37,6 +172,24 @@ Example workflow for complex changes:
 3. Use field-validation-tester for cross-field validation
 4. Use compliance-validator for federal requirement checks
 ```
+
+## Major System Enhancement: HR Manager System Consolidation
+
+**Current Major Initiative**: A comprehensive system consolidation and enhancement project is underway to address technical debt, improve performance, and add advanced features to the HR management system.
+
+### HR Manager System Consolidation Spec
+- **Location**: `@.agent-os/specs/2025-08-06-hr-manager-system-consolidation/`
+- **Scope**: Fix property access control, enhance dashboard UX, add real-time updates, implement advanced analytics, create notification framework, and optimize performance
+- **Approach**: Building on existing working foundation rather than complete rewrite
+- **Priority**: High - addresses critical system issues while adding scalability features
+
+### Key Enhancement Areas
+1. **Critical Issue Resolution** - Property access control fixes, database performance optimization
+2. **Real-Time Dashboard** - WebSocket integration, mobile responsiveness, enhanced UX
+3. **Advanced Analytics** - Custom reports, data export, performance metrics
+4. **Notification System** - Multi-channel notifications, real-time alerts, preference management
+5. **Bulk Operations** - Batch processing, progress tracking, audit logging
+6. **Mobile Optimization** - PWA capabilities, touch-friendly interfaces, offline support
 
 ## Project Overview
 
