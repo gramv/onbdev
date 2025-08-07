@@ -1,2 +1,0 @@
-This is a test image file
-EOF < /dev/null

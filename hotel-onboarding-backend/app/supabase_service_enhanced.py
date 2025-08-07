@@ -1273,6 +1273,42 @@ class EnhancedSupabaseService:
         except Exception as e:
             logger.error(f"Error getting pending applications count: {e}")
             return 0
+    
+    async def get_approved_applications_count(self) -> int:
+        """Get count of approved applications"""
+        try:
+            response = self.client.table('job_applications').select('id', count='exact').eq('status', 'approved').execute()
+            return response.count or 0
+        except Exception as e:
+            logger.error(f"Error getting approved applications count: {e}")
+            return 0
+    
+    async def get_total_applications_count(self) -> int:
+        """Get total count of all applications"""
+        try:
+            response = self.client.table('job_applications').select('id', count='exact').execute()
+            return response.count or 0
+        except Exception as e:
+            logger.error(f"Error getting total applications count: {e}")
+            return 0
+    
+    async def get_active_employees_count(self) -> int:
+        """Get count of active employees"""
+        try:
+            response = self.client.table('employees').select('id', count='exact').eq('employment_status', 'active').execute()
+            return response.count or 0
+        except Exception as e:
+            logger.error(f"Error getting active employees count: {e}")
+            return 0
+    
+    async def get_onboarding_in_progress_count(self) -> int:
+        """Get count of employees in onboarding process"""
+        try:
+            response = self.client.table('employees').select('id', count='exact').in_('onboarding_status', ['in_progress', 'employee_completed', 'manager_review']).execute()
+            return response.count or 0
+        except Exception as e:
+            logger.error(f"Error getting onboarding in progress count: {e}")
+            return 0
 
     async def get_all_properties(self) -> List[Property]:
         """Get all properties"""
@@ -1377,6 +1413,26 @@ class EnhancedSupabaseService:
             return applications
         except Exception as e:
             logger.error(f"Error getting applications by properties: {e}")
+            return []
+
+    async def get_applications_by_property(self, property_id: str) -> List[JobApplication]:
+        """Get applications for a single property"""
+        try:
+            response = self.client.table('job_applications').select('*').eq('property_id', property_id).execute()
+            applications = []
+            for row in response.data:
+                applications.append(JobApplication(
+                    id=row['id'],
+                    property_id=row['property_id'],
+                    department=row['department'],
+                    position=row['position'],
+                    applicant_data=row['applicant_data'],
+                    status=ApplicationStatus(row['status']),
+                    applied_at=datetime.fromisoformat(row['applied_at'].replace('Z', '+00:00'))
+                ))
+            return applications
+        except Exception as e:
+            logger.error(f"Error getting applications by property {property_id}: {e}")
             return []
 
     async def get_employee_by_id(self, employee_id: str) -> Optional[Employee]:
@@ -1737,7 +1793,7 @@ class EnhancedSupabaseService:
         try:
             result = self.client.table("users").update({
                 "is_active": False,
-                "deleted_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }).eq("id", manager_id).eq("role", "manager").execute()
             
             return len(result.data) > 0

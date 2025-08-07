@@ -112,7 +112,7 @@ export function StatCard({
       <CardHeader className={cn(sizes.padding, "pb-3")}>
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className={cn("font-medium", sizes.title, "text-gray-600")}>
+            <CardTitle className={cn("font-medium", sizes.title, "text-gray-700")}>
               {title}
             </CardTitle>
           </div>
@@ -156,7 +156,7 @@ export function StatCard({
           <>
             <div className="space-y-1">
               <p className={cn("font-bold", sizes.value, styles.value)}>
-                {value}
+                {value !== undefined && value !== null ? value : '0'}
               </p>
               {trend && (
                 <div className={cn("flex items-center gap-1", sizes.description, styles.trend)}>

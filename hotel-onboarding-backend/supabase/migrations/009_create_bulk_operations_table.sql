@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS bulk_operations (
     -- Target entities
     target_entity_type TEXT NOT NULL, -- 'applications', 'employees', 'users', etc.
     target_count INTEGER NOT NULL DEFAULT 0,
-    target_ids UUID[] DEFAULT ARRAY[]::UUID[], -- IDs of entities being processed
+    target_ids JSONB DEFAULT '[]'::jsonb, -- IDs of entities being processed (flexible type)
     
     -- Filters and criteria used
     filter_criteria JSONB DEFAULT '{}'::jsonb, -- Store the filters used to select targets
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS bulk_operation_items (
     bulk_operation_id UUID NOT NULL REFERENCES bulk_operations(id) ON DELETE CASCADE,
     
     -- Item details
-    target_id UUID NOT NULL, -- ID of the entity being processed
+    target_id TEXT NOT NULL, -- ID of the entity being processed (flexible type)
     target_type TEXT NOT NULL, -- Type of entity
     
     -- Processing status

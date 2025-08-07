@@ -113,7 +113,7 @@ class Property(BaseModel):
     zip_code: str
     phone: Optional[str] = None
     manager_ids: List[str] = []
-    qr_code_url: str
+    qr_code_url: Optional[str] = None
     is_active: bool = True
     created_at: datetime
 
