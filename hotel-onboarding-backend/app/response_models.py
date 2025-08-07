@@ -190,6 +190,43 @@ class HealthCheckData(BaseModel):
     connection: Optional[Dict[str, Any]] = None
     services: Optional[Dict[str, str]] = None
 
+# WebSocket related models
+class WebSocketStatsData(BaseModel):
+    """WebSocket connection statistics"""
+    total_connections: int = Field(..., description="Total connections since start")
+    active_connections: int = Field(..., description="Currently active connections")
+    active_rooms: int = Field(..., description="Number of active rooms")
+    messages_sent: int = Field(..., description="Total messages sent")
+    events_broadcasted: int = Field(..., description="Total events broadcasted")
+    connection_errors: int = Field(..., description="Number of connection errors")
+    room_details: Dict[str, int] = Field(default_factory=dict, description="Room member counts")
+
+class WebSocketRoomInfo(BaseModel):
+    """WebSocket room information"""
+    room_id: str = Field(..., description="Room identifier")
+    member_count: int = Field(..., description="Number of members in room")
+    members: List[str] = Field(default_factory=list, description="List of member user IDs")
+    created_at: str = Field(..., description="Room creation timestamp")
+
+class WebSocketRoomsData(BaseModel):
+    """WebSocket rooms list"""
+    rooms: List[WebSocketRoomInfo] = Field(default_factory=list, description="List of active rooms")
+
+class WebSocketBroadcastRequest(BaseModel):
+    """Request model for broadcasting WebSocket events"""
+    event_type: str = Field(..., description="Type of event to broadcast")
+    data: Dict[str, Any] = Field(..., description="Event data payload")
+    target_rooms: Optional[List[str]] = Field(None, description="Specific rooms to target")
+    target_users: Optional[List[str]] = Field(None, description="Specific users to target")
+
+class WebSocketUserNotificationRequest(BaseModel):
+    """Request model for user-specific notifications"""
+    user_id: str = Field(..., description="ID of the user to notify")
+    title: str = Field(..., description="Notification title")
+    message: str = Field(..., description="Notification message")
+    severity: str = Field(default="info", description="Notification severity")
+    action_url: Optional[str] = Field(None, description="Optional action URL")
+
 # Common response type aliases for better type hints
 LoginResponse = APIResponse[LoginResponseData]
 UserInfoResponse = APIResponse[UserInfoData]
@@ -203,3 +240,7 @@ EmployeesResponse = APIResponse[List[EmployeeData]]
 ManagerResponse = APIResponse[ManagerData]
 ManagersResponse = APIResponse[List[ManagerData]]
 HealthResponse = APIResponse[HealthCheckData]
+
+# WebSocket response type aliases
+WebSocketStatsResponse = APIResponse[WebSocketStatsData]
+WebSocketRoomsResponse = APIResponse[WebSocketRoomsData]
