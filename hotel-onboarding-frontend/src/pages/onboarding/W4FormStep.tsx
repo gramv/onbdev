@@ -308,7 +308,7 @@ export default function W4FormStep({
       sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(updatedData))
       
       // Also try to save to backend for persistence
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+      const apiUrl = import.meta.env.VITE_API_URL || '/api'
       axios.post(
         `${apiUrl}/api/onboarding/${employee?.id}/w4-form`,
         {
@@ -327,7 +327,7 @@ export default function W4FormStep({
       
       // Fallback to backend generation
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || '/api'
         const response = await axios.post(
           `${apiUrl}/api/onboarding/${employee?.id}/w4-form/generate-pdf`,
           {
@@ -512,7 +512,7 @@ export default function W4FormStep({
             onSign={handleSign}
             onBack={() => setShowReview(false)}
             usePDFPreview={true}
-            pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
+            pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
             pdfUrl={pdfUrl}
             federalCompliance={{
               formName: 'Form W-4, Employee\'s Withholding Certificate',

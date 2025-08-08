@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import axios, { AxiosError } from 'axios'
+import api from '@/services/api'
+import axios, { AxiosError } from 'axios' // Still need for error checking
 
 interface User {
   id: string
@@ -43,11 +44,7 @@ export const useAuth = () => {
   return context
 }
 
-const API_BASE_URL = 'http://127.0.0.1:8000'
-
-// Configure axios defaults
-axios.defaults.timeout = 10000 // 10 second timeout
-axios.defaults.headers.common['Content-Type'] = 'application/json'
+// API service handles all configuration
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
@@ -77,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             setToken(storedToken)
             setUser(userData)
-            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
+            // Token is set in localStorage, API service will pick it up
           }
         }
         
@@ -99,40 +96,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth()
   }, [])
 
-  // Set up axios interceptor for token expiration
+  // API service handles interceptors, but we still want to handle 401 in auth context
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid, store current URL as return URL and logout
-          const currentPath = window.location.pathname
-          if (currentPath !== '/login' && currentPath !== '/') {
-            setReturnUrl(currentPath)
-            localStorage.setItem('returnUrl', currentPath)
-          }
-          logout()
-        }
-        return Promise.reject(error)
+    // Listen for storage events to sync auth state across tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token' && !e.newValue) {
+        // Token was removed in another tab
+        setToken(null)
+        setUser(null)
       }
-    )
-
-    return () => {
-      axios.interceptors.response.eject(interceptor)
     }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const login = async (email: string, password: string, providedReturnUrl?: string): Promise<void> => {
     try {
-      // Send as JSON body to match updated backend
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email,
-        password
-      })
+      // Use centralized API service
+      const response = await api.auth.login(email, password)
       
-      // Handle wrapped response format from backend
-      const responseData = response.data.data || response.data
-      const { token: newToken, user: userData, expires_at } = responseData
+      // API service handles wrapped responses
+      const { token: newToken, user: userData, expires_at } = response.data
       
       // Store auth data
       setToken(newToken)
@@ -140,9 +125,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('token', newToken)
       localStorage.setItem('user', JSON.stringify(userData))
       localStorage.setItem('token_expires_at', expires_at)
-      
-      // Set axios authorization header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
       
       // Handle return URL
       const targetReturnUrl = providedReturnUrl || returnUrl
@@ -192,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user')
     localStorage.removeItem('token_expires_at')
     // Don't clear returnUrl on logout - it should persist for re-login
-    delete axios.defaults.headers.common['Authorization']
+    // API service handles auth headers via localStorage
   }
 
   const hasRole = (role: string): boolean => {

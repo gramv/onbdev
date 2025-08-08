@@ -198,7 +198,7 @@ export default function I9Section1Step({
     if (employee?.id && !employee.id.startsWith('demo-')) {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee.id}/i9-section1`,
+          `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section1`,
           {
             method: 'POST',
             headers: {
@@ -267,7 +267,7 @@ export default function I9Section1Step({
     if (employee?.id && !employee.id.startsWith('demo-')) {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee.id}/i9-section1`,
+          `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section1`,
           {
             method: 'POST',
             headers: {
@@ -429,7 +429,7 @@ export default function I9Section1Step({
                   onBack={() => setActiveTab('form')}
                   renderPreview={renderFormPreview}
                   usePDFPreview={true}
-                  pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee?.id}/i9-section1/generate-pdf`}
+                  pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id}/i9-section1/generate-pdf`}
                   pdfUrl={savedPdfUrl}
                   onPdfGenerated={handlePdfGenerated}
                   federalCompliance={{

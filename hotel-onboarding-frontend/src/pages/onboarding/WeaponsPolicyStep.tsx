@@ -354,7 +354,7 @@ export default function WeaponsPolicyStep({
                 requiresWitness: false
               }}
               usePDFPreview={true}
-              pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/onboarding/${employee?.id || 'test-employee'}/weapons-policy/generate-pdf`}
+              pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id || 'test-employee'}/weapons-policy/generate-pdf`}
             />
           </FormSection>
         </StepContentWrapper>

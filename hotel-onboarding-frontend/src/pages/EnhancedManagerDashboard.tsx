@@ -106,14 +106,14 @@ export default function EnhancedManagerDashboard() {
       }
 
       // Fetch applications
-      const applicationsResponse = await axios.get('http://127.0.0.1:8000/applications', {
+      const applicationsResponse = await axios.get('/api/applications', {
         headers: { Authorization: `Bearer ${token}` }
       })
       setApplications(applicationsResponse.data)
 
       // Fetch pending onboarding sessions for manager review
       try {
-        const onboardingResponse = await axios.get('http://127.0.0.1:8000/api/manager/onboarding/pending', {
+        const onboardingResponse = await axios.get('/api/api/manager/onboarding/pending', {
           headers: { Authorization: `Bearer ${token}` }
         })
         
@@ -151,7 +151,7 @@ export default function EnhancedManagerDashboard() {
       
       // Fetch active employees
       try {
-        const employeesResponse = await axios.get('http://127.0.0.1:8000/api/manager/employees', {
+        const employeesResponse = await axios.get('/api/api/manager/employees', {
           headers: { Authorization: `Bearer ${token}` }
         })
         setActiveEmployees(employeesResponse.data)
@@ -178,19 +178,19 @@ export default function EnhancedManagerDashboard() {
       let payload: any = {}
       
       if (reviewAction === 'approve') {
-        endpoint = `http://127.0.0.1:8000/api/manager/onboarding/${selectedOnboarding.session.id}/approve`
+        endpoint = `/api/api/manager/onboarding/${selectedOnboarding.session.id}/approve`
         payload = {
           manager_signature: `Manager approved on ${new Date().toISOString()}`,
           comments: reviewComments
         }
       } else if (reviewAction === 'request_changes') {
-        endpoint = `http://127.0.0.1:8000/api/manager/onboarding/${selectedOnboarding.session.id}/request-changes`
+        endpoint = `/api/api/manager/onboarding/${selectedOnboarding.session.id}/request-changes`
         payload = {
           requested_changes: reviewComments,
           forms_to_update: [] // Could be specified based on what needs changes
         }
       } else if (reviewAction === 'reject') {
-        endpoint = `http://127.0.0.1:8000/api/manager/onboarding/${selectedOnboarding.session.id}/reject`
+        endpoint = `/api/api/manager/onboarding/${selectedOnboarding.session.id}/reject`
         payload = {
           reason: reviewComments
         }

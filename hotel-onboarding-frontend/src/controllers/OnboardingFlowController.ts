@@ -94,7 +94,7 @@ export class OnboardingFlowController {
   
   constructor() {
     this.autoSaveManager = new AutoSaveManager()
-    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    this.apiUrl = import.meta.env.VITE_API_URL || '/api'
   }
 
   /**

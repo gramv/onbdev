@@ -186,7 +186,7 @@ export default function I9Section2Step({
           formData.append('employee_id', employee.id)
 
           const response = await axios.post(
-            `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/documents/process`,
+            `${import.meta.env.VITE_API_URL || '/api'}/api/documents/process`,
             formData,
             {
               headers: {
@@ -312,7 +312,7 @@ export default function I9Section2Step({
         }))
         
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/api/onboarding/${employee.id}/i9-section2`,
+          `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section2`,
           {
             method: 'POST',
             headers: {

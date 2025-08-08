@@ -258,7 +258,7 @@ export default function JobApplicationFormV2() {
 
   const fetchProperty = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/properties/${propertyId}/info`)
+      const response = await axios.get(`/api/properties/${propertyId}/info`)
       setPropertyInfo(response.data)
       // Set property name in form data for use in other components
       setFormData(prev => ({
@@ -393,7 +393,7 @@ export default function JobApplicationFormV2() {
       }
 
       // Submit the application
-      await axios.post(`http://127.0.0.1:8000/apply/${propertyId}`, formData)
+      await axios.post(`/api/apply/${propertyId}`, formData)
       
       // Clear draft on successful submission
       localStorage.removeItem(`job-application-draft-${propertyId}`)

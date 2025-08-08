@@ -9,7 +9,7 @@ import { StatsSkeleton } from '@/components/ui/skeleton-loader'
 import { StatCard, StatCardGrid } from '@/components/ui/stat-card'
 import { useToast } from '@/hooks/use-toast'
 import { AlertTriangle, RefreshCw, Building2, Users, UserCheck, FileText } from 'lucide-react'
-import axios from 'axios'
+import api from '@/services/api'
 
 // Import tab components (to be created in subsequent tasks)
 import PropertiesTab from '@/components/dashboard/PropertiesTab'
@@ -50,24 +50,16 @@ export default function HRDashboard() {
       setLoading(true)
       setError(null)
       
-      const token = localStorage.getItem('token')
-      const axiosConfig = {
-        headers: { Authorization: `Bearer ${token}` }
-      }
-      
-      const response = await axios.get('http://127.0.0.1:8000/hr/dashboard-stats', axiosConfig)
-      // Handle the standardized API response format
-      const statsData = response.data.data || response.data
-      console.log('Dashboard Stats Response:', statsData)
-      setStats(statsData)
+      const response = await api.hr.getDashboardStats()
+      // API service handles response unwrapping
+      console.log('Dashboard Stats Response:', response.data)
+      setStats(response.data)
       if (retryCount > 0) {
         showSuccessToast('Dashboard refreshed', 'Stats have been updated successfully')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch dashboard stats:', error)
-      const errorMessage = axios.isAxiosError(error) 
-        ? error.response?.data?.detail || error.message 
-        : 'Failed to load dashboard statistics'
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load dashboard statistics'
       setError(errorMessage)
       showErrorToast('Failed to load dashboard', errorMessage)
     } finally {

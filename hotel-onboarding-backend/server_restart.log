@@ -1,0 +1,1638 @@
+INFO:     Will watch for changes in these directories: ['/Users/gouthamvemula/onbclaude/onbdev/hotel-onboarding-backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [24071] using StatReload
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+INFO:app.notification_service:Initialized 6 default notification templates
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.notification_service:Initialized 6 default notification templates
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.notification_service:Initialized 6 default notification templates
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.notification_service:Initialized 6 default notification templates
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.notification_service:Initialized 6 default notification templates
+INFO:app.notification_service:Initialized 6 default notification templates
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [24074]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+ERROR:app.main_enhanced:Login error: Expecting value: line 1 column 1 (char 0)
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:60355 - "POST /auth/login HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60633 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60766 - "POST /auth/register HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.testhr%40hotel.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:60767 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60962 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60963 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60963 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60962 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61613 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61626 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61672 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61683 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61703 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61723 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61788 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61793 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:62449 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:62460 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:62502 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:62512 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:64035 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:64050 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:64105 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:64125 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49971 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49996 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49971 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50027 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49971 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50027 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49971 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50027 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50539 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50554 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50539 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50554 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50655 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50671 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51114 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51115 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:51115 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:51114 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.admin%40hotel.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:51194 - "POST /auth/login HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:51432 - "POST /auth/login HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:51542 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:     127.0.0.1:51660 - "GET /hr/properties HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:     127.0.0.1:51763 - "GET /hr/managers HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52548 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52561 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53129 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53141 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53281 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53296 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53421 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53432 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53501 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53504 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53879 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:53886 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54037 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54048 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54048 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54119 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54302 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54309 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:54713 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:54743 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:54767 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:54792 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:54861 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:54946 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:55387 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56085 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:56085 - "POST /auth/login HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:56098 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:58451 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:58451 - "POST /auth/login HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:59978 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg3NTd9.HQcWHXHmhBwUiR63kKd8eD5aFRws5c1FZtaER-C8xco" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:60842 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60843 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60844 - "OPTIONS /hr/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60845 - "OPTIONS /manager/applications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60846 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60848 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:60849 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg3NTd9.HQcWHXHmhBwUiR63kKd8eD5aFRws5c1FZtaER-C8xco" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+INFO:     127.0.0.1:60848 - "GET /manager/applications HTTP/1.1" 401 Unauthorized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:60844 - "GET /hr/employees HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:60866 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg3NTd9.HQcWHXHmhBwUiR63kKd8eD5aFRws5c1FZtaER-C8xco" 403
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:     connection rejected (403 Forbidden)
+INFO:     127.0.0.1:60845 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60842 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60843 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60843 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:60903 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg3NTd9.HQcWHXHmhBwUiR63kKd8eD5aFRws5c1FZtaER-C8xco" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:60921 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg3NTd9.HQcWHXHmhBwUiR63kKd8eD5aFRws5c1FZtaER-C8xco" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:60975 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg3NTd9.HQcWHXHmhBwUiR63kKd8eD5aFRws5c1FZtaER-C8xco" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:61012 - "POST /auth/login HTTP/1.1" 200 OK
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:     127.0.0.1:61383 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61384 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61385 - "OPTIONS /hr/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61386 - "OPTIONS /manager/applications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61387 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61388 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61390 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg5OTJ9.puxSYwq32TCvZ7JlkOQ4M9KRPCqKST99VmW2gw_Z7rk" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+INFO:     127.0.0.1:61387 - "GET /manager/applications HTTP/1.1" 401 Unauthorized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61385 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61406 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg5OTJ9.puxSYwq32TCvZ7JlkOQ4M9KRPCqKST99VmW2gw_Z7rk" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     127.0.0.1:61386 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61383 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61388 - "GET /hr/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61384 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61452 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg5OTJ9.puxSYwq32TCvZ7JlkOQ4M9KRPCqKST99VmW2gw_Z7rk" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61470 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg5OTJ9.puxSYwq32TCvZ7JlkOQ4M9KRPCqKST99VmW2gw_Z7rk" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61526 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg5OTJ9.puxSYwq32TCvZ7JlkOQ4M9KRPCqKST99VmW2gw_Z7rk" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:61527 - "POST /auth/login HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:61542 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:63839 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63840 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:63839 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:63840 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:49876 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+INFO:     127.0.0.1:49873 - "GET /manager/applications HTTP/1.1" 401 Unauthorized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:     127.0.0.1:49874 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:49870 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:     127.0.0.1:49872 - "GET /hr/employees HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:49893 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     127.0.0.1:49871 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:49874 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:49923 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:49942 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:49965 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:49975 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50002 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50005 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50006 - "OPTIONS /hr/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50007 - "OPTIONS /manager/applications HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50010 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50013 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50012 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+INFO:     127.0.0.1:50007 - "GET /manager/applications HTTP/1.1" 401 Unauthorized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:     127.0.0.1:50005 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:     127.0.0.1:50010 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50002 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50006 - "GET /hr/employees HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50028 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:50005 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50035 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50051 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50069 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTg1MzB9.oBr8UbNIiL893TrNQxQqMgrdOkolBV8NU_mK5-zpcps" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:     127.0.0.1:50111 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:50112 - "POST /auth/login HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50115 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTkwMzZ9.ycgKW8cTcnSsj7KZjbQmgT3m-66IW1KMh9fGCpFQzcY" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:50123 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTk1Njh9.ww4keUuYub4wlTbeKJw40e9ZbrYuctiDoDRgfKnakh4" 403
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+INFO:     127.0.0.1:54278 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54279 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54278 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:54279 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55110 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55125 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55145 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55163 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2ODgxOTd9.v65IABxwhD0ckC614f_h-P1aIcY-jpKNXH08YqSnNhQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55216 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55229 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55728 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTk1Njh9.ww4keUuYub4wlTbeKJw40e9ZbrYuctiDoDRgfKnakh4" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+INFO:     127.0.0.1:55732 - "GET /manager/applications HTTP/1.1" 401 Unauthorized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55729 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55731 - "GET /hr/employees HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55733 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=manager_id%2Cproperties%28%2A%29 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 4 managers with properties in batch query
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55750 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTk1Njh9.ww4keUuYub4wlTbeKJw40e9ZbrYuctiDoDRgfKnakh4" 403
+INFO:     127.0.0.1:55730 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55729 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55795 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTk1Njh9.ww4keUuYub4wlTbeKJw40e9ZbrYuctiDoDRgfKnakh4" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55813 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ2OTk1Njh9.ww4keUuYub4wlTbeKJw40e9ZbrYuctiDoDRgfKnakh4" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:55833 - "POST /auth/login HTTP/1.1" 200 OK
+ERROR:app.websocket_manager:Token authentication error: Invalid token payload
+WARNING:app.websocket_router:WebSocket authentication failed: Authentication failed
+INFO:     127.0.0.1:55837 - "WebSocket /ws/dashboard?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZTVhZmFmYTAtMTg2Ni00YWNjLWI0NGMtMmI2MTU4YmYyZDU5Iiwicm9sZSI6ImhyIiwidG9rZW5fdHlwZSI6ImhyX2F1dGgiLCJleHAiOjE3NTQ3MDAxNDN9.Lx1w54JSM2bf5YFparCAzYb8fEOC05iVffF4J3dp7FQ" 403
+INFO:     connection rejected (403 Forbidden)
+INFO:     connection closed
+ERROR:app.property_access_control:Manager property access dependency: No current_user provided
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=property_id%2Cmanager_id "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Fetched 3 properties with managers in single query
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+WARNING:  StatReload detected changes in 'test_notification_system.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down enhanced WebSocket manager...
+INFO:app.websocket_manager:Enhanced WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [24074]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [67843]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [67843]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:passlib.handlers.bcrypt:(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/opt/homebrew/lib/python3.13/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+INFO:     Started server process [68384]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68384]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [68864]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:60608 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60609 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60608 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60618 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.personal-info "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.i9-complete "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.i9-section1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.i9-section2 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.w4-form "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.company-policies "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.direct-deposit "HTTP/2 200 OK"
+INFO:     127.0.0.1:60898 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60899 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTE3NTQ1MDg1MDMiLCJhcHBsaWNhdGlvbl9pZCI6bnVsbCwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTQ1MDg1MDMuNzYzNTQ3LCJleHAiOjE3NTUxMTMzMDMuNzYzNDM5LCJqdGkiOiJqZUNndThPVURXVW00bDZXSzFReUVnIiwicHJvcGVydHlfaWQiOiJ0ZXN0LXByb3BlcnR5LTEyMyIsInBvc2l0aW9uIjoiVGVzdCBQb3NpdGlvbiJ9.bVKHcw6xhobYwze7qh3oQw6MHKfMjAo61Bg_Q0MHusA HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60898 - "GET /healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.personal-info "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.i9-complete "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.i9-section1 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.i9-section2 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.w4-form "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.company-policies "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.direct-deposit "HTTP/2 200 OK"
+INFO:     127.0.0.1:60910 - "GET /api/onboarding/session/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6InRlc3QtZW1wLTE3NTQ1MDg1MDMiLCJhcHBsaWNhdGlvbl9pZCI6bnVsbCwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTQ1MDg1MDMuNzYzNTQ3LCJleHAiOjE3NTUxMTMzMDMuNzYzNDM5LCJqdGkiOiJqZUNndThPVURXVW00bDZXSzFReUVnIiwicHJvcGVydHlfaWQiOiJ0ZXN0LXByb3BlcnR5LTEyMyIsInBvc2l0aW9uIjoiVGVzdCBQb3NpdGlvbiJ9.bVKHcw6xhobYwze7qh3oQw6MHKfMjAo61Bg_Q0MHusA HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60910 - "OPTIONS /api/onboarding/test-emp-1754508503/complete/welcome HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60898 - "POST /api/onboarding/test-emp-1754508503/complete/welcome HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.personal-info "HTTP/2 200 OK"
+INFO:     127.0.0.1:60929 - "GET /api/onboarding/test-emp-1754508503/personal-info HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/onboarding_form_data?select=%2A&employee_id=eq.test-emp-1754508503&step_id=eq.personal-info "HTTP/2 200 OK"
+INFO:     127.0.0.1:60929 - "GET /api/onboarding/test-emp-1754508503/personal-info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60898 - "OPTIONS /api/onboarding/test-emp-1754508503/complete/personal-info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60910 - "POST /api/onboarding/test-emp-1754508503/complete/personal-info HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61169 - "OPTIONS /auth/login HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&email=eq.hr%40hoteltest.com "HTTP/2 200 OK"
+INFO:     127.0.0.1:61170 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61170 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61169 - "OPTIONS /hr/dashboard-stats HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     127.0.0.1:61169 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61180 - "OPTIONS /hr/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61186 - "OPTIONS /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61187 - "OPTIONS /hr/users HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61170 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Raw properties from DB: 3 properties found
+INFO:app.supabase_service_enhanced:Returning 3 properties
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.b1d60a13-ba0d-45bd-b709-87076abc64dc "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.550e8400-e29b-41d4-a716-446655440003 "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.44d08c2f-49a7-443c-b1b9-6a5f20c529d2 "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.402115b9-a0d9-4ca3-8c49-86acf523145d "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.371ad31b-0ffb-4806-9a95-5f5e5ddf410e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.59356bfe-9c80-4871-81e5-2fa4496b5781 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.4bbcacc3-ef03-4cab-b805-8b421697b7d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.550e8400-e29b-41d4-a716-446655440002 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.bd4d3ec2-c9d5-427a-995f-7a57511d7202 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61169 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61188 - "GET /hr/users HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=id&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&role=eq.manager&is_active=eq.True "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.pending "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id&status=eq.approved "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/job_applications?select=id "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&employment_status=eq.active "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/employees?select=id&onboarding_status=in.%28in_progress%2Cemployee_completed%2Cmanager_review%29 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Raw properties from DB: 3 properties found
+INFO:app.supabase_service_enhanced:Returning 3 properties
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.b1d60a13-ba0d-45bd-b709-87076abc64dc "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.550e8400-e29b-41d4-a716-446655440003 "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.44d08c2f-49a7-443c-b1b9-6a5f20c529d2 "HTTP/2 404 Not Found"
+INFO:     127.0.0.1:61170 - "GET /hr/dashboard-stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61169 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.402115b9-a0d9-4ca3-8c49-86acf523145d "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.371ad31b-0ffb-4806-9a95-5f5e5ddf410e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.59356bfe-9c80-4871-81e5-2fa4496b5781 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.4bbcacc3-ef03-4cab-b805-8b421697b7d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.550e8400-e29b-41d4-a716-446655440002 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.bd4d3ec2-c9d5-427a-995f-7a57511d7202 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61203 - "GET /hr/users HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61595 - "GET /healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61801 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61803 - "OPTIONS /hr/managers HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Raw properties from DB: 3 properties found
+INFO:app.supabase_service_enhanced:Returning 3 properties
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.b1d60a13-ba0d-45bd-b709-87076abc64dc "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.550e8400-e29b-41d4-a716-446655440003 "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.44d08c2f-49a7-443c-b1b9-6a5f20c529d2 "HTTP/2 404 Not Found"
+INFO:     127.0.0.1:61802 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.402115b9-a0d9-4ca3-8c49-86acf523145d "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.371ad31b-0ffb-4806-9a95-5f5e5ddf410e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.59356bfe-9c80-4871-81e5-2fa4496b5781 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.4bbcacc3-ef03-4cab-b805-8b421697b7d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.550e8400-e29b-41d4-a716-446655440002 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.bd4d3ec2-c9d5-427a-995f-7a57511d7202 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61801 - "GET /hr/managers HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     127.0.0.1:61803 - "OPTIONS /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61804 - "OPTIONS /hr/managers/402115b9-a0d9-4ca3-8c49-86acf523145d/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61803 - "OPTIONS /hr/managers/4bbcacc3-ef03-4cab-b805-8b421697b7d7/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61804 - "OPTIONS /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61816 - "OPTIONS /hr/managers/371ad31b-0ffb-4806-9a95-5f5e5ddf410e/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61817 - "OPTIONS /hr/managers/59356bfe-9c80-4871-81e5-2fa4496b5781/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61803 - "OPTIONS /hr/managers/91bd91e4-c264-4152-96d5-751ddff61e6c/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61804 - "OPTIONS /hr/managers/24159b27-c40e-4f47-8403-de9916ab3ead/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61816 - "OPTIONS /hr/managers/645cf5b6-9fbb-487f-85eb-0473845ca9ae/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61817 - "OPTIONS /hr/managers/550e8400-e29b-41d4-a716-446655440002/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61803 - "OPTIONS /hr/managers/a120ae58-7f72-49e0-ae95-abb209df438e/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61804 - "OPTIONS /hr/managers/bd4d3ec2-c9d5-427a-995f-7a57511d7202/performance HTTP/1.1" 200 OK
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/properties?select=%2A "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Raw properties from DB: 3 properties found
+INFO:app.supabase_service_enhanced:Returning 3 properties
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.b1d60a13-ba0d-45bd-b709-87076abc64dc "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.550e8400-e29b-41d4-a716-446655440003 "HTTP/2 404 Not Found"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/manager_properties?select=manager_id&property_id=eq.44d08c2f-49a7-443c-b1b9-6a5f20c529d2 "HTTP/2 404 Not Found"
+INFO:     127.0.0.1:61802 - "GET /hr/properties HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.402115b9-a0d9-4ca3-8c49-86acf523145d "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.371ad31b-0ffb-4806-9a95-5f5e5ddf410e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.59356bfe-9c80-4871-81e5-2fa4496b5781 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.4bbcacc3-ef03-4cab-b805-8b421697b7d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.91bd91e4-c264-4152-96d5-751ddff61e6c "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.24159b27-c40e-4f47-8403-de9916ab3ead "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.645cf5b6-9fbb-487f-85eb-0473845ca9ae "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.550e8400-e29b-41d4-a716-446655440002 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.a120ae58-7f72-49e0-ae95-abb209df438e "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.bd4d3ec2-c9d5-427a-995f-7a57511d7202 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.4bbcacc3-ef03-4cab-b805-8b421697b7d7&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.4bbcacc3-ef03-4cab-b805-8b421697b7d7 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.b0695348-c475-414a-b1b9-5733055bad75&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.b0695348-c475-414a-b1b9-5733055bad75 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.ea67171f-18b5-453a-bba8-ab2f39fb26c0 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.402115b9-a0d9-4ca3-8c49-86acf523145d&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.402115b9-a0d9-4ca3-8c49-86acf523145d "HTTP/2 200 OK"
+INFO:     127.0.0.1:61801 - "GET /hr/managers HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61803 - "GET /hr/managers/4bbcacc3-ef03-4cab-b805-8b421697b7d7/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61816 - "GET /hr/managers/b0695348-c475-414a-b1b9-5733055bad75/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61804 - "GET /hr/managers/ea67171f-18b5-453a-bba8-ab2f39fb26c0/performance HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61817 - "GET /hr/managers/402115b9-a0d9-4ca3-8c49-86acf523145d/performance HTTP/1.1" 200 OK
+INFO:     Shutting down
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Waiting for connections to close. (CTRL+C to force quit)
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.e5afafa0-1866-4acc-b44c-2b6158bf2d59 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/users?select=%2A&id=eq.371ad31b-0ffb-4806-9a95-5f5e5ddf410e&role=eq.manager "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://onmjxtyamdpkhnflwwmj.supabase.co/rest/v1/property_managers?select=properties%28%2A%29&manager_id=eq.371ad31b-0ffb-4806-9a95-5f5e5ddf410e "HTTP/2 200 OK"
+INFO:     127.0.0.1:61802 - "GET /hr/managers/371ad31b-0ffb-4806-9a95-5f5e5ddf410e/performance HTTP/1.1" 200 OK
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [68864]
+INFO:     Stopping reloader process [24071]
