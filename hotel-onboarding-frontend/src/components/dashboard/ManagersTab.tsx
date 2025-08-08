@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,8 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Edit, Trash2, Search, User, Building, TrendingUp, Users, CheckCircle, XCircle, Clock } from 'lucide-react'
-import axios from 'axios'
+import { Plus, Edit, Trash2, Search, User, Building, TrendingUp, Users, CheckCircle, XCircle, Clock, RefreshCw, UserX, ToggleLeft, ToggleRight } from 'lucide-react'
+import api from '@/services/api'
 
 interface Manager {
   id: string
@@ -64,14 +63,7 @@ interface ManagerFormData {
   password: string
 }
 
-interface OutletContext {
-  stats: any
-  onStatsUpdate: () => void
-}
-
-export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: ManagersTabProps) {
-  const outletContext = useOutletContext<OutletContext>()
-  const onStatsUpdate = propOnStatsUpdate || outletContext?.onStatsUpdate || (() => {})
+export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabProps) {
   const [managers, setManagers] = useState<Manager[]>([])
   const [properties, setProperties] = useState<Property[]>([])
   const [performanceData, setPerformanceData] = useState<Record<string, ManagerPerformance>>({})
@@ -79,6 +71,7 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
   const [propertiesLoading, setPropertiesLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProperty, setSelectedProperty] = useState<string>('all')
+  const [showInactive, setShowInactive] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingManager, setEditingManager] = useState<Manager | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -95,7 +88,7 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
   useEffect(() => {
     fetchManagers()
     fetchProperties()
-  }, [])
+  }, [showInactive]) // Re-fetch when toggle changes
 
   useEffect(() => {
     // Fetch performance data for all managers
@@ -106,14 +99,11 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
 
   const fetchManagers = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get('http://127.0.0.1:8000/hr/managers', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      // Pass include_inactive parameter based on toggle state
+      const response = await api.hr.getManagers(showInactive ? { include_inactive: true } : {})
       
-      // Handle wrapped response format
-      const managersData = response.data.data || response.data
-      const managersList = Array.isArray(managersData) ? managersData : []
+      // API service handles response unwrapping
+      const managersList = Array.isArray(response.data) ? response.data : []
       
       // Transform the data to match the expected interface
       const transformedManagers = managersList.map((manager: any) => ({
@@ -121,9 +111,9 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
         email: manager.email,
         first_name: manager.first_name,
         last_name: manager.last_name,
-        property_id: manager.property?.id || null,
-        property_name: manager.property?.name || null,
-        is_active: manager.is_active,
+        property_id: manager.properties?.[0]?.id || null,
+        property_name: manager.properties?.[0]?.name || null,
+        is_active: manager.is_active !== undefined ? manager.is_active : true,
         created_at: manager.created_at
       }))
       
@@ -144,13 +134,9 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
   const fetchProperties = async () => {
     setPropertiesLoading(true)
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get('http://127.0.0.1:8000/hr/properties', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      // Handle wrapped response format
-      const propertiesData = response.data.data || response.data
-      setProperties(Array.isArray(propertiesData) ? propertiesData : [])
+      const response = await api.hr.getProperties()
+      // API service handles response unwrapping
+      setProperties(Array.isArray(response.data) ? response.data : [])
     } catch (error) {
       console.error('Failed to fetch properties:', error)
       toast({
@@ -166,14 +152,12 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
 
   const fetchManagerPerformance = async (managerId: string) => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get(`http://127.0.0.1:8000/hr/managers/${managerId}/performance`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      setPerformanceData(prev => ({
-        ...prev,
-        [managerId]: response.data
-      }))
+      // Note: Performance endpoint may not exist yet - skip for now
+      // const response = await api.apiClient.get(`/hr/managers/${managerId}/performance`)
+      // setPerformanceData(prev => ({
+      //   ...prev,
+      //   [managerId]: response.data
+      // }))
     } catch (error) {
       console.error(`Failed to fetch performance for manager ${managerId}:`, error)
     }
@@ -192,22 +176,19 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
     }
 
     try {
-      const token = localStorage.getItem('token')
-      const formDataToSend = new FormData()
-      formDataToSend.append('email', formData.email)
-      formDataToSend.append('first_name', formData.first_name)
-      formDataToSend.append('last_name', formData.last_name)
-      formDataToSend.append('password', formData.password)
+      // Convert to object for API service
+      const dataObject: any = {
+        email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        password: formData.password
+      }
       if (formData.property_id && formData.property_id !== 'none') {
-        formDataToSend.append('property_id', formData.property_id)
+        dataObject.property_id = formData.property_id
       }
 
-      await axios.post('http://127.0.0.1:8000/hr/managers', formDataToSend, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      // Use the createManager method from API service
+      await api.hr.createManager(dataObject)
 
       toast({
         title: "Success",
@@ -239,7 +220,7 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
     if (!editingManager) return
 
     try {
-      const token = localStorage.getItem('token')
+      // Token is handled by API service
       const formDataToSend = new FormData()
       
       // Debug logging
@@ -262,12 +243,14 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
         console.log(`FormData ${key}:`, value)
       }
 
-      const response = await axios.put(`http://127.0.0.1:8000/hr/managers/${editingManager.id}`, formDataToSend, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      // Convert FormData to object for API service
+      const dataObject: any = {}
+      for (let [key, value] of formDataToSend.entries()) {
+        dataObject[key] = value
+      }
+      
+      // Use the updateManager method from API service
+      const response = await api.hr.updateManager(editingManager.id, dataObject)
       
       console.log('Update response:', response.data)
 
@@ -298,14 +281,11 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
 
   const handleDeleteManager = async (managerId: string) => {
     try {
-      const token = localStorage.getItem('token')
-      await axios.delete(`http://127.0.0.1:8000/hr/managers/${managerId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      await api.hr.deleteManager(managerId)
 
       toast({
         title: "Success",
-        description: "Manager deleted successfully"
+        description: "Manager deactivated successfully"
       })
 
       fetchManagers()
@@ -313,7 +293,27 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.response?.data?.detail || "Failed to delete manager",
+        description: error.response?.data?.detail || "Failed to deactivate manager",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleReactivateManager = async (managerId: string) => {
+    try {
+      await api.hr.reactivateManager(managerId)
+
+      toast({
+        title: "Success",
+        description: "Manager reactivated successfully"
+      })
+
+      fetchManagers()
+      onStatsUpdate()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to reactivate manager",
         variant: "destructive"
       })
     }
@@ -523,6 +523,31 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
         </CardHeader>
         
         <CardContent>
+          {/* Toggle for showing inactive managers */}
+          <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium">Show Inactive Managers</span>
+              <button
+                onClick={() => setShowInactive(!showInactive)}
+                className="flex items-center space-x-2 px-3 py-1 rounded-md transition-colors"
+                style={{
+                  backgroundColor: showInactive ? '#3b82f6' : '#e5e7eb',
+                  color: showInactive ? 'white' : '#6b7280'
+                }}
+              >
+                {showInactive ? (
+                  <ToggleRight className="h-5 w-5" />
+                ) : (
+                  <ToggleLeft className="h-5 w-5" />
+                )}
+                <span className="text-sm">{showInactive ? 'ON' : 'OFF'}</span>
+              </button>
+            </div>
+            <div className="text-sm text-gray-600">
+              {showInactive ? 'Showing all managers' : 'Showing only active managers'}
+            </div>
+          </div>
+
           {/* Search and Filter */}
           <div className="flex space-x-4 mb-6">
             <div className="flex-1">
@@ -582,7 +607,9 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
                 {filteredManagers.map((manager) => {
                   const performance = performanceData[manager.id]
                   return (
-                    <TableRow key={manager.id}>
+                    <TableRow 
+                      key={manager.id}
+                      className={!manager.is_active ? 'bg-gray-50 opacity-75' : ''}>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <User className="h-4 w-4 text-gray-400" />
@@ -638,39 +665,59 @@ export default function ManagersTab({ onStatsUpdate: propOnStatsUpdate }: Manage
                       
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openEditDialog(manager)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
+                          {manager.is_active ? (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditDialog(manager)}
+                                title="Edit Manager"
+                              >
+                                <Edit className="h-4 w-4" />
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Manager</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete {manager.first_name} {manager.last_name}? 
-                                  This action cannot be undone and will remove them from any property assignments.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteManager(manager.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                              
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    title="Deactivate Manager"
+                                  >
+                                    <UserX className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Deactivate Manager</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to deactivate {manager.first_name} {manager.last_name}? 
+                                      They will lose access to the system. You can reactivate them later if needed.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteManager(manager.id)}
+                                      className="bg-orange-600 hover:bg-orange-700"
+                                    >
+                                      Deactivate
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReactivateManager(manager.id)}
+                              title="Reactivate Manager"
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <RefreshCw className="h-4 w-4 mr-1" />
+                              Reactivate
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

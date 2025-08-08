@@ -108,7 +108,7 @@ export function ManagerDashboardLayout() {
       headers: { Authorization: `Bearer ${token}` }
     }
     
-    const response = await axios.get('http://127.0.0.1:8000/manager/property', axiosConfig)
+    const response = await axios.get('/api/manager/property', axiosConfig)
     const userProperty = response.data
     setProperty(userProperty || null)
   }
@@ -120,11 +120,11 @@ export function ManagerDashboardLayout() {
     }
     
     // Fetch applications for stats
-    const appsResponse = await axios.get('http://127.0.0.1:8000/hr/applications', axiosConfig)
+    const appsResponse = await axios.get('/api/hr/applications', axiosConfig)
     const applications = Array.isArray(appsResponse.data) ? appsResponse.data : []
     
     // Fetch employees for stats
-    const empResponse = await axios.get('http://127.0.0.1:8000/api/employees', axiosConfig)
+    const empResponse = await axios.get('/api/api/employees', axiosConfig)
     const employees = Array.isArray(empResponse.data?.employees) ? empResponse.data.employees : []
 
     // Calculate stats

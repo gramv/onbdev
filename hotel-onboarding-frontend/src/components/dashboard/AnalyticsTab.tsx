@@ -110,7 +110,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true)
-      const baseUrl = 'http://127.0.0.1:8000'
+      const baseUrl = '/api'
       
       if (userRole === 'hr') {
         const [overviewRes, propertyRes, employeeRes] = await Promise.all([
@@ -152,8 +152,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
     try {
       setExporting(true)
       const endpoint = userRole === 'hr' 
-        ? 'http://127.0.0.1:8000/hr/analytics/export?format=json'
-        : 'http://127.0.0.1:8000/manager/analytics/export?format=json'
+        ? '/api/hr/analytics/export?format=json'
+        : '/api/manager/analytics/export?format=json'
       const response = await axios.get(endpoint)
       
       // Create and download JSON file

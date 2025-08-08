@@ -45,7 +45,7 @@ export default function HRDashboardDebug() {
       }
       
       console.log('🔍 [DEBUG] Making API request to /hr/dashboard-stats...')
-      const response = await axios.get('http://127.0.0.1:8000/hr/dashboard-stats', axiosConfig)
+      const response = await axios.get('/api/hr/dashboard-stats', axiosConfig)
       
       console.log('🔍 [DEBUG] API Response status:', response.status)
       console.log('🔍 [DEBUG] API Response headers:', response.headers)

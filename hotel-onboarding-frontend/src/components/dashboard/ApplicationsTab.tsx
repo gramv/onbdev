@@ -127,8 +127,8 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       setLoading(true)
       // Use different endpoints based on user role
       const endpoint = userRole === 'hr' 
-        ? 'http://127.0.0.1:8000/hr/applications'
-        : 'http://127.0.0.1:8000/manager/applications'
+        ? '/api/hr/applications'
+        : '/api/manager/applications'
       
       console.log('🔍 Fetching applications:', {
         userRole,
@@ -182,7 +182,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const fetchTalentPoolCandidates = async () => {
     try {
       setTalentPoolLoading(true)
-      const endpoint = 'http://127.0.0.1:8000/hr/applications/talent-pool'
+      const endpoint = '/api/hr/applications/talent-pool'
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
@@ -217,7 +217,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
   const fetchProperties = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/hr/properties', {
+      const response = await axios.get('/api/hr/properties', {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Handle wrapped response format
@@ -330,9 +330,9 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         formData.append(key, value)
       })
 
-      console.log('🚀 Making approval request to:', `http://127.0.0.1:8000/applications/${selectedApplication.id}/approve`)
+      console.log('🚀 Making approval request to:', `/api/applications/${selectedApplication.id}/approve`)
       
-      const response = await axios.post(`http://127.0.0.1:8000/applications/${selectedApplication.id}/approve`, formData, {
+      const response = await axios.post(`/api/applications/${selectedApplication.id}/approve`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -416,7 +416,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       const formData = new FormData()
       formData.append('rejection_reason', rejectionReason.trim())
 
-      const response = await axios.post(`http://127.0.0.1:8000/applications/${selectedApplication.id}/reject`, formData, {
+      const response = await axios.post(`/api/applications/${selectedApplication.id}/reject`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -479,7 +479,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       
       if (bulkActionType === 'email') {
         // Send bulk email notifications to talent pool candidates
-        const response = await axios.post('http://127.0.0.1:8000/hr/applications/bulk-talent-pool-notify', {
+        const response = await axios.post('/api/hr/applications/bulk-talent-pool-notify', {
           application_ids: selectedTalentPoolIds
         }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -488,7 +488,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         alert(`Email notifications sent to ${selectedTalentPoolIds.length} candidates`)
       } else if (bulkActionType === 'reactivate') {
         // Reactivate talent pool candidates (move back to pending)
-        const response = await axios.post('http://127.0.0.1:8000/hr/applications/bulk-reactivate', {
+        const response = await axios.post('/api/hr/applications/bulk-reactivate', {
           application_ids: selectedTalentPoolIds
         }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -534,7 +534,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       formData.append('new_status', newStatus)
       formData.append('reason', reason)
 
-      await axios.post('http://127.0.0.1:8000/hr/applications/bulk-status-update', formData, {
+      await axios.post('/api/hr/applications/bulk-status-update', formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -558,7 +558,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const fetchApplicationHistory = async (applicationId: string) => {
     try {
       setHistoryLoading(true)
-      const response = await axios.get(`http://127.0.0.1:8000/hr/applications/${applicationId}/history`, {
+      const response = await axios.get(`/api/hr/applications/${applicationId}/history`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setApplicationHistory(response.data.history || [])
@@ -603,7 +603,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       if (bulkStatusData.reason) formData.append('reason', bulkStatusData.reason)
       if (bulkStatusData.notes) formData.append('notes', bulkStatusData.notes)
 
-      await axios.post('http://127.0.0.1:8000/hr/applications/bulk-status-update', formData, {
+      await axios.post('/api/hr/applications/bulk-status-update', formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
