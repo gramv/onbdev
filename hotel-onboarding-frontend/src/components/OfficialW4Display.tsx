@@ -80,7 +80,7 @@ export default function OfficialW4Display({
         throw new Error(`IRS compliance violation: Missing required W-4 fields: ${missingFields.join(', ')}`);
       }
       
-      const response = await fetch('http://127.0.0.1:8000/api/forms/w4/generate', {
+      const response = await fetch('/api/api/forms/w4/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

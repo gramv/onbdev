@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useOutletContext } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { Plus, Edit, Trash2, QrCode, Search, MapPin, Phone, Users, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, Copy } from 'lucide-react'
-import axios from 'axios'
+import api from '@/services/api'
 import { PropertyForm } from './PropertyForm'
 import { QRCodeDisplay, QRCodeCard } from '@/components/ui/qr-code-display'
 import { Label } from '@radix-ui/react-label'
@@ -50,17 +49,10 @@ interface PropertyFormData {
   phone: string
 }
 
-interface OutletContext {
-  stats: any
-  onStatsUpdate: () => void
-}
-
 type SortField = 'name' | 'city' | 'state' | 'created_at'
 type SortDirection = 'asc' | 'desc'
 
-function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps) {
-  const outletContext = useOutletContext<OutletContext>()
-  const onStatsUpdate = propOnStatsUpdate || outletContext?.onStatsUpdate || (() => {})
+function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
   const { user, loading: authLoading } = useAuth()
   const [properties, setProperties] = useState<Property[]>([])
   const [managers, setManagers] = useState<Manager[]>([])
@@ -83,11 +75,6 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
   })
   const [submitting, setSubmitting] = useState(false)
   const { toast } = useToast()
-
-  const token = localStorage.getItem('token')
-  const axiosConfig = {
-    headers: { Authorization: `Bearer ${token}` }
-  }
   
 
 
@@ -101,10 +88,9 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
 
   const fetchProperties = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/hr/properties', axiosConfig)
-      // Handle wrapped response format
-      const propertiesData = response.data.data || response.data
-      setProperties(Array.isArray(propertiesData) ? propertiesData : [])
+      const response = await api.hr.getProperties()
+      // API service handles response unwrapping
+      setProperties(Array.isArray(response.data) ? response.data : [])
       onStatsUpdate()
     } catch (error) {
       console.error('Error fetching properties:', error)
@@ -120,14 +106,11 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
 
   const fetchManagers = async () => {
     try {
-      // This would be a separate endpoint to get all managers
-      // For now, we'll extract managers from users endpoint if available
-      const response = await axios.get('http://127.0.0.1:8000/hr/users', axiosConfig)
-      // Handle wrapped response format
-      const usersData = response.data.data || response.data
-      const usersList = Array.isArray(usersData) ? usersData : []
-      const managerUsers = usersList.filter((user: any) => user.role === 'manager')
-      setManagers(managerUsers)
+      // Fetch managers from HR managers endpoint
+      const response = await api.hr.getManagers()
+      // API service handles response unwrapping
+      const managersData = Array.isArray(response.data) ? response.data : []
+      setManagers(managersData)
     } catch (error) {
       console.error('Error fetching managers:', error)
       // Don't show error toast for this as it's not critical
@@ -148,13 +131,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
       params.append('zip_code', formData.zip_code)
       params.append('phone', formData.phone)
 
-      await axios.post('http://127.0.0.1:8000/hr/properties', params, {
-        ...axiosConfig,
-        headers: {
-          ...axiosConfig.headers,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      })
+      await api.hr.createProperty(Object.fromEntries(params))
 
       toast({
         title: "Success",
@@ -204,13 +181,7 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
       params.append('zip_code', formData.zip_code)
       params.append('phone', formData.phone)
 
-      await axios.put(`http://127.0.0.1:8000/hr/properties/${editingProperty.id}`, params, {
-        ...axiosConfig,
-        headers: {
-          ...axiosConfig.headers,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      })
+      await api.hr.updateProperty(editingProperty.id, Object.fromEntries(params))
 
       toast({
         title: "Success",
@@ -247,11 +218,14 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
 
   const handleDeleteProperty = async (propertyId: string) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/hr/properties/${propertyId}`, axiosConfig)
+      const response = await api.hr.deleteProperty(propertyId)
 
+      // Check if the response contains a detail about manager unassignment
+      const message = response.data?.detail || "Property deleted successfully"
+      
       toast({
         title: "Success",
-        description: "Property deleted successfully"
+        description: message
       })
 
       fetchProperties()
@@ -265,11 +239,16 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
           errorMessage = error.response.data.detail.map((err: any) => err.msg).join(', ')
         } else if (typeof error.response.data.detail === 'string') {
           errorMessage = error.response.data.detail
+          
+          // Provide more helpful guidance for specific errors
+          if (errorMessage.includes("active applications or employees")) {
+            errorMessage += ". Please ensure all applications are processed and employees are inactive before deleting."
+          }
         }
       }
 
       toast({
-        title: "Error",
+        title: "Cannot Delete Property",
         description: errorMessage,
         variant: "destructive"
       })
@@ -574,9 +553,20 @@ function PropertiesTab({ onStatsUpdate: propOnStatsUpdate }: PropertiesTabProps)
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Property</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{property.name}"? This action cannot be undone.
-                                Properties with active applications or employees cannot be deleted.
+                              <AlertDialogDescription asChild>
+                                <div className="space-y-2">
+                                  <div>Are you sure you want to delete "{property.name}"?</div>
+                                  <div className="text-yellow-600 font-medium">⚠️ Warning: This will:</div>
+                                  <ul className="list-disc list-inside text-sm space-y-1 ml-4">
+                                    <li>Remove all manager assignments from this property</li>
+                                    <li>Clear property references from bulk operations</li>
+                                    <li>Delete the property permanently</li>
+                                    <li>This action cannot be undone</li>
+                                  </ul>
+                                  <div className="text-red-600 text-sm mt-2">
+                                    Note: Properties with active applications or employees cannot be deleted.
+                                  </div>
+                                </div>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

@@ -131,7 +131,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       setLoading(true)
 
       // Fetch all employees without any filters - we'll filter on the client side
-      const response = await axios.get('http://127.0.0.1:8000/api/employees', {
+      const response = await axios.get('/api/api/employees', {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -148,7 +148,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
 
   const fetchFilterOptions = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/hr/properties', {
+      const response = await axios.get('/api/hr/properties', {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -169,7 +169,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
   const fetchEmployeeDetails = async (employeeId: string) => {
     try {
       setDetailsLoading(true)
-      const response = await axios.get(`http://127.0.0.1:8000/api/employees/${employeeId}`, {
+      const response = await axios.get(`/api/api/employees/${employeeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Handle wrapped response format
@@ -191,7 +191,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       const formData = new FormData()
       formData.append('employment_status', newEmployeeStatus)
 
-      await axios.put(`http://127.0.0.1:8000/api/employees/${selectedEmployee.id}`, formData, {
+      await axios.put(`/api/api/employees/${selectedEmployee.id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

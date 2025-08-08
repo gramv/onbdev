@@ -72,7 +72,7 @@ export default function ManagerDashboard() {
   }
 
   const fetchPropertyData = async () => {
-    const response = await axios.get('http://127.0.0.1:8000/hr/properties')
+    const response = await axios.get('/api/hr/properties')
     const properties = response.data
     const userProperty = properties.find((p: Property) => p.id === user?.property_id)
     setProperty(userProperty || null)
@@ -80,11 +80,11 @@ export default function ManagerDashboard() {
 
   const fetchDashboardStats = async () => {
     // Fetch applications for stats
-    const appsResponse = await axios.get('http://127.0.0.1:8000/hr/applications')
+    const appsResponse = await axios.get('/api/hr/applications')
     const applications = appsResponse.data
     
     // Fetch employees for stats
-    const empResponse = await axios.get('http://127.0.0.1:8000/api/employees')
+    const empResponse = await axios.get('/api/api/employees')
     const employees = empResponse.data
 
     // Calculate stats

@@ -134,7 +134,7 @@ export default function I9CompleteStep({
       // ALWAYS check cloud data if we have an employee ID
       if (employee?.id && !employee.id.startsWith('demo-')) {
         try {
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+          const apiUrl = import.meta.env.VITE_API_URL || '/api'
           const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/i9-complete`)
           if (response.ok) {
             const result = await response.json()
@@ -443,7 +443,7 @@ export default function I9CompleteStep({
     // Also save to I-9 Section 1 endpoint for cloud storage
     if (employee?.id && !employee.id.startsWith('demo-')) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || '/api'
         await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {
           formData: updatedFormData,
           signed: false,
@@ -658,7 +658,7 @@ export default function I9CompleteStep({
     // Save to backend if we have an employee ID
     if (employee?.id && !employee.id.startsWith('demo-')) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || '/api'
         
         // Save I-9 Section 1 with signature
         await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {

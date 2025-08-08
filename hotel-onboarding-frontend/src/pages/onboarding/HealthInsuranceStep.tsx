@@ -129,7 +129,7 @@ export default function HealthInsuranceStep({
     // Save to backend if we have an employee ID
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || '/api'
         await axios.post(`${apiUrl}/api/onboarding/${employee.id}/health-insurance`, completeData)
         console.log('Health insurance data saved to backend')
       } catch (error) {
@@ -229,7 +229,7 @@ export default function HealthInsuranceStep({
             language={language}
             description={t.reviewDescription}
             usePDFPreview={true}
-            pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/onboarding/${employee?.id || 'test-employee'}/health-insurance/generate-pdf`}
+            pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id || 'test-employee'}/health-insurance/generate-pdf`}
           />
           </div>
         </StepContentWrapper>

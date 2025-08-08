@@ -611,7 +611,7 @@ async def get_hr_properties(current_user: User = Depends(require_hr_role)):
         for prop in properties:
             # Get manager assignments for this property
             try:
-                manager_response = supabase_service.client.table('manager_properties').select('manager_id').eq('property_id', prop.id).execute()
+                manager_response = supabase_service.client.table('property_managers').select('manager_id').eq('property_id', prop.id).execute()
                 manager_ids = [row['manager_id'] for row in manager_response.data]
             except Exception:
                 manager_ids = []
@@ -757,10 +757,40 @@ async def delete_property(
                 detail="Cannot delete property with active applications or employees"
             )
         
-        # Delete property
+        # First, unassign all managers from this property
+        # This handles the foreign key constraint from property_managers table
+        try:
+            # Delete all property_manager assignments for this property
+            supabase_service.client.table('property_managers').delete().eq('property_id', id).execute()
+            logger.info(f"Removed all manager assignments for property {id}")
+        except Exception as e:
+            logger.warning(f"Failed to remove manager assignments: {e}")
+        
+        # Next, clear property_id from any users (managers) who have this property set
+        # This handles the foreign key constraint from users table
+        try:
+            # Update users table to remove property_id reference
+            supabase_service.client.table('users').update({'property_id': None}).eq('property_id', id).execute()
+            logger.info(f"Cleared property_id reference from users for property {id}")
+        except Exception as e:
+            logger.warning(f"Failed to clear property_id from users: {e}")
+        
+        # Clear property_id from bulk_operations table
+        # This handles the foreign key constraint from bulk_operations table
+        try:
+            # Update bulk_operations table to remove property_id reference
+            supabase_service.client.table('bulk_operations').update({'property_id': None}).eq('property_id', id).execute()
+            logger.info(f"Cleared property_id reference from bulk_operations for property {id}")
+        except Exception as e:
+            logger.warning(f"Failed to clear property_id from bulk_operations: {e}")
+        
+        # Now we can safely delete the property
         result = supabase_service.client.table('properties').delete().eq('id', id).execute()
         
-        return {"message": "Property deleted successfully"}
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to delete property")
+        
+        return {"message": "Property deleted successfully", "detail": "All manager assignments have been removed"}
         
     except HTTPException:
         raise
@@ -780,7 +810,7 @@ async def get_property_managers(
             raise HTTPException(status_code=404, detail="Property not found")
         
         # Get manager assignments for this property
-        response = supabase_service.client.table('manager_properties').select('manager_id').eq('property_id', id).execute()
+        response = supabase_service.client.table('property_managers').select('manager_id').eq('property_id', id).execute()
         
         manager_ids = [row['manager_id'] for row in response.data]
         
@@ -830,7 +860,7 @@ async def assign_manager_to_property(
             raise HTTPException(status_code=400, detail="Cannot assign inactive manager")
         
         # Check if already assigned
-        existing = supabase_service.client.table('manager_properties').select('*').eq('manager_id', manager_id).eq('property_id', id).execute()
+        existing = supabase_service.client.table('property_managers').select('*').eq('manager_id', manager_id).eq('property_id', id).execute()
         
         if existing.data:
             return {
@@ -845,7 +875,7 @@ async def assign_manager_to_property(
             "assigned_at": datetime.now(timezone.utc).isoformat()
         }
         
-        result = supabase_service.client.table('manager_properties').insert(assignment_data).execute()
+        result = supabase_service.client.table('property_managers').insert(assignment_data).execute()
         
         return {
             "success": True,
@@ -875,7 +905,7 @@ async def remove_manager_from_property(
             raise HTTPException(status_code=404, detail="Manager not found")
         
         # Remove assignment
-        result = supabase_service.client.table('manager_properties').delete().eq('manager_id', manager_id).eq('property_id', id).execute()
+        result = supabase_service.client.table('property_managers').delete().eq('manager_id', manager_id).eq('property_id', id).execute()
         
         if not result.data:
             raise HTTPException(status_code=404, detail="Manager assignment not found")
@@ -1714,6 +1744,7 @@ async def get_hr_users(
 async def get_managers(
     property_id: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
+    include_inactive: bool = Query(False, description="Include inactive managers in results"),
     search: Optional[str] = Query(None),
     current_user: User = Depends(require_hr_role)
 ):
@@ -1722,8 +1753,13 @@ async def get_managers(
         # Get all manager users
         query = supabase_service.client.table('users').select('*').eq('role', 'manager')
         
+        # Handle active/inactive filtering
         if is_active is not None:
+            # If is_active is explicitly set, use that
             query = query.eq('is_active', is_active)
+        elif not include_inactive:
+            # By default, only show active managers unless include_inactive is True
+            query = query.eq('is_active', True)
         
         response = query.execute()
         
@@ -1819,9 +1855,20 @@ async def create_manager(
             # Assign to property if specified
             if property_id and property_id != 'none':
                 try:
-                    await supabase_service.assign_manager_to_property(property_id, manager_id)
+                    # Fix: Correct parameter order (manager_id, property_id)
+                    success = await supabase_service.assign_manager_to_property(manager_id, property_id)
+                    if not success:
+                        # Manager created but property assignment failed
+                        return success_response(
+                            data=created_manager,
+                            message="Manager created successfully but property assignment failed. Please assign manually."
+                        )
                 except Exception as e:
                     logger.warning(f"Failed to assign manager to property: {e}")
+                    return success_response(
+                        data=created_manager,
+                        message="Manager created successfully but property assignment failed. Please assign manually."
+                    )
             
             return success_response(
                 data=created_manager,
@@ -2824,9 +2871,10 @@ async def update_manager(
     last_name: str = Form(...),
     email: str = Form(...),
     is_active: bool = Form(True),
+    property_id: Optional[str] = Form(None),
     current_user: User = Depends(require_hr_role)
 ):
-    """Update manager details (HR only)"""
+    """Update manager details and property assignment (HR only)"""
     try:
         # Check if manager exists
         existing_manager = await supabase_service.get_manager_by_id(id)
@@ -2839,7 +2887,7 @@ async def update_manager(
             if existing_user:
                 raise HTTPException(status_code=400, detail="Email already in use")
         
-        # Update manager
+        # Update manager basic info
         update_data = {
             "first_name": first_name,
             "last_name": last_name,
@@ -2851,6 +2899,59 @@ async def update_manager(
         if not updated_manager:
             raise HTTPException(status_code=500, detail="Failed to update manager")
         
+        # Handle property assignment changes
+        if property_id is not None:
+            # Get current property assignments
+            current_properties = await supabase_service.get_manager_properties(id)
+            current_property_ids = [prop.id for prop in current_properties]
+            
+            # If property_id is empty or "none", remove all assignments
+            if not property_id or property_id == "none" or property_id == "":
+                # Remove all property assignments
+                for prop_id in current_property_ids:
+                    try:
+                        supabase_service.client.table('property_managers').delete().eq(
+                            'manager_id', id
+                        ).eq('property_id', prop_id).execute()
+                    except Exception as e:
+                        logger.warning(f"Failed to remove property assignment: {e}")
+            else:
+                # Verify the new property exists
+                new_property = supabase_service.get_property_by_id_sync(property_id)
+                if not new_property:
+                    raise HTTPException(status_code=404, detail="Property not found")
+                
+                # Remove existing assignments if different
+                if property_id not in current_property_ids:
+                    # Remove old assignments
+                    for prop_id in current_property_ids:
+                        try:
+                            supabase_service.client.table('property_managers').delete().eq(
+                                'manager_id', id
+                            ).eq('property_id', prop_id).execute()
+                        except Exception as e:
+                            logger.warning(f"Failed to remove old property assignment: {e}")
+                    
+                    # Add new assignment
+                    try:
+                        assignment_data = {
+                            "manager_id": id,
+                            "property_id": property_id,
+                            "assigned_at": datetime.now(timezone.utc).isoformat()
+                        }
+                        result = supabase_service.client.table('property_managers').insert(assignment_data).execute()
+                        if not result.data:
+                            logger.error(f"Property assignment may have failed - no data returned")
+                    except Exception as e:
+                        logger.error(f"Failed to assign property: {e}")
+                        # Check if it's an RLS policy error
+                        if "row-level security policy" in str(e).lower():
+                            raise HTTPException(
+                                status_code=403, 
+                                detail="Unable to assign property due to database security policies. Please contact your administrator."
+                            )
+                        # For other errors, continue anyway as manager update was successful
+        
         return {
             "success": True,
             "message": "Manager updated successfully",
@@ -2860,7 +2961,8 @@ async def update_manager(
                 "first_name": updated_manager.first_name,
                 "last_name": updated_manager.last_name,
                 "role": updated_manager.role.value,
-                "is_active": updated_manager.is_active
+                "is_active": updated_manager.is_active,
+                "property_id": property_id if property_id and property_id != "none" else None
             }
         }
         
@@ -2904,6 +3006,40 @@ async def delete_manager(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete manager: {str(e)}")
+
+@app.post("/hr/managers/{id}/reactivate")
+async def reactivate_manager(
+    id: str,
+    current_user: User = Depends(require_hr_role)
+):
+    """Reactivate an inactive manager (HR only)"""
+    try:
+        # Check if manager exists
+        manager = await supabase_service.get_manager_by_id(id)
+        if not manager:
+            raise HTTPException(status_code=404, detail="Manager not found")
+        
+        if manager.is_active:
+            raise HTTPException(status_code=400, detail="Manager is already active")
+        
+        # Reactivate the manager
+        result = supabase_service.client.table("users").update({
+            "is_active": True,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }).eq("id", id).eq("role", "manager").execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to reactivate manager")
+        
+        return {
+            "success": True,
+            "message": f"Manager {manager.first_name} {manager.last_name} has been reactivated"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reactivate manager: {str(e)}")
 
 @app.post("/hr/managers/{id}/reset-password")
 async def reset_manager_password(
@@ -3271,7 +3407,7 @@ async def create_manager_user(email: str, password: str, property_name: str, sec
             "property_id": property_id,
             "assigned_at": datetime.now(timezone.utc).isoformat()
         }
-        supabase_service.client.table('manager_properties').insert(assignment_data).execute()
+        supabase_service.client.table('property_managers').insert(assignment_data).execute()
         
         # Store password
         password_manager.store_password(email, password)

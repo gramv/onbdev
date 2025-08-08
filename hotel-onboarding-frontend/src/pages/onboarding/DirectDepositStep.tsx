@@ -162,7 +162,7 @@ export default function DirectDepositStep({
     // Save to backend if we have an employee ID
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || '/api'
         await axios.post(`${apiUrl}/api/onboarding/${employee.id}/direct-deposit`, completeData)
         console.log('Direct deposit data saved to backend')
       } catch (error) {
@@ -277,7 +277,7 @@ export default function DirectDepositStep({
               ]}
               language={language}
               usePDFPreview={true}
-              pdfEndpoint={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/onboarding/${employee?.id || 'test-employee'}/direct-deposit/generate-pdf`}
+              pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id || 'test-employee'}/direct-deposit/generate-pdf`}
             />
           </FormSection>
           </div>
