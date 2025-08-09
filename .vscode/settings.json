@@ -1,5 +1,5 @@
 {
-    "kiroAgent.configureMCP": "Enabled",
+    "kiroAgent.configureMCP": "Disabled",
     "python.testing.unittestArgs": [
         "-v",
         "-s",

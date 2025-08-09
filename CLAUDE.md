@@ -21,6 +21,13 @@ pip install -r requirements.txt  # Install from requirements
 python3 -m uvicorn app.main_enhanced:app --host 0.0.0.0 --port 8000 --reload  # Run server
 
 # Testing
+pytest tests/                    # Run all tests in tests directory
+python3 -m pytest tests/test_authentication.py  # Run specific test module
+python3 -m pytest tests/test_authentication.py::test_login  # Run specific test
+python3 -m pytest -v            # Run tests with verbose output
+python3 -m pytest --cov=app     # Run tests with coverage report
+
+# Individual test scripts (legacy)
 python3 test_property_access_control_comprehensive.py  # Run property access tests
 python3 test_tasks_1_2_3_integration.py               # Run integration tests
 python3 test_websocket_basic.py                       # Test WebSocket functionality
@@ -28,6 +35,11 @@ python3 test_websocket_basic.py                       # Test WebSocket functiona
 # Database operations  
 python3 update_manager_authentication_middleware.py    # Update auth middleware
 python3 verify_implementation.py                      # Verify system implementation
+
+# Linting and Type Checking
+python3 -m black app/            # Format code with Black
+python3 -m mypy app/            # Type check with mypy
+python3 -m ruff check app/      # Run Ruff linter
 ```
 
 ### Frontend
@@ -40,6 +52,11 @@ npm run build                   # Build for production
 npm run lint                    # Run ESLint
 npm run test                    # Run Jest tests  
 npm run test:watch              # Run tests in watch mode
+
+# Running specific tests
+npm test -- PersonalInfoStep    # Test specific component
+npm test -- --coverage          # Run tests with coverage
+npm test -- --updateSnapshot    # Update Jest snapshots
 ```
 
 ## High-Level Architecture
@@ -144,7 +161,7 @@ This project uses **Agent OS** - a system for better planning and executing soft
 ### Agent OS Structure
 - **Global Standards**: Located at `~/.agent-os/standards/` - defines tech stack, code style, and best practices
 - **Product Documentation**: Located at `~/.agent-os/product/` - contains mission, roadmap, and decisions
-- **Feature Specifications**: Located at `~/.agent-os/product/specs/` - detailed specs for each feature
+- **Feature Specifications**: Located at `~/.agent-os/specs/` - detailed specs for each feature
 
 ### Available Commands
 - `/analyze-product` - Analyze existing codebase and create product documentation
@@ -178,7 +195,7 @@ Example workflow for complex changes:
 **Current Major Initiative**: A comprehensive system consolidation and enhancement project is underway to address technical debt, improve performance, and add advanced features to the HR management system.
 
 ### HR Manager System Consolidation Spec
-- **Location**: `@.agent-os/specs/2025-08-06-hr-manager-system-consolidation/`
+- **Location**: `.agent-os/specs/2025-08-06-hr-manager-system-consolidation/`
 - **Scope**: Fix property access control, enhance dashboard UX, add real-time updates, implement advanced analytics, create notification framework, and optimize performance
 - **Approach**: Building on existing working foundation rather than complete rewrite
 - **Priority**: High - addresses critical system issues while adding scalability features
@@ -519,7 +536,7 @@ cd hotel-onboarding-backend
 python3 -m venv venv              # Create virtual environment
 source venv/bin/activate          # Activate (Linux/Mac)
 pip install -r requirements.txt   # Install dependencies
-python3 -m app.main_enhanced      # Run enhanced server
+python3 -m uvicorn app.main_enhanced:app --host 0.0.0.0 --port 8000 --reload  # Run server
 ```
 
 ### Frontend
@@ -656,4 +673,9 @@ Agent OS complements our existing development process:
 For more details on Agent OS configuration, see:
 - `~/.agent-os/standards/` - Our customized standards
 - `~/.agent-os/product/` - Product documentation
-- `~/.agent-os/product/specs/` - Feature specifications
+- `~/.agent-os/specs/` - Feature specifications
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

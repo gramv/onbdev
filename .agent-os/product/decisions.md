@@ -243,3 +243,121 @@ Building compliance into the core ensures:
 - More complex validation logic
 - Cannot compromise on compliance for UX
 - Requires ongoing legal updates
+
+---
+
+## 2025-08-09: MVP Simplification for Demo
+
+**ID:** DEC-006
+**Status:** Accepted
+**Category:** Product
+**Stakeholders:** Product Owner, Development Team
+
+### Decision
+
+Create simplified MVP focusing on single-property job application, manager approval, and complete document generation, temporarily removing HR complexity and multi-property features for demo purposes.
+
+### Context
+
+User needs a working demo quickly that demonstrates core value: digitizing the 28-page onboarding packet with federal compliance. Current system has complex features that aren't needed for initial demonstration.
+
+### Alternatives Considered
+
+1. **Full System Demo**
+   - Pros: Shows complete capabilities
+   - Cons: Too complex, longer timeline, more bugs
+
+2. **Mock Demo**
+   - Pros: Quick to build
+   - Cons: Not real, doesn't prove value
+
+### Rationale
+
+MVP approach delivers working system quickly while maintaining option to add complexity later.
+
+### Consequences
+
+**Positive:**
+- Working demo in days not weeks
+- Proves core value proposition
+- Easier to test and debug
+
+**Negative:**
+- Some features deferred
+- Will need enhancement for production
+
+---
+
+## 2025-08-09: Test Database Complete Isolation
+
+**ID:** DEC-007
+**Status:** Accepted
+**Category:** Technical
+**Stakeholders:** Product Owner, DevOps
+
+### Decision
+
+Use separate test database (kzommszdhapvqpekpvnt.supabase.co) with complete isolation from production (onmjxtyamdpkhnflwwmj.supabase.co).
+
+### Context
+
+Production database must not be touched during MVP development. User provided separate test credentials for safe development.
+
+### Rationale
+
+Complete isolation ensures zero production risk while maintaining realistic environment.
+
+### Consequences
+
+**Positive:**
+- Zero production risk
+- Safe experimentation
+- Clean test environment
+
+**Negative:**
+- Need schema migration
+- Test data creation required
+
+---
+
+## 2025-08-09: Manager-Only Workflow (No HR)
+
+**ID:** DEC-008
+**Status:** Accepted
+**Category:** Product
+**Stakeholders:** Product Owner, Development Team
+
+### Decision
+
+Simplify system to Manager-Employee direct workflow, removing HR layer entirely. Managers have complete autonomy to approve applications, monitor onboarding, and access documents without any HR involvement.
+
+### Context
+
+User feedback indicates HR layer adds unnecessary complexity for MVP. Most small hotels don't have dedicated HR departments - managers handle their own hiring. System should reflect this reality.
+
+### Alternatives Considered
+
+1. **Three-Phase with HR**
+   - Pros: Enterprise-ready, better oversight
+   - Cons: Too complex for small hotels, delays hiring
+
+2. **Optional HR Mode**
+   - Pros: Flexible for different hotel sizes
+   - Cons: Complex configuration, harder to maintain
+
+### Rationale
+
+Manager-direct workflow matches actual hotel operations where department managers handle their own hiring. Removes unnecessary bottleneck and complexity.
+
+### Consequences
+
+**Positive:**
+- Simpler, faster hiring process
+- Matches real-world hotel operations
+- Less complex codebase
+- Managers have full control
+
+**Negative:**
+- No centralized HR oversight
+- Less suitable for large chains
+- May need HR layer for enterprise
