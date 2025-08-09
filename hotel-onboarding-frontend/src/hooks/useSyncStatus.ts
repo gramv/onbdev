@@ -8,7 +8,7 @@ interface UseSyncStatusOptions {
 
 export function useSyncStatus(options: UseSyncStatusOptions = {}) {
   const {
-    onlineCheckUrl = '/api/healthz',
+    onlineCheckUrl = 'http://localhost:8000/healthz',
     onlineCheckInterval = 30000 // 30 seconds
   } = options
 
@@ -110,7 +110,7 @@ export function useSyncStatus(options: UseSyncStatusOptions = {}) {
     isOnline,
     startSync,
     syncSuccess,
-    syncError: reportSyncError,
+    reportSyncError,
     syncOffline
   }
 }

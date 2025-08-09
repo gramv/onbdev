@@ -371,7 +371,7 @@
         "readInstructions": "Please read the consent statement below and provide your signature to complete your application.",
         "clear": "Clear",
         "placeholders": {
-          "initial": "INITIAL",
+          "initial": "INITIALS",
           "typeFullName": "Type your full name"
         }
       }

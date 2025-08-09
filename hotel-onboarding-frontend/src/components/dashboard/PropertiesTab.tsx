@@ -460,7 +460,6 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
                 </TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Managers</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>
                   <Button
                     variant="ghost"
@@ -519,11 +518,7 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={property.is_active ? "default" : "secondary"}>
-                        {property.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
+                    
                     <TableCell>
                       <div className="text-sm text-gray-500">
                         {new Date(property.created_at).toLocaleDateString()}

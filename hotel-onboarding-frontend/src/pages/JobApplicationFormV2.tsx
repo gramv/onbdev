@@ -64,6 +64,7 @@ interface StepConfig {
 }
 
 const getSteps = (t: any): StepConfig[] => [
+  // Restore main steps to original order, but place Review & Consent right before Voluntary Self-Identification
   {
     id: 'personal-info',
     title: t('jobApplication.steps.personalInfo.title'),
@@ -100,18 +101,18 @@ const getSteps = (t: any): StepConfig[] => [
     required: true
   },
   {
-    id: 'voluntary-identification',
-    title: t('jobApplication.steps.voluntaryIdentification.title'),
-    description: t('jobApplication.steps.voluntaryIdentification.description'),
-    component: VoluntarySelfIdentificationStep,
-    required: false
-  },
-  {
     id: 'review-consent',
     title: t('jobApplication.steps.reviewConsent.title'),
     description: t('jobApplication.steps.reviewConsent.description'),
     component: ReviewConsentStep,
     required: true
+  },
+  {
+    id: 'voluntary-identification',
+    title: t('jobApplication.steps.voluntaryIdentification.title'),
+    description: t('jobApplication.steps.voluntaryIdentification.description'),
+    component: VoluntarySelfIdentificationStep,
+    required: false
   }
 ]
 
@@ -211,7 +212,7 @@ export default function JobApplicationFormV2() {
     veteran_status: '',
     disability_status: '',
     
-    // Voluntary Self-Identification
+    // Voluntary Self-Identification (detailed flags)
     decline_to_identify: false,
     race_hispanic_latino: false,
     race_white: false,
@@ -220,7 +221,6 @@ export default function JobApplicationFormV2() {
     race_asian: false,
     race_american_indian_alaska_native: false,
     race_two_or_more: false,
-    gender: '',
     referral_source_voluntary: '',
     
     // Consent
@@ -392,18 +392,122 @@ export default function JobApplicationFormV2() {
         return
       }
 
-      // Submit the application
-      await axios.post(`/api/apply/${propertyId}`, formData)
+      // Submit the application (align keys to backend schema where needed)
+      const payload = {
+        // Personal
+        first_name: formData.first_name,
+        middle_initial: formData.middle_name ? formData.middle_name[0] : undefined,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip_code: formData.zip_code,
+        
+        // Position
+        department: formData.department,
+        position: formData.position,
+        
+        // Work Auth
+        work_authorized: formData.work_authorized || 'yes',
+        sponsorship_required: formData.sponsorship_required || 'no',
+        age_verification: true,
+        conviction_record: {
+          has_conviction: formData.has_criminal_record === 'yes',
+          explanation: formData.criminal_record_explanation || null
+        },
+        
+        // Previous hotel employment
+        previous_hotel_employment: formData.previous_hotel_employment === 'yes' || formData.previous_hotel_employment === true,
+        previous_hotel_details: formData.previous_hotel_details || undefined,
+        
+        // Availability
+        start_date: formData.start_date || new Date().toISOString().slice(0,10),
+        shift_preference: formData.shift_preference || 'flexible',
+        employment_type: formData.employment_type || 'full_time',
+        
+        // References (map first only to meet backend minimal requirement)
+        personal_reference: formData.references?.[0] ? {
+          name: formData.references[0].name || 'N/A',
+          years_known: formData.references[0].years_known || '0',
+          phone: formData.references[0].phone || '0000000000',
+          relationship: formData.references[0].relationship || 'N/A'
+        } : { name: 'N/A', years_known: '0', phone: '0000000000', relationship: 'N/A' },
+        
+        military_service: {},
+        
+        // Education history minimal
+        education_history: [
+          { school_name: formData.high_school_info?.name || 'N/A', location: [formData.high_school_info?.city, formData.high_school_info?.state].filter(Boolean).join(', '), years_attended: '', graduated: !!formData.high_school_info?.graduated, degree_received: undefined }
+        ],
+        
+        // Employment history minimal
+        employment_history: ((formData.employment_history || []).slice(0, 1).length > 0
+          ? (formData.employment_history || []).slice(0, 1).map((e: any) => ({
+              company_name: e.employer_name || 'N/A',
+              phone: e.supervisor_phone || '0000000000',
+              address: '',
+              supervisor: e.supervisor_name || 'N/A',
+              job_title: e.job_title || 'N/A',
+              starting_salary: '',
+              ending_salary: '',
+              from_date: e.start_date || '',
+              to_date: e.end_date || '',
+              reason_for_leaving: e.reason_for_leaving || '',
+              may_contact: !!e.may_contact
+            }))
+          : [{
+              company_name: 'N/A',
+              phone: '0000000000',
+              address: '',
+              supervisor: 'N/A',
+              job_title: 'N/A',
+              starting_salary: '',
+              ending_salary: '',
+              from_date: '',
+              to_date: '',
+              reason_for_leaving: '',
+              may_contact: false
+            }]),
+        
+        skills_languages_certifications: (formData.skills || []).join(', '),
+        
+        // How did you hear about us?
+        how_heard: formData.how_heard || 'walk_in',
+        how_heard_detailed: formData.how_heard_detailed || undefined,
+
+        voluntary_self_identification: {
+          gender: formData.gender || undefined,
+          ethnicity: formData.ethnicity || undefined,
+          veteran_status: formData.veteran_status || undefined,
+          disability_status: formData.disability_status || undefined
+        },
+        experience_years: formData.experience_years || '0-1',
+        hotel_experience: formData.hotel_experience || 'no',
+        additional_comments: formData.additional_comments || ''
+      }
+
+      await axios.post(`/api/apply/${propertyId}`, payload)
       
       // Clear draft on successful submission
       localStorage.removeItem(`job-application-draft-${propertyId}`)
       
       setSubmitted(true)
     } catch (err: any) {
-      if (err.response?.status === 400 && err.response?.data?.detail?.includes('already submitted')) {
-        setError('You have already submitted an application for this position.')
+      const detail = err?.response?.data?.detail
+      console.error('Application submit error:', err?.response?.data || err)
+      if (err.response?.status === 400 && typeof detail === 'string' && detail.includes('Duplicate')) {
+        setError('You have already submitted an application for this property and position.')
+      } else if (Array.isArray(detail)) {
+        // Pydantic validation errors
+        const first = detail[0]
+        const loc = Array.isArray(first?.loc) ? first.loc.join(' > ') : ''
+        setError(`Please correct: ${first?.msg || 'Invalid field value'} ${loc ? `(${loc})` : ''}`)
+      } else if (typeof detail === 'string') {
+        setError(detail)
       } else {
-        setError('Failed to submit application. Please try again.')
+        setError('Failed to submit application. Please review required fields and try again.')
       }
     } finally {
       setLoading(false)

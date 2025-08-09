@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
 import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw, RefreshCw } from 'lucide-react'
+import { QRCodeDisplay } from '@/components/ui/qr-code-display'
 import axios from 'axios'
 
 interface JobApplication {
@@ -68,6 +69,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const outletContext = useOutletContext<OutletContext>()
   const userRole = propUserRole || outletContext?.userRole || 'hr'
   const propertyId = propPropertyId || outletContext?.propertyId
+  const currentProperty = (outletContext as any)?.property
   const onStatsUpdate = propOnStatsUpdate || outletContext?.onStatsUpdate || (() => {})
   const { user, token } = useAuth()
   const [applications, setApplications] = useState<JobApplication[]>([])
@@ -146,12 +148,16 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         }
       })
 
+      const payload: any[] = Array.isArray(response.data)
+        ? response.data
+        : (Array.isArray(response.data?.data) ? response.data.data : [])
+
       console.log('✅ Applications fetched:', {
-        count: response.data.length,
-        pending: response.data.filter((app: any) => app.status === 'pending').length
+        count: payload.length,
+        pending: payload.filter((app: any) => app.status === 'pending').length
       })
       
-      let sortedApplications = [...response.data]
+      let sortedApplications = [...payload]
       
       // Apply sorting
       sortedApplications.sort((a, b) => {
@@ -688,6 +694,28 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       {
         key: 'department',
         label: 'Department'
+      },
+      {
+        key: 'contact',
+        label: 'Contact',
+        render: (_, application) => (
+          <div className="text-sm">
+            <div className="text-gray-900">{application.applicant_phone || application.applicant_data?.phone || '—'}</div>
+            <div className="text-gray-500">{application.applicant_email}</div>
+          </div>
+        )
+      },
+      {
+        key: 'location',
+        label: 'Location',
+        render: (_, application) => (
+          <span className="text-sm text-gray-600">
+            {[
+              application.applicant_data?.city,
+              application.applicant_data?.state
+            ].filter(Boolean).join(', ') || '—'}
+          </span>
+        )
       }
     ]
 
@@ -1084,6 +1112,20 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
               <span className="text-blue-600 text-xs">Filters active</span>
             )}
           </div>
+          {/* Manager quick QR access */}
+          {userRole === 'manager' && currentProperty?.id && (
+            <div className="mt-2">
+              <QRCodeDisplay 
+                property={{
+                  id: currentProperty.id,
+                  name: currentProperty.name,
+                  qr_code_url: currentProperty.qr_code_url || ''
+                }}
+                showRegenerateButton={true}
+                className="whitespace-nowrap"
+              />
+            </div>
+          )}
         </div>
 
         {/* Advanced Filters Section */}

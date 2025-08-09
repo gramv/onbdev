@@ -11,6 +11,7 @@ import logging
 from datetime import datetime
 
 from .models import User, UserRole
+from .auth import get_current_user
 from .supabase_service_enhanced import EnhancedSupabaseService
 
 logger = logging.getLogger(__name__)
@@ -351,7 +352,7 @@ def require_employee_access(employee_param: str = "id"):
     return decorator
 
 # Enhanced dependency for manager role with property access validation
-def require_manager_with_property_access(current_user: User = Depends(lambda: None)) -> User:
+def require_manager_with_property_access(current_user: User = Depends(get_current_user)) -> User:
     """Enhanced manager role requirement with property access validation"""
     if not current_user:
         logger.error("Manager property access dependency: No current_user provided")

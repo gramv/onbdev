@@ -536,8 +536,8 @@ class EnhancedSupabaseService:
                 "data_retention_until": (datetime.now(timezone.utc) + timedelta(days=2555)).isoformat()  # 7 years
             }
             
-            # Create application
-            result = self.client.table('job_applications').insert(application_data).execute()
+            # Create application (use admin client to bypass RLS for server-side insert)
+            result = self.admin_client.table('job_applications').insert(application_data).execute()
             created_application = result.data[0] if result.data else None
             
             if created_application:
@@ -1097,28 +1097,40 @@ class EnhancedSupabaseService:
             return False
     
     async def get_applications_by_email_and_property(self, email: str, property_id: str) -> List[JobApplication]:
-        """Get applications by email and property"""
+        """Get applications by applicant email (inside applicant_data JSON) and property.
+        Uses JSON contains to match applicant_data.email.
+        """
         try:
-            result = self.client.table("job_applications").select("*").eq(
-                "applicant_email", email.lower()
-            ).eq("property_id", property_id).execute()
-            
-            applications = []
-            for app_data in result.data:
-                applications.append(JobApplication(
-                    id=app_data["id"],
-                    property_id=app_data["property_id"],
-                    department=app_data["department"],
-                    position=app_data["position"],
-                    applicant_data=app_data["applicant_data"],
-                    status=ApplicationStatus(app_data["status"]),
-                    applied_at=datetime.fromisoformat(app_data["applied_at"].replace('Z', '+00:00'))
-                ))
-            
+            # Supabase JSON contains on applicant_data
+            result = (
+                self.client
+                .table("job_applications")
+                .select("*")
+                .contains("applicant_data", {"email": email.lower()})
+                .eq("property_id", property_id)
+                .execute()
+            )
+
+            applications: List[JobApplication] = []
+            for app_data in (result.data or []):
+                applications.append(
+                    JobApplication(
+                        id=app_data["id"],
+                        property_id=app_data["property_id"],
+                        department=app_data.get("department", ""),
+                        position=app_data.get("position", ""),
+                        applicant_data=app_data.get("applicant_data", {}),
+                        status=ApplicationStatus(app_data.get("status", "pending")),
+                        applied_at=datetime.fromisoformat(app_data["applied_at"].replace('Z', '+00:00')),
+                    )
+                )
+
             return applications
-            
+
         except Exception as e:
-            logger.error(f"Failed to get applications by email {email} and property {property_id}: {e}")
+            logger.error(
+                f"Failed to get applications by email {email} and property {property_id}: {e}"
+            )
             return []
     
     # Synchronous wrapper methods for compatibility

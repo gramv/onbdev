@@ -16,7 +16,8 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        // Keep '/api' so backend receives '/api/*'
+        rewrite: (path) => path
       }
     },
     // Optimize HMR for better memory usage

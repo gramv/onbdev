@@ -139,7 +139,7 @@ export class OnboardingFlowController {
 
       // Try to validate token and load session data from API
       try {
-        const response = await fetch(`${this.apiUrl}/api/onboarding/session/${token}`)
+        const response = await fetch(`${this.apiUrl}/onboarding/session/${token}`)
         
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -217,7 +217,7 @@ export class OnboardingFlowController {
         return
       }
 
-      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/complete/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/complete/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -267,7 +267,7 @@ export class OnboardingFlowController {
         return
       }
 
-      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/progress/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/progress/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

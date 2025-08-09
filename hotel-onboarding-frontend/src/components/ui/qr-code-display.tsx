@@ -49,12 +49,13 @@ export function QRCodeDisplay({
     setLoading(true)
     try {
       const response = await axios.post(
-        `http://localhost:8000/hr/properties/${property.id}/qr-code`,
+        `/api/hr/properties/${property.id}/qr-code`,
         {},
         axiosConfig
       )
-      
-      setQrData(response.data)
+      // Backend uses standardized response wrapper { success, data, ... }
+      const payload: any = response?.data?.data ?? response?.data
+      setQrData(payload as QRCodeData)
       
       if (onRegenerate) {
         onRegenerate(property.id)
@@ -147,11 +148,22 @@ export function QRCodeDisplay({
                 .qr-container { border: none; }
               }
             </style>
+            <script>
+              function schedulePrint() {
+                const img = document.getElementById('qrImage');
+                if (img && !img.complete) {
+                  img.onload = function() { setTimeout(function(){ window.print(); }, 200); };
+                } else {
+                  setTimeout(function(){ window.print(); }, 200);
+                }
+              }
+              window.addEventListener('load', schedulePrint);
+            </script>
           </head>
           <body>
             <div class="qr-container">
               <div class="property-title">${propertyName}</div>
-              <img src="${imageUrl}" alt="QR Code" class="qr-image" />
+              <img id="qrImage" src="${imageUrl}" alt="QR Code" class="qr-image" />
               <div class="scan-text">Scan to Apply for Jobs</div>
               <div class="url-text">${applicationUrl}</div>
             </div>
@@ -160,7 +172,6 @@ export function QRCodeDisplay({
       `)
       printWindow.document.close()
       printWindow.focus()
-      printWindow.print()
     }
   }
 
@@ -211,7 +222,7 @@ export function QRCodeDisplay({
             {/* QR Code Display */}
             <div className="text-center">
               <div className="bg-white p-6 rounded-lg border-2 border-gray-200 inline-block shadow-sm">
-                {property.qr_code_url ? (
+                {(qrData?.qr_code_url || property.qr_code_url) ? (
                   <img
                     src={qrData?.qr_code_url || property.qr_code_url}
                     alt="QR Code"

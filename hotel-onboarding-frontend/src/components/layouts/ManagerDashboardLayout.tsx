@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+// import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { StatsSkeleton, SkeletonCard } from '@/components/ui/skeleton-loader'
@@ -12,6 +12,7 @@ import { DashboardNavigation, MANAGER_NAVIGATION_ITEMS } from '@/components/ui/d
 import { useSimpleNavigation, useNavigationAnalytics } from '@/hooks/use-simple-navigation'
 import { useToast } from '@/hooks/use-toast'
 import { Building2, MapPin, Phone, AlertTriangle, RefreshCw } from 'lucide-react'
+// QR generator card removed from the property panel per design feedback
 import axios from 'axios'
 
 interface Property {
@@ -109,8 +110,11 @@ export function ManagerDashboardLayout() {
     }
     
     const response = await axios.get('/api/manager/property', axiosConfig)
-    const userProperty = response.data
-    setProperty(userProperty || null)
+    // Backend uses a standard { success, data } envelope
+    const payload = (response.data && typeof response.data === 'object' && 'data' in response.data)
+      ? response.data.data
+      : response.data
+    setProperty(payload || null)
   }
 
   const fetchDashboardStats = async () => {
@@ -119,20 +123,16 @@ export function ManagerDashboardLayout() {
       headers: { Authorization: `Bearer ${token}` }
     }
     
-    // Fetch applications for stats
-    const appsResponse = await axios.get('/api/hr/applications', axiosConfig)
+    // Fetch applications for stats (manager-scoped)
+    const appsResponse = await axios.get('/api/manager/applications', axiosConfig)
     const applications = Array.isArray(appsResponse.data) ? appsResponse.data : []
     
-    // Fetch employees for stats
-    const empResponse = await axios.get('/api/api/employees', axiosConfig)
-    const employees = Array.isArray(empResponse.data?.employees) ? empResponse.data.employees : []
-
     // Calculate stats
     const totalApplications = applications.length
     const pendingApplications = applications.filter((app: any) => app.status === 'pending').length
     const approvedApplications = applications.filter((app: any) => app.status === 'approved').length
-    const totalEmployees = employees.length
-    const activeEmployees = employees.filter((emp: any) => emp.employment_status === 'active').length
+    const totalEmployees = 0
+    const activeEmployees = 0
 
     setStats({
       total_applications: totalApplications,
@@ -230,9 +230,8 @@ export function ManagerDashboardLayout() {
           {/* Breadcrumb Navigation */}
           <div className="mb-6">
             <DashboardBreadcrumb 
-              role="manager" 
-              currentSection={currentSection}
-              propertyName={property?.name}
+              dashboard="Manager"
+              currentPage={currentSection}
             />
           </div>
 
@@ -259,15 +258,19 @@ export function ManagerDashboardLayout() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div className="flex items-start gap-3">
                       <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
                       <div>
                         <p className="text-sm font-medium text-gray-900 mb-1">Address</p>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                          {property.address}<br />
-                          {property.city}, {property.state} {property.zip_code}
-                        </p>
+                        {property.address || property.city || property.state || property.zip_code ? (
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {property.address || ''}{property.address ? <br /> : null}
+                            {[property.city, property.state].filter(Boolean).join(', ')}{(property.city || property.state) && property.zip_code ? ` ${property.zip_code}` : property.zip_code || ''}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-400">Not set</p>
+                        )}
                       </div>
                     </div>
                     {property.phone && (
@@ -279,18 +282,7 @@ export function ManagerDashboardLayout() {
                         </div>
                       </div>
                     )}
-                    <div className="flex items-start gap-3">
-                      <div className="h-4 w-4 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900 mb-1">Status</p>
-                        <Badge 
-                          variant={property.is_active ? "default" : "secondary"}
-                          className={property.is_active ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
-                        >
-                          {property.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
+                    {/* QR card removed. Managers can use the Applications view QR button. */}
                   </div>
                 </CardContent>
               </Card>

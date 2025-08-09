@@ -429,7 +429,7 @@ export default function I9Section1Step({
                   onBack={() => setActiveTab('form')}
                   renderPreview={renderFormPreview}
                   usePDFPreview={true}
-                  pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id}/i9-section1/generate-pdf`}
+                  pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id}/i9-section1/generate-pdf`}
                   pdfUrl={savedPdfUrl}
                   onPdfGenerated={handlePdfGenerated}
                   federalCompliance={{

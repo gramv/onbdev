@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Edit, Trash2, Search, User, Building, TrendingUp, Users, CheckCircle, XCircle, Clock, RefreshCw, UserX, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Plus, Edit, Search, User, Building, Users, RefreshCw, UserX, ToggleLeft, ToggleRight } from 'lucide-react'
 import api from '@/services/api'
 
 interface Manager {
@@ -37,19 +37,7 @@ interface Property {
   created_at: string
 }
 
-interface ManagerPerformance {
-  manager_id: string
-  manager_name: string
-  property_id?: string
-  metrics: {
-    total_applications: number
-    approved_applications: number
-    rejected_applications: number
-    pending_applications: number
-    approval_rate: number
-    total_employees: number
-  }
-}
+// Manager performance interface removed
 
 interface ManagersTabProps {
   onStatsUpdate?: () => void
@@ -66,7 +54,7 @@ interface ManagerFormData {
 export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabProps) {
   const [managers, setManagers] = useState<Manager[]>([])
   const [properties, setProperties] = useState<Property[]>([])
-  const [performanceData, setPerformanceData] = useState<Record<string, ManagerPerformance>>({})
+  // Removed performance UI for managers; keep placeholder if needed in future
   const [loading, setLoading] = useState(true)
   const [propertiesLoading, setPropertiesLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -390,23 +378,7 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-purple-500" />
-              <div>
-                <p className="text-sm text-gray-600">Avg Approval Rate</p>
-                <p className="text-2xl font-bold">
-                  {Object.values(performanceData).length > 0 
-                    ? Math.round(Object.values(performanceData).reduce((sum, p) => {
-                        return sum + (p?.metrics?.approval_rate ?? 0)
-                      }, 0) / Object.values(performanceData).length)
-                    : 0}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Removed Avg Approval Rate card for manager view */}
       </div>
 
       {/* Manager Management */}
@@ -591,21 +563,19 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
           </div>
 
           {/* Managers Table */}
-          <div className="border rounded-lg">
+          <div className="border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Manager</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Property Assignment</TableHead>
-                  <TableHead>Performance</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="whitespace-nowrap">Manager</TableHead>
+                  <TableHead className="whitespace-nowrap">Email</TableHead>
+                  <TableHead className="whitespace-nowrap">Property</TableHead>
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredManagers.map((manager) => {
-                  const performance = performanceData[manager.id]
                   return (
                     <TableRow 
                       key={manager.id}
@@ -638,33 +608,20 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
                       </TableCell>
                       
                       <TableCell>
-                        {performance?.metrics ? (
-                          <div className="space-y-1">
-                            <div className="flex items-center space-x-2 text-sm">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              <span>{performance.metrics.approved_applications || 0} approved</span>
-                            </div>
-                            <div className="flex items-center space-x-2 text-sm">
-                              <Clock className="h-3 w-3 text-yellow-500" />
-                              <span>{performance.metrics.pending_applications || 0} pending</span>
-                            </div>
-                            <div className="text-sm font-medium">
-                              {performance.metrics.approval_rate || 0}% approval rate
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">Loading...</span>
-                        )}
-                      </TableCell>
-                      
-                      <TableCell>
-                        <Badge variant={manager.is_active ? "default" : "secondary"}>
-                          {manager.is_active ? "Active" : "Inactive"}
+                        <Badge
+                          variant="outline"
+                          className={
+                            manager.is_active
+                              ? "bg-green-100 text-green-800 border-green-200"
+                              : "bg-gray-100 text-gray-800 border-gray-200"
+                          }
+                        >
+                          {manager.is_active ? "ACTIVE" : "INACTIVE"}
                         </Badge>
                       </TableCell>
                       
-                      <TableCell>
-                        <div className="flex space-x-2">
+                      <TableCell className="whitespace-nowrap">
+                        <div className="flex flex-wrap gap-2">
                           {manager.is_active ? (
                             <>
                               <Button

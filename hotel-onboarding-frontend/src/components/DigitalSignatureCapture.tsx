@@ -1,14 +1,26 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+// import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { PenTool, RotateCcw, Check, Shield, Clock, User, FileText, AlertCircle, Info } from 'lucide-react'
+// import { Separator } from '@/components/ui/separator'
+import { PenTool, RotateCcw, Check, Shield, Clock, FileText, AlertCircle, Info } from 'lucide-react'
 
+
+type SignatureCaptureProps = {
+  signatureType?: string
+  documentName: string
+  signerName: string
+  signerTitle?: string
+  acknowledgments: string[]
+  requireIdentityVerification?: boolean
+  language: 'en' | 'es'
+  onSignatureComplete: (payload: any) => void
+  onCancel: () => void
+}
 
 export default function DigitalSignatureCapture({
   signatureType,
@@ -20,11 +32,11 @@ export default function DigitalSignatureCapture({
   language,
   onSignatureComplete,
   onCancel
-}) {
-  const canvasRef = useRef(null)
+}: SignatureCaptureProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [signatureData, setSignatureData] = useState('')
-  const [typedName, setTypedName] = useState(signerName)
+  // const [typedName, setTypedName] = useState(signerName)
   // Only draw method now, no type option
   const signatureMethod = 'draw'
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -34,11 +46,11 @@ export default function DigitalSignatureCapture({
   )
   const [ipAddress, setIpAddress] = useState('')
   const [canSign, setCanSign] = useState(false)
-  const [auditTrail, setAuditTrail] = useState([])
-  const [browserInfo, setBrowserInfo] = useState({})
+  const [auditTrail, setAuditTrail] = useState<Array<{action: string; timestamp: string; details: string}>>([])
+  const [browserInfo, setBrowserInfo] = useState<{platform?: string; language?: string; timezone?: string; screenResolution?: string; userAgent?: string}>({})
   const [consentTimestamp, setConsentTimestamp] = useState('')
 
-  const t = (key) => {
+  const t = (key: string) => {
     const translations = {
       en: {
         'digital_signature': 'Digital Signature',
@@ -87,10 +99,25 @@ export default function DigitalSignatureCapture({
         'processing': 'Procesando firma...'
       }
     }
-    return translations[language][key] || key
+    return (translations as any)[language][key] || key
   }
 
   useEffect(() => {
+    // Scale canvas for high-DPI displays to keep signature crisp and thicker
+    const canvas = canvasRef.current as HTMLCanvasElement | null
+    if (canvas) {
+      const dpr = Math.max(window.devicePixelRatio || 1, 1)
+      const displayWidth = 600
+      const displayHeight = 240
+      canvas.style.width = `${displayWidth}px`
+      canvas.style.height = `${displayHeight}px`
+      canvas.width = Math.floor(displayWidth * dpr)
+      canvas.height = Math.floor(displayHeight * dpr)
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.scale(dpr, dpr)
+      }
+    }
     // Get user's IP address for audit trail
     fetch('https://api.ipify.org?format=json')
       .then(response => response.json())
@@ -118,19 +145,21 @@ export default function DigitalSignatureCapture({
     const identityOk = requireIdentityVerification ? identityVerified : true
     
     setCanSign(allAcknowledgmentsChecked && hasSignature && termsAccepted && identityOk)
-  }, [acknowledgementsChecked, signatureData, typedName, termsAccepted, identityVerified, requireIdentityVerification, signatureMethod])
+  }, [acknowledgementsChecked, signatureData, termsAccepted, identityVerified, requireIdentityVerification, signatureMethod])
 
-  const startDrawing = (e) => {
+  const startDrawing = (e: any) => {
     if (!canvasRef.current) return
     
     setIsDrawing(true)
-    const canvas = canvasRef.current
+    const canvas = canvasRef.current as HTMLCanvasElement
     const rect = canvas.getBoundingClientRect()
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null
     
     if (ctx) {
       ctx.strokeStyle = '#000000'
-      ctx.lineWidth = 2
+      // Thicker stroke for better legibility on PDF
+      const dpr = Math.max(window.devicePixelRatio || 1, 1)
+      ctx.lineWidth = 3.5 * (1) // visual thickness; canvas scaled for DPR already
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
       
@@ -148,12 +177,12 @@ export default function DigitalSignatureCapture({
     }
   }
 
-  const draw = (e) => {
+  const draw = (e: any) => {
     if (!isDrawing || !canvasRef.current) return
     
-    const canvas = canvasRef.current
+    const canvas = canvasRef.current as HTMLCanvasElement
     const rect = canvas.getBoundingClientRect()
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null
     
     if (ctx) {
       let x, y
@@ -174,7 +203,7 @@ export default function DigitalSignatureCapture({
     if (!isDrawing || !canvasRef.current) return
     
     setIsDrawing(false)
-    const canvas = canvasRef.current
+    const canvas = canvasRef.current as HTMLCanvasElement
     const dataUrl = canvas.toDataURL('image/png')
     setSignatureData(dataUrl)
   }
@@ -182,15 +211,15 @@ export default function DigitalSignatureCapture({
   const clearSignature = () => {
     if (!canvasRef.current) return
     
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
+    const canvas = canvasRef.current as HTMLCanvasElement
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       setSignatureData('')
     }
   }
 
-  const generateTypedSignature = (name) => {
+  const generateTypedSignature = (name: string) => {
     // Create SVG signature for typed name
     const svg = `
       <svg width="300" height="80" xmlns="http://www.w3.org/2000/svg">
@@ -200,7 +229,7 @@ export default function DigitalSignatureCapture({
     return 'data:image/svg+xml;base64,' + btoa(svg)
   }
 
-  const generateSignatureHash = (data) => {
+  const generateSignatureHash = (data: string) => {
     // Simple hash function for demo - in production use crypto.subtle.digest
     let hash = 0
     for (let i = 0; i < data.length; i++) {
@@ -211,7 +240,7 @@ export default function DigitalSignatureCapture({
     return Math.abs(hash).toString(16).padStart(8, '0')
   }
   
-  const addAuditTrailEntry = (action, details) => {
+  const addAuditTrailEntry = (action: string, details: string) => {
     const entry = {
       action,
       timestamp: new Date().toISOString(),
@@ -265,7 +294,7 @@ export default function DigitalSignatureCapture({
     onSignatureComplete(signatureDataToSubmit)
   }
 
-  const handleAcknowledgmentChange = (index, checked) => {
+  const handleAcknowledgmentChange = (index: number, checked: boolean) => {
     const newChecked = [...acknowledgementsChecked]
     newChecked[index] = checked
     setAcknowledgementsChecked(newChecked)
@@ -412,8 +441,8 @@ export default function DigitalSignatureCapture({
               <canvas
                 ref={canvasRef}
                 width={600}
-                height={200}
-                className="w-full h-32 border border-gray-200 rounded cursor-crosshair"
+                height={240}
+                className="w-full h-40 border border-gray-200 rounded cursor-crosshair"
                 onMouseDown={startDrawing}
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}

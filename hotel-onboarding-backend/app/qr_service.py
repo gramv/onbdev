@@ -5,6 +5,7 @@ import qrcode
 import io
 import base64
 from typing import Dict, Any
+import os
 from PIL import Image
 
 
@@ -12,7 +13,8 @@ class QRCodeService:
     """Service for generating QR codes for job applications"""
     
     def __init__(self):
-        self.base_url = "http://localhost:3000"  # Frontend URL
+        # Use FRONTEND_URL env var with sensible default
+        self.base_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     
     def generate_qr_code(self, property_id: str) -> Dict[str, Any]:
         """

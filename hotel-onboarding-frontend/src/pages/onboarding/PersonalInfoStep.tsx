@@ -72,7 +72,7 @@ export default function PersonalInfoStep({
         if (employee?.id && !employee.id.startsWith('demo-')) {
           try {
             const apiUrl = import.meta.env.VITE_API_URL || '/api'
-            const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/personal-info`)
+            const response = await fetch(`${apiUrl}/onboarding/${employee.id}/personal-info`)
             if (response.ok) {
               const result = await response.json()
               if (result.success && result.data && Object.keys(result.data).length > 0) {

@@ -310,7 +310,7 @@ export default function W4FormStep({
       // Also try to save to backend for persistence
       const apiUrl = import.meta.env.VITE_API_URL || '/api'
       axios.post(
-        `${apiUrl}/api/onboarding/${employee?.id}/w4-form`,
+        `${apiUrl}/onboarding/${employee?.id}/w4-form`,
         {
           form_data: formData,
           signed: true,
@@ -329,7 +329,7 @@ export default function W4FormStep({
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '/api'
         const response = await axios.post(
-          `${apiUrl}/api/onboarding/${employee?.id}/w4-form/generate-pdf`,
+          `${apiUrl}/onboarding/${employee?.id}/w4-form/generate-pdf`,
           {
             employee_data: {
               ...formData,
@@ -512,7 +512,7 @@ export default function W4FormStep({
             onSign={handleSign}
             onBack={() => setShowReview(false)}
             usePDFPreview={true}
-            pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
+            pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id}/w4-form/generate-pdf`}
             pdfUrl={pdfUrl}
             federalCompliance={{
               formName: 'Form W-4, Employee\'s Withholding Certificate',

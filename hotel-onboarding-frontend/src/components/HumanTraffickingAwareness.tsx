@@ -189,6 +189,25 @@ const HumanTraffickingAwareness: React.FC<HumanTraffickingAwarenessProps> = ({
         language={language}
       />
       
+      {/* DEMO BUTTON - REMOVE IN PRODUCTION */}
+      {!hasWatchedVideo && (
+        <div className="mt-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+          <p className="text-sm text-yellow-800 mb-2 font-semibold">
+            🎬 DEMO MODE - Remove in Production
+          </p>
+          <button
+            onClick={() => {
+              setHasWatchedVideo(true);
+              // Simulate video completion
+              handleVideoComplete();
+            }}
+            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition-colors font-semibold"
+          >
+            Skip Video (Demo Only - Mark as 100% Complete)
+          </button>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center mt-8">
         <div className="text-sm text-gray-500">
           Training Video

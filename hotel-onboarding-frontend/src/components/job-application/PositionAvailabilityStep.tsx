@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar, Clock, DollarSign, Briefcase, Users, Info } from 'lucide-react'
+import { Calendar, DollarSign, Briefcase, Users, Info } from 'lucide-react'
 import { formValidator, ValidationRule } from '@/utils/formValidation'
 
 interface PositionAvailabilityStepProps {
@@ -28,10 +27,10 @@ const defaultDepartments = [
 
 const defaultPositions = {
   'Management': ['General Manager', 'Assistant General Manager'],
-  'Front Desk': ['Front Desk Agent', 'Night Auditor', 'Guest Services Representative', 'Concierge'],
-  'Housekeeping': ['Housekeeper', 'Housekeeping Supervisor', 'Laundry Attendant', 'Public Area Attendant'],
-  'Food & Beverage': ['Server', 'Bartender', 'Host/Hostess', 'Kitchen Staff', 'Banquet Server'],
-  'Maintenance': ['Maintenance Technician', 'Engineering Assistant', 'Groundskeeper']
+  'Front Desk': ['Front Desk Agent', 'Night Auditor', 'Manager on Duty'],
+  'Housekeeping': ['Housekeeper', 'Housekeeping Supervisor', 'Laundry Attendant'],
+  'Food & Beverage': ['Breakfast Attendant'],
+  'Maintenance': ['Maintenance Technician', 'Groundskeeper']
 }
 
 
