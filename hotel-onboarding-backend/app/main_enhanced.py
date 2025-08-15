@@ -852,7 +852,7 @@ async def delete_property(
 @app.get("/hr/properties/{id}/managers")
 async def get_property_managers(
     id: str,
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Get all managers assigned to a property using Supabase"""
     try:
@@ -1197,6 +1197,107 @@ async def get_manager_dashboard_stats(current_user: User = Depends(require_manag
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500,
             detail="An error occurred while fetching dashboard data"
+        )
+
+@app.get("/manager/applications/stats")
+async def get_manager_application_stats(current_user: User = Depends(require_manager_role)):
+    """Get application statistics for managers - property-specific statistics"""
+    try:
+        # Get manager's properties
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        if not manager_properties:
+            return {
+                "total": 0,
+                "pending": 0,
+                "approved": 0,
+                "talent_pool": 0
+            }
+        
+        # Get applications for manager's properties only
+        property_ids = [prop.id for prop in manager_properties]
+        applications = await supabase_service.get_applications_by_properties(property_ids)
+        
+        # Calculate stats
+        total = len(applications)
+        pending = len([app for app in applications if app.status == "pending"])
+        approved = len([app for app in applications if app.status == "approved"])
+        talent_pool = len([app for app in applications if app.status == "talent_pool"])
+        
+        return {
+            "total": total,
+            "pending": pending,
+            "approved": approved,
+            "talent_pool": talent_pool
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve manager application stats: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve application statistics: {str(e)}"
+        )
+
+@app.get("/manager/applications/departments")
+async def get_manager_application_departments(current_user: User = Depends(require_manager_role)):
+    """Get list of departments from applications for managers - property-specific"""
+    try:
+        # Get manager's properties
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        if not manager_properties:
+            return []
+        
+        # Get applications for manager's properties only
+        property_ids = [prop.id for prop in manager_properties]
+        applications = await supabase_service.get_applications_by_properties(property_ids)
+        
+        # Extract unique departments
+        departments = set()
+        for app in applications:
+            if app.department:
+                departments.add(app.department)
+        
+        return sorted(list(departments))
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve manager departments: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve departments: {str(e)}"
+        )
+
+@app.get("/manager/applications/positions")
+async def get_manager_application_positions(
+    department: Optional[str] = Query(None),
+    current_user: User = Depends(require_manager_role)
+):
+    """Get list of positions from applications for managers - property-specific"""
+    try:
+        # Get manager's properties
+        manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
+        if not manager_properties:
+            return []
+        
+        # Get applications for manager's properties only
+        property_ids = [prop.id for prop in manager_properties]
+        applications = await supabase_service.get_applications_by_properties(property_ids)
+        
+        # Filter by department if specified
+        if department:
+            applications = [app for app in applications if app.department == department]
+        
+        # Extract unique positions
+        positions = set()
+        for app in applications:
+            if app.position:
+                positions.add(app.position)
+        
+        return sorted(list(positions))
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve manager positions: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve positions: {str(e)}"
         )
 
 @app.get("/api/employees/{id}/welcome-data")
@@ -1706,7 +1807,7 @@ async def get_talent_pool(
 @app.post("/hr/applications/{id}/reactivate")
 async def reactivate_application(
     id: str,
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Reactivate application from talent pool using Supabase"""
     try:
@@ -2040,18 +2141,11 @@ async def get_hr_employee_detail(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve employee details: {str(e)}")
 
 @app.get("/hr/applications/departments")
-async def get_application_departments(current_user: User = Depends(require_hr_or_manager_role)):
-    """Get list of departments from applications using Supabase"""
+async def get_hr_application_departments(current_user: User = Depends(require_hr_role)):
+    """Get list of departments from applications for HR only - system-wide"""
     try:
-        # Get applications based on user role
-        if current_user.role == "manager":
-            manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-            if not manager_properties:
-                return []
-            property_ids = [prop.id for prop in manager_properties]
-            applications = await supabase_service.get_applications_by_properties(property_ids)
-        else:
-            applications = await supabase_service.get_all_applications()
+        # HR gets system-wide data
+        applications = await supabase_service.get_all_applications()
         
         # Extract unique departments
         departments = list(set(app.department for app in applications if app.department))
@@ -2063,21 +2157,14 @@ async def get_application_departments(current_user: User = Depends(require_hr_or
         raise HTTPException(status_code=500, detail=f"Failed to retrieve departments: {str(e)}")
 
 @app.get("/hr/applications/positions")
-async def get_application_positions(
+async def get_hr_application_positions(
     department: Optional[str] = Query(None),
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
-    """Get list of positions from applications, optionally filtered by department using Supabase"""
+    """Get list of positions from applications for HR only - system-wide"""
     try:
-        # Get applications based on user role
-        if current_user.role == "manager":
-            manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-            if not manager_properties:
-                return []
-            property_ids = [prop.id for prop in manager_properties]
-            applications = await supabase_service.get_applications_by_properties(property_ids)
-        else:
-            applications = await supabase_service.get_all_applications()
+        # HR gets system-wide data
+        applications = await supabase_service.get_all_applications()
         
         # Filter by department if specified
         if department:
@@ -2093,18 +2180,11 @@ async def get_application_positions(
         raise HTTPException(status_code=500, detail=f"Failed to retrieve positions: {str(e)}")
 
 @app.get("/hr/applications/stats")
-async def get_application_stats(current_user: User = Depends(require_hr_or_manager_role)):
-    """Get application statistics using Supabase"""
+async def get_hr_application_stats(current_user: User = Depends(require_hr_role)):
+    """Get application statistics for HR only - system-wide statistics"""
     try:
-        # Get applications based on user role
-        if current_user.role == "manager":
-            manager_properties = supabase_service.get_manager_properties_sync(current_user.id)
-            if not manager_properties:
-                return {"total": 0, "pending": 0, "approved": 0, "talent_pool": 0}
-            property_ids = [prop.id for prop in manager_properties]
-            applications = await supabase_service.get_applications_by_properties(property_ids)
-        else:
-            applications = await supabase_service.get_all_applications()
+        # HR gets system-wide statistics (all properties)
+        applications = await supabase_service.get_all_applications()
         
         # Calculate stats
         total = len(applications)
@@ -2356,7 +2436,7 @@ async def bulk_status_update(
 @app.post("/hr/applications/bulk-reactivate")
 async def bulk_reactivate_applications(
     application_ids: List[str] = Form(...),
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Reactivate talent pool candidates by moving them back to pending status"""
     try:
@@ -2396,7 +2476,7 @@ async def bulk_reactivate_applications(
 @app.post("/hr/applications/bulk-talent-pool")
 async def bulk_move_to_talent_pool(
     application_ids: List[str] = Form(...),
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Bulk move applications to talent pool"""
     try:
@@ -2436,7 +2516,7 @@ async def bulk_move_to_talent_pool(
 @app.post("/hr/applications/bulk-talent-pool-notify")
 async def bulk_talent_pool_notify(
     application_ids: List[str] = Form(...),
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Send email notifications to talent pool candidates about new opportunities"""
     try:
@@ -2830,7 +2910,7 @@ async def generate_compliance_report(
 @app.get("/hr/applications/{id}/history")
 async def get_application_history(
     id: str,
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Get status change history for a specific application"""
     try:
@@ -3346,9 +3426,9 @@ async def update_employee_status(
         raise HTTPException(status_code=500, detail=f"Failed to update employee status: {str(e)}")
 
 @app.get("/hr/employees/stats")
-async def get_employee_statistics(
+async def get_hr_employee_statistics(
     property_id: Optional[str] = Query(None),
-    current_user: User = Depends(require_hr_or_manager_role)
+    current_user: User = Depends(require_hr_role)
 ):
     """Get employee statistics"""
     try:
