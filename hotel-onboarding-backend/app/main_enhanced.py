@@ -3,7 +3,7 @@
 Hotel Employee Onboarding System API - Supabase Only Version
 Enhanced with standardized API response formats
 """
-from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header
+from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, FileResponse, Response
@@ -848,6 +848,49 @@ async def delete_property(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete property: {str(e)}")
+
+@app.get("/hr/properties/{property_id}/stats")
+@app.get("/api/hr/properties/{property_id}/stats")
+async def get_property_stats(
+    property_id: str,
+    current_user: User = Depends(require_hr_role)
+):
+    """Get statistics for a specific property (HR only)"""
+    try:
+        # Verify property exists
+        property_obj = supabase_service.get_property_by_id_sync(property_id)
+        if not property_obj:
+            raise HTTPException(status_code=404, detail="Property not found")
+        
+        # Get applications and employees for this property
+        applications = await supabase_service.get_applications_by_property(property_id)
+        employees = await supabase_service.get_employees_by_property(property_id)
+        
+        # Calculate stats
+        total_applications = len(applications)
+        pending_applications = len([app for app in applications if app.status == "pending"])
+        approved_applications = len([app for app in applications if app.status == "approved"])
+        total_employees = len(employees)
+        active_employees = len([emp for emp in employees if emp.employment_status == "active"])
+        
+        stats = {
+            "total_applications": total_applications,
+            "pending_applications": pending_applications,
+            "approved_applications": approved_applications,
+            "total_employees": total_employees,
+            "active_employees": active_employees
+        }
+        
+        return success_response(
+            data=stats,
+            message=f"Statistics retrieved for property {property_id}"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get property stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get property statistics: {str(e)}")
 
 @app.get("/hr/properties/{id}/managers")
 async def get_property_managers(
@@ -2202,6 +2245,346 @@ async def get_hr_application_stats(current_user: User = Depends(require_hr_role)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve application stats: {str(e)}")
+
+@app.get("/api/hr/applications/all")
+async def get_all_hr_applications(
+    property_id: Optional[str] = Query(None, description="Filter by property ID"),
+    status: Optional[str] = Query(None, description="Filter by status (pending/approved/rejected/talent_pool)"),
+    date_from: Optional[str] = Query(None, description="Filter applications from this date (ISO format)"),
+    date_to: Optional[str] = Query(None, description="Filter applications to this date (ISO format)"),
+    department: Optional[str] = Query(None, description="Filter by department"),
+    position: Optional[str] = Query(None, description="Filter by position"),
+    search: Optional[str] = Query(None, description="Search in applicant name and email"),
+    sort_by: Optional[str] = Query("applied_at", description="Sort by field (applied_at, name, status, property)"),
+    sort_order: Optional[str] = Query("desc", description="Sort order (asc/desc)"),
+    limit: Optional[int] = Query(None, description="Limit number of results"),
+    offset: Optional[int] = Query(0, description="Offset for pagination"),
+    current_user: User = Depends(require_hr_role)
+):
+    """
+    Get ALL applications across ALL properties for HR users only.
+    This endpoint provides comprehensive access to the entire application pool
+    with advanced filtering and sorting capabilities.
+    """
+    try:
+        # Get ALL applications - HR has full system access
+        applications = await supabase_service.get_all_applications()
+        
+        # Apply property filter if specified
+        if property_id:
+            applications = [app for app in applications if app.property_id == property_id]
+        
+        # Apply status filter
+        if status:
+            applications = [app for app in applications if app.status == status]
+        
+        # Apply department filter
+        if department:
+            applications = [app for app in applications if 
+                          app.department and app.department.lower() == department.lower()]
+        
+        # Apply position filter
+        if position:
+            applications = [app for app in applications if 
+                          app.position and app.position.lower() == position.lower()]
+        
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            applications = [app for app in applications if 
+                          search_lower in app.applicant_data.get('first_name', '').lower() or
+                          search_lower in app.applicant_data.get('last_name', '').lower() or
+                          search_lower in app.applicant_data.get('email', '').lower()]
+        
+        # Apply date range filters
+        if date_from:
+            try:
+                from_date = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+                applications = [app for app in applications if app.applied_at >= from_date]
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date_from format. Use ISO format.")
+        
+        if date_to:
+            try:
+                to_date = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+                applications = [app for app in applications if app.applied_at <= to_date]
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date_to format. Use ISO format.")
+        
+        # Get property information for each application
+        property_cache = {}
+        for app in applications:
+            if app.property_id not in property_cache:
+                prop = supabase_service.get_property_by_id_sync(app.property_id)
+                if prop:
+                    property_cache[app.property_id] = {
+                        "id": prop.id,
+                        "name": prop.name,
+                        "city": prop.city,
+                        "state": prop.state,
+                        "is_active": prop.is_active
+                    }
+                else:
+                    property_cache[app.property_id] = {
+                        "id": app.property_id,
+                        "name": "Unknown Property",
+                        "city": "",
+                        "state": "",
+                        "is_active": False
+                    }
+        
+        # Sort applications
+        reverse = sort_order.lower() == "desc"
+        if sort_by == "applied_at":
+            applications.sort(key=lambda x: x.applied_at, reverse=reverse)
+        elif sort_by == "name":
+            applications.sort(key=lambda x: f"{x.applicant_data.get('first_name', '')} {x.applicant_data.get('last_name', '')}", reverse=reverse)
+        elif sort_by == "status":
+            applications.sort(key=lambda x: x.status, reverse=reverse)
+        elif sort_by == "property":
+            applications.sort(key=lambda x: property_cache.get(x.property_id, {}).get('name', ''), reverse=reverse)
+        
+        # Calculate total before pagination
+        total_count = len(applications)
+        
+        # Apply pagination
+        if limit:
+            start_idx = offset
+            end_idx = offset + limit
+            applications = applications[start_idx:end_idx]
+        elif offset:
+            applications = applications[offset:]
+        
+        # Convert to response format with property information
+        result = []
+        for app in applications:
+            property_info = property_cache.get(app.property_id, {})
+            
+            app_dict = {
+                "id": app.id,
+                "property_id": app.property_id,
+                "property_name": property_info.get("name", "Unknown"),
+                "property_city": property_info.get("city", ""),
+                "property_state": property_info.get("state", ""),
+                "property_active": property_info.get("is_active", False),
+                "applicant_name": f"{app.applicant_data.get('first_name', '')} {app.applicant_data.get('last_name', '')}".strip(),
+                "applicant_email": app.applicant_data.get('email', ''),
+                "applicant_phone": app.applicant_data.get('phone', ''),
+                "department": app.department,
+                "position": app.position,
+                "status": app.status,
+                "applied_at": app.applied_at.isoformat() if app.applied_at else None,
+                "reviewed_at": app.reviewed_at.isoformat() if app.reviewed_at else None,
+                "reviewed_by": app.reviewed_by,
+                "notes": getattr(app, 'notes', None),  # Handle missing notes field
+                "applicant_data": app.applicant_data
+            }
+            result.append(app_dict)
+        
+        return {
+            "applications": result,
+            "total": total_count,
+            "page_size": limit or total_count,
+            "offset": offset,
+            "filters_applied": {
+                "property_id": property_id,
+                "status": status,
+                "department": department,
+                "position": position,
+                "date_from": date_from,
+                "date_to": date_to,
+                "search": search
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve all applications: {str(e)}")
+
+# Add simplified HR endpoints for applications
+@app.get("/api/hr/applications")
+async def get_hr_applications(
+    property_id: Optional[str] = Query(None, description="Filter by property ID"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    current_user: User = Depends(require_hr_role)
+):
+    """Get applications for HR with optional filtering"""
+    try:
+        # Get ALL applications - HR has full system access
+        applications = await supabase_service.get_all_applications()
+        
+        # Apply property filter if specified
+        if property_id:
+            applications = [app for app in applications if app.property_id == property_id]
+        
+        # Apply status filter
+        if status:
+            applications = [app for app in applications if app.status == status]
+        
+        # Convert to dict format
+        result = []
+        for app in applications:
+            app_dict = {
+                "id": app.id,
+                "property_id": app.property_id,
+                "status": app.status,
+                "applied_at": app.applied_at.isoformat() if app.applied_at else None,
+                "first_name": app.applicant_data.get("first_name", ""),
+                "last_name": app.applicant_data.get("last_name", ""),
+                "email": app.applicant_data.get("email", ""),
+                "phone": app.applicant_data.get("phone", ""),
+                "department": app.applicant_data.get("department"),
+                "position": app.applicant_data.get("position"),
+                "applicant_data": app.applicant_data
+            }
+            result.append(app_dict)
+        
+        return success_response(
+            data=result,
+            message=f"Retrieved {len(result)} applications"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve HR applications: {e}")
+        return error_response(
+            message="Failed to retrieve applications",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/hr/applications/{app_id}/approve")
+async def approve_application_hr(
+    app_id: str,
+    request: Dict = Body(...),
+    current_user: User = Depends(require_hr_role)
+):
+    """HR can approve any application from any property"""
+    try:
+        # Get the application
+        application = await supabase_service.get_application_by_id(app_id)
+        if not application:
+            raise HTTPException(status_code=404, detail="Application not found")
+        
+        # Update application status with audit
+        await supabase_service.update_application_status_with_audit(
+            app_id, 
+            "approved",
+            current_user.id,
+            request.get("manager_notes")
+        )
+        
+        return success_response(
+            data={"application_id": app_id, "status": "approved"},
+            message="Application approved successfully"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to approve application: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to approve application: {str(e)}")
+
+@app.get("/api/hr/managers")
+async def get_all_managers(current_user: User = Depends(require_hr_role)):
+    """Get all managers in the system (HR only)"""
+    try:
+        # Get all users with manager role
+        managers = await supabase_service.get_all_managers()
+        
+        result = []
+        for manager in managers:
+            result.append({
+                "id": manager.id,
+                "email": manager.email,
+                "first_name": manager.first_name,
+                "last_name": manager.last_name,
+                "role": manager.role,
+                "is_active": manager.is_active,
+                "created_at": manager.created_at.isoformat() if manager.created_at else None
+            })
+        
+        return success_response(
+            data=result,
+            message=f"Retrieved {len(result)} managers"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve managers: {e}")
+        return error_response(
+            message="Failed to retrieve managers",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/hr/employees")
+async def get_all_employees_hr(current_user: User = Depends(require_hr_role)):
+    """Get all employees across all properties (HR only)"""
+    try:
+        # Get all employees - no property filtering for HR
+        employees = await supabase_service.get_all_employees()
+        
+        result = []
+        for emp in employees:
+            # Extract personal info if available
+            personal_info = emp.personal_info or {}
+            result.append({
+                "id": emp.id,
+                "property_id": emp.property_id,
+                "first_name": personal_info.get("first_name", ""),
+                "last_name": personal_info.get("last_name", ""),
+                "email": personal_info.get("email", ""),
+                "phone": personal_info.get("phone", ""),
+                "department": emp.department,
+                "position": emp.position,
+                "employment_status": emp.employment_status,
+                "hire_date": emp.hire_date.isoformat() if emp.hire_date else None,
+                "onboarding_status": emp.onboarding_status.value if hasattr(emp.onboarding_status, 'value') else str(emp.onboarding_status),
+                "created_at": emp.created_at.isoformat() if emp.created_at else None
+            })
+        
+        return success_response(
+            data=result,
+            message=f"Retrieved {len(result)} employees"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve employees: {e}")
+        return error_response(
+            message="Failed to retrieve employees",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500
+        )
+
+# Get all properties endpoint for HR
+@app.get("/api/properties")
+async def get_all_properties_api(current_user: User = Depends(require_hr_role)):
+    """Get all properties in the system (HR only)"""
+    try:
+        properties = await supabase_service.get_all_properties()
+        
+        result = []
+        for prop in properties:
+            result.append({
+                "id": prop.id,
+                "name": prop.name,
+                "address": prop.address,
+                "is_active": prop.is_active,
+                "created_at": prop.created_at.isoformat() if prop.created_at else None
+            })
+        
+        return success_response(
+            data=result,
+            message=f"Retrieved {len(result)} properties"
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to retrieve properties: {e}")
+        return error_response(
+            message="Failed to retrieve properties",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500
+        )
 
 @app.post("/apply/{id}")
 async def submit_job_application(id: str, application_data: JobApplicationData):

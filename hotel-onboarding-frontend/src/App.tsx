@@ -18,10 +18,12 @@ const HRDashboardLayout = lazy(() => import('@/components/layouts/HRDashboardLay
 const ManagerDashboardLayout = lazy(() => import('@/components/layouts/ManagerDashboardLayout').then(m => ({ default: m.ManagerDashboardLayout })))
 
 // Lazy load dashboard components
+const PropertiesOverviewTab = lazy(() => import('@/components/dashboard/PropertiesOverviewTab'))
 const PropertiesTab = lazy(() => import('@/components/dashboard/PropertiesTab'))
 const ManagersTab = lazy(() => import('@/components/dashboard/ManagersTab'))
 const EmployeesTab = lazy(() => import('@/components/dashboard/EmployeesTab').then(m => ({ default: m.EmployeesTab })))
 const ApplicationsTab = lazy(() => import('@/components/dashboard/ApplicationsTab').then(m => ({ default: m.ApplicationsTab })))
+const SystemApplicationsTab = lazy(() => import('@/components/dashboard/SystemApplicationsTab').then(m => ({ default: m.SystemApplicationsTab })))
 const AnalyticsTab = lazy(() => import('@/components/dashboard/AnalyticsTab').then(m => ({ default: m.AnalyticsTab })))
 
 // Lazy load pages
@@ -51,11 +53,13 @@ function App() {
                   <HRDashboardLayout />
                 </ProtectedRoute>
               }>
-                <Route index element={<Navigate to="/hr/properties" replace />} />
+                <Route index element={<Navigate to="/hr/overview" replace />} />
+                <Route path="overview" element={<PropertiesOverviewTab onStatsUpdate={() => {}} />} />
                 <Route path="properties" element={<PropertiesTab onStatsUpdate={() => {}} />} />
                 <Route path="managers" element={<ManagersTab onStatsUpdate={() => {}} />} />
                 <Route path="employees" element={<EmployeesTab userRole="hr" onStatsUpdate={() => {}} />} />
                 <Route path="applications" element={<ApplicationsTab userRole="hr" onStatsUpdate={() => {}} />} />
+                <Route path="system-applications" element={<SystemApplicationsTab onStatsUpdate={() => {}} />} />
                 <Route path="analytics" element={<AnalyticsTab userRole="hr" />} />
               </Route>
               

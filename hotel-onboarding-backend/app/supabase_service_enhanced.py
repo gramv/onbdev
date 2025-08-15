@@ -1789,6 +1789,27 @@ class EnhancedSupabaseService:
             logger.error(f"Full traceback: {traceback.format_exc()}")
             return None
 
+    async def get_all_managers(self) -> List[User]:
+        """Get all users with manager role"""
+        try:
+            response = self.client.table('users').select('*').eq('role', 'manager').execute()
+            managers = []
+            for row in response.data:
+                managers.append(User(
+                    id=row['id'],
+                    email=row['email'],
+                    password_hash=row.get('password_hash', ''),
+                    role=UserRole(row['role']),
+                    first_name=row.get('first_name', ''),
+                    last_name=row.get('last_name', ''),
+                    is_active=row.get('is_active', True),
+                    created_at=datetime.fromisoformat(row['created_at'].replace('Z', '+00:00')) if row.get('created_at') else datetime.now(timezone.utc)
+                ))
+            return managers
+        except Exception as e:
+            logger.error(f"Error getting all managers: {e}")
+            return []
+
     async def get_all_employees(self) -> List[Employee]:
         """Get all employees"""
         try:
@@ -1806,7 +1827,9 @@ class EnhancedSupabaseService:
                     pay_rate=row.get('pay_rate', 0.0),
                     employment_type=row.get('employment_type', 'full_time'),
                     employment_status=row.get('employment_status', 'active'),
-                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started'))
+                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started')),
+                    personal_info=row.get('personal_info', {}),
+                    created_at=datetime.fromisoformat(row['created_at'].replace('Z', '+00:00')) if row.get('created_at') else datetime.now(timezone.utc)
                 ))
             return employees
         except Exception as e:
@@ -1830,7 +1853,9 @@ class EnhancedSupabaseService:
                     pay_rate=row.get('pay_rate', 0.0),
                     employment_type=row.get('employment_type', 'full_time'),
                     employment_status=row.get('employment_status', 'active'),
-                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started'))
+                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started')),
+                    personal_info=row.get('personal_info', {}),
+                    created_at=datetime.fromisoformat(row['created_at'].replace('Z', '+00:00')) if row.get('created_at') else datetime.now(timezone.utc)
                 ))
             return employees
         except Exception as e:
@@ -1854,7 +1879,9 @@ class EnhancedSupabaseService:
                     pay_rate=row.get('pay_rate', 0.0),
                     employment_type=row.get('employment_type', 'full_time'),
                     employment_status=row.get('employment_status', 'active'),
-                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started'))
+                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started')),
+                    personal_info=row.get('personal_info', {}),
+                    created_at=datetime.fromisoformat(row['created_at'].replace('Z', '+00:00')) if row.get('created_at') else datetime.now(timezone.utc)
                 ))
             return employees
         except Exception as e:

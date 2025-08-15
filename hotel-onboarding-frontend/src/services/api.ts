@@ -108,6 +108,7 @@ export const api = {
       })
     },
     deleteProperty: (id: string) => apiClient.delete(`/hr/properties/${id}`),
+    getPropertyStats: (propertyId: string) => apiClient.get(`/hr/properties/${propertyId}/stats`),
     getManagers: (params?: { include_inactive?: boolean }) => 
       apiClient.get('/hr/managers', { params }),
     createManager: (data: any) => {

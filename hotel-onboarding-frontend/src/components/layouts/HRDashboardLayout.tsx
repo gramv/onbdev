@@ -68,7 +68,7 @@ export function HRDashboardLayout() {
   // Redirect to default section if on base /hr route
   useEffect(() => {
     if (location.pathname === '/hr') {
-      navigate('/hr/properties', { replace: true })
+      navigate('/hr/overview', { replace: true })
     }
   }, [location.pathname, navigate])
 
@@ -139,7 +139,12 @@ export function HRDashboardLayout() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <div className="spacing-xs">
               <h1 className="text-display-md">HR Dashboard</h1>
-              <p className="text-body-md text-secondary">Welcome, {user?.email}</p>
+              <p className="text-body-md text-secondary">
+                Welcome, {user?.first_name && user?.last_name 
+                  ? `${user.first_name} ${user.last_name}` 
+                  : user?.email}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">Role: HR Administrator</p>
             </div>
             <div className="flex items-center gap-3">
               {error && (

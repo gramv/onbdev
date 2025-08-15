@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   LucideIcon,
-  ChevronDown
+  ChevronDown,
+  LayoutDashboard
 } from 'lucide-react'
 
 export interface NavigationItem {
@@ -411,6 +412,14 @@ export function DashboardNavigation({
 // Predefined navigation items for HR and Manager dashboards
 export const HR_NAVIGATION_ITEMS: NavigationItem[] = [
   {
+    key: 'overview',
+    label: 'Overview',
+    path: '/hr/overview',
+    icon: LayoutDashboard,
+    roles: ['hr'],
+    ariaLabel: 'Properties overview and statistics'
+  },
+  {
     key: 'properties',
     label: 'Properties',
     path: '/hr/properties',
@@ -441,6 +450,14 @@ export const HR_NAVIGATION_ITEMS: NavigationItem[] = [
     icon: FileText,
     roles: ['hr'],
     ariaLabel: 'Review job applications and hiring decisions'
+  },
+  {
+    key: 'system-applications',
+    label: 'System Applications',
+    path: '/hr/system-applications',
+    icon: FileText,
+    roles: ['hr'],
+    ariaLabel: 'View all applications across all properties'
   },
   {
     key: 'analytics',
