@@ -178,6 +178,57 @@ onboarding_orchestrator = None
 form_update_service = None
 onboarding_scheduler = None
 
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+async def get_employee_names_from_personal_info(employee_id: str, employee: dict = None):
+    """
+    Helper function to get employee names from PersonalInfoStep data.
+    Returns tuple: (first_name, last_name)
+    
+    Priority:
+    1. PersonalInfoStep saved data (highest priority)
+    2. Employee record data (fallback)
+    3. Default values (last resort)
+    """
+    first_name = ""
+    last_name = ""
+    
+    try:
+        # First priority: Get from PersonalInfoStep saved data
+        personal_info = await supabase_service.get_onboarding_step_data(employee_id, "personal-info")
+        if personal_info and personal_info.get("form_data"):
+            form_data = personal_info["form_data"]
+            
+            # Handle different possible data structures
+            if "formData" in form_data:
+                # Nested formData structure
+                nested_data = form_data["formData"]
+                first_name = nested_data.get("firstName", "")
+                last_name = nested_data.get("lastName", "")
+            else:
+                # Direct structure
+                first_name = form_data.get("firstName", "")
+                last_name = form_data.get("lastName", "")
+        
+        # Second priority: If names still empty, try employee record
+        if not first_name or not last_name:
+            if employee:
+                first_name = first_name or employee.get("first_name", "")
+                last_name = last_name or employee.get("last_name", "")
+        
+        # Last resort: default values
+        first_name = first_name or "Unknown"
+        last_name = last_name or "Employee"
+        
+        logger.info(f"Retrieved names for {employee_id}: {first_name} {last_name}")
+        return first_name, last_name
+        
+    except Exception as e:
+        logger.error(f"Error getting employee names for {employee_id}: {e}")
+        return "Unknown", "Employee"
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
@@ -560,16 +611,17 @@ async def get_manager_applications(
         )
 
 @app.get("/hr/dashboard-stats", response_model=DashboardStatsResponse)
+@app.get("/api/hr/dashboard-stats", response_model=DashboardStatsResponse)
 async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
-    """Get dashboard statistics for HR using Supabase"""
+    """Get dashboard statistics for HR using Supabase - system-wide statistics (all properties)"""
     try:
-        # Get counts from Supabase
+        # Get system-wide counts from Supabase (all properties)
         total_properties = await supabase_service.get_properties_count()
         total_managers = await supabase_service.get_managers_count()
         total_employees = await supabase_service.get_employees_count()
         pending_applications = await supabase_service.get_pending_applications_count()
         
-        # Get additional statistics
+        # Get additional system-wide statistics
         approved_applications = await supabase_service.get_approved_applications_count()
         total_applications = await supabase_service.get_total_applications_count()
         active_employees = await supabase_service.get_active_employees_count()
@@ -1029,13 +1081,14 @@ async def get_hr_applications(
         )
 
 @app.get("/manager/property")
+@app.get("/api/manager/property")
 async def get_manager_property(current_user: User = Depends(require_manager_with_property_access)):
     """Get manager's assigned property details using Supabase with enhanced access control"""
     try:
         # Get property access controller
         access_controller = get_property_access_controller()
         
-        # Get manager's accessible properties
+        # Get manager's accessible properties from JWT/user context
         property_ids = access_controller.get_manager_accessible_properties(current_user)
         
         if not property_ids:
@@ -1084,13 +1137,14 @@ async def get_manager_property(current_user: User = Depends(require_manager_with
         )
 
 @app.get("/manager/dashboard-stats")
+@app.get("/api/manager/dashboard-stats")
 async def get_manager_dashboard_stats(current_user: User = Depends(require_manager_with_property_access)):
-    """Get dashboard statistics for manager's property using Supabase with enhanced access control"""
+    """Get dashboard statistics for manager's property using Supabase with enhanced access control - filtered by manager's property_id from JWT"""
     try:
         # Get property access controller
         access_controller = get_property_access_controller()
         
-        # Get manager's accessible property IDs
+        # Get manager's accessible property IDs from JWT
         property_ids = access_controller.get_manager_accessible_properties(current_user)
         
         if not property_ids:
@@ -1101,7 +1155,7 @@ async def get_manager_dashboard_stats(current_user: User = Depends(require_manag
                 detail="Manager account is not configured with property access"
             )
         
-        # Aggregate stats across all manager's properties
+        # Aggregate stats across all manager's properties (filtered by property_id)
         total_applications = []
         total_employees = []
         
@@ -1113,14 +1167,17 @@ async def get_manager_dashboard_stats(current_user: User = Depends(require_manag
             total_applications.extend(applications)
             total_employees.extend(employees)
         
-        # Calculate aggregated stats
+        # Calculate aggregated stats for manager's property/properties
         pending_applications = len([app for app in total_applications if app.status == "pending"])
         approved_applications = len([app for app in total_applications if app.status == "approved"])
         active_employees = len([emp for emp in total_employees if emp.employment_status == "active"])
         onboarding_in_progress = len([emp for emp in total_employees if emp.onboarding_status == OnboardingStatus.IN_PROGRESS])
         
+        # Return stats specific to manager's property
         stats_data = {
-            "pendingApplications": pending_applications,
+            "property_employees": len(total_employees),  # Total employees in manager's property
+            "property_applications": len(total_applications),  # Total applications for manager's property
+            "pendingApplications": pending_applications,  # Pending applications for manager's property
             "approvedApplications": approved_applications,
             "totalApplications": len(total_applications),
             "totalEmployees": len(total_employees),
@@ -1282,10 +1339,12 @@ async def approve_application(
         # Access control is handled by the decorator
         
         # Update application status
-        await supabase_service.update_application_status(id, "approved", current_user.id)
+        await supabase_service.update_application_status_with_audit(id, "approved", current_user.id)
         
         # Create employee record
+        employee_id = str(uuid.uuid4())
         employee_data = {
+            "id": employee_id,
             "application_id": id,
             "property_id": application.property_id,
             "manager_id": current_user.id,
@@ -1305,16 +1364,25 @@ async def approve_application(
             "onboarding_status": "not_started"
         }
         
-        employee = await supabase_service.create_employee(employee_data)
+        # Insert directly into employees table
+        result = supabase_service.client.table('employees').insert(employee_data).execute()
+        if not result.data:
+            raise HTTPException(status_code=500, detail="Failed to create employee record")
+        employee = result.data[0]
         
         # Create onboarding session
-        onboarding_session = await onboarding_orchestrator.initiate_onboarding(
-            application_id=id,
-            employee_id=employee.id,
-            property_id=application.property_id,
-            manager_id=current_user.id,
+        onboarding_session_data = await supabase_service.create_onboarding_session(
+            employee_id=employee["id"],
             expires_hours=72
         )
+        
+        # Create a simple object to hold the session data
+        class SimpleSession:
+            def __init__(self, data):
+                self.token = data.get("token")
+                self.expires_at = datetime.fromisoformat(data.get("expires_at", datetime.now().isoformat()))
+        
+        onboarding_session = SimpleSession(onboarding_session_data)
         
         # Move competing applications to talent pool
         talent_pool_count = await supabase_service.move_competing_applications_to_talent_pool(
@@ -1361,7 +1429,7 @@ async def approve_application(
         
         return {
             "message": "Application approved successfully",
-            "employee_id": employee.id,
+            "employee_id": employee["id"],
             "onboarding": {
                 "onboarding_url": onboarding_url,
                 "token": onboarding_session.token,
@@ -1475,7 +1543,7 @@ async def reject_application(
             raise HTTPException(status_code=400, detail="Rejection reason is required")
         
         # Move to talent pool instead of reject
-        await supabase_service.update_application_status(id, "talent_pool", current_user.id)
+        await supabase_service.update_application_status_with_audit(id, "talent_pool", current_user.id)
         
         # Update rejection reason
         update_data = {
@@ -1523,7 +1591,7 @@ async def reject_application_enhanced(
         
         # Update application status
         status = "talent_pool" if request.add_to_talent_pool else "rejected"
-        await supabase_service.update_application_status(id, status, current_user.id)
+        await supabase_service.update_application_status_with_audit(id, status, current_user.id)
         
         # Update rejection details
         update_data = {
@@ -1656,7 +1724,7 @@ async def reactivate_application(
                 raise HTTPException(status_code=403, detail="Access denied")
         
         # Reactivate application
-        await supabase_service.update_application_status(id, "pending", current_user.id)
+        await supabase_service.update_application_status_with_audit(id, "pending", current_user.id)
         
         # Clear talent pool data
         update_data = {
@@ -2077,6 +2145,24 @@ async def submit_job_application(id: str, application_data: JobApplicationData):
         # Create application
         application_id = str(uuid.uuid4())
         
+        # Convert employment history to dict for storage
+        employment_history_data = []
+        if application_data.employment_history:
+            for emp in application_data.employment_history:
+                employment_history_data.append({
+                    "company_name": emp.company_name,
+                    "phone": emp.phone,
+                    "address": emp.address,
+                    "supervisor": emp.supervisor,
+                    "job_title": emp.job_title,
+                    "starting_salary": emp.starting_salary,
+                    "ending_salary": emp.ending_salary,
+                    "from_date": emp.from_date,
+                    "to_date": emp.to_date,
+                    "reason_for_leaving": emp.reason_for_leaving,
+                    "may_contact": emp.may_contact
+                })
+        
         job_application = JobApplication(
             id=application_id,
             property_id=id,
@@ -2098,8 +2184,7 @@ async def submit_job_application(id: str, application_data: JobApplicationData):
                 "employment_type": application_data.employment_type,
                 "experience_years": application_data.experience_years,
                 "hotel_experience": application_data.hotel_experience,
-                "previous_employer": application_data.previous_employer,
-                "reason_for_leaving": application_data.reason_for_leaving,
+                "employment_history": employment_history_data,
                 "additional_comments": application_data.additional_comments
             },
             status=ApplicationStatus.PENDING,
@@ -5120,7 +5205,7 @@ async def create_employee_setup(
         
         # Update application status if linked
         if setup_data.application_id:
-            await supabase_service.update_application_status(
+            await supabase_service.update_application_status_with_audit(
                 setup_data.application_id,
                 "approved",
                 current_user.id
@@ -6251,10 +6336,13 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        
         # Map form data to PDF data - handling both nested and flat structures
         pdf_data = {
-            "firstName": form_data.get("firstName") or form_data.get("formData", {}).get("firstName", "") or employee.get("first_name", ""),
-            "lastName": form_data.get("lastName") or form_data.get("formData", {}).get("lastName", "") or employee.get("last_name", ""),
+            "firstName": first_name,
+            "lastName": last_name,
             "employee_id": employee_id,
             "email": form_data.get("email") or form_data.get("formData", {}).get("email", "") or employee.get("email", ""),
             "ssn": form_data.get("ssn") or form_data.get("formData", {}).get("ssn", ""),
@@ -6330,10 +6418,13 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        
         # Map form data to PDF data
         pdf_data = {
-            "firstName": form_data.get("firstName") or form_data.get("formData", {}).get("firstName", ""),
-            "lastName": form_data.get("lastName") or form_data.get("formData", {}).get("lastName", ""),
+            "firstName": first_name,
+            "lastName": last_name,
             "employee_id": employee_id,
             "medicalPlan": form_data.get("medicalPlan") or form_data.get("formData", {}).get("medicalPlan", ""),
             "dentalPlan": form_data.get("dentalPlan") or form_data.get("formData", {}).get("dentalPlan", ""),
@@ -6395,20 +6486,20 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
         if employee_data_from_request:
             form_data = employee_data_from_request
         else:
-            # For weapons policy, we use employee data
-            form_data = {
-                "firstName": employee.get("first_name", ""),
-                "lastName": employee.get("last_name", ""),
-            }
+            # For weapons policy, we don't have specific form data
+            form_data = {}
         
         # Initialize PDF form filler
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        
         # Map form data to PDF data
         pdf_data = {
-            "firstName": form_data.get("firstName", ""),
-            "lastName": form_data.get("lastName", ""),
+            "firstName": first_name,
+            "lastName": last_name,
             "property_name": property_name,
             "employee_id": employee_id,
         }
@@ -6431,6 +6522,70 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
         logger.error(f"Generate Weapons Policy PDF error: {e}")
         return error_response(
             message="Failed to generate Weapons Policy PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/human-trafficking/generate-pdf")
+async def generate_human_trafficking_pdf(employee_id: str, request: Request):
+    """Generate PDF for Human Trafficking Awareness"""
+    try:
+        # Check if form data is provided in request body (for preview)
+        body = await request.json()
+        employee_data_from_request = body.get('employee_data')
+        signature_data = body.get('signature_data', {})
+        
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            property_name = "Test Hotel"
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+            
+            # Get property name
+            property_id = employee.get("property_id")
+            if property_id:
+                property_data = await supabase_service.get_property_by_id(property_id)
+                property_name = property_data.get("name", "Hotel") if property_data else "Hotel"
+            else:
+                property_name = "Hotel"
+        
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        
+        # Prepare employee data for the document
+        employee_data = {
+            'name': f"{first_name} {last_name}".strip() or "N/A",
+            'id': employee_id,
+            'property_name': property_name,
+            'position': employee.get('position', 'N/A')
+        }
+        
+        # Initialize Human Trafficking Document Generator
+        from .human_trafficking_generator import HumanTraffickingDocumentGenerator
+        generator = HumanTraffickingDocumentGenerator()
+        
+        # Generate PDF
+        pdf_bytes = generator.generate_human_trafficking_document(employee_data, signature_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"HumanTraffickingAwareness_{first_name}_{last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Human Trafficking Awareness PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate Human Trafficking PDF error: {e}")
+        return error_response(
+            message="Failed to generate Human Trafficking PDF",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
@@ -6476,17 +6631,10 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
                 # Use saved form data which includes initials
                 form_data = saved_policies["form_data"]
                 logger.info(f"Using saved form_data: {form_data}")
-                # Ensure firstName and lastName are set
-                if not form_data.get("firstName"):
-                    form_data["firstName"] = employee.get("first_name", "")
-                if not form_data.get("lastName"):
-                    form_data["lastName"] = employee.get("last_name", "")
             else:
                 logger.info(f"No saved policies found, using fallback data")
-                # Fallback to basic employee data
+                # Fallback to basic form data (names will be set by helper function)
                 form_data = {
-                    "firstName": employee.get("first_name", ""),
-                    "lastName": employee.get("last_name", ""),
                     "companyPoliciesInitials": "",
                     "eeoInitials": "",
                     "sexualHarassmentInitials": "",
@@ -6496,11 +6644,14 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        
         # Map form data to PDF data - include all form fields for initials and signature
         pdf_data = {
             **form_data,  # Include all form data (initials, signature, etc.)
-            "firstName": form_data.get("firstName", employee.get("first_name", "")),
-            "lastName": form_data.get("lastName", employee.get("last_name", "")),
+            "firstName": first_name,
+            "lastName": last_name,
             "property_name": property_name,
             "employee_id": employee_id,
         }

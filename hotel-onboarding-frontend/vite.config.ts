@@ -7,6 +7,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Force React to resolve to a single instance
+      "react": path.resolve(__dirname, "./node_modules/react"),
+      "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
   },
   server: {
@@ -16,8 +19,51 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        // Keep '/api' so backend receives '/api/*'
+        // Keep the /api prefix as backend expects it
         rewrite: (path) => path
+      },
+      '/auth': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        // Keep '/auth' so backend receives '/auth/*'
+        rewrite: (path) => path
+      },
+      '/hr': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      // Only proxy manager API calls, not the page itself
+      '/manager/applications': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/manager/property': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/manager/dashboard-stats': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/properties': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/applications': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/onboarding': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        // Rewrite /onboarding to /api/onboarding to match backend routes
+        rewrite: (path) => path.replace(/^\/onboarding/, '/api/onboarding')
       }
     },
     // Optimize HMR for better memory usage
@@ -26,10 +72,12 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    // Pre-bundle heavy dependencies
+    // Force include React to ensure single instance
     include: ['react', 'react-dom', 'react-router-dom', 'axios', 'react-hook-form'],
-    // Exclude rarely changed dependencies from optimization
-    exclude: []
+    // Force esbuild to use our aliased versions
+    esbuildOptions: {
+      preserveSymlinks: false
+    }
   },
   build: {
     // Reduce memory usage during build
@@ -60,4 +108,3 @@ export default defineConfig({
     logOverride: { 'this-is-undefined-in-esm': 'silent' }
   }
 })
-

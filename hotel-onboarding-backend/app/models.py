@@ -931,10 +931,27 @@ class EmploymentHistoryEntry(BaseModel):
     job_title: str
     starting_salary: str
     ending_salary: str
-    from_date: str  # MM/YYYY format
-    to_date: str    # MM/YYYY format or "Present"
+    from_date: str  # Accepts YYYY-MM or MM/YYYY
+    to_date: str    # Accepts YYYY-MM or MM/YYYY or "Present"
     reason_for_leaving: str
     may_contact: bool
+
+    @validator('from_date', 'to_date')
+    def validate_employment_dates(cls, v):
+        # Allow empty values for MVP (frontend may omit)
+        if v is None or v == "":
+            return v
+        if isinstance(v, str) and v.lower() == 'present':
+            return v
+        from datetime import datetime
+        # Accept both YYYY-MM and MM/YYYY
+        for fmt in ('%Y-%m', '%m/%Y'):
+            try:
+                datetime.strptime(v, fmt)
+                return v
+            except ValueError:
+                continue
+        raise ValueError('Employment dates must be YYYY-MM or MM/YYYY or "Present"')
 
 class PersonalReference(BaseModel):
     """Model for personal reference"""
@@ -995,9 +1012,9 @@ class JobApplicationData(BaseModel):
     conviction_record: ConvictionRecord
     
     # Availability
-    start_date: str  # YYYY-MM-DD format
-    shift_preference: str  # "morning", "afternoon", "evening", "night", "flexible"
-    employment_type: str  # "full_time", "part_time", "on_call", "seasonal_temporary"
+    start_date: Optional[str] = None  # YYYY-MM-DD format; default to today's date if not provided
+    shift_preference: str = "flexible"  # "morning", "afternoon", "evening", "night", "flexible"
+    employment_type: str = "full_time"  # "full_time", "part_time", "on_call", "seasonal_temporary"
     seasonal_start_date: Optional[str] = None  # For seasonal/temporary positions
     seasonal_end_date: Optional[str] = None    # For seasonal/temporary positions
     
@@ -1058,13 +1075,26 @@ class JobApplicationData(BaseModel):
             raise ValueError('Middle initial must be a single character')
         return v.upper() if v else v
     
-    @validator('start_date', 'seasonal_start_date', 'seasonal_end_date')
-    def validate_date_format(cls, v):
+    @validator('start_date', pre=True, always=True)
+    def default_start_date_and_validate(cls, v):
+        # Default start date to today if not provided
+        from datetime import datetime
+        if v in (None, ""):
+            return datetime.utcnow().strftime('%Y-%m-%d')
+        # Validate format
+        try:
+            datetime.strptime(v, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError('Date must be in YYYY-MM-DD format')
+        return v
+
+    @validator('seasonal_start_date', 'seasonal_end_date')
+    def validate_optional_dates(cls, v):
         if v is None:
             return v
+        from datetime import datetime
         try:
-            from datetime import datetime, date
-            datetime.strptime(v, '%Y-%m-%d').date()
+            datetime.strptime(v, '%Y-%m-%d')
         except ValueError:
             raise ValueError('Date must be in YYYY-MM-DD format')
         return v

@@ -27,9 +27,6 @@ const AnalyticsTab = lazy(() => import('@/components/dashboard/AnalyticsTab').th
 // Lazy load pages
 const HomePage = lazy(() => import('./pages/HomePage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
-const HRDashboard = lazy(() => import('./pages/HRDashboard'))
-const ManagerDashboard = lazy(() => import('./pages/ManagerDashboard'))
-const EnhancedManagerDashboard = lazy(() => import('./pages/EnhancedManagerDashboard'))
 const JobApplicationFormV2 = lazy(() => import('./pages/JobApplicationFormV2'))
 const OnboardingFlowPortal = lazy(() => import('./pages/OnboardingFlowPortal'))
 const OnboardingComplete = lazy(() => import('./pages/OnboardingComplete'))
@@ -74,22 +71,6 @@ function App() {
                 <Route path="analytics" element={<AnalyticsTab userRole="manager" />} />
               </Route>
               
-              {/* Legacy routes for backward compatibility */}
-              <Route path="/hr-old" element={
-                <ProtectedRoute requiredRole="hr">
-                  <HRDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/manager-old" element={
-                <ProtectedRoute requiredRole="manager">
-                  <ManagerDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/manager-enhanced" element={
-                <ProtectedRoute requiredRole="manager">
-                  <EnhancedManagerDashboard />
-                </ProtectedRoute>
-              } />
               
               {/* Job application route */}
               <Route path="/apply/:propertyId" element={<JobApplicationFormV2 />} />

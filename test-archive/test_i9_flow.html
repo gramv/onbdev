@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I-9 PDF Generation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ccc; padding: 20px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+        .loading { color: blue; }
+        button { padding: 10px 20px; margin: 5px; }
+        textarea { width: 100%; height: 150px; }
+        .pdf-container { border: 1px solid #ddd; height: 400px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>I-9 PDF Generation Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Backend Availability</h2>
+        <button onclick="testBackend()">Test Backend</button>
+        <div id="backend-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test I-9 PDF Generation</h2>
+        <button onclick="testI9Generation()">Generate I-9 PDF</button>
+        <div id="i9-status"></div>
+        
+        <h3>Sample I-9 Data:</h3>
+        <textarea id="i9-data">{
+  "employee_data": {
+    "employee_first_name": "John",
+    "employee_last_name": "Doe",
+    "employee_middle_initial": "A",
+    "address_street": "123 Main St",
+    "address_city": "New York",
+    "address_state": "NY",
+    "address_zip": "10001",
+    "date_of_birth": "1990-01-01",
+    "ssn": "123-45-6789",
+    "email": "john.doe@example.com",
+    "phone": "555-123-4567",
+    "citizenship_status": "us_citizen",
+    "section_1_completed_at": "2025-01-25T10:00:00Z",
+    "employee_signature_date": "2025-01-25T10:00:00Z"
+  }
+}</textarea>
+    </div>
+
+    <div class="test-section">
+        <h2>3. PDF Display Test</h2>
+        <div id="pdf-display" class="pdf-container">
+            <p>PDF will appear here after generation...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let generatedPdfUrl = null;
+
+        async function testBackend() {
+            const statusDiv = document.getElementById('backend-status');
+            statusDiv.innerHTML = '<span class="loading">Testing backend...</span>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/forms/test`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = `
+                        <div class="success">✅ Backend is running</div>
+                        <div>PyMuPDF: ${data.pymupdf}</div>
+                        <div>I-9 Form Exists: ${data.i9_form_exists}</div>
+                        <div>W-4 Form Exists: ${data.w4_form_exists}</div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = `<div class="error">❌ Backend error: ${data}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ Failed to connect to backend: ${error.message}</div>`;
+            }
+        }
+
+        async function testI9Generation() {
+            const statusDiv = document.getElementById('i9-status');
+            const dataTextarea = document.getElementById('i9-data');
+            
+            statusDiv.innerHTML = '<span class="loading">Generating I-9 PDF...</span>';
+            
+            try {
+                const requestData = JSON.parse(dataTextarea.value);
+                
+                const response = await fetch(`${API_BASE}/api/forms/i9/generate-legacy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test-token'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (response.ok) {
+                    const pdfBlob = await response.blob();
+                    generatedPdfUrl = URL.createObjectURL(pdfBlob);
+                    
+                    statusDiv.innerHTML = `
+                        <div class="success">✅ I-9 PDF generated successfully</div>
+                        <div>PDF Size: ${pdfBlob.size} bytes</div>
+                        <button onclick="downloadPdf()">Download PDF</button>
+                        <button onclick="displayPdf()">Display PDF</button>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    statusDiv.innerHTML = `<div class="error">❌ PDF generation failed: ${errorText}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function downloadPdf() {
+            if (generatedPdfUrl) {
+                const link = document.createElement('a');
+                link.href = generatedPdfUrl;
+                link.download = 'test-i9.pdf';
+                link.click();
+            }
+        }
+
+        function displayPdf() {
+            if (generatedPdfUrl) {
+                const pdfDisplay = document.getElementById('pdf-display');
+                pdfDisplay.innerHTML = `
+                    <object data="${generatedPdfUrl}" type="application/pdf" width="100%" height="100%">
+                        <p>Your browser does not support PDF viewing. <a href="${generatedPdfUrl}">Download the PDF</a></p>
+                    </object>
+                `;
+            }
+        }
+
+        // Test different scenarios
+        function testSupplementScenarios() {
+            const scenarios = [
+                {
+                    name: "Basic I-9 (US Citizen)",
+                    data: {
+                        "employee_data": {
+                            "employee_first_name": "John",
+                            "employee_last_name": "Doe",
+                            "citizenship_status": "us_citizen"
+                        }
+                    }
+                },
+                {
+                    name: "I-9 with Supplement A",
+                    data: {
+                        "employee_data": {
+                            "employee_first_name": "Maria",
+                            "employee_last_name": "Garcia",
+                            "citizenship_status": "permanent_resident",
+                            "preparer_first_name": "Helper",
+                            "preparer_last_name": "Person"
+                        }
+                    }
+                },
+                {
+                    name: "I-9 with Supplement B",
+                    data: {
+                        "employee_data": {
+                            "employee_first_name": "Ahmed",
+                            "employee_last_name": "Khan",
+                            "citizenship_status": "authorized_alien",
+                            "rehire_date": "2025-01-25",
+                            "reverify_document_title": "Employment Authorization Document"
+                        }
+                    }
+                }
+            ];
+
+            console.log('Test scenarios prepared:', scenarios);
+        }
+    </script>
+</body>
+</html>

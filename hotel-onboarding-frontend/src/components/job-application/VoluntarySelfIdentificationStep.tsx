@@ -25,6 +25,7 @@ export default function VoluntarySelfIdentificationStep({
   const [declineToIdentify, setDeclineToIdentify] = useState(formData.decline_to_identify || false)
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [hasInitialized, setHasInitialized] = useState(false)
 
   const raceEthnicityOptions = [
     { value: 'hispanic_latino', label: t('jobApplication.steps.voluntaryIdentification.raceEthnicity.hispanicLatino.label'), description: t('jobApplication.steps.voluntaryIdentification.raceEthnicity.hispanicLatino.description') },
@@ -37,9 +38,12 @@ export default function VoluntarySelfIdentificationStep({
   ]
 
   useEffect(() => {
-    // This step is always optional, so always mark as complete
-    onComplete(true)
-  }, [onComplete])
+    // This step is always optional, so mark as complete once on mount
+    if (!hasInitialized) {
+      onComplete(true)
+      setHasInitialized(true)
+    }
+  }, [hasInitialized])
 
   const handleInputChange = (field: string, value: any) => {
     updateFormData({ [field]: value })

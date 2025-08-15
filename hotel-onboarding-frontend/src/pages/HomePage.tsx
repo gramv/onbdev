@@ -53,7 +53,7 @@ export default function HomePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/apply/demo">
+            <Link to="/apply/903ed05b-5990-4ecf-b1b2-7592cf2923df">
               <Button variant="outline" className="w-full">Demo Application</Button>
             </Link>
           </CardContent>

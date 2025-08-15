@@ -13,7 +13,7 @@ import { useSimpleNavigation, useNavigationAnalytics } from '@/hooks/use-simple-
 import { useToast } from '@/hooks/use-toast'
 import { Building2, MapPin, Phone, AlertTriangle, RefreshCw } from 'lucide-react'
 // QR generator card removed from the property panel per design feedback
-import axios from 'axios'
+import { api } from '@/services/api'
 
 interface Property {
   id: string
@@ -71,7 +71,7 @@ export function ManagerDashboardLayout() {
   const currentSection = navigation.currentSection
 
   useEffect(() => {
-    if (user?.property_id) {
+    if (user) {
       fetchData()
     }
   }, [user, retryCount])
@@ -91,11 +91,9 @@ export function ManagerDashboardLayout() {
       if (retryCount > 0) {
         showSuccessToast('Dashboard refreshed', 'Data has been updated successfully')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch dashboard data:', error)
-      const errorMessage = axios.isAxiosError(error) 
-        ? error.response?.data?.detail || error.message 
-        : 'Failed to load dashboard data'
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load dashboard data'
       setError(errorMessage)
       showErrorToast('Failed to load dashboard', errorMessage)
     } finally {
@@ -104,42 +102,20 @@ export function ManagerDashboardLayout() {
   }
 
   const fetchPropertyData = async () => {
-    const token = localStorage.getItem('token')
-    const axiosConfig = {
-      headers: { Authorization: `Bearer ${token}` }
-    }
-    
-    const response = await axios.get('/api/manager/property', axiosConfig)
-    // Backend uses a standard { success, data } envelope
-    const payload = (response.data && typeof response.data === 'object' && 'data' in response.data)
-      ? response.data.data
-      : response.data
-    setProperty(payload || null)
+    const response = await api.manager.getMyProperty()
+    // API service handles response unwrapping
+    setProperty(response.data || null)
   }
 
   const fetchDashboardStats = async () => {
-    const token = localStorage.getItem('token')
-    const axiosConfig = {
-      headers: { Authorization: `Bearer ${token}` }
-    }
-    
-    // Fetch applications for stats (manager-scoped)
-    const appsResponse = await axios.get('/api/manager/applications', axiosConfig)
-    const applications = Array.isArray(appsResponse.data) ? appsResponse.data : []
-    
-    // Calculate stats
-    const totalApplications = applications.length
-    const pendingApplications = applications.filter((app: any) => app.status === 'pending').length
-    const approvedApplications = applications.filter((app: any) => app.status === 'approved').length
-    const totalEmployees = 0
-    const activeEmployees = 0
-
-    setStats({
-      total_applications: totalApplications,
-      pending_applications: pendingApplications,
-      approved_applications: approvedApplications,
-      total_employees: totalEmployees,
-      active_employees: activeEmployees
+    const response = await api.manager.getDashboardStats()
+    // API service handles response unwrapping
+    setStats(response.data || {
+      total_applications: 0,
+      pending_applications: 0,
+      approved_applications: 0,
+      total_employees: 0,
+      active_employees: 0
     })
   }
 
@@ -165,31 +141,7 @@ export function ManagerDashboardLayout() {
     )
   }
 
-  // Property assignment check
-  if (!user?.property_id) {
-    return (
-      <div className="responsive-container padding-lg flex items-center justify-center min-h-screen">
-        <Card className="card-elevated card-rounded-lg max-w-md w-full">
-          <CardContent className="card-padding-lg text-center spacing-sm">
-            <Building2 className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-            <h2 className="text-heading-lg text-primary mb-2">No Property Assigned</h2>
-            <p className="text-body-md text-secondary mb-6">
-              You are not currently assigned to a property. Please contact HR for assistance.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={handleRetry} className="">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              <Button onClick={logout} variant="outline" className="">
-                Logout
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  // Property will be fetched from the backend, no need to check property_id in JWT
 
   // Add pending applications badge to navigation items
   const navigationItems = MANAGER_NAVIGATION_ITEMS.map(item => ({
@@ -356,7 +308,7 @@ export function ManagerDashboardLayout() {
               property,
               onStatsUpdate: fetchData,
               userRole: 'manager',
-              propertyId: user.property_id 
+              propertyId: property?.id 
             }} />
           </div>
         </div>

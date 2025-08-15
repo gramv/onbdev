@@ -129,8 +129,8 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       setLoading(true)
       // Use different endpoints based on user role
       const endpoint = userRole === 'hr' 
-        ? '/api/hr/applications'
-        : '/api/manager/applications'
+        ? '/hr/applications'
+        : '/manager/applications'
       
       console.log('🔍 Fetching applications:', {
         userRole,
@@ -336,9 +336,9 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         formData.append(key, value)
       })
 
-      console.log('🚀 Making approval request to:', `/api/applications/${selectedApplication.id}/approve`)
+      console.log('🚀 Making approval request to:', `/applications/${selectedApplication.id}/approve`)
       
-      const response = await axios.post(`/api/applications/${selectedApplication.id}/approve`, formData, {
+      const response = await axios.post(`/applications/${selectedApplication.id}/approve`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -422,7 +422,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       const formData = new FormData()
       formData.append('rejection_reason', rejectionReason.trim())
 
-      const response = await axios.post(`/api/applications/${selectedApplication.id}/reject`, formData, {
+      const response = await axios.post(`/applications/${selectedApplication.id}/reject`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

@@ -1,0 +1,102 @@
+{
+  "test_summary": {
+    "total_tests": 9,
+    "passed": 5,
+    "failed": 2,
+    "skipped": 1,
+    "success_rate": "55.6%"
+  },
+  "test_details": [
+    {
+      "timestamp": "2025-08-09T19:36:13.020511",
+      "test": "Manager Authentication",
+      "status": "PASS",
+      "details": "Manager authenticated successfully with proper role",
+      "data": {
+        "manager_id": "0cbf02b3-c119-48ec-8291-4879f9344dc0",
+        "property_id": null,
+        "role": "manager",
+        "email": "manager@demo.com"
+      }
+    },
+    {
+      "timestamp": "2025-08-09T19:36:13.376446",
+      "test": "Manager Dashboard Access",
+      "status": "PASS",
+      "details": "Dashboard accessed successfully",
+      "data": {
+        "pendingApplications": 0,
+        "approvedApplications": 0,
+        "totalApplications": 0,
+        "totalEmployees": 0,
+        "activeEmployees": 0,
+        "onboardingInProgress": 0
+      }
+    },
+    {
+      "timestamp": "2025-08-09T19:36:13.880515",
+      "test": "Get Manager Employees",
+      "status": "FAIL",
+      "details": "No working employee endpoint found",
+      "data": null
+    },
+    {
+      "timestamp": "2025-08-09T19:36:13.880593",
+      "test": "Employee Document Access",
+      "status": "SKIP",
+      "details": "No employees found to test document access",
+      "data": null
+    },
+    {
+      "timestamp": "2025-08-09T19:36:14.016396",
+      "test": "Property Isolation - Fake Employee",
+      "status": "INFO",
+      "details": "Access properly denied with status 500",
+      "data": null
+    },
+    {
+      "timestamp": "2025-08-09T19:36:14.188739",
+      "test": "Property Isolation - Manager Property Context",
+      "status": "PASS",
+      "details": "Manager correctly assigned to property a99239dd-ebde-4c69-b862-ecba9e878798",
+      "data": {
+        "id": "a99239dd-ebde-4c69-b862-ecba9e878798",
+        "name": "Demo Hotel",
+        "address": "123 Demo Street",
+        "city": "Demo City",
+        "state": "CA",
+        "zip_code": "90210",
+        "phone": "(555) 123-4567",
+        "is_active": true,
+        "created_at": "2025-08-09T22:40:03.310607+00:00"
+      }
+    },
+    {
+      "timestamp": "2025-08-09T19:36:14.192020",
+      "test": "Unauthorized Access - No Token",
+      "status": "FAIL",
+      "details": "Should return 401 for no auth token, got 403",
+      "data": null
+    },
+    {
+      "timestamp": "2025-08-09T19:36:14.194533",
+      "test": "Unauthorized Access - Invalid Token",
+      "status": "PASS",
+      "details": "Properly rejected request with invalid token (status 401)",
+      "data": null
+    },
+    {
+      "timestamp": "2025-08-09T19:36:14.287780",
+      "test": "Role-based Access Control",
+      "status": "PASS",
+      "details": "Manager properly denied access to HR endpoint (status 403)",
+      "data": null
+    }
+  ],
+  "manager_info": {
+    "email": "manager@demo.com",
+    "property_id": "a99239dd-ebde-4c69-b862-ecba9e878798",
+    "authenticated": true
+  },
+  "timestamp": "2025-08-09T19:36:14.287821"
+}

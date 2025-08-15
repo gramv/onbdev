@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -130,7 +130,7 @@ export default function JobApplicationFormV2() {
   const [stepCompletionStatus, setStepCompletionStatus] = useState<Record<string, boolean>>({})
   const [showEqualOpportunityModal, setShowEqualOpportunityModal] = useState(false)
   
-  const steps = getSteps(t)
+  const steps = useMemo(() => getSteps(t), [t])
   
   // Comprehensive form data state
   const [formData, setFormData] = useState({
@@ -258,7 +258,7 @@ export default function JobApplicationFormV2() {
 
   const fetchProperty = async () => {
     try {
-      const response = await axios.get(`/api/properties/${propertyId}/info`)
+      const response = await axios.get(`/properties/${propertyId}/info`)
       setPropertyInfo(response.data)
       // Set property name in form data for use in other components
       setFormData(prev => ({
@@ -311,9 +311,13 @@ export default function JobApplicationFormV2() {
     setFormData(prev => ({ ...prev, ...stepData }))
   }
 
-  const markStepComplete = (stepId: string, isComplete: boolean = true) => {
+  const markStepComplete = useCallback((stepId: string, isComplete: boolean = true) => {
     setStepCompletionStatus(prev => ({ ...prev, [stepId]: isComplete }))
-  }
+  }, [])
+
+  const handleStepComplete = useCallback((isComplete: boolean) => {
+    markStepComplete(steps[currentStep].id, isComplete)
+  }, [currentStep, markStepComplete])
 
   const validateCurrentStep = (): boolean => {
     const step = steps[currentStep]
@@ -392,6 +396,22 @@ export default function JobApplicationFormV2() {
         return
       }
 
+      // Normalize and validate phone numbers to satisfy backend (10 digits required)
+      const digits = (s: string | undefined) => (s || '').replace(/\D/g, '')
+      const primaryPhoneDigits = digits(formData.phone)
+      const referencePhoneDigits = digits(formData.references?.[0]?.phone)
+
+      if (primaryPhoneDigits.length !== 10) {
+        setError('Phone number must be 10 digits')
+        setLoading(false)
+        return
+      }
+      if (formData.references?.[0]?.phone && referencePhoneDigits.length !== 10) {
+        setError('Reference phone must be 10 digits')
+        setLoading(false)
+        return
+      }
+
       // Submit the application (align keys to backend schema where needed)
       const payload = {
         // Personal
@@ -399,7 +419,7 @@ export default function JobApplicationFormV2() {
         middle_initial: formData.middle_name ? formData.middle_name[0] : undefined,
         last_name: formData.last_name,
         email: formData.email,
-        phone: formData.phone,
+        phone: formData.phone?.trim(),
         address: formData.address,
         city: formData.city,
         state: formData.state,
@@ -431,7 +451,7 @@ export default function JobApplicationFormV2() {
         personal_reference: formData.references?.[0] ? {
           name: formData.references[0].name || 'N/A',
           years_known: formData.references[0].years_known || '0',
-          phone: formData.references[0].phone || '0000000000',
+          phone: (formData.references[0].phone || '0000000000').trim(),
           relationship: formData.references[0].relationship || 'N/A'
         } : { name: 'N/A', years_known: '0', phone: '0000000000', relationship: 'N/A' },
         
@@ -659,7 +679,7 @@ export default function JobApplicationFormV2() {
               updateFormData={updateFormData}
               validationErrors={validationErrors[steps[currentStep].id] || {}}
               propertyInfo={propertyInfo}
-              onComplete={(isComplete: boolean) => markStepComplete(steps[currentStep].id, isComplete)}
+              onComplete={handleStepComplete}
             />
 
             {/* Navigation Buttons */}

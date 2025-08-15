@@ -1,0 +1,24 @@
+{
+  "test_summary": {
+    "total_tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "success_rate": "0.0%"
+  },
+  "test_details": [
+    {
+      "timestamp": "2025-08-09T19:34:55.296948",
+      "test": "Manager Authentication",
+      "status": "FAIL",
+      "details": "Login failed with status 400: {\"success\":false,\"error\":\"Email and password are required\",\"error_code\":\"VALIDATION_ERROR\",\"status_code\":400,\"timestamp\":\"2025-08-09T23:34:55.296623\",\"detail\":\"Both email and password fields must be provided\"}",
+      "data": null
+    }
+  ],
+  "manager_info": {
+    "email": "manager@demo.com",
+    "property_id": "a99239dd-ebde-4c69-b862-ecba9e878798",
+    "authenticated": false
+  },
+  "timestamp": "2025-08-09T19:34:55.296991"
+}
