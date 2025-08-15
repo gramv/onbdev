@@ -1341,6 +1341,72 @@ class EnhancedSupabaseService:
             logger.error(f"Error getting onboarding session by ID {session_id}: {e}")
             return None
     
+    async def create_notification(self, user_id: str, type: str, title: str, message: str, 
+                                 priority: str = "normal", metadata: Dict[str, Any] = None) -> bool:
+        """Create a notification record"""
+        try:
+            notification_data = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "type": type,
+                "title": title,
+                "message": message,
+                "priority": priority,
+                "status": "unread",
+                "metadata": metadata or {},
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            result = self.client.table('notifications').insert(notification_data).execute()
+            return bool(result.data)
+        except Exception as e:
+            logger.error(f"Failed to create notification: {e}")
+            return False
+    
+    async def get_user_notifications(self, user_id: str, unread_only: bool = False, 
+                                    limit: int = 50) -> List[Dict[str, Any]]:
+        """Get notifications for a user"""
+        try:
+            query = self.client.table('notifications').select('*').eq('user_id', user_id)
+            
+            if unread_only:
+                query = query.eq('status', 'unread')
+            
+            query = query.order('created_at', desc=True).limit(limit)
+            result = query.execute()
+            
+            return result.data if result.data else []
+        except Exception as e:
+            logger.error(f"Failed to get user notifications: {e}")
+            return []
+    
+    async def get_notification_count(self, user_id: str) -> int:
+        """Get unread notification count for a user"""
+        try:
+            result = self.client.table('notifications').select('id', count='exact')\
+                .eq('user_id', user_id)\
+                .eq('status', 'unread')\
+                .execute()
+            
+            return result.count if result.count else 0
+        except Exception as e:
+            logger.error(f"Failed to get notification count: {e}")
+            return 0
+    
+    async def mark_notifications_as_read(self, notification_ids: List[str], user_id: str) -> bool:
+        """Mark notifications as read"""
+        try:
+            for notif_id in notification_ids:
+                self.client.table('notifications').update({
+                    'status': 'read',
+                    'read_at': datetime.now(timezone.utc).isoformat()
+                }).eq('id', notif_id).eq('user_id', user_id).execute()
+            
+            return True
+        except Exception as e:
+            logger.error(f"Failed to mark notifications as read: {e}")
+            return False
+    
     async def get_onboarding_session_by_token(self, token: str) -> Optional[OnboardingSession]:
         """Get onboarding session by token"""
         try:

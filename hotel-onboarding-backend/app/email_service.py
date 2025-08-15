@@ -39,22 +39,41 @@ class EmailService:
             self.smtp_password != "your-app-specific-password"
         )
         
-        # Check if we should force dev mode
+        # Check if we should force dev mode - in development, always log emails to console
         self.environment = os.getenv("ENVIRONMENT", "development")
-        self.force_dev_mode = self.environment == "development" and not self.is_configured
+        self.force_dev_mode = self.environment in ["development", "test"]
         
-        if not self.is_configured:
-            logger.warning("Email service not configured. Email notifications will be logged only.")
-            logger.info("To enable email sending, configure SMTP settings in .env file")
+        if not self.is_configured or self.force_dev_mode:
+            logger.warning("Email service in development mode. Emails will be logged to console.")
+            if self.is_configured:
+                logger.info("SMTP is configured but development mode is active. Set ENVIRONMENT=production to send real emails.")
     
     async def send_email(self, to_email: str, subject: str, html_content: str, text_content: str = None) -> bool:
         """Send an email with HTML and optional text content"""
         
-        if not self.is_configured:
-            logger.info(f"📧 [DEV MODE] Email would be sent to {to_email}")
-            logger.info(f"📧 [DEV MODE] Subject: {subject}")
-            logger.info(f"📧 [DEV MODE] Content preview: {(text_content or html_content)[:200]}...")
+        # In development mode, always log emails to console
+        if self.force_dev_mode:
+            logger.info("=" * 80)
+            logger.info(f"📧 [DEV MODE] Email Notification")
+            logger.info(f"📧 To: {to_email}")
+            logger.info(f"📧 Subject: {subject}")
+            logger.info(f"📧 From: {self.from_name} <{self.from_email}>")
+            logger.info("-" * 80)
+            if text_content:
+                logger.info("📧 Text Content:")
+                logger.info(text_content[:500] + ("..." if len(text_content) > 500 else ""))
+            else:
+                logger.info("📧 HTML Content Preview:")
+                # Strip HTML tags for preview
+                import re
+                clean_text = re.sub('<[^<]+?>', '', html_content)
+                logger.info(clean_text[:500] + ("..." if len(clean_text) > 500 else ""))
+            logger.info("=" * 80)
             return True  # Return success for development
+        
+        if not self.is_configured:
+            logger.warning(f"Email service not configured. Cannot send email to {to_email}")
+            return False
         
         try:
             # Create message
@@ -719,6 +738,257 @@ class EmailService:
         🔒 This is a secure onboarding link. Please do not share it with others.
         This is an automated reminder from the Hotel Onboarding System.
         """
+        
+        return await self.send_email(to_email, subject, html_content, text_content)
+    
+    async def send_manager_welcome_email(self, to_email: str, manager_name: str,
+                                        property_name: str, temporary_password: str,
+                                        login_url: str = None, language: str = 'en') -> bool:
+        """Send welcome email to newly created manager with credentials"""
+        
+        if not login_url:
+            login_url = f"{self.frontend_url}/manager"
+        
+        subject = f"Welcome to {property_name} Management Team" if language == 'en' else f"Bienvenido al Equipo de Gestión de {property_name}"
+        
+        if language == 'en':
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+                    .content {{ padding: 20px; background-color: #f9fafb; }}
+                    .button {{ display: inline-block; background-color: #16a34a; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }}
+                    .footer {{ background-color: #e5e7eb; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }}
+                    .credentials {{ background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #f59e0b; }}
+                    .important {{ background-color: #fee2e2; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #dc2626; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Welcome to the Management Team!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Dear {manager_name},</p>
+                        
+                        <p>Your manager account has been created for <strong>{property_name}</strong>. You now have access to the Hotel Onboarding System to manage employee applications and onboarding.</p>
+                        
+                        <div class="credentials">
+                            <h3>Your Login Credentials</h3>
+                            <p><strong>Email:</strong> {to_email}</p>
+                            <p><strong>Temporary Password:</strong> {temporary_password}</p>
+                        </div>
+                        
+                        <div class="important">
+                            <p><strong>⚠️ Important Security Notice:</strong></p>
+                            <ul>
+                                <li>Please change your password upon first login</li>
+                                <li>Do not share your credentials with anyone</li>
+                                <li>Use a strong, unique password</li>
+                            </ul>
+                        </div>
+                        
+                        <p>Click the button below to access the Manager Dashboard:</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="{login_url}" class="button">Access Manager Dashboard</a>
+                        </div>
+                        
+                        <h3>Your Responsibilities Include:</h3>
+                        <ul>
+                            <li>📋 Review job applications for your property</li>
+                            <li>✅ Approve or reject employee applications</li>
+                            <li>📝 Complete I-9 Section 2 verification within 3 business days</li>
+                            <li>👥 Monitor employee onboarding progress</li>
+                            <li>📊 Access analytics and reports for your property</li>
+                        </ul>
+                        
+                        <h3>Getting Started:</h3>
+                        <ol>
+                            <li>Log in using your credentials</li>
+                            <li>Change your password</li>
+                            <li>Review any pending applications</li>
+                            <li>Complete I-9 verifications for new employees</li>
+                        </ol>
+                        
+                        <p>If you have any questions or need assistance, please contact HR.</p>
+                        
+                        <p>Best regards,<br>
+                        The HR Team</p>
+                    </div>
+                    <div class="footer">
+                        <p>🔒 Keep your login credentials secure and confidential.</p>
+                        <p>This is an automated message from the Hotel Onboarding System.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            text_content = f"""
+            Welcome to the Management Team!
+            
+            Dear {manager_name},
+            
+            Your manager account has been created for {property_name}. You now have access to the Hotel Onboarding System to manage employee applications and onboarding.
+            
+            YOUR LOGIN CREDENTIALS
+            Email: {to_email}
+            Temporary Password: {temporary_password}
+            
+            ⚠️ IMPORTANT SECURITY NOTICE:
+            - Please change your password upon first login
+            - Do not share your credentials with anyone
+            - Use a strong, unique password
+            
+            Access the Manager Dashboard at: {login_url}
+            
+            Your Responsibilities Include:
+            - Review job applications for your property
+            - Approve or reject employee applications
+            - Complete I-9 Section 2 verification within 3 business days
+            - Monitor employee onboarding progress
+            - Access analytics and reports for your property
+            
+            Getting Started:
+            1. Log in using your credentials
+            2. Change your password
+            3. Review any pending applications
+            4. Complete I-9 verifications for new employees
+            
+            If you have any questions or need assistance, please contact HR.
+            
+            Best regards,
+            The HR Team
+            
+            ---
+            🔒 Keep your login credentials secure and confidential.
+            This is an automated message from the Hotel Onboarding System.
+            """
+        else:  # Spanish version
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+                    .content {{ padding: 20px; background-color: #f9fafb; }}
+                    .button {{ display: inline-block; background-color: #16a34a; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }}
+                    .footer {{ background-color: #e5e7eb; padding: 15px; text-align: center; font-size: 12px; border-radius: 0 0 8px 8px; }}
+                    .credentials {{ background-color: #fef3c7; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #f59e0b; }}
+                    .important {{ background-color: #fee2e2; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #dc2626; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>¡Bienvenido al Equipo de Gestión!</h1>
+                    </div>
+                    <div class="content">
+                        <p>Estimado/a {manager_name},</p>
+                        
+                        <p>Su cuenta de gerente ha sido creada para <strong>{property_name}</strong>. Ahora tiene acceso al Sistema de Incorporación del Hotel para gestionar las solicitudes y la incorporación de empleados.</p>
+                        
+                        <div class="credentials">
+                            <h3>Sus Credenciales de Acceso</h3>
+                            <p><strong>Correo Electrónico:</strong> {to_email}</p>
+                            <p><strong>Contraseña Temporal:</strong> {temporary_password}</p>
+                        </div>
+                        
+                        <div class="important">
+                            <p><strong>⚠️ Aviso de Seguridad Importante:</strong></p>
+                            <ul>
+                                <li>Por favor, cambie su contraseña al iniciar sesión por primera vez</li>
+                                <li>No comparta sus credenciales con nadie</li>
+                                <li>Use una contraseña fuerte y única</li>
+                            </ul>
+                        </div>
+                        
+                        <p>Haga clic en el botón a continuación para acceder al Panel de Gerente:</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="{login_url}" class="button">Acceder al Panel de Gerente</a>
+                        </div>
+                        
+                        <h3>Sus Responsabilidades Incluyen:</h3>
+                        <ul>
+                            <li>📋 Revisar solicitudes de empleo para su propiedad</li>
+                            <li>✅ Aprobar o rechazar solicitudes de empleados</li>
+                            <li>📝 Completar la Sección 2 del I-9 dentro de 3 días hábiles</li>
+                            <li>👥 Monitorear el progreso de incorporación de empleados</li>
+                            <li>📊 Acceder a análisis e informes de su propiedad</li>
+                        </ul>
+                        
+                        <h3>Para Comenzar:</h3>
+                        <ol>
+                            <li>Inicie sesión con sus credenciales</li>
+                            <li>Cambie su contraseña</li>
+                            <li>Revise las solicitudes pendientes</li>
+                            <li>Complete las verificaciones I-9 para nuevos empleados</li>
+                        </ol>
+                        
+                        <p>Si tiene alguna pregunta o necesita ayuda, por favor contacte a Recursos Humanos.</p>
+                        
+                        <p>Saludos cordiales,<br>
+                        El Equipo de Recursos Humanos</p>
+                    </div>
+                    <div class="footer">
+                        <p>🔒 Mantenga sus credenciales de acceso seguras y confidenciales.</p>
+                        <p>Este es un mensaje automatizado del Sistema de Incorporación del Hotel.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            text_content = f"""
+            ¡Bienvenido al Equipo de Gestión!
+            
+            Estimado/a {manager_name},
+            
+            Su cuenta de gerente ha sido creada para {property_name}. Ahora tiene acceso al Sistema de Incorporación del Hotel para gestionar las solicitudes y la incorporación de empleados.
+            
+            SUS CREDENCIALES DE ACCESO
+            Correo Electrónico: {to_email}
+            Contraseña Temporal: {temporary_password}
+            
+            ⚠️ AVISO DE SEGURIDAD IMPORTANTE:
+            - Por favor, cambie su contraseña al iniciar sesión por primera vez
+            - No comparta sus credenciales con nadie
+            - Use una contraseña fuerte y única
+            
+            Acceda al Panel de Gerente en: {login_url}
+            
+            Sus Responsabilidades Incluyen:
+            - Revisar solicitudes de empleo para su propiedad
+            - Aprobar o rechazar solicitudes de empleados
+            - Completar la Sección 2 del I-9 dentro de 3 días hábiles
+            - Monitorear el progreso de incorporación de empleados
+            - Acceder a análisis e informes de su propiedad
+            
+            Para Comenzar:
+            1. Inicie sesión con sus credenciales
+            2. Cambie su contraseña
+            3. Revise las solicitudes pendientes
+            4. Complete las verificaciones I-9 para nuevos empleados
+            
+            Si tiene alguna pregunta o necesita ayuda, por favor contacte a Recursos Humanos.
+            
+            Saludos cordiales,
+            El Equipo de Recursos Humanos
+            
+            ---
+            🔒 Mantenga sus credenciales de acceso seguras y confidenciales.
+            Este es un mensaje automatizado del Sistema de Incorporación del Hotel.
+            """
         
         return await self.send_email(to_email, subject, html_content, text_content)
     

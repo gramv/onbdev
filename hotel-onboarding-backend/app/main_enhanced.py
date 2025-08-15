@@ -2066,6 +2066,55 @@ async def create_manager(
         if result.data:
             created_manager = result.data[0]
             
+            # Get property name for email
+            property_name = "Hotel Onboarding System"
+            if property_id and property_id != 'none':
+                try:
+                    property_obj = await supabase_service.get_property_by_id(property_id)
+                    if property_obj:
+                        property_name = property_obj.name
+                except Exception as e:
+                    logger.warning(f"Failed to get property name: {e}")
+            
+            # Send welcome email to the new manager
+            try:
+                email_sent = await email_service.send_manager_welcome_email(
+                    to_email=email.lower().strip(),
+                    manager_name=f"{first_name.strip()} {last_name.strip()}",
+                    property_name=property_name,
+                    temporary_password=password,  # In production, should be a temporary password
+                    login_url=f"{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/manager"
+                )
+                
+                # Create notification record
+                notification_data = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": manager_id,
+                    "type": "manager_welcome",
+                    "title": "Welcome to the Management Team",
+                    "message": f"Your manager account has been created for {property_name}",
+                    "priority": "normal",
+                    "status": "sent" if email_sent else "failed",
+                    "metadata": {
+                        "email_sent": email_sent,
+                        "property_id": property_id,
+                        "property_name": property_name,
+                        "created_by": current_user.email
+                    },
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                # Store notification in database
+                try:
+                    supabase_service.client.table('notifications').insert(notification_data).execute()
+                except Exception as e:
+                    logger.error(f"Failed to create notification record: {e}")
+                
+                logger.info(f"Manager welcome email {'sent' if email_sent else 'logged'} for {email}")
+            except Exception as e:
+                logger.error(f"Failed to send manager welcome email: {e}")
+                # Don't fail the creation if email fails
+            
             # Assign to property if specified
             if property_id and property_id != 'none':
                 try:
@@ -2086,7 +2135,7 @@ async def create_manager(
             
             return success_response(
                 data=created_manager,
-                message="Manager created successfully"
+                message="Manager created successfully. Welcome email sent."
             )
         else:
             raise HTTPException(status_code=500, detail="Failed to create manager")
@@ -2096,6 +2145,68 @@ async def create_manager(
     except Exception as e:
         logger.error(f"Failed to create manager: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create manager: {str(e)}")
+
+# Notification endpoints
+@app.get("/notifications")
+async def get_notifications(
+    unread_only: bool = Query(False),
+    limit: int = Query(50, le=100),
+    current_user: User = Depends(get_current_user)
+):
+    """Get notifications for the current user"""
+    try:
+        notifications = await supabase_service.get_user_notifications(
+            user_id=current_user.id,
+            unread_only=unread_only,
+            limit=limit
+        )
+        
+        return success_response(
+            data={
+                "notifications": notifications,
+                "total": len(notifications)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Failed to get notifications: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get notifications: {str(e)}")
+
+@app.get("/notifications/count")
+async def get_notification_count(
+    current_user: User = Depends(get_current_user)
+):
+    """Get unread notification count for the current user"""
+    try:
+        count = await supabase_service.get_notification_count(current_user.id)
+        
+        return success_response(
+            data={"unread_count": count}
+        )
+    except Exception as e:
+        logger.error(f"Failed to get notification count: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get notification count: {str(e)}")
+
+@app.post("/notifications/mark-read")
+async def mark_notifications_read(
+    notification_ids: List[str],
+    current_user: User = Depends(get_current_user)
+):
+    """Mark notifications as read"""
+    try:
+        success = await supabase_service.mark_notifications_as_read(
+            notification_ids=notification_ids,
+            user_id=current_user.id
+        )
+        
+        if success:
+            return success_response(
+                message="Notifications marked as read"
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Failed to mark notifications as read")
+    except Exception as e:
+        logger.error(f"Failed to mark notifications as read: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to mark notifications as read: {str(e)}")
 
 @app.get("/hr/employees")
 async def get_hr_employees(

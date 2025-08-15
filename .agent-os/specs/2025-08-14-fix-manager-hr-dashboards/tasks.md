@@ -158,32 +158,32 @@
 
 ## Phase 4: Email & Notifications (6 Tasks)
 
-- [ ] 4.1 Setup Email Configuration
+- [x] 4.1 Setup Email Configuration
   - Agent: email-notification-builder
   - Action: Add email config to .env (use console.log for now)
   - Test: Can log email content
 
-- [ ] 4.2 Create Welcome Email Template
+- [x] 4.2 Create Welcome Email Template
   - Agent: email-notification-builder
   - Action: Create simple HTML email template
   - Test: Template renders with variables
 
-- [ ] 4.3 Send Email on Approval
+- [x] 4.3 Send Email on Approval
   - Agent: backend-api-builder
   - Action: Trigger email when application approved
   - Test: Email logged with onboarding link
 
-- [ ] 4.4 Add Manager Welcome Email
+- [x] 4.4 Add Manager Welcome Email
   - Agent: backend-api-builder
   - Action: Send credentials when manager created
   - Test: Manager creation triggers email
 
-- [ ] 4.5 Create Notification Record
+- [x] 4.5 Create Notification Record
   - Agent: backend-api-builder
   - Action: Save notification to existing notifications table
   - Test: Notification saved on events
 
-- [ ] 4.6 Display Notifications Count
+- [x] 4.6 Display Notifications Count
   - Agent: frontend-component-fixer
   - Action: Show notification badge in dashboard
   - Test: Badge shows unread count

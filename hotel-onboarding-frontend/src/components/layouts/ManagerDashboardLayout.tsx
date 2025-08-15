@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-// import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { StatsSkeleton, SkeletonCard } from '@/components/ui/skeleton-loader'
@@ -11,7 +11,7 @@ import { DashboardBreadcrumb } from '@/components/ui/breadcrumb'
 import { DashboardNavigation, MANAGER_NAVIGATION_ITEMS } from '@/components/ui/dashboard-navigation'
 import { useSimpleNavigation, useNavigationAnalytics } from '@/hooks/use-simple-navigation'
 import { useToast } from '@/hooks/use-toast'
-import { Building2, MapPin, Phone, AlertTriangle, RefreshCw } from 'lucide-react'
+import { Building2, MapPin, Phone, AlertTriangle, RefreshCw, Bell } from 'lucide-react'
 // QR generator card removed from the property panel per design feedback
 import { api } from '@/services/api'
 
@@ -56,6 +56,7 @@ export function ManagerDashboardLayout() {
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const [notificationCount, setNotificationCount] = useState(0)
 
   // Check if we're on mobile
   useEffect(() => {
@@ -66,6 +67,19 @@ export function ManagerDashboardLayout() {
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Refresh notification count periodically
+  useEffect(() => {
+    // Fetch initial count
+    fetchNotificationCount()
+    
+    // Set up interval to refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchNotificationCount()
+    }, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const currentSection = navigation.currentSection
@@ -83,11 +97,22 @@ export function ManagerDashboardLayout() {
     }
   }, [location.pathname, navigate])
 
+  const fetchNotificationCount = async () => {
+    try {
+      const response = await api.get('/notifications/count')
+      if (response.data?.success) {
+        setNotificationCount(response.data.data.unread_count || 0)
+      }
+    } catch (error) {
+      console.error('Failed to fetch notification count:', error)
+    }
+  }
+
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
-      await Promise.all([fetchPropertyData(), fetchDashboardStats()])
+      await Promise.all([fetchPropertyData(), fetchDashboardStats(), fetchNotificationCount()])
       if (retryCount > 0) {
         showSuccessToast('Dashboard refreshed', 'Data has been updated successfully')
       }
@@ -162,6 +187,21 @@ export function ManagerDashboardLayout() {
               <p className="text-body-md text-secondary">Welcome back, {user.first_name} {user.last_name}</p>
             </div>
             <div className="flex items-center gap-3">
+              {/* Notification Badge */}
+              <button
+                className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => navigate('/manager/notifications')}
+                title="Notifications"
+              >
+                <Bell className="h-5 w-5 text-gray-600" />
+                {notificationCount > 0 && (
+                  <Badge 
+                    className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs"
+                  >
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </Badge>
+                )}
+              </button>
               {error && (
                 <Button 
                   onClick={handleRetry} 
