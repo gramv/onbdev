@@ -43,6 +43,9 @@ from .models import (
     ReportFormat, ReportSchedule, SavedFilter
 )
 
+# Import OnboardingPhase from models_enhanced
+from .models_enhanced import OnboardingPhase
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -743,16 +746,35 @@ class EnhancedSupabaseService:
     # ONBOARDING OPERATIONS
     # =====================================================
     
-    async def create_onboarding_session(self, employee_id: str, expires_hours: int = 72) -> Dict[str, Any]:
+    async def create_onboarding_session(self, employee_id: str, property_id: str = None, manager_id: str = None, expires_hours: int = 72) -> Dict[str, Any]:
         """Create secure onboarding session with token"""
         try:
+            # Get property_id and manager_id from employee if not provided
+            if not property_id or not manager_id:
+                employee = self.client.table('employees').select('property_id, manager_id').eq('id', employee_id).execute()
+                if employee.data:
+                    if not property_id:
+                        property_id = employee.data[0].get('property_id')
+                    if not manager_id:
+                        manager_id = employee.data[0].get('manager_id')
+            
             session_id = str(uuid.uuid4())
-            token = self.generate_secure_token()
-            expires_at = datetime.now(timezone.utc) + timedelta(hours=expires_hours)
+            
+            # Generate JWT token using OnboardingTokenManager
+            from .auth import OnboardingTokenManager
+            token_data = OnboardingTokenManager.create_onboarding_token(
+                employee_id=employee_id,
+                expires_hours=expires_hours
+            )
+            token = token_data["token"]
+            expires_at = token_data["expires_at"]  # Already a datetime object
             
             session_data = {
                 "id": session_id,
                 "employee_id": employee_id,
+                "property_id": property_id,  # Added property_id
+                "manager_id": manager_id,  # Added manager_id
+                "phase": "employee",  # Added phase (employee phase for onboarding)
                 "token": token,
                 "status": OnboardingStatus.NOT_STARTED.value,
                 "current_step": OnboardingStep.WELCOME.value,
@@ -1305,8 +1327,10 @@ class EnhancedSupabaseService:
                     application_id=session_data.get('application_id'),
                     property_id=session_data['property_id'],
                     manager_id=session_data.get('manager_id'),
-                    token=session_data.get('token'),
+                    token=session_data.get('token', ''),
                     status=OnboardingStatus(session_data.get('status', 'not_started')),
+                    phase=OnboardingPhase(session_data.get('phase', 'employee')),
+                    current_step=OnboardingStep(session_data.get('current_step', 'welcome')),
                     expires_at=datetime.fromisoformat(session_data['expires_at']) if session_data.get('expires_at') else None,
                     created_at=datetime.fromisoformat(session_data['created_at']) if session_data.get('created_at') else datetime.now(timezone.utc),
                     updated_at=datetime.fromisoformat(session_data['updated_at']) if session_data.get('updated_at') else datetime.now(timezone.utc)
@@ -1316,6 +1340,160 @@ class EnhancedSupabaseService:
         except Exception as e:
             logger.error(f"Error getting onboarding session by ID {session_id}: {e}")
             return None
+    
+    async def get_onboarding_session_by_token(self, token: str) -> Optional[OnboardingSession]:
+        """Get onboarding session by token"""
+        try:
+            response = self.client.table('onboarding_sessions').select('*').eq('token', token).execute()
+            
+            if response.data:
+                session_data = response.data[0]
+                return OnboardingSession(
+                    id=session_data['id'],
+                    employee_id=session_data['employee_id'],
+                    application_id=session_data.get('application_id'),
+                    property_id=session_data['property_id'],
+                    manager_id=session_data.get('manager_id'),
+                    token=session_data.get('token', ''),
+                    status=OnboardingStatus(session_data.get('status', 'not_started')),
+                    phase=OnboardingPhase(session_data.get('phase', 'employee')),
+                    current_step=OnboardingStep(session_data.get('current_step', 'welcome')),
+                    expires_at=datetime.fromisoformat(session_data['expires_at']) if session_data.get('expires_at') else None,
+                    created_at=datetime.fromisoformat(session_data['created_at']) if session_data.get('created_at') else datetime.now(timezone.utc),
+                    updated_at=datetime.fromisoformat(session_data['updated_at']) if session_data.get('updated_at') else datetime.now(timezone.utc)
+                )
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting onboarding session by token: {e}")
+            return None
+    
+    async def get_onboarding_sessions_by_employee(self, employee_id: str) -> List[OnboardingSession]:
+        """Get all onboarding sessions for an employee, sorted by most recent first"""
+        try:
+            response = self.client.table('onboarding_sessions').select('*').eq('employee_id', employee_id).order('created_at', desc=True).execute()
+            
+            sessions = []
+            if response.data:
+                for session_data in response.data:
+                    sessions.append(OnboardingSession(
+                        id=session_data['id'],
+                        employee_id=session_data['employee_id'],
+                        application_id=session_data.get('application_id'),
+                        property_id=session_data['property_id'],
+                        manager_id=session_data.get('manager_id'),
+                        token=session_data.get('token', ''),
+                        status=OnboardingStatus(session_data.get('status', 'not_started')),
+                        phase=OnboardingPhase(session_data.get('phase', 'employee')),
+                        current_step=OnboardingStep(session_data.get('current_step', 'welcome')),
+                        expires_at=datetime.fromisoformat(session_data['expires_at']) if session_data.get('expires_at') else None,
+                        created_at=datetime.fromisoformat(session_data['created_at']) if session_data.get('created_at') else datetime.now(timezone.utc),
+                        updated_at=datetime.fromisoformat(session_data['updated_at']) if session_data.get('updated_at') else datetime.now(timezone.utc)
+                    ))
+            return sessions
+            
+        except Exception as e:
+            logger.error(f"Error getting onboarding sessions for employee {employee_id}: {e}")
+            return []
+    
+    async def create_employee_from_application(self, application: JobApplication) -> Optional[Employee]:
+        """Create an employee record from a job application"""
+        try:
+            # Extract applicant data
+            applicant_data = application.applicant_data or {}
+            
+            # Create employee record
+            employee_data = {
+                'id': str(uuid.uuid4()),
+                'property_id': application.property_id,
+                'first_name': applicant_data.get('first_name', ''),
+                'last_name': applicant_data.get('last_name', ''),
+                'email': applicant_data.get('email', ''),
+                'phone': applicant_data.get('phone', ''),
+                'employment_status': 'pending',
+                'hire_date': datetime.now(timezone.utc).isoformat(),
+                'position': application.position,
+                'department': applicant_data.get('department', 'General'),
+                'created_at': datetime.now(timezone.utc).isoformat(),
+                'updated_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            # Check if we need to assign a manager
+            if not employee_data.get('manager_id'):
+                # Get default manager for property
+                managers = await self.get_property_managers(application.property_id)
+                if managers:
+                    employee_data['manager_id'] = managers[0].id
+            
+            response = self.client.table('employees').insert(employee_data).execute()
+            
+            if response.data:
+                emp_data = response.data[0]
+                return Employee(
+                    id=emp_data['id'],
+                    user_id=emp_data.get('user_id', emp_data['id']),  # Use employee ID if user_id not set
+                    property_id=emp_data['property_id'],
+                    manager_id=emp_data.get('manager_id', ''),
+                    department=emp_data.get('department', 'General'),
+                    position=emp_data.get('position', 'Staff'),
+                    hire_date=datetime.fromisoformat(emp_data['hire_date']).date() if emp_data.get('hire_date') else datetime.now(timezone.utc).date(),
+                    pay_rate=emp_data.get('pay_rate', 0.0),
+                    employment_type=emp_data.get('employment_type', 'full_time'),
+                    employment_status=emp_data.get('employment_status', 'pending'),
+                    onboarding_status=OnboardingStatus(emp_data.get('onboarding_status', 'not_started'))
+                )
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error creating employee from application: {e}")
+            return None
+    
+    async def get_job_application_by_id(self, application_id: str) -> Optional[JobApplication]:
+        """Get a job application by ID"""
+        try:
+            response = self.client.table('job_applications').select('*').eq('id', application_id).execute()
+            
+            if response.data:
+                app_data = response.data[0]
+                return JobApplication(
+                    id=app_data['id'],
+                    property_id=app_data['property_id'],
+                    position=app_data['position'],
+                    status=app_data.get('status', 'pending'),
+                    applicant_data=app_data.get('applicant_data', {}),
+                    submitted_at=datetime.fromisoformat(app_data['submitted_at']) if app_data.get('submitted_at') else datetime.now(timezone.utc),
+                    created_at=datetime.fromisoformat(app_data['created_at']) if app_data.get('created_at') else datetime.now(timezone.utc),
+                    updated_at=datetime.fromisoformat(app_data['updated_at']) if app_data.get('updated_at') else datetime.now(timezone.utc)
+                )
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting job application by ID {application_id}: {e}")
+            return None
+    
+    async def get_property_managers(self, property_id: str) -> List[User]:
+        """Get all managers assigned to a property"""
+        try:
+            # Get manager IDs from property_managers table
+            pm_response = self.client.table('property_managers').select('manager_id').eq('property_id', property_id).execute()
+            
+            if not pm_response.data:
+                return []
+            
+            manager_ids = [pm['manager_id'] for pm in pm_response.data]
+            
+            # Get manager details
+            managers = []
+            for manager_id in manager_ids:
+                manager = await self.get_user_by_id(manager_id)
+                if manager:
+                    managers.append(manager)
+            
+            return managers
+            
+        except Exception as e:
+            logger.error(f"Error getting property managers for property {property_id}: {e}")
+            return []
 
     # Dashboard Statistics Methods
     async def get_properties_count(self) -> int:
@@ -1521,20 +1699,94 @@ class EnhancedSupabaseService:
             response = self.client.table('employees').select('*').eq('id', employee_id).execute()
             if response.data:
                 row = response.data[0]
+                logger.info(f"Employee data from DB: {row}")
+                # Parse hire_date - it might be a string date or ISO datetime
+                hire_date = None
+                if row.get('hire_date'):
+                    try:
+                        # Try parsing as date string (YYYY-MM-DD)
+                        from datetime import date as date_type
+                        if isinstance(row['hire_date'], str) and 'T' not in row['hire_date']:
+                            hire_date = datetime.strptime(row['hire_date'], '%Y-%m-%d').date()
+                        else:
+                            hire_date = datetime.fromisoformat(row['hire_date'].replace('Z', '+00:00')).date()
+                    except:
+                        hire_date = datetime.now(timezone.utc).date()
+                else:
+                    hire_date = datetime.now(timezone.utc).date()
+                
+                # Normalize employment_type value
+                employment_type = row.get('employment_type', 'full_time')
+                if employment_type == 'full-time':
+                    employment_type = 'full_time'
+                elif employment_type == 'part-time':
+                    employment_type = 'part_time'
+                    
+                # Parse start_date if present
+                start_date = None
+                if row.get('start_date'):
+                    try:
+                        if isinstance(row['start_date'], str) and 'T' not in row['start_date']:
+                            start_date = datetime.strptime(row['start_date'], '%Y-%m-%d').date()
+                        else:
+                            start_date = datetime.fromisoformat(row['start_date'].replace('Z', '+00:00')).date()
+                    except:
+                        start_date = None
+                
+                # Parse timestamps
+                created_at = None
+                updated_at = None
+                onboarding_completed_at = None
+                
+                if row.get('created_at'):
+                    try:
+                        created_at = datetime.fromisoformat(row['created_at'].replace('Z', '+00:00').replace('+00:00+00:00', '+00:00'))
+                    except:
+                        created_at = datetime.now(timezone.utc)
+                else:
+                    created_at = datetime.now(timezone.utc)
+                    
+                if row.get('updated_at'):
+                    try:
+                        updated_at = datetime.fromisoformat(row['updated_at'].replace('Z', '+00:00').replace('+00:00+00:00', '+00:00'))
+                    except:
+                        updated_at = datetime.now(timezone.utc)
+                else:
+                    updated_at = datetime.now(timezone.utc)
+                    
+                if row.get('onboarding_completed_at'):
+                    try:
+                        onboarding_completed_at = datetime.fromisoformat(row['onboarding_completed_at'].replace('Z', '+00:00').replace('+00:00+00:00', '+00:00'))
+                    except:
+                        onboarding_completed_at = None
+                
                 return Employee(
                     id=row['id'],
+                    user_id=row.get('user_id') or row['id'],  # Use employee ID if user_id not set
                     property_id=row['property_id'],
-                    department=row['department'],
-                    position=row['position'],
-                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else None,
+                    manager_id=row.get('manager_id', ''),  # May not be set yet
+                    employee_number=row.get('employee_number'),  # Optional field
+                    application_id=row.get('application_id'),  # Optional field
+                    department=row.get('department', 'General'),
+                    position=row.get('position', 'Staff'),
+                    hire_date=hire_date,
+                    start_date=start_date,
                     pay_rate=row.get('pay_rate', 0.0),
-                    employment_type=row.get('employment_type', 'full_time'),
+                    pay_frequency=row.get('pay_frequency', 'biweekly'),
+                    employment_type=employment_type,
                     employment_status=row.get('employment_status', 'active'),
-                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started'))
+                    onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started')),
+                    personal_info=row.get('personal_info', {}),
+                    emergency_contacts=row.get('emergency_contacts', []),
+                    created_at=created_at,
+                    updated_at=updated_at,
+                    onboarding_completed_at=onboarding_completed_at
                 )
             return None
         except Exception as e:
             logger.error(f"Error getting employee by ID: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return None
 
     async def get_all_employees(self) -> List[Employee]:
@@ -1545,10 +1797,12 @@ class EnhancedSupabaseService:
             for row in response.data:
                 employees.append(Employee(
                     id=row['id'],
+                    user_id=row.get('user_id', row['id']),  # Use employee ID if user_id not set
                     property_id=row['property_id'],
-                    department=row['department'],
-                    position=row['position'],
-                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else None,
+                    manager_id=row.get('manager_id', ''),  # May not be set yet
+                    department=row.get('department', 'General'),
+                    position=row.get('position', 'Staff'),
+                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else datetime.now(timezone.utc).date(),
                     pay_rate=row.get('pay_rate', 0.0),
                     employment_type=row.get('employment_type', 'full_time'),
                     employment_status=row.get('employment_status', 'active'),
@@ -1567,10 +1821,12 @@ class EnhancedSupabaseService:
             for row in response.data:
                 employees.append(Employee(
                     id=row['id'],
+                    user_id=row.get('user_id', row['id']),  # Use employee ID if user_id not set
                     property_id=row['property_id'],
-                    department=row['department'],
-                    position=row['position'],
-                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else None,
+                    manager_id=row.get('manager_id', ''),  # May not be set yet
+                    department=row.get('department', 'General'),
+                    position=row.get('position', 'Staff'),
+                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else datetime.now(timezone.utc).date(),
                     pay_rate=row.get('pay_rate', 0.0),
                     employment_type=row.get('employment_type', 'full_time'),
                     employment_status=row.get('employment_status', 'active'),
@@ -1589,10 +1845,12 @@ class EnhancedSupabaseService:
             for row in response.data:
                 employees.append(Employee(
                     id=row['id'],
+                    user_id=row.get('user_id', row['id']),  # Use employee ID if user_id not set
                     property_id=row['property_id'],
-                    department=row['department'],
-                    position=row['position'],
-                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else None,
+                    manager_id=row.get('manager_id', ''),  # May not be set yet
+                    department=row.get('department', 'General'),
+                    position=row.get('position', 'Staff'),
+                    hire_date=datetime.fromisoformat(row['hire_date']).date() if row.get('hire_date') else datetime.now(timezone.utc).date(),
                     pay_rate=row.get('pay_rate', 0.0),
                     employment_type=row.get('employment_type', 'full_time'),
                     employment_status=row.get('employment_status', 'active'),

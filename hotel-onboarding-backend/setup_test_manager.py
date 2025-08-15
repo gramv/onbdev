@@ -3,136 +3,113 @@
 Setup test manager account for testing
 """
 
-import asyncio
-import httpx
-import json
-from datetime import datetime
+import os
+import sys
+from dotenv import load_dotenv
+from supabase import create_client, Client
+import bcrypt
 
-BASE_URL = "http://localhost:8000"
+# Load environment variables
+load_dotenv('.env.test')
 
-async def setup_test_data():
-    """Setup test property and manager"""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        print("Setting up test data...")
+# Get Supabase credentials
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+
+if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    print("Error: Missing Supabase credentials")
+    print(f"SUPABASE_URL: {SUPABASE_URL}")
+    print(f"SUPABASE_ANON_KEY: {'***' if SUPABASE_ANON_KEY else 'None'}")
+    sys.exit(1)
+
+# Create Supabase client with anon key (will work for public tables)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+def setup_test_manager():
+    """Create or update test manager account"""
+    
+    # Hash the password
+    password = "Password123!"
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Check if manager exists
+    result = supabase.table('users').select('*').eq('email', 'manager@demo.com').execute()
+    
+    if result.data:
+        # Update existing manager
+        update_result = supabase.table('users').update({
+            'password_hash': hashed_password,
+            'role': 'manager',
+            'is_active': True
+        }).eq('email', 'manager@demo.com').execute()
         
-        # First, try to login as admin to create the manager
-        print("\n1. Logging in as admin...")
-        try:
-            admin_response = await client.post(
-                f"{BASE_URL}/auth/login",
-                json={"email": "admin@hotelonboard.com", "password": "admin123"}
-            )
-            
-            if admin_response.status_code == 200:
-                print("✅ Admin login successful")
-                admin_token = admin_response.json()["access_token"]
-                admin_headers = {"Authorization": f"Bearer {admin_token}"}
-                
-                # Create property first
-                print("\n2. Creating test property...")
-                prop_response = await client.post(
-                    f"{BASE_URL}/admin/properties",
-                    headers=admin_headers,
-                    json={
-                        "id": "test-prop-001",
-                        "name": "Demo Hotel",
-                        "address": "123 Demo Street, Demo City, DC 12345",
-                        "phone": "555-0001"
-                    }
-                )
-                
-                if prop_response.status_code in [200, 201]:
-                    print("✅ Property created/exists")
-                elif prop_response.status_code == 409:
-                    print("ℹ️  Property already exists")
-                else:
-                    print(f"⚠️  Property creation response: {prop_response.status_code}")
-                    print(f"   {prop_response.text}")
-                
-                # Create manager
-                print("\n3. Creating manager account...")
-                manager_response = await client.post(
-                    f"{BASE_URL}/admin/managers",
-                    headers=admin_headers,
-                    json={
-                        "email": "manager@demo.com",
-                        "password": "demo123",
-                        "first_name": "Demo",
-                        "last_name": "Manager",
-                        "property_id": "test-prop-001"
-                    }
-                )
-                
-                if manager_response.status_code in [200, 201]:
-                    print("✅ Manager created successfully")
-                    print(f"   Response: {manager_response.json()}")
-                elif manager_response.status_code == 409:
-                    print("ℹ️  Manager already exists - updating...")
-                    
-                    # Try to update the manager's property assignment
-                    update_response = await client.put(
-                        f"{BASE_URL}/admin/managers/manager@demo.com",
-                        headers=admin_headers,
-                        json={
-                            "property_id": "test-prop-001",
-                            "password": "demo123"  # Reset password
-                        }
-                    )
-                    
-                    if update_response.status_code == 200:
-                        print("✅ Manager updated successfully")
-                    else:
-                        print(f"⚠️  Manager update failed: {update_response.status_code}")
-                        print(f"   {update_response.text}")
-                else:
-                    print(f"❌ Manager creation failed: {manager_response.status_code}")
-                    print(f"   {manager_response.text}")
-                
-                # Test the manager login
-                print("\n4. Testing manager login...")
-                test_response = await client.post(
-                    f"{BASE_URL}/auth/login",
-                    json={"email": "manager@demo.com", "password": "demo123"}
-                )
-                
-                if test_response.status_code == 200:
-                    print("✅ Manager login works!")
-                    manager_data = test_response.json()
-                    print(f"   User ID: {manager_data.get('user', {}).get('id')}")
-                    print(f"   Role: {manager_data.get('user', {}).get('role')}")
-                else:
-                    print(f"❌ Manager login failed: {test_response.status_code}")
-                    print(f"   {test_response.text}")
-                
-            else:
-                print(f"❌ Admin login failed: {admin_response.status_code}")
-                print(f"   Response: {admin_response.text}")
-                print("\nTrying to create admin account...")
-                
-                # Try to create admin account (might work if no users exist)
-                register_response = await client.post(
-                    f"{BASE_URL}/auth/register",
-                    json={
-                        "email": "admin@hotelonboard.com",
-                        "password": "admin123",
-                        "first_name": "System",
-                        "last_name": "Admin",
-                        "role": "admin"
-                    }
-                )
-                
-                if register_response.status_code in [200, 201]:
-                    print("✅ Admin account created")
-                    print("Please run this script again to setup the manager")
-                else:
-                    print(f"❌ Could not create admin: {register_response.status_code}")
-                    print(f"   {register_response.text}")
-                    
-        except Exception as e:
-            print(f"❌ Error: {str(e)}")
-
-async def main():
-    await setup_test_data()
+        print(f"✅ Updated existing manager@demo.com")
+        manager_id = result.data[0]['id']
+    else:
+        # Create new manager
+        insert_result = supabase.table('users').insert({
+            'email': 'manager@demo.com',
+            'password_hash': hashed_password,
+            'first_name': 'Demo',
+            'last_name': 'Manager',
+            'role': 'manager',
+            'is_active': True
+        }).execute()
+        
+        print(f"✅ Created new manager@demo.com")
+        manager_id = insert_result.data[0]['id']
+    
+    # Ensure manager is assigned to demo property
+    property_result = supabase.table('properties').select('*').eq('id', '85837d95-1595-4322-b291-fd130cff17c1').execute()
+    
+    if not property_result.data:
+        # Create demo property if it doesn't exist
+        supabase.table('properties').insert({
+            'id': '85837d95-1595-4322-b291-fd130cff17c1',
+            'name': 'Demo Hotel',
+            'code': 'DEMO001',
+            'address': '123 Demo Street',
+            'city': 'Demo City',
+            'state': 'DC',
+            'zip': '12345',
+            'is_active': True
+        }).execute()
+        print("✅ Created Demo Hotel property")
+    
+    # Check property assignment
+    assignment_result = supabase.table('property_managers').select('*').eq('manager_id', manager_id).eq('property_id', '85837d95-1595-4322-b291-fd130cff17c1').execute()
+    
+    if not assignment_result.data:
+        # Assign manager to property
+        supabase.table('property_managers').insert({
+            'manager_id': manager_id,
+            'property_id': '85837d95-1595-4322-b291-fd130cff17c1'
+        }).execute()
+        print("✅ Assigned manager to Demo Hotel")
+    
+    print(f"\n✅ Test manager ready:")
+    print(f"   Email: manager@demo.com")
+    print(f"   Password: Password123!")
+    print(f"   Property: Demo Hotel")
+    
+    # Also create a test application for this property
+    app_result = supabase.table('job_applications').select('*').eq('property_id', '85837d95-1595-4322-b291-fd130cff17c1').eq('status', 'pending').execute()
+    
+    if not app_result.data:
+        # Create a test application
+        supabase.table('job_applications').insert({
+            'property_id': '85837d95-1595-4322-b291-fd130cff17c1',
+            'first_name': 'John',
+            'last_name': 'Doe',
+            'email': 'john.doe@example.com',
+            'phone': '555-0123',
+            'position': 'Front Desk',
+            'status': 'pending',
+            'emergency_contact_name': 'Jane Doe',
+            'emergency_contact_phone': '555-0124',
+            'emergency_contact_relationship': 'Spouse'
+        }).execute()
+        print("✅ Created test application for approval")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    setup_test_manager()

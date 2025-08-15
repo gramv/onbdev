@@ -1373,6 +1373,8 @@ async def approve_application(
         # Create onboarding session
         onboarding_session_data = await supabase_service.create_onboarding_session(
             employee_id=employee["id"],
+            property_id=application.property_id,
+            manager_id=current_user.id,
             expires_hours=72
         )
         
@@ -1427,30 +1429,30 @@ async def approve_application(
             approval_email_sent = False
             welcome_email_sent = False
         
-        return {
-            "message": "Application approved successfully",
-            "employee_id": employee["id"],
-            "onboarding": {
+        return success_response(
+            data={
+                "employee_id": employee["id"],
+                "onboarding_token": onboarding_session.token,
                 "onboarding_url": onboarding_url,
-                "token": onboarding_session.token,
-                "expires_at": onboarding_session.expires_at.isoformat()
+                "token_expires_at": onboarding_session.expires_at.isoformat(),
+                "employee_info": {
+                    "name": f"{application.applicant_data['first_name']} {application.applicant_data['last_name']}",
+                    "email": application.applicant_data["email"],
+                    "position": job_title,
+                    "department": application.department
+                },
+                "talent_pool": {
+                    "moved_to_talent_pool": talent_pool_count,
+                    "message": f"{talent_pool_count} other applications moved to talent pool"
+                },
+                "email_notifications": {
+                    "approval_email_sent": approval_email_sent,
+                    "welcome_email_sent": welcome_email_sent,
+                    "recipient": application.applicant_data["email"]
+                }
             },
-            "employee_info": {
-                "name": f"{application.applicant_data['first_name']} {application.applicant_data['last_name']}",
-                "email": application.applicant_data["email"],
-                "position": job_title,
-                "department": application.department
-            },
-            "talent_pool": {
-                "moved_to_talent_pool": talent_pool_count,
-                "message": f"{talent_pool_count} other applications moved to talent pool"
-            },
-            "email_notifications": {
-                "approval_email_sent": approval_email_sent,
-                "welcome_email_sent": welcome_email_sent,
-                "recipient": application.applicant_data["email"]
-            }
-        }
+            message="Application approved successfully"
+        )
         
     except HTTPException:
         raise
@@ -3774,10 +3776,81 @@ async def start_onboarding_session(
 async def get_onboarding_welcome_data(token: str):
     """
     Get welcome page data for onboarding
+    Supports both JWT tokens and legacy database session tokens
     """
     try:
-        # Get session by token
-        session = await onboarding_orchestrator.get_session_by_token(token)
+        session = None
+        employee_id = None
+        property_id = None
+        manager_id = None
+        application_id = None
+        
+        # First, try to verify as JWT token
+        from app.auth import OnboardingTokenManager
+        token_data = OnboardingTokenManager.verify_onboarding_token(token)
+        
+        logger.info(f"Token verification result: {token_data}")
+        
+        if token_data.get("valid"):
+            # Valid JWT token - extract data
+            employee_id = token_data.get("employee_id")
+            application_id = token_data.get("application_id")
+            
+            # Get employee to find property and manager
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if employee:
+                property_id = employee.property_id
+                manager_id = employee.manager_id
+                
+                # Try to get existing session for this employee
+                sessions = await supabase_service.get_onboarding_sessions_by_employee(employee_id)
+                if sessions:
+                    # Use the most recent active session
+                    for s in sessions:
+                        if s.status in [OnboardingStatus.IN_PROGRESS, OnboardingStatus.NOT_STARTED]:
+                            session = s
+                            break
+                
+                # If no session exists, create a new one
+                if not session:
+                    session = await onboarding_orchestrator.initiate_onboarding(
+                        application_id=application_id or str(uuid.uuid4()),
+                        employee_id=employee_id,
+                        property_id=property_id,
+                        manager_id=manager_id,
+                        expires_hours=72
+                    )
+            else:
+                # If employee doesn't exist yet, check if we have an application
+                if application_id:
+                    app = await supabase_service.get_job_application_by_id(application_id)
+                    if app:
+                        # Create employee from application
+                        employee = await supabase_service.create_employee_from_application(app)
+                        employee_id = employee.id
+                        property_id = app.property_id
+                        
+                        # Get default manager for property
+                        managers = await supabase_service.get_property_managers(property_id)
+                        if managers:
+                            manager_id = managers[0].id
+                        
+                        # Create onboarding session
+                        session = await onboarding_orchestrator.initiate_onboarding(
+                            application_id=application_id,
+                            employee_id=employee_id,
+                            property_id=property_id,
+                            manager_id=manager_id,
+                            expires_hours=72
+                        )
+        else:
+            # Not a valid JWT, try as database session token (backwards compatibility)
+            session = await onboarding_orchestrator.get_session_by_token(token)
+            
+            if session:
+                employee_id = session.employee_id
+                property_id = session.property_id
+                manager_id = session.manager_id
         
         if not session:
             return error_response(
@@ -3787,9 +3860,9 @@ async def get_onboarding_welcome_data(token: str):
             )
         
         # Get employee and property data
-        employee = await supabase_service.get_employee_by_id(session.employee_id)
-        property_obj = await supabase_service.get_property_by_id(session.property_id)
-        manager = await supabase_service.get_user_by_id(session.manager_id)
+        employee = await supabase_service.get_employee_by_id(employee_id)
+        property_obj = await supabase_service.get_property_by_id(property_id)
+        manager = await supabase_service.get_user_by_id(manager_id)
         
         if not employee:
             return not_found_response("Employee not found")
@@ -3798,22 +3871,22 @@ async def get_onboarding_welcome_data(token: str):
             data={
                 "session": {
                     "id": session.id,
-                    "status": session.status,
-                    "phase": session.phase,
-                    "current_step": session.current_step,
-                    "completed_steps": session.completed_steps or [],
+                    "status": session.status.value if hasattr(session.status, 'value') else session.status,
+                    "phase": getattr(session, 'phase', 'employee'),  # Default to employee phase if not present
+                    "current_step": session.current_step.value if hasattr(session.current_step, 'value') else session.current_step,
+                    "completed_steps": getattr(session, 'steps_completed', []) or [],
                     "total_steps": onboarding_orchestrator.total_onboarding_steps,
-                    "expires_at": session.expires_at.isoformat() if session.expires_at else None
+                    "expires_at": getattr(session, 'expires_at', None).isoformat() if getattr(session, 'expires_at', None) else None
                 },
                 "employee": {
                     "id": employee.id,
-                    "first_name": employee.first_name,
-                    "last_name": employee.last_name,
-                    "email": employee.email,
-                    "position": employee.position,
-                    "department": employee.department,
-                    "start_date": employee.start_date.isoformat() if employee.start_date else None,
-                    "employment_type": employee.employment_type
+                    "first_name": getattr(employee, 'first_name', ''),
+                    "last_name": getattr(employee, 'last_name', ''),
+                    "email": getattr(employee, 'email', ''),
+                    "position": getattr(employee, 'position', ''),
+                    "department": getattr(employee, 'department', ''),
+                    "start_date": employee.start_date.isoformat() if hasattr(employee, 'start_date') and employee.start_date else None,
+                    "employment_type": getattr(employee, 'employment_type', 'full_time')
                 },
                 "property": {
                     "id": property_obj.id,

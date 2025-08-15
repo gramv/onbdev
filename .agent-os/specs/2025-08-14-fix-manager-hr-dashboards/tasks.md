@@ -66,42 +66,42 @@
 
 ## Phase 2: Core Application Flow (8 Tasks)
 
-- [ ] 2.1 Create Test Job Application
+- [x] 2.1 Create Test Job Application
   - Agent: test-setup-agent
   - Action: Insert test application for demo property
   - Test: Application exists in job_applications table
 
-- [ ] 2.2 Fix Applications List Endpoint
+- [x] 2.2 Fix Applications List Endpoint
   - Agent: backend-api-builder
   - Action: Ensure /api/manager/applications returns property applications
   - Test: curl returns application list
 
-- [ ] 2.3 Connect Applications Tab
+- [x] 2.3 Connect Applications Tab
   - Agent: frontend-component-fixer
   - Action: Display applications in ApplicationsTab component
   - Test: Applications visible in manager UI
 
-- [ ] 2.4 Implement Application Approval
+- [x] 2.4 Implement Application Approval
   - Agent: backend-api-builder
   - Action: Fix /api/applications/{id}/approve endpoint
   - Test: Can approve via API, status changes
 
-- [ ] 2.5 Add Approval Button UI
+- [x] 2.5 Add Approval Button UI
   - Agent: frontend-component-fixer
   - Action: Add working approve/reject buttons
   - Test: Buttons trigger API calls successfully
 
-- [ ] 2.6 Generate Onboarding Token
+- [x] 2.6 Generate Onboarding Token
   - Agent: backend-api-builder
   - Action: Create JWT token on approval, save to onboarding_sessions
   - Test: Token generated and stored in database
 
-- [ ] 2.7 Test Onboarding Portal Access
+- [x] 2.7 Test Onboarding Portal Access
   - Agent: test-automation-engineer
   - Action: Test /onboard?token={jwt} loads portal
   - Test: Portal loads with valid token
 
-- [ ] 2.8 **CHECKPOINT Beta** - End-to-End Application Test
+- [x] 2.8 **CHECKPOINT Beta** - End-to-End Application Test ✅
   - Agent: test-automation-engineer
   - Checkpoint: Tag as `checkpoint-beta-core-flow`
   - Action: Test full flow from application to onboarding start
