@@ -16,7 +16,7 @@ import {
   PieChart,
   Activity
 } from 'lucide-react'
-import axios from 'axios'
+import { apiClient } from '@/services/api'
 
 interface DashboardStats {
   totalProperties: number
@@ -110,13 +110,12 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true)
-      const baseUrl = '/api'
       
       if (userRole === 'hr') {
         const [overviewRes, propertyRes, employeeRes] = await Promise.all([
-          axios.get(`${baseUrl}/hr/analytics/overview`),
-          axios.get(`${baseUrl}/hr/analytics/property-performance`),
-          axios.get(`${baseUrl}/hr/analytics/employee-trends`)
+          apiClient.get('/hr/analytics/overview'),
+          apiClient.get('/hr/analytics/property-performance'),
+          apiClient.get('/hr/analytics/employee-trends')
         ])
         
         // Handle wrapped response format
@@ -130,8 +129,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
       } else {
         // Manager-specific analytics
         const [overviewRes, employeeRes] = await Promise.all([
-          axios.get(`${baseUrl}/manager/analytics/overview`),
-          axios.get(`${baseUrl}/manager/analytics/employee-trends`)
+          apiClient.get('/manager/analytics/overview'),
+          apiClient.get('/manager/analytics/employee-trends')
         ])
         
         // Handle wrapped response format
@@ -152,9 +151,9 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
     try {
       setExporting(true)
       const endpoint = userRole === 'hr' 
-        ? '/api/hr/analytics/export?format=json'
-        : '/api/manager/analytics/export?format=json'
-      const response = await axios.get(endpoint)
+        ? '/hr/analytics/export?format=json'
+        : '/manager/analytics/export?format=json'
+      const response = await apiClient.get(endpoint)
       
       // Create and download JSON file
       const dataStr = JSON.stringify(response.data, null, 2)
@@ -218,13 +217,13 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total Applications</p>
-                  <p className="text-2xl font-bold">{analyticsOverview.overview.totalApplications}</p>
+                  <p className="text-2xl font-bold">{analyticsOverview?.overview?.totalApplications || 0}</p>
                 </div>
                 <FileText className="h-8 w-8 text-blue-500" />
               </div>
               <div className="mt-2">
                 <Badge variant="secondary" className="text-xs">
-                  +{analyticsOverview.recentActivity.newApplications} this month
+                  +{analyticsOverview?.recentActivity?.newApplications || 0} this month
                 </Badge>
               </div>
             </CardContent>
@@ -239,8 +238,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
                   </p>
                   <p className="text-2xl font-bold">
                     {userRole === 'hr' 
-                      ? analyticsOverview.overview.totalProperties 
-                      : analyticsOverview.overview.pendingApplications}
+                      ? analyticsOverview?.overview?.totalProperties || 0
+                      : analyticsOverview?.overview?.pendingApplications || 0}
                   </p>
                 </div>
                 {userRole === 'hr' ? (
@@ -252,7 +251,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
               <div className="mt-2">
                 <Badge variant="secondary" className="text-xs">
                   {userRole === 'hr' 
-                    ? `${analyticsOverview.overview.totalManagers} managers`
+                    ? `${analyticsOverview?.overview?.totalManagers || 0} managers`
                     : 'Awaiting review'}
                 </Badge>
               </div>
@@ -264,13 +263,13 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total Employees</p>
-                  <p className="text-2xl font-bold">{analyticsOverview.overview.totalEmployees}</p>
+                  <p className="text-2xl font-bold">{analyticsOverview?.overview?.totalEmployees || 0}</p>
                 </div>
                 <Users className="h-8 w-8 text-purple-500" />
               </div>
               <div className="mt-2">
                 <Badge variant="secondary" className="text-xs">
-                  +{analyticsOverview.recentActivity.newEmployees} this month
+                  +{analyticsOverview?.recentActivity?.newEmployees || 0} this month
                 </Badge>
               </div>
             </CardContent>
@@ -282,8 +281,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
                 <div>
                   <p className="text-sm text-gray-600">Approval Rate</p>
                   <p className="text-2xl font-bold">
-                    {analyticsOverview.overview.totalApplications > 0 
-                      ? Math.round((analyticsOverview.overview.approvedApplications / analyticsOverview.overview.totalApplications) * 100)
+                    {analyticsOverview?.overview?.totalApplications > 0 
+                      ? Math.round((analyticsOverview?.overview?.approvedApplications / analyticsOverview?.overview?.totalApplications) * 100)
                       : 0}%
                   </p>
                 </div>
@@ -291,7 +290,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
               </div>
               <div className="mt-2">
                 <Badge variant="secondary" className="text-xs">
-                  {analyticsOverview.overview.approvedApplications} approved
+                  {analyticsOverview?.overview?.approvedApplications || 0} approved
                 </Badge>
               </div>
             </CardContent>
@@ -325,30 +324,30 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
                       <span className="text-sm">Pending</span>
                       <div className="flex items-center space-x-2">
                         <Progress 
-                          value={(analyticsOverview.applicationTrends.pending / analyticsOverview.overview.totalApplications) * 100} 
+                          value={(analyticsOverview?.applicationTrends?.pending / (analyticsOverview?.overview?.totalApplications || 1)) * 100} 
                           className="w-24" 
                         />
-                        <span className="text-sm font-medium">{analyticsOverview.applicationTrends.pending}</span>
+                        <span className="text-sm font-medium">{analyticsOverview?.applicationTrends?.pending || 0}</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Approved</span>
                       <div className="flex items-center space-x-2">
                         <Progress 
-                          value={(analyticsOverview.applicationTrends.approved / analyticsOverview.overview.totalApplications) * 100} 
+                          value={(analyticsOverview?.applicationTrends?.approved / (analyticsOverview?.overview?.totalApplications || 1)) * 100} 
                           className="w-24" 
                         />
-                        <span className="text-sm font-medium">{analyticsOverview.applicationTrends.approved}</span>
+                        <span className="text-sm font-medium">{analyticsOverview?.applicationTrends?.approved || 0}</span>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Rejected</span>
                       <div className="flex items-center space-x-2">
                         <Progress 
-                          value={(analyticsOverview.applicationTrends.rejected / analyticsOverview.overview.totalApplications) * 100} 
+                          value={(analyticsOverview?.applicationTrends?.rejected / (analyticsOverview?.overview?.totalApplications || 1)) * 100} 
                           className="w-24" 
                         />
-                        <span className="text-sm font-medium">{analyticsOverview.applicationTrends.rejected}</span>
+                        <span className="text-sm font-medium">{analyticsOverview?.applicationTrends?.rejected || 0}</span>
                       </div>
                     </div>
                   </div>
@@ -367,7 +366,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
               <CardContent>
                 {analyticsOverview && (
                   <div className="space-y-3">
-                    {Object.entries(analyticsOverview.departmentStats).map(([dept, stats]) => (
+                    {Object.entries(analyticsOverview?.departmentStats || {}).map(([dept, stats]) => (
                       <div key={dept} className="border rounded-lg p-3">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">{dept}</span>
@@ -422,7 +421,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
                         </tr>
                       </thead>
                       <tbody>
-                        {propertyPerformance.propertyPerformance.map((property) => (
+                        {propertyPerformance?.propertyPerformance?.map((property) => (
                           <tr key={property.propertyId} className="border-b hover:bg-gray-50">
                             <td className="p-2 font-medium">{property.propertyName}</td>
                             <td className="p-2 text-gray-600">{property.city}, {property.state}</td>
@@ -473,7 +472,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
               <CardContent>
                 {employeeTrends && (
                   <div className="space-y-3">
-                    {employeeTrends.monthlyTrends.map((trend) => (
+                    {employeeTrends?.monthlyTrends?.map((trend) => (
                       <div key={trend.month} className="flex justify-between items-center p-2 border rounded">
                         <span className="font-medium">{trend.month}</span>
                         <div className="flex space-x-4 text-sm">
@@ -496,7 +495,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
                 <CardContent>
                   {employeeTrends && (
                     <div className="space-y-2">
-                      {Object.entries(employeeTrends.departmentDistribution).map(([dept, count]) => (
+                      {Object.entries(employeeTrends?.departmentDistribution || {}).map(([dept, count]) => (
                         <div key={dept} className="flex justify-between items-center">
                           <span className="text-sm">{dept}</span>
                           <Badge variant="secondary">{count}</Badge>
@@ -514,7 +513,7 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
                 <CardContent>
                   {employeeTrends && (
                     <div className="space-y-2">
-                      {Object.entries(employeeTrends.propertyDistribution).map(([property, count]) => (
+                      {Object.entries(employeeTrends?.propertyDistribution || {}).map(([property, count]) => (
                         <div key={property} className="flex justify-between items-center">
                           <span className="text-sm">{property}</span>
                           <Badge variant="secondary">{count}</Badge>

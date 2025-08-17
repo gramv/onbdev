@@ -12,7 +12,7 @@ from email.mime.multipart import MIMEMultipart
 import aiosmtplib
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(".env.test")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -92,14 +92,27 @@ class EmailService:
             message.attach(html_part)
             
             # Send email
-            await aiosmtplib.send(
-                message,
-                hostname=self.smtp_host,
-                port=self.smtp_port,
-                start_tls=self.smtp_use_tls,
-                username=self.smtp_username,
-                password=self.smtp_password,
-            )
+            # Port 465 uses implicit SSL/TLS, port 587 uses STARTTLS
+            if self.smtp_port == 465:
+                # Use SSL/TLS for port 465
+                await aiosmtplib.send(
+                    message,
+                    hostname=self.smtp_host,
+                    port=self.smtp_port,
+                    use_tls=True,  # Use SSL/TLS directly
+                    username=self.smtp_username,
+                    password=self.smtp_password,
+                )
+            else:
+                # Use STARTTLS for other ports (like 587)
+                await aiosmtplib.send(
+                    message,
+                    hostname=self.smtp_host,
+                    port=self.smtp_port,
+                    start_tls=self.smtp_use_tls,  # Use STARTTLS
+                    username=self.smtp_username,
+                    password=self.smtp_password,
+                )
             
             logger.info(f"Email sent successfully to {to_email}")
             return True

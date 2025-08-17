@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,8 +12,8 @@ import { SearchFieldConfig } from '@/components/ui/advanced-search'
 import { FilterFieldConfig } from '@/components/ui/advanced-filter'
 import { ExportColumn } from '@/components/ui/data-export'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Filter, Eye, Users, UserCheck, UserX, Clock } from 'lucide-react'
-import axios from 'axios'
+import { Search, Filter, Eye, Users, UserCheck, UserX, Clock, RefreshCw } from 'lucide-react'
+import { api, apiClient } from '@/services/api'
 import { Label } from '@radix-ui/react-label'
 
 interface Employee {
@@ -77,6 +77,8 @@ interface OutletContext {
   onStatsUpdate: () => void
   userRole: 'hr' | 'manager'
   propertyId?: string
+  lastUpdateTime?: Date
+  isRefreshing?: boolean
 }
 
 export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyId, onStatsUpdate: propOnStatsUpdate }: EmployeesTabProps) {
@@ -84,6 +86,8 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
   const userRole = propUserRole || outletContext?.userRole || 'hr'
   const propertyId = propPropertyId || outletContext?.propertyId
   const onStatsUpdate = propOnStatsUpdate || outletContext?.onStatsUpdate || (() => { })
+  const lastUpdateTime = outletContext?.lastUpdateTime
+  const isParentRefreshing = outletContext?.isRefreshing
   const { token, user } = useAuth()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([])
@@ -94,6 +98,8 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false)
+  const lastFetchRef = useRef<Date>(new Date())
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState('')
@@ -121,17 +127,38 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
     fetchFilterOptions()
   }, [])
 
+  // Respond to WebSocket updates from parent dashboard
+  useEffect(() => {
+    if (lastUpdateTime && lastUpdateTime > lastFetchRef.current) {
+      console.log('[EmployeesTab] Refreshing due to WebSocket update')
+      fetchEmployees(true)
+    }
+  }, [lastUpdateTime])
+
+  // Auto-refresh employees every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchEmployees(true)
+    }, 60000) // 60 seconds
+
+    return () => clearInterval(interval)
+  }, [])
+
   // Apply filters when filter states change
   useEffect(() => {
     applyFilters()
   }, [employees, searchQuery, selectedProperty, selectedDepartment, selectedStatus, sortBy, sortOrder])
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (isAutoRefresh = false) => {
     try {
-      setLoading(true)
+      if (isAutoRefresh) {
+        setIsAutoRefreshing(true)
+      } else {
+        setLoading(true)
+      }
 
       // Fetch all employees without any filters - we'll filter on the client side
-      const response = await axios.get('/api/api/employees', {
+      const response = await apiClient.get('/api/employees', {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -143,14 +170,21 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       console.error('Error fetching employees:', err)
     } finally {
       setLoading(false)
+      setIsAutoRefreshing(false)
+      lastFetchRef.current = new Date()
     }
   }
 
   const fetchFilterOptions = async () => {
     try {
-      const response = await axios.get('/api/hr/properties', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      // Only fetch properties for HR users
+      let properties = []
+      if (userRole === 'hr') {
+        const response = await apiClient.get('/hr/properties', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        properties = response.data || []
+      }
 
       // Extract unique departments and statuses from employees
       const departments = [...new Set((employees || []).map(emp => emp.department).filter(Boolean))].sort()
@@ -159,7 +193,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       setFilterOptions({
         departments,
         statuses,
-        properties: response.data || []
+        properties
       })
     } catch (err) {
       console.error('Error fetching filter options:', err)
@@ -169,7 +203,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
   const fetchEmployeeDetails = async (employeeId: string) => {
     try {
       setDetailsLoading(true)
-      const response = await axios.get(`/api/api/employees/${employeeId}`, {
+      const response = await apiClient.get(`/api/employees/${employeeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Handle wrapped response format
@@ -191,7 +225,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       const formData = new FormData()
       formData.append('employment_status', newEmployeeStatus)
 
-      await axios.put(`/api/api/employees/${selectedEmployee.id}`, formData, {
+      await apiClient.put(`/api/employees/${selectedEmployee.id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -597,12 +631,20 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
   }
 
   return (
-    <Card>
+    <Card className={`transition-opacity duration-300 ${isAutoRefreshing || isParentRefreshing ? 'opacity-90' : 'opacity-100'}`}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          Employees Directory
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Employees Directory
+          </CardTitle>
+          {(isAutoRefreshing || isParentRefreshing) && (
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <RefreshCw className="h-3 w-3 animate-spin" />
+              <span>Updating...</span>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {error && (
@@ -709,6 +751,15 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchEmployees()}
+                disabled={loading || isAutoRefreshing}
+                className="h-9"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading || isAutoRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"

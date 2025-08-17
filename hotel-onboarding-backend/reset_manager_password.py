@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import bcrypt
 
 # Load environment variables
-load_dotenv(".env")
+load_dotenv(".env.test")
 
 # Supabase connection
 SUPABASE_URL = os.getenv("SUPABASE_URL")

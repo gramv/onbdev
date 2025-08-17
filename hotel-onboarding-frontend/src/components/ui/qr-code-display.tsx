@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { QrCode, Copy, ExternalLink, Printer, RefreshCw, Download } from 'lucide-react'
-import axios from 'axios'
+import { apiClient } from '@/services/api'
 
 interface Property {
   id: string
@@ -40,18 +40,12 @@ export function QRCodeDisplay({
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
-  const token = localStorage.getItem('token')
-  const axiosConfig = {
-    headers: { Authorization: `Bearer ${token}` }
-  }
-
   const handleRegenerateQR = async () => {
     setLoading(true)
     try {
-      const response = await axios.post(
-        `/api/hr/properties/${property.id}/qr-code`,
-        {},
-        axiosConfig
+      const response = await apiClient.post(
+        `/hr/properties/${property.id}/qr-code`,
+        {}
       )
       // Backend uses standardized response wrapper { success, data, ... }
       const payload: any = response?.data?.data ?? response?.data

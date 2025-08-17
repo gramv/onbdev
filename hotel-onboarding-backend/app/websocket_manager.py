@@ -153,11 +153,13 @@ class WebSocketManager:
             if not payload:
                 raise ValueError("Invalid authentication token")
             
-            user_id = payload.get("sub")
+            # Use 'sub' field (standard JWT) with fallback for backward compatibility
+            user_id = payload.get("sub") or payload.get("manager_id") or payload.get("user_id")
             role = payload.get("role")
             property_id = payload.get("property_id")
             
             if not user_id or not role:
+                logger.error(f"Invalid token payload - user_id: {user_id}, role: {role}, payload keys: {payload.keys()}")
                 raise ValueError("Invalid token payload")
             
             # Check token expiration
@@ -230,12 +232,17 @@ class WebSocketManager:
         if user_id in self.active_connections:
             old_connection = self.active_connections[user_id]
             try:
-                await old_connection.websocket.close()
+                # Check if WebSocket is still open before trying to close
+                if old_connection.websocket.client_state.value <= 1:  # CONNECTING or CONNECTED
+                    await old_connection.websocket.close()
             except Exception as e:
                 logger.warning(f"Error closing existing connection: {e}")
-            
-            # Remove from rooms
-            await self._remove_from_all_rooms(user_id)
+            finally:
+                # Always remove from rooms and connections even if close fails
+                await self._remove_from_all_rooms(user_id)
+                # Remove from active connections here to prevent KeyError
+                if user_id in self.active_connections:
+                    del self.active_connections[user_id]
     
     async def _auto_subscribe_user(self, connection_info: ConnectionInfo):
         """Automatically subscribe user to appropriate rooms based on their role"""
@@ -247,14 +254,14 @@ class WebSocketManager:
             if role == UserRole.HR:
                 # HR users get access to global room and all property rooms
                 await self.subscribe_to_room(user_id, "global")
-                logger.info(f"HR user {user_id} subscribed to global room")
+                logger.debug(f"HR user {user_id} subscribed to global room")  # Reduced to debug level
                 
             elif role == UserRole.MANAGER:
                 # Managers get access to their property room only
                 if property_id:
                     room_id = f"property-{property_id}"
                     await self.subscribe_to_room(user_id, room_id)
-                    logger.info(f"Manager {user_id} subscribed to room {room_id}")
+                    logger.debug(f"Manager {user_id} subscribed to room {room_id}")  # Debug level to reduce noise
                 
         except Exception as e:
             logger.error(f"Error in auto-subscription for user {user_id}: {e}")
@@ -272,18 +279,21 @@ class WebSocketManager:
         connection = self.active_connections[user_id]
         
         try:
-            # Close WebSocket connection
-            await connection.websocket.close()
+            # Check if WebSocket is still open before trying to close
+            if connection.websocket.client_state.value <= 1:  # CONNECTING or CONNECTED
+                await connection.websocket.close()
         except Exception as e:
             logger.warning(f"Error closing WebSocket: {e}")
-        
-        # Remove from all rooms
-        await self._remove_from_all_rooms(user_id)
-        
-        # Remove from active connections
-        del self.active_connections[user_id]
-        
-        logger.info(f"WebSocket connection closed for user {user_id}")
+        finally:
+            # Always clean up even if close fails
+            # Remove from all rooms
+            await self._remove_from_all_rooms(user_id)
+            
+            # Remove from active connections (check again to prevent KeyError)
+            if user_id in self.active_connections:
+                del self.active_connections[user_id]
+            
+            logger.info(f"WebSocket connection closed for user {user_id}")
     
     async def _remove_from_all_rooms(self, user_id: str):
         """Remove user from all subscribed rooms"""
@@ -319,7 +329,7 @@ class WebSocketManager:
         self.rooms[room_id].add_member(user_id)
         connection.subscribed_rooms.add(room_id)
         
-        logger.info(f"User {user_id} subscribed to room {room_id}")
+        logger.debug(f"User {user_id} subscribed to room {room_id}")  # Debug level to reduce noise
     
     async def unsubscribe_from_room(self, user_id: str, room_id: str):
         """
@@ -339,9 +349,9 @@ class WebSocketManager:
             # Clean up empty rooms
             if self.rooms[room_id].is_empty():
                 del self.rooms[room_id]
-                logger.info(f"Removed empty room {room_id}")
+                logger.debug(f"Removed empty room {room_id}")  # Reduced to debug level
         
-        logger.info(f"User {user_id} unsubscribed from room {room_id}")
+        logger.debug(f"User {user_id} unsubscribed from room {room_id}")  # Reduced to debug level
     
     def _check_room_permission(self, connection: ConnectionInfo, room_id: str) -> bool:
         """
@@ -403,7 +413,7 @@ class WebSocketManager:
             await self._handle_connection_error(user_id)
         
         self.stats["events_broadcasted"] += 1
-        logger.info(f"Broadcasted event '{event.type}' to room {room_id} ({len(room.members)} users)")
+        logger.debug(f"Broadcasted event '{event.type}' to room {room_id} ({len(room.members)} users)")  # Debug level to reduce noise
     
     async def send_to_user(self, user_id: str, message: Dict[str, Any]) -> bool:
         """
@@ -435,7 +445,7 @@ class WebSocketManager:
             return True
             
         except WebSocketDisconnect:
-            logger.info(f"WebSocket disconnected for user {user_id}")
+            logger.debug(f"WebSocket disconnected for user {user_id}")  # Reduced to debug level
             await self.disconnect(user_id)
             return False
             
@@ -532,11 +542,11 @@ class WebSocketManager:
                 stale_connections.append(user_id)
         
         for user_id in stale_connections:
-            logger.info(f"Cleaning up stale connection for user {user_id}")
+            logger.debug(f"Cleaning up stale connection for user {user_id}")  # Reduced to debug level
             await self.disconnect(user_id)
         
         if stale_connections:
-            logger.info(f"Cleaned up {len(stale_connections)} stale connections")
+            logger.debug(f"Cleaned up {len(stale_connections)} stale connections")  # Reduced to debug level
     
     # Connection state queries
     

@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
 import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw, RefreshCw } from 'lucide-react'
 import { QRCodeDisplay } from '@/components/ui/qr-code-display'
-import axios from 'axios'
+import { apiClient } from '@/services/api'
 
 interface JobApplication {
   id: string
@@ -138,8 +138,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         token: token ? `${token.substring(0, 20)}...` : 'No token'
       })
       
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await apiClient.get(endpoint, {
         params: {
           search: searchQuery || undefined,
           status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -188,9 +187,8 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const fetchTalentPoolCandidates = async () => {
     try {
       setTalentPoolLoading(true)
-      const endpoint = '/api/hr/applications/talent-pool'
-      const response = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
+      const endpoint = '/hr/applications/talent-pool'
+      const response = await apiClient.get(endpoint, {
         params: {
           property_id: userRole === 'hr' && talentPoolPropertyFilter !== 'all' ? talentPoolPropertyFilter : undefined,
           department: talentPoolDepartmentFilter !== 'all' ? talentPoolDepartmentFilter : undefined,
@@ -223,9 +221,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
   const fetchProperties = async () => {
     try {
-      const response = await axios.get('/api/hr/properties', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await apiClient.get('/hr/properties')
       // Handle wrapped response format
       const propertiesData = response.data.data || response.data
       setProperties(Array.isArray(propertiesData) ? propertiesData : [])
@@ -338,8 +334,11 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
       console.log('🚀 Making approval request to:', `/applications/${selectedApplication.id}/approve`)
       
-      const response = await axios.post(`/applications/${selectedApplication.id}/approve`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
+      const response = await apiClient.post(`/applications/${selectedApplication.id}/approve`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       })
 
       console.log('✅ Approval successful:', response.data)
@@ -949,9 +948,13 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   }
 
   return (
-    <Card>
+    <Card className="transition-opacity duration-300 opacity-100">
       <CardHeader>
-        <CardTitle>Applications Management</CardTitle>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <CardTitle>Applications Management</CardTitle>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

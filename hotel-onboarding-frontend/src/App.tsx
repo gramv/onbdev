@@ -25,6 +25,7 @@ const EmployeesTab = lazy(() => import('@/components/dashboard/EmployeesTab').th
 const ApplicationsTab = lazy(() => import('@/components/dashboard/ApplicationsTab').then(m => ({ default: m.ApplicationsTab })))
 const SystemApplicationsTab = lazy(() => import('@/components/dashboard/SystemApplicationsTab').then(m => ({ default: m.SystemApplicationsTab })))
 const AnalyticsTab = lazy(() => import('@/components/dashboard/AnalyticsTab').then(m => ({ default: m.AnalyticsTab })))
+const NotificationCenter = lazy(() => import('@/components/notifications/NotificationCenter'))
 
 // Lazy load pages
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -61,6 +62,7 @@ function App() {
                 <Route path="applications" element={<ApplicationsTab userRole="hr" onStatsUpdate={() => {}} />} />
                 <Route path="system-applications" element={<SystemApplicationsTab onStatsUpdate={() => {}} />} />
                 <Route path="analytics" element={<AnalyticsTab userRole="hr" />} />
+                <Route path="notifications" element={<NotificationCenter />} />
               </Route>
               
               {/* Manager Dashboard Routes with nested routing */}
@@ -73,6 +75,7 @@ function App() {
                 <Route path="applications" element={<ApplicationsTab userRole="manager" onStatsUpdate={() => {}} />} />
                 <Route path="employees" element={<EmployeesTab userRole="manager" onStatsUpdate={() => {}} />} />
                 <Route path="analytics" element={<AnalyticsTab userRole="manager" />} />
+                <Route path="notifications" element={<NotificationCenter />} />
               </Route>
               
               

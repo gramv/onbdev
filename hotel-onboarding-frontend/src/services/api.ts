@@ -6,7 +6,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 
 // API base URL - uses Vite proxy in development
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
@@ -234,6 +234,14 @@ export const api = {
   // WebSocket connection info
   websocket: {
     getConnectionInfo: () => apiClient.get('/ws/connection-info'),
+  },
+
+  // Notifications
+  notifications: {
+    getCount: () => apiClient.get('/notifications/count'),
+    getAll: () => apiClient.get('/notifications'),
+    markAsRead: (id: string) => apiClient.put(`/notifications/${id}/read`),
+    markAllAsRead: () => apiClient.put('/notifications/read-all'),
   },
 }
 

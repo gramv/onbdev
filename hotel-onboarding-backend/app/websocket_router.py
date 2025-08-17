@@ -77,13 +77,23 @@ async def websocket_dashboard_endpoint(
         # Connect to WebSocket manager
         await websocket_manager.connect(connection_info)
         
-        logger.info(f"Dashboard WebSocket connected: user={user_id}, role={role}")
+        logger.debug(f"Dashboard WebSocket connected: user={user_id}, role={role}")  # Reduced to debug level
         
         # Message handling loop
         while True:
             try:
                 # Receive message from client
                 data = await websocket.receive_text()
+                
+                # Limit message size to prevent memory issues
+                if len(data) > 10000:  # 10KB limit
+                    logger.warning(f"WebSocket message too large from user {user_id}: {len(data)} bytes")
+                    await websocket.send_json({
+                        "type": "error",
+                        "data": {"message": "Message too large"}
+                    })
+                    continue
+                
                 message = json.loads(data)
                 
                 message_type = message.get("type")
@@ -124,7 +134,7 @@ async def websocket_dashboard_endpoint(
                 await _send_response(websocket, "error", {"message": "Invalid JSON format"})
                 
             except WebSocketDisconnect:
-                logger.info(f"WebSocket disconnected normally: user={user_id}")
+                logger.debug(f"WebSocket disconnected normally: user={user_id}")  # Reduced to debug level
                 break
                 
             except Exception as e:
@@ -143,8 +153,11 @@ async def websocket_dashboard_endpoint(
     finally:
         # Clean up connection
         if user_id:
-            await websocket_manager.disconnect(user_id)
-            logger.info(f"WebSocket connection cleaned up: user={user_id}")
+            try:
+                await websocket_manager.disconnect(user_id)
+                logger.debug(f"WebSocket connection cleaned up: user={user_id}")  # Reduced to debug level
+            except Exception as e:
+                logger.error(f"Error during WebSocket cleanup for user {user_id}: {e}")
 
 
 async def _send_response(websocket: WebSocket, response_type: str, data: Dict[str, Any]):
@@ -349,7 +362,7 @@ async def broadcast_application_event(
         await websocket_manager.broadcast_to_room(f"property-{property_id}", event)
         await websocket_manager.broadcast_to_room("global", event)
         
-        logger.info(f"Broadcasted {event_type} event for application {application_id}")
+        logger.debug(f"Broadcasted {event_type} event for application {application_id}")  # Reduced to debug level
         
     except Exception as e:
         logger.error(f"Error broadcasting application event: {e}")
@@ -387,7 +400,7 @@ async def broadcast_onboarding_event(
         await websocket_manager.broadcast_to_room(f"property-{property_id}", event)
         await websocket_manager.broadcast_to_room("global", event)
         
-        logger.info(f"Broadcasted {event_type} event for onboarding session {session_id}")
+        logger.debug(f"Broadcasted {event_type} event for onboarding session {session_id}")  # Reduced to debug level
         
     except Exception as e:
         logger.error(f"Error broadcasting onboarding event: {e}")
@@ -425,7 +438,7 @@ async def broadcast_system_notification(message: str, severity: str = "info", ta
             for room_id in websocket_manager.rooms.keys():
                 await websocket_manager.broadcast_to_room(room_id, event)
         
-        logger.info(f"Broadcasted system notification: {message}")
+        logger.debug(f"Broadcasted system notification: {message}")  # Reduced to debug level
         
     except Exception as e:
         logger.error(f"Error broadcasting system notification: {e}")

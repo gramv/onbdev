@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-load_dotenv()
+load_dotenv(".env.test")
 
 # Import User model and supabase service (avoiding circular imports)
 from .models import User
@@ -263,8 +263,9 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         supabase_service = get_supabase_service()
         
         if token_type == "manager_auth":
-            manager_id = payload.get("manager_id")
-            user = supabase_service.get_user_by_id_sync(manager_id)
+            # Use 'sub' field (standard JWT) with fallback to 'manager_id' for backward compatibility
+            user_id = payload.get("sub") or payload.get("manager_id")
+            user = supabase_service.get_user_by_id_sync(user_id)
             if not user or user.role != "manager":
                 raise HTTPException(
                     status_code=401, 
@@ -273,7 +274,8 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
             return user
             
         elif token_type == "hr_auth":
-            user_id = payload.get("user_id")
+            # Use 'sub' field (standard JWT) with fallback to 'user_id' for backward compatibility
+            user_id = payload.get("sub") or payload.get("user_id")
             user = supabase_service.get_user_by_id_sync(user_id)
             if not user or user.role != "hr":
                 raise HTTPException(

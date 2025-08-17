@@ -59,8 +59,13 @@ export default function JobDetailsStep({
     }
   }
 
-  // Pay rate for display
-  const payRate = 18.50 // Demo rate
+  // Get pay rate and other approval details from employee data
+  const payRate = employee?.payRate || 0
+  const payFrequency = employee?.payFrequency || 'hourly'
+  const startTime = employee?.startTime || 'Not specified'
+  const benefitsEligible = employee?.benefitsEligible || 'Not specified'
+  const supervisor = employee?.supervisor || 'Not specified'
+  const specialInstructions = employee?.specialInstructions || ''
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -72,12 +77,14 @@ export default function JobDetailsStep({
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Not specified'
-    const date = new Date(dateString)
+    // Parse as UTC to avoid timezone issues
+    const date = new Date(dateString + 'T00:00:00Z')
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'UTC'
     })
   }
 
@@ -205,12 +212,42 @@ export default function JobDetailsStep({
                   <p className="text-sm text-gray-600">{t.payRate}</p>
                   <p className="font-semibold">
                     {formatCurrency(payRate)}
-                    <span className="text-sm text-gray-500 ml-1">/ hour</span>
+                    <span className="text-sm text-gray-500 ml-1">
+                      {payFrequency === 'hourly' ? '/ hour' : 
+                       payFrequency === 'salary' ? '/ year' : 
+                       `/ ${payFrequency}`}
+                    </span>
                   </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Start Time</p>
+                  <p className="font-semibold">{startTime}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Benefits Eligible</p>
+                  <p className="font-semibold">{benefitsEligible === 'yes' ? 'Yes' : benefitsEligible === 'no' ? 'No' : benefitsEligible}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Supervisor</p>
+                  <p className="font-semibold">{supervisor}</p>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Special Instructions if any */}
+            {specialInstructions && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <User className="h-5 w-5 text-purple-600" />
+                    <span>Special Instructions</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-700">{specialInstructions}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 

@@ -17,6 +17,13 @@ export interface Employee {
   department: string
   startDate: string
   propertyId: string
+  // Approval details
+  payRate?: number
+  payFrequency?: string
+  startTime?: string
+  benefitsEligible?: string
+  supervisor?: string
+  specialInstructions?: string
 }
 
 export interface Property {
@@ -113,7 +120,14 @@ export class OnboardingFlowController {
             position: 'Front Desk Associate',
             department: 'Front Office',
             startDate: '2025-02-01',
-            propertyId: 'demo-property-001'
+            propertyId: 'demo-property-001',
+            // Add demo approval details
+            payRate: 18.50,
+            payFrequency: 'hourly',
+            startTime: '9:00 AM',
+            benefitsEligible: 'yes',
+            supervisor: 'Jane Manager',
+            specialInstructions: 'Please report to the front desk on your first day.'
           },
           property: {
             id: 'demo-property-001',
@@ -207,16 +221,31 @@ export class OnboardingFlowController {
     }
 
     try {
-      // Handle demo mode
-      if (this.session.employee.id === 'demo-employee-001') {
-        // Update local progress in demo mode
-        if (!this.session.progress.completedSteps.includes(stepId)) {
-          this.session.progress.completedSteps.push(stepId)
-        }
+      // Save step data if provided
+      if (data) {
+        await this.saveProgress(stepId, data)
+      }
+
+      // Update completed steps in session
+      if (!this.session.progress.completedSteps.includes(stepId)) {
+        this.session.progress.completedSteps.push(stepId)
+      }
+
+      // Save completion status to sessionStorage (as backup)
+      const completionKey = `onboarding_${stepId}_completed`
+      sessionStorage.setItem(completionKey, 'true')
+
+      // Update overall progress in sessionStorage
+      const progressKey = 'onboarding_progress'
+      sessionStorage.setItem(progressKey, JSON.stringify(this.session.progress))
+
+      // Handle demo mode - skip API call
+      if (this.session.employee.id === 'demo-employee-001' || this.session.sessionToken === 'demo-token') {
         console.log(`Demo mode: Marked step ${stepId} as complete`)
         return
       }
 
+      // Make API call to mark complete in cloud
       const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/complete/${stepId}`, {
         method: 'POST',
         headers: {
@@ -227,25 +256,16 @@ export class OnboardingFlowController {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to mark step as complete')
+        throw new Error('Failed to mark step complete in cloud')
       }
 
-      // Update local progress
-      if (!this.session.progress.completedSteps.includes(stepId)) {
-        this.session.progress.completedSteps.push(stepId)
-      }
+      console.log(`Step marked as complete in cloud: ${stepId}`)
+      return
 
     } catch (error) {
-      console.error('Failed to mark step complete:', error)
-      // In demo mode or if API fails, just update locally
-      if (this.session.employee.id === 'demo-employee-001' || this.session.sessionToken === 'demo-token') {
-        if (!this.session.progress.completedSteps.includes(stepId)) {
-          this.session.progress.completedSteps.push(stepId)
-        }
-        console.warn('API failed, updated progress locally:', error)
-        return
-      }
-      throw error
+      console.error('Failed to mark step complete in cloud, saved locally:', error)
+      // Don't throw error - local save is sufficient
+      return
     }
   }
 
@@ -258,15 +278,24 @@ export class OnboardingFlowController {
     }
 
     try {
-      // Handle demo mode
+      // Save data to controller's internal storage
+      if (data) {
+        this.setStepData(stepId, data)
+      }
+
+      // Save to sessionStorage for persistence (as backup)
+      const storageKey = `onboarding_${stepId}_data`
+      if (data) {
+        sessionStorage.setItem(storageKey, JSON.stringify(data))
+      }
+
+      // Handle demo mode - skip API call
       if (this.session.employee.id === 'demo-employee-001' || this.session.sessionToken === 'demo-token') {
         console.log(`Demo mode: Saved progress for step ${stepId}`, data)
-        if (data) {
-          this.setStepData(stepId, data)
-        }
         return
       }
 
+      // Make API call to save to cloud
       const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/progress/${stepId}`, {
         method: 'POST',
         headers: {
@@ -277,26 +306,16 @@ export class OnboardingFlowController {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save progress')
+        throw new Error('Failed to save progress to cloud')
       }
 
-      // Update local session data if needed
-      // This would be extended to update form data cache
-      if (data) {
-        this.setStepData(stepId, data)
-      }
+      console.log(`Progress saved to cloud for step: ${stepId}`)
+      return
 
     } catch (error) {
-      console.error('Failed to save progress:', error)
-      // In demo mode, don't throw errors for save failures
-      if (this.session.employee.id === 'demo-employee-001' || this.session.sessionToken === 'demo-token') {
-        console.warn('API failed, but continuing in demo mode:', error)
-        if (data) {
-          this.setStepData(stepId, data)
-        }
-        return
-      }
-      throw error
+      console.error('Failed to save progress to cloud, saved locally:', error)
+      // Don't throw error - local save is sufficient
+      return
     }
   }
 

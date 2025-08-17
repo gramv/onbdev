@@ -11,6 +11,7 @@ import { DashboardBreadcrumb } from '@/components/ui/breadcrumb'
 import { DashboardNavigation, MANAGER_NAVIGATION_ITEMS } from '@/components/ui/dashboard-navigation'
 import { useSimpleNavigation, useNavigationAnalytics } from '@/hooks/use-simple-navigation'
 import { useToast } from '@/hooks/use-toast'
+import { useWebSocket } from '@/hooks/use-websocket'
 import { Building2, MapPin, Phone, AlertTriangle, RefreshCw, Bell } from 'lucide-react'
 // QR generator card removed from the property panel per design feedback
 import { api } from '@/services/api'
@@ -38,7 +39,7 @@ interface DashboardStats {
 
 export function ManagerDashboardLayout() {
   const { user, logout } = useAuth()
-  const { error: showErrorToast, success: showSuccessToast } = useToast()
+  const { error: showErrorToast, success: showSuccessToast, info: showInfoToast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
   
@@ -57,6 +58,104 @@ export function ManagerDashboardLayout() {
   const [retryCount, setRetryCount] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const [notificationCount, setNotificationCount] = useState(0)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
+  const [updateMessage, setUpdateMessage] = useState<string | null>(null)
+
+  // WebSocket connection for real-time updates
+  const { isConnected, lastMessage, connectionError } = useWebSocket(
+    'ws://localhost:8000/ws/dashboard',
+    {
+      enabled: !!user && user.role === 'manager',
+      onMessage: (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          console.log('[Manager Dashboard] WebSocket message:', data)
+          
+          // Handle different event types
+          switch (data.type) {
+            case 'application_created':
+            case 'new_application':
+              console.log('[Manager Dashboard] New application received:', data.data)
+              // Refresh all data with visual feedback
+              handleDataRefresh('New application received')
+              showInfoToast('New Application', `New application from ${data.data?.first_name || 'applicant'}`)
+              // Trigger child component refresh via outlet context
+              setLastUpdateTime(new Date())
+              break
+              
+            case 'application_approved':
+            case 'application_rejected':
+            case 'application_status_change':
+              console.log('[Manager Dashboard] Application status changed:', data.data)
+              // Refresh stats and applications list
+              handleDataRefresh('Application status updated')
+              // Update notification if status change affects manager
+              if (data.data?.requires_review) {
+                setNotificationCount(prev => prev + 1)
+              }
+              setLastUpdateTime(new Date())
+              break
+              
+            case 'manager_review_needed':
+              console.log('[Manager Dashboard] Manager review needed:', data.data)
+              // Increment notification count and refresh applications
+              setNotificationCount(prev => prev + 1)
+              handleDataRefresh('New review required')
+              showInfoToast('Review Required', 'New application requires your review')
+              setLastUpdateTime(new Date())
+              break
+              
+            case 'onboarding_completed':
+              console.log('[Manager Dashboard] Onboarding completed:', data.data)
+              // Refresh stats to show completed onboarding
+              handleDataRefresh('Employee onboarding completed')
+              showSuccessToast('Onboarding Complete', `${data.data?.employee_name || 'Employee'} has completed onboarding`)
+              setLastUpdateTime(new Date())
+              break
+              
+            case 'notification':
+            case 'notification_created':
+              console.log('[Manager Dashboard] New notification:', data.data)
+              // Increment notification count and show subtle indicator
+              setNotificationCount(prev => prev + 1)
+              // Add subtle pulse animation to notification bell
+              const bellElement = document.querySelector('.notification-bell')
+              if (bellElement) {
+                bellElement.classList.add('animate-pulse')
+                setTimeout(() => bellElement.classList.remove('animate-pulse'), 3000)
+              }
+              break
+              
+            default:
+              console.log('[Manager Dashboard] Unknown event type:', data.type)
+          }
+        } catch (error) {
+          console.error('[Manager Dashboard] Failed to parse WebSocket message:', error)
+        }
+      },
+      onOpen: () => {
+        console.log('[Manager Dashboard] WebSocket connected')
+      },
+      onClose: (event) => {
+        console.log('[Manager Dashboard] WebSocket disconnected:', event.code, event.reason)
+      },
+      onError: (error) => {
+        console.error('[Manager Dashboard] WebSocket error:', error)
+      }
+    }
+  )
+
+  // Show connection status in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      if (isConnected) {
+        console.log('[Manager Dashboard] WebSocket is connected')
+      } else if (connectionError) {
+        console.log('[Manager Dashboard] WebSocket connection error:', connectionError)
+      }
+    }
+  }, [isConnected, connectionError])
 
   // Check if we're on mobile
   useEffect(() => {
@@ -99,7 +198,7 @@ export function ManagerDashboardLayout() {
 
   const fetchNotificationCount = async () => {
     try {
-      const response = await api.get('/notifications/count')
+      const response = await api.notifications.getCount()
       if (response.data?.success) {
         setNotificationCount(response.data.data.unread_count || 0)
       }
@@ -108,9 +207,13 @@ export function ManagerDashboardLayout() {
     }
   }
 
-  const fetchData = async () => {
+  const fetchData = async (showRefreshIndicator = false) => {
     try {
-      setLoading(true)
+      if (showRefreshIndicator) {
+        setIsRefreshing(true)
+      } else {
+        setLoading(true)
+      }
       setError(null)
       await Promise.all([fetchPropertyData(), fetchDashboardStats(), fetchNotificationCount()])
       if (retryCount > 0) {
@@ -123,7 +226,18 @@ export function ManagerDashboardLayout() {
       showErrorToast('Failed to load dashboard', errorMessage)
     } finally {
       setLoading(false)
+      setIsRefreshing(false)
     }
+  }
+
+  const handleDataRefresh = async (message?: string) => {
+    // Show update message briefly
+    if (message) {
+      setUpdateMessage(message)
+      setTimeout(() => setUpdateMessage(null), 3000)
+    }
+    // Refresh data with visual indicator
+    await fetchData(true)
   }
 
   const fetchPropertyData = async () => {
@@ -185,11 +299,28 @@ export function ManagerDashboardLayout() {
             <div className="spacing-xs">
               <h1 className="text-display-md">Manager Dashboard</h1>
               <p className="text-body-md text-secondary">Welcome back, {user.first_name} {user.last_name}</p>
+              {/* WebSocket Connection Status and Update Indicator */}
+              <div className="flex items-center gap-4 mt-2">
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="flex items-center gap-2">
+                    <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+                    <span className="text-xs text-gray-500">
+                      {isConnected ? 'Real-time updates active' : connectionError || 'Connecting...'}
+                    </span>
+                  </div>
+                )}
+                {updateMessage && (
+                  <div className="flex items-center gap-2 animate-slide-in">
+                    <RefreshCw className="h-3 w-3 text-blue-500 animate-spin" />
+                    <span className="text-xs text-blue-600 font-medium">{updateMessage}</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               {/* Notification Badge */}
               <button
-                className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="notification-bell relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 onClick={() => navigate('/manager/notifications')}
                 title="Notifications"
               >
@@ -281,8 +412,8 @@ export function ManagerDashboardLayout() {
             ) : null}
           </div>
 
-          {/* Stats Cards */}
-          <div className="mb-8">
+          {/* Stats Cards with Refresh Animation */}
+          <div className={`mb-8 transition-opacity duration-300 ${isRefreshing ? 'opacity-70' : 'opacity-100'}`}>
             {loading ? (
               <StatsSkeleton count={4} />
             ) : stats ? (
@@ -348,7 +479,9 @@ export function ManagerDashboardLayout() {
               property,
               onStatsUpdate: fetchData,
               userRole: 'manager',
-              propertyId: property?.id 
+              propertyId: property?.id,
+              lastUpdateTime,
+              isRefreshing 
             }} />
           </div>
         </div>

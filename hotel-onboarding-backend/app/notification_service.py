@@ -22,7 +22,7 @@ import uuid
 from collections import defaultdict
 import re
 
-load_dotenv()
+load_dotenv(".env.test")
 
 logger = logging.getLogger(__name__)
 

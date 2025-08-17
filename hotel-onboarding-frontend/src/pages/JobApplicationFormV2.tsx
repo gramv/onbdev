@@ -27,7 +27,7 @@ import {
   PartyPopper,
   Globe
 } from 'lucide-react'
-import axios from 'axios'
+import { apiClient } from '@/services/api'
 
 // Import step components
 import PersonalInformationStep from '@/components/job-application/PersonalInformationStep'
@@ -258,7 +258,7 @@ export default function JobApplicationFormV2() {
 
   const fetchProperty = async () => {
     try {
-      const response = await axios.get(`/properties/${propertyId}/info`)
+      const response = await apiClient.get(`/properties/${propertyId}/info`)
       setPropertyInfo(response.data)
       // Set property name in form data for use in other components
       setFormData(prev => ({
@@ -414,22 +414,29 @@ export default function JobApplicationFormV2() {
 
       // Submit the application (align keys to backend schema where needed)
       const payload = {
-        // Personal
+        // Personal Information - Complete
         first_name: formData.first_name,
         middle_initial: formData.middle_name ? formData.middle_name[0] : undefined,
         last_name: formData.last_name,
         email: formData.email,
         phone: formData.phone?.trim(),
+        phone_is_cell: true,  // Default to cell phone
+        phone_is_home: false,
+        secondary_phone: null,
+        secondary_phone_is_cell: false,
+        secondary_phone_is_home: false,
         address: formData.address,
+        apartment_unit: null,  // Backend expects this field
         city: formData.city,
         state: formData.state,
         zip_code: formData.zip_code,
         
-        // Position
+        // Position Information
         department: formData.department,
         position: formData.position,
+        salary_desired: formData.desired_salary || null,  // Map frontend field to backend field name
         
-        // Work Auth
+        // Work Authorization & Legal
         work_authorized: formData.work_authorized || 'yes',
         sponsorship_required: formData.sponsorship_required || 'no',
         age_verification: true,
@@ -438,16 +445,22 @@ export default function JobApplicationFormV2() {
           explanation: formData.criminal_record_explanation || null
         },
         
+        // Availability - Include ALL collected fields
+        start_date: formData.start_date || new Date().toISOString().slice(0,10),
+        shift_preference: formData.shift_preference === 'any' ? 'flexible' : (formData.shift_preference || 'flexible'),
+        employment_type: formData.employment_type || 'full_time',
+        seasonal_start_date: null,  // For seasonal positions
+        seasonal_end_date: null,     // For seasonal positions
+        
         // Previous hotel employment
         previous_hotel_employment: formData.previous_hotel_employment === 'yes' || formData.previous_hotel_employment === true,
-        previous_hotel_details: formData.previous_hotel_details || undefined,
+        previous_hotel_details: formData.previous_hotel_details || null,
         
-        // Availability
-        start_date: formData.start_date || new Date().toISOString().slice(0,10),
-        shift_preference: formData.shift_preference || 'flexible',
-        employment_type: formData.employment_type || 'full_time',
+        // How did you hear about us?
+        how_heard: formData.how_heard || 'walk_in',
+        how_heard_detailed: formData.how_heard_detailed || null,
         
-        // References (map first only to meet backend minimal requirement)
+        // References - Send first reference (backend expects single reference)
         personal_reference: formData.references?.[0] ? {
           name: formData.references[0].name || 'N/A',
           years_known: formData.references[0].years_known || '0',
@@ -455,16 +468,32 @@ export default function JobApplicationFormV2() {
           relationship: formData.references[0].relationship || 'N/A'
         } : { name: 'N/A', years_known: '0', phone: '0000000000', relationship: 'N/A' },
         
+        // Military Service
         military_service: {},
         
-        // Education history minimal
+        // Education History - Include both high school and college
         education_history: [
-          { school_name: formData.high_school_info?.name || 'N/A', location: [formData.high_school_info?.city, formData.high_school_info?.state].filter(Boolean).join(', '), years_attended: '', graduated: !!formData.high_school_info?.graduated, degree_received: undefined }
-        ],
+          // High School
+          { 
+            school_name: formData.high_school_info?.name || 'N/A', 
+            location: [formData.high_school_info?.city, formData.high_school_info?.state].filter(Boolean).join(', ') || '',
+            years_attended: formData.high_school_info?.graduation_year || '',
+            graduated: formData.high_school_info?.graduated === 'yes' || formData.high_school_info?.graduated === true,
+            degree_received: null
+          },
+          // College (if provided)
+          ...(formData.college_info?.name ? [{
+            school_name: formData.college_info.name,
+            location: [formData.college_info.city, formData.college_info.state].filter(Boolean).join(', ') || '',
+            years_attended: formData.college_info.graduation_year || '',
+            graduated: true,
+            degree_received: formData.college_info.degree || null
+          }] : [])
+        ].filter((edu, index) => edu.school_name !== 'N/A' || index === 0),  // Keep at least one entry
         
-        // Employment history minimal
-        employment_history: ((formData.employment_history || []).slice(0, 1).length > 0
-          ? (formData.employment_history || []).slice(0, 1).map((e: any) => ({
+        // Employment History - Send ALL employment history
+        employment_history: (formData.employment_history && formData.employment_history.length > 0
+          ? formData.employment_history.map((e: any) => ({
               company_name: e.employer_name || 'N/A',
               phone: e.supervisor_phone || '0000000000',
               address: '',
@@ -472,8 +501,9 @@ export default function JobApplicationFormV2() {
               job_title: e.job_title || 'N/A',
               starting_salary: '',
               ending_salary: '',
-              from_date: e.start_date || '',
-              to_date: e.end_date || '',
+              // Format dates as YYYY-MM or leave empty
+              from_date: e.start_date ? e.start_date.slice(0, 7) : '',
+              to_date: e.is_current ? 'Present' : (e.end_date ? e.end_date.slice(0, 7) : ''),
               reason_for_leaving: e.reason_for_leaving || '',
               may_contact: !!e.may_contact
             }))
@@ -491,24 +521,39 @@ export default function JobApplicationFormV2() {
               may_contact: false
             }]),
         
-        skills_languages_certifications: (formData.skills || []).join(', '),
+        // Skills, Languages, and Certifications - Combine all
+        skills_languages_certifications: [
+          ...(formData.skills || []),
+          ...(formData.languages || []),
+          ...(formData.certifications || [])
+        ].filter(Boolean).join(', ') || null,
         
-        // How did you hear about us?
-        how_heard: formData.how_heard || 'walk_in',
-        how_heard_detailed: formData.how_heard_detailed || undefined,
-
+        // Voluntary Self-Identification - Include ALL collected data
         voluntary_self_identification: {
-          gender: formData.gender || undefined,
-          ethnicity: formData.ethnicity || undefined,
-          veteran_status: formData.veteran_status || undefined,
-          disability_status: formData.disability_status || undefined
+          gender: formData.gender || null,
+          ethnicity: formData.ethnicity || null,
+          veteran_status: formData.veteran_status || null,
+          disability_status: formData.disability_status || null,
+          // Include detailed race/ethnicity flags
+          decline_to_identify: formData.decline_to_identify || false,
+          race_hispanic_latino: formData.race_hispanic_latino || false,
+          race_white: formData.race_white || false,
+          race_black_african_american: formData.race_black_african_american || false,
+          race_native_hawaiian_pacific_islander: formData.race_native_hawaiian_pacific_islander || false,
+          race_asian: formData.race_asian || false,
+          race_american_indian_alaska_native: formData.race_american_indian_alaska_native || false,
+          race_two_or_more: formData.race_two_or_more || false
         },
+        
+        // Experience
         experience_years: formData.experience_years || '0-1',
         hotel_experience: formData.hotel_experience || 'no',
+        
+        // Additional Information
         additional_comments: formData.additional_comments || ''
       }
 
-      await axios.post(`/api/apply/${propertyId}`, payload)
+      await apiClient.post(`http://localhost:8000/apply/${propertyId}`, payload)
       
       // Clear draft on successful submission
       localStorage.removeItem(`job-application-draft-${propertyId}`)

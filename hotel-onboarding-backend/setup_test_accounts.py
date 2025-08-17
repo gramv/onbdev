@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import bcrypt
 
 # Load environment variables
-load_dotenv(".env")
+load_dotenv(".env.test")
 load_dotenv(".env.local", override=True)
 
 # Supabase connection

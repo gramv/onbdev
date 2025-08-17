@@ -16,7 +16,7 @@ from supabase import create_client
 import jwt
 
 # Load environment variables
-load_dotenv()
+load_dotenv(".env.test")
 
 # Configuration
 BACKEND_URL = "http://localhost:8000"

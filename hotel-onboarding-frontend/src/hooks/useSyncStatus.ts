@@ -45,17 +45,19 @@ export function useSyncStatus(options: UseSyncStatusOptions = {}) {
   useEffect(() => {
     if (!isOnline) return
 
+    const controller = new AbortController()
+    let timeoutId: NodeJS.Timeout | undefined
+
     const checkOnline = async () => {
       try {
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 5000)
+        timeoutId = setTimeout(() => controller.abort(), 5000)
         
         const response = await fetch(onlineCheckUrl, {
           method: 'GET',
           signal: controller.signal
         })
         
-        clearTimeout(timeoutId)
+        if (timeoutId) clearTimeout(timeoutId)
         
         if (!response.ok) {
           throw new Error(`Server responded with ${response.status}`)
@@ -66,7 +68,14 @@ export function useSyncStatus(options: UseSyncStatusOptions = {}) {
           setSyncStatus('synced')
           setSyncError(undefined)
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (timeoutId) clearTimeout(timeoutId)
+        
+        // Ignore abort errors (happens during cleanup)
+        if (error?.name === 'AbortError') {
+          return
+        }
+        
         console.warn('Online check failed:', error)
         // Don't immediately mark as offline - could be temporary
       }
@@ -75,7 +84,11 @@ export function useSyncStatus(options: UseSyncStatusOptions = {}) {
     checkOnline() // Initial check
     const interval = setInterval(checkOnline, onlineCheckInterval)
 
-    return () => clearInterval(interval)
+    return () => {
+      controller.abort()
+      if (timeoutId) clearTimeout(timeoutId)
+      clearInterval(interval)
+    }
   }, [onlineCheckUrl, onlineCheckInterval, isOnline, syncStatus])
 
   const startSync = useCallback(() => {

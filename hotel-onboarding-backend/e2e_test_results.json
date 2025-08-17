@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-08-15T15:37:09.913726",
+  "steps": [
+    {
+      "step": "Backend Health Check",
+      "status": "success",
+      "timestamp": "2025-08-15T15:37:10.013270",
+      "details": {
+        "success": true,
+        "data": {
+          "status": "healthy",
+          "timestamp": "2025-08-15T19:37:10.012292+00:00",
+          "version": "3.0.0",
+          "database": "supabase",
+          "connection": {
+            "status": "healthy",
+            "connection": "active",
+            "timestamp": "2025-08-15T19:37:10.012286"
+          }
+        },
+        "timestamp": "2025-08-15T19:37:10.012306"
+      }
+    },
+    {
+      "step": "Manager Login",
+      "status": "success",
+      "timestamp": "2025-08-15T15:37:10.434134",
+      "details": {
+        "email": "manager@demo.com",
+        "user_id": "45b5847b-9de6-49e5-b042-ea9e91b7dea7",
+        "role": "manager"
+      }
+    },
+    {
+      "step": "Create Application",
+      "status": "error",
+      "timestamp": "2025-08-15T15:37:10.750838",
+      "details": "Status: 422, Response: {\"success\":false,\"error\":\"Request validation failed\",\"error_code\":\"VALIDATION_ERROR\",\"status_code\":422,\"timestamp\":\"2025-08-15T19:37:10.750068\",\"detail\":\"One or more request fields are invalid\"}"
+    }
+  ],
+  "success": false,
+  "onboarding_url": null,
+  "errors": [
+    "Failed to create application"
+  ]
+}

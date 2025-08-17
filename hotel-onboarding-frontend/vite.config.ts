@@ -64,6 +64,11 @@ export default defineConfig({
         changeOrigin: true,
         // Rewrite /onboarding to /api/onboarding to match backend routes
         rewrite: (path) => path.replace(/^\/onboarding/, '/api/onboarding')
+      },
+      '/notifications': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
       }
     },
     // Optimize HMR for better memory usage
