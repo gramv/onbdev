@@ -176,11 +176,11 @@ class OnboardingSession(BaseModel):
 # Enhanced Employee Model
 class Employee(BaseModel):
     id: str
-    user_id: str
+    user_id: Optional[str] = None  # Can be None for employees not yet linked to users
     employee_number: Optional[str] = None  # Generated employee number
     application_id: Optional[str] = None
     property_id: str
-    manager_id: str
+    manager_id: Optional[str] = None  # Manager can be assigned later
     
     # Job information
     department: str
@@ -192,7 +192,7 @@ class Employee(BaseModel):
     employment_type: str = "full_time"
     
     # Personal information
-    personal_info: Dict[str, Any] = {}
+    personal_info: Optional[Dict[str, Any]] = None  # Can be None initially
     emergency_contacts: List[Dict[str, Any]] = []
     
     # Status tracking

@@ -1,162 +1,130 @@
 #!/usr/bin/env python3
 """
-Setup test accounts for CHECKPOINT Beta testing
+Setup test accounts for HR and Manager testing
+Creates accounts with proper roles and passwords
 """
 
 import os
-import sys
 import uuid
-from datetime import datetime
-from supabase import create_client, Client
-from dotenv import load_dotenv
 import bcrypt
+from supabase import create_client
+from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv(".env.test")
-load_dotenv(".env.local", override=True)
 
-# Supabase connection
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY") or os.getenv("SUPABASE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("❌ Error: Missing SUPABASE_URL or SUPABASE_KEY")
-    sys.exit(1)
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt"""
+    """Hash password using bcrypt"""
     salt = bcrypt.gensalt()
-    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed.decode('utf-8')
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-def setup_test_data():
-    """Setup test accounts and data"""
-    print("Setting up test accounts for CHECKPOINT Beta...")
+def setup_accounts():
+    """Setup test accounts for testing"""
+    print("\n🔧 Setting up test accounts for HR/Manager testing...\n")
+    
+    # 1. Create Demo Property
+    print("1. Creating demo property...")
+    property_data = {
+        'id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400',
+        'name': 'Demo Hotel & Suites',
+        'address': '123 Demo Street',
+        'city': 'Demo City',
+        'state': 'CA',
+        'zip_code': '90001',
+        'phone': '555-0100'
+    }
     
     try:
-        # Use a fixed UUID for test property
-        test_property_id = "903ed05b-5990-4ecf-b1b2-7592cf2923df"  # Fixed UUID for testing
-        
-        # 1. Check/Create test property
-        print("\n1. Checking for test property...")
-        properties = supabase.table("properties").select("*").eq("id", test_property_id).execute()
-        
-        if not properties.data:
-            print("   Creating test property...")
-            property_data = {
-                "id": test_property_id,
-                "name": "Demo Hotel",
-                "address": "123 Test Street",
-                "city": "Test City",
-                "state": "TS",
-                "zip_code": "12345",
-                "phone": "555-0100",
-                "created_at": datetime.now().isoformat()
-            }
-            supabase.table("properties").insert(property_data).execute()
-            print(f"   ✅ Test property created (ID: {test_property_id})")
-        else:
-            print(f"   ✅ Test property already exists (ID: {test_property_id})")
-            
-        # 2. Check/Create manager account
-        print("\n2. Checking for manager account...")
-        managers = supabase.table("users").select("*").eq("email", "manager@demo.com").execute()
-        
-        if not managers.data:
-            print("   Creating manager account...")
-            manager_data = {
-                "email": "manager@demo.com",
-                "password_hash": hash_password("password123"),
-                "role": "manager",
-                "first_name": "John",
-                "last_name": "Manager",
-                "is_active": True,
-                "created_at": datetime.now().isoformat()
-            }
-            manager_result = supabase.table("users").insert(manager_data).execute()
-            manager_id = manager_result.data[0]["id"]
-            print(f"   ✅ Manager account created (ID: {manager_id})")
-            
-            # Assign manager to property
-            print("   Assigning manager to property...")
-            assignment_data = {
-                "property_id": test_property_id,
-                "manager_id": manager_id,
-                "created_at": datetime.now().isoformat()
-            }
-            supabase.table("property_managers").insert(assignment_data).execute()
-            print("   ✅ Manager assigned to property")
-        else:
-            manager_id = managers.data[0]["id"]
-            print(f"   ✅ Manager account already exists (ID: {manager_id})")
-            
-            # Check property assignment
-            assignments = supabase.table("property_managers").select("*").eq("manager_id", manager_id).execute()
-            if not assignments.data:
-                print("   Assigning manager to property...")
-                assignment_data = {
-                    "property_id": test_property_id,
-                    "manager_id": manager_id,
-                    "created_at": datetime.now().isoformat()
-                }
-                supabase.table("property_managers").insert(assignment_data).execute()
-                print("   ✅ Manager assigned to property")
-                
-        # 3. Create a pending application for testing
-        print("\n3. Creating test application...")
-        app_data = {
-            "property_id": test_property_id,
-            "first_name": "Jane",
-            "last_name": "Doe",
-            "applicant_email": "jane.doe@example.com",
-            "applicant_phone": "555-0123",
-            "position": "Front Desk Agent",
-            "department": "Front Office",
-            "availability": {
-                "start_date": "2025-08-22",
-                "shift_preference": "morning",
-                "full_time": True
-            },
-            "experience": {
-                "years": 3,
-                "previous_role": "Receptionist",
-                "skills": ["Customer Service", "MS Office", "PMS Systems"]
-            },
-            "legal_authorization": True,
-            "background_check_consent": True,
-            "status": "pending",
-            "created_at": datetime.now().isoformat()
-        }
-        
-        # Check if similar application exists
-        existing = supabase.table("job_applications").select("*").eq("applicant_email", "jane.doe@example.com").eq("status", "pending").execute()
-        
+        # Check if property exists
+        existing = supabase.table('properties').select('*').eq('id', property_data['id']).execute()
         if not existing.data:
-            app_result = supabase.table("job_applications").insert(app_data).execute()
-            print(f"   ✅ Test application created (ID: {app_result.data[0]['id']})")
+            supabase.table('properties').insert(property_data).execute()
+            print("  ✓ Created demo property")
         else:
-            print(f"   ✅ Test application already exists (ID: {existing.data[0]['id']})")
-            
-        # 4. Display test credentials
-        print("\n" + "="*50)
-        print(" TEST CREDENTIALS")
-        print("="*50)
-        print("Manager Login:")
-        print("  Email: manager@demo.com")
-        print("  Password: password123")
-        print(f"\nProperty ID: {test_property_id}")
-        print("\n✅ Test data setup complete!")
-        
-        return True
-        
+            print("  ✓ Demo property already exists")
     except Exception as e:
-        print(f"\n❌ Error setting up test data: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+        print(f"  ⚠ Property error: {e}")
+    
+    # 2. Create HR Account with proper password hash
+    print("\n2. Creating HR account...")
+    hr_id = str(uuid.uuid4())
+    hr_data = {
+        'id': hr_id,
+        'email': 'hr@demo.com',
+        'password_hash': hash_password('test123'),  # Hash the password
+        'role': 'hr',
+        'first_name': 'HR',
+        'last_name': 'Admin',
+        'is_active': True
+    }
+    
+    try:
+        # Delete existing HR account if exists
+        supabase.table('users').delete().eq('email', 'hr@demo.com').execute()
+        
+        # Create new HR account
+        result = supabase.table('users').insert(hr_data).execute()
+        if result.data:
+            print(f"  ✓ Created HR account: hr@demo.com")
+            print(f"    ID: {hr_id}")
+            print(f"    Password: test123")
+    except Exception as e:
+        print(f"  ❌ HR account error: {e}")
+    
+    # 3. Create Manager Account
+    print("\n3. Creating Manager account...")
+    manager_id = '45b5847b-9de6-49e5-b042-ea9e91b7dea7'
+    manager_data = {
+        'id': manager_id,
+        'email': 'manager@demo.com',
+        'password_hash': hash_password('test123'),  # Hash the password
+        'role': 'manager',
+        'first_name': 'Demo',
+        'last_name': 'Manager',
+        'is_active': True
+    }
+    
+    try:
+        # Delete existing manager account if exists
+        supabase.table('users').delete().eq('email', 'manager@demo.com').execute()
+        
+        # Create new manager account
+        result = supabase.table('users').insert(manager_data).execute()
+        if result.data:
+            print(f"  ✓ Created Manager account: manager@demo.com")
+            print(f"    ID: {manager_id}")
+            print(f"    Password: test123")
+    except Exception as e:
+        print(f"  ❌ Manager account error: {e}")
+    
+    # 4. Link Manager to Property
+    print("\n4. Linking manager to property...")
+    try:
+        # Delete existing link if exists
+        supabase.table('property_managers').delete().eq('user_id', manager_id).execute()
+        
+        # Create new link
+        link_data = {
+            'user_id': manager_id,
+            'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400'
+        }
+        supabase.table('property_managers').insert(link_data).execute()
+        print("  ✓ Linked manager to demo property")
+    except Exception as e:
+        print(f"  ⚠ Link error: {e}")
+    
+    print("\n" + "="*60)
+    print("✅ TEST ACCOUNTS READY!")
+    print("="*60)
+    print("\nAccounts created:")
+    print("  • HR: hr@demo.com / test123")
+    print("  • Manager: manager@demo.com / test123")
+    print("\nProperty:")
+    print("  • Demo Hotel & Suites (ID: 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400)")
+    print("="*60)
 
 if __name__ == "__main__":
-    success = setup_test_data()
-    sys.exit(0 if success else 1)
+    setup_accounts()

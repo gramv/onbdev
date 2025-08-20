@@ -758,6 +758,23 @@ class EnhancedSupabaseService:
                     if not manager_id:
                         manager_id = employee.data[0].get('manager_id')
             
+            # Auto-assign manager if still None
+            if not manager_id and property_id:
+                logger.info(f"Auto-assigning manager for property {property_id}")
+                managers = await self.get_property_managers(property_id)
+                if managers and len(managers) > 0:
+                    manager_id = managers[0].id
+                    logger.info(f"Auto-assigned manager {manager_id} to employee {employee_id}")
+                else:
+                    # Try to find any user with manager role for this property
+                    manager_response = self.client.table('users').select('id').eq('role', 'manager').execute()
+                    if manager_response.data:
+                        manager_id = manager_response.data[0]['id']
+                        logger.warning(f"No property managers found, using first available manager: {manager_id}")
+                    else:
+                        logger.error("No managers available in the system")
+                        raise ValueError("No managers available to assign to the onboarding session")
+            
             session_id = str(uuid.uuid4())
             
             # Generate JWT token using OnboardingTokenManager
@@ -773,7 +790,7 @@ class EnhancedSupabaseService:
                 "id": session_id,
                 "employee_id": employee_id,
                 "property_id": property_id,  # Added property_id
-                "manager_id": manager_id,  # Added manager_id
+                "manager_id": manager_id,  # Now guaranteed to have a value
                 "phase": "employee",  # Added phase (employee phase for onboarding)
                 "token": token,
                 "status": OnboardingStatus.NOT_STARTED.value,
@@ -1828,21 +1845,21 @@ class EnhancedSupabaseService:
                 
                 return Employee(
                     id=row['id'],
-                    user_id=row.get('user_id') or row['id'],  # Use employee ID if user_id not set
+                    user_id=row.get('user_id'),  # Can be None
                     property_id=row['property_id'],
-                    manager_id=row.get('manager_id', ''),  # May not be set yet
+                    manager_id=row.get('manager_id'),  # Can be None
                     employee_number=row.get('employee_number'),  # Optional field
                     application_id=row.get('application_id'),  # Optional field
                     department=row.get('department', 'General'),
                     position=row.get('position', 'Staff'),
                     hire_date=hire_date,
                     start_date=start_date,
-                    pay_rate=row.get('pay_rate', 0.0),
+                    pay_rate=row.get('pay_rate'),
                     pay_frequency=row.get('pay_frequency', 'biweekly'),
                     employment_type=employment_type,
                     employment_status=row.get('employment_status', 'active'),
                     onboarding_status=OnboardingStatus(row.get('onboarding_status', 'not_started')),
-                    personal_info=row.get('personal_info', {}),
+                    personal_info=row.get('personal_info'),  # Can be None
                     emergency_contacts=row.get('emergency_contacts', []),
                     created_at=created_at,
                     updated_at=updated_at,
@@ -1901,6 +1918,23 @@ class EnhancedSupabaseService:
         except Exception as e:
             logger.error(f"Error getting all employees: {e}")
             return []
+    
+    async def update_employee_onboarding_status(self, employee_id: str, status: OnboardingStatus, session_id: str = None) -> bool:
+        """Update employee's onboarding status"""
+        try:
+            update_data = {
+                "onboarding_status": status.value if hasattr(status, 'value') else status,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if session_id:
+                update_data["onboarding_session_id"] = session_id
+            
+            response = self.admin_client.table('employees').update(update_data).eq('id', employee_id).execute()
+            return bool(response.data)
+        except Exception as e:
+            logger.error(f"Failed to update employee onboarding status: {e}")
+            return False
 
     async def get_employees_by_property(self, property_id: str) -> List[Employee]:
         """Get employees by property"""

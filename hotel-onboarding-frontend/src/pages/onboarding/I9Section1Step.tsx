@@ -195,7 +195,7 @@ export default function I9Section1Step({
     await saveProgress(currentStep.id, dataToSave)
     
     // Also save to dedicated I-9 endpoint for structured storage
-    if (employee?.id && !employee.id.startsWith('demo-')) {
+    if (employee?.id) {
       try {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section1`,
@@ -264,7 +264,7 @@ export default function I9Section1Step({
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeData))
     
     // Save signature to cloud via dedicated I-9 endpoint
-    if (employee?.id && !employee.id.startsWith('demo-')) {
+    if (employee?.id) {
       try {
         const response = await fetch(
           `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section1`,

@@ -1,69 +1,57 @@
 #!/usr/bin/env python3
-"""
-Create a simple onboarding token that works with the current backend
-This token will trigger the test mode in the backend
-"""
+"""Create a simple test onboarding token."""
 
 import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
 
-# Use the exact JWT secret from .env.test
-JWT_SECRET_KEY = "dev-secret"
-JWT_ALGORITHM = "HS256"
+# JWT Secret from backend
+SECRET_KEY = "hotel-onboarding-super-secret-key-2025"
 
-def create_test_onboarding_token():
-    """Create a test onboarding token that triggers test mode"""
+def create_onboarding_token():
+    """Create a JWT onboarding token for testing"""
+    # Use a test employee ID that looks like a UUID
+    employee_id = "test-" + str(secrets.token_hex(4))  # e.g., "test-a1b2c3d4"
     
-    # Create a test employee ID that will trigger test mode
-    employee_id = f"test-emp-{secrets.token_hex(4)}"
-    
-    # Token payload matching what OnboardingTokenManager expects
     payload = {
         "employee_id": employee_id,
         "application_id": None,
         "token_type": "onboarding",
         "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(days=7),
-        "jti": secrets.token_urlsafe(16),
-        # Add extra data for test mode
-        "test_data": {
-            "name": "Goutam Vemula",
-            "email": "goutamramv@gmail.com",
-            "position": "Software Engineer",
-            "property": "Demo Hotel",
-            "property_id": "test-prop-001"
-        }
+        "exp": datetime.now(timezone.utc) + timedelta(hours=72),
+        "jti": secrets.token_urlsafe(16)
     }
     
-    # Generate the token
-    token = jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
-    
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     return token, employee_id
 
 def main():
+    """Generate token"""
     print("=" * 60)
-    print("Creating Test Onboarding Token for Goutam Vemula")
+    print("Creating Simple Test Onboarding Token")
     print("=" * 60)
     
-    # Generate the token
-    token, employee_id = create_test_onboarding_token()
+    # Generate onboarding token
+    token, employee_id = create_onboarding_token()
     
-    print(f"\n📋 Test Employee ID: {employee_id}")
-    print("\n🔑 Generated Token:")
-    print(f"  {token}")
+    print(f"\n✅ TEST TOKEN CREATED!")
+    print(f"\n📋 Test Details:")
+    print(f"   Employee ID: {employee_id}")
+    print(f"   Token Type: JWT Onboarding Token")
+    print(f"   Expires: 72 hours from now")
     
-    print("\n🔗 Complete Onboarding URL:")
-    print(f"  http://localhost:3000/onboard?token={token}")
+    print(f"\n🔑 Full Token:")
+    print(f"   {token}")
     
-    print("\n📌 Alternative Demo URL (uses hardcoded demo data):")
-    print("  http://localhost:3000/onboard?token=demo-token")
+    print(f"\n🔗 Onboarding URL:")
+    print(f"   http://localhost:3000/onboard?token={token}")
+    
+    print(f"\n📝 Test Backend API:")
+    print(f"   curl http://localhost:8000/api/onboarding/welcome/{token}")
     
     print("\n" + "=" * 60)
-    print("✅ Token created successfully!")
-    print("\nUse either URL above to start the onboarding process.")
-    print("The first URL uses your generated token with test data.")
-    print("The second URL uses the hardcoded demo mode.")
+    print("NOTE: This is a test token. The system will use demo/fallback")
+    print("data since the employee doesn't exist in the database.")
     print("=" * 60)
 
 if __name__ == "__main__":

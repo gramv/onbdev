@@ -418,7 +418,7 @@ export default function I9Section1FormClean({
       setPdfUrl(url)
       
       // Save to backend only if real employee ID (not demo or test)
-      if (employeeId && !employeeId.startsWith('test-') && !employeeId.startsWith('demo-')) {
+      if (employeeId) {
         try {
           await axios.post(`/api/onboarding/${employeeId}/i9-section1`, {
             formData,
@@ -466,7 +466,7 @@ export default function I9Section1FormClean({
     })
     
     try {
-      if (employeeId && !employeeId.startsWith('test-') && !employeeId.startsWith('demo-')) {
+      if (employeeId) {
         // Only save to backend for real employee IDs (not demo or test)
         await axios.post(`/api/onboarding/${employeeId}/i9-section1`, {
           formData,

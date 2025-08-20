@@ -111,7 +111,7 @@ class OnboardingSession(BaseModel):
     employee_id: str
     application_id: Optional[str] = None
     property_id: str
-    manager_id: str
+    manager_id: Optional[str] = None
     
     # Session management
     token: str
@@ -275,11 +275,11 @@ class FormUpdateSession(BaseModel):
 class Employee(BaseModel):
     """Enhanced employee model with comprehensive onboarding data"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
+    user_id: Optional[str] = None  # Can be None for employees not yet linked to users
     employee_number: Optional[str] = None
     application_id: Optional[str] = None
     property_id: str
-    manager_id: str
+    manager_id: Optional[str] = None  # Manager can be assigned later
     
     # Employment information
     department: str
@@ -295,7 +295,7 @@ class Employee(BaseModel):
     employment_type: str = "full_time"
     
     # Personal information (encrypted in production)
-    personal_info: Dict[str, Any] = Field(default_factory=dict)
+    personal_info: Optional[Dict[str, Any]] = None  # Can be None initially
     emergency_contacts: List[Dict[str, Any]] = Field(default_factory=list)
     
     # Government forms data

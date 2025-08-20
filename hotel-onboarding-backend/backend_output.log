@@ -1,0 +1,534 @@
+INFO:     Will watch for changes in these directories: ['/Users/gouthamvemula/onbclaude/onbdev-demo/hotel-onboarding-backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [23287] using StatReload
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [23323]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+INFO:app.main_enhanced:Token verification result: {'valid': True, 'employee_id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'token_id': 'UCkvZjZOjrgTopb--AsJkw', 'issued_at': datetime.datetime(2025, 8, 19, 19, 26, 35, tzinfo=datetime.timezone.utc), 'expires_at': datetime.datetime(2025, 8, 22, 19, 26, 35, tzinfo=datetime.timezone.utc)}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=%2A&id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Employee data from DB: {'id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'user_id': None, 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400', 'manager_id': None, 'department': 'Front Office', 'position': 'Guest Services Agent', 'hire_date': '2025-08-19', 'employment_status': 'active', 'onboarding_status': 'not_started', 'pay_rate': None, 'pay_frequency': 'biweekly', 'employment_type': 'full_time', 'personal_info': None, 'created_at': '2025-08-19T19:26:35.466722+00:00', 'updated_at': '2025-08-19T19:26:35.466722+00:00'}
+ERROR:app.supabase_service_enhanced:Error getting employee by ID: 2 validation errors for Employee
+manager_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+personal_info
+  Input should be a valid dictionary [type=dict_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/dict_type
+ERROR:app.supabase_service_enhanced:Full traceback: Traceback (most recent call last):
+  File "/Users/gouthamvemula/onbclaude/onbdev-demo/hotel-onboarding-backend/app/supabase_service_enhanced.py", line 1829, in get_employee_by_id
+    return Employee(
+        id=row['id'],
+    ...<18 lines>...
+        onboarding_completed_at=onboarding_completed_at
+    )
+  File "/opt/homebrew/lib/python3.13/site-packages/pydantic/main.py", line 253, in __init__
+    validated_self = self.__pydantic_validator__.validate_python(data, self_instance=self)
+pydantic_core._pydantic_core.ValidationError: 2 validation errors for Employee
+manager_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+personal_info
+  Input should be a valid dictionary [type=dict_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/dict_type
+
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/job_applications?select=%2A&id=eq.83277bcf-19d1-4a40-a0de-cc4f942097ff "HTTP/2 200 OK"
+ERROR:app.supabase_service_enhanced:Error getting job application by ID 83277bcf-19d1-4a40-a0de-cc4f942097ff: 2 validation errors for JobApplication
+department
+  Field required [type=missing, input_value={'id': '83277bcf-19d1-4a4...=datetime.timezone.utc)}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+applied_at
+  Field required [type=missing, input_value={'id': '83277bcf-19d1-4a4...=datetime.timezone.utc)}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:52147 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6ImU1YzRkZDdmLTBiZDctNGZkMy05NGQ4LTcwZjExZGQxYjJkOCIsImFwcGxpY2F0aW9uX2lkIjoiODMyNzdiY2YtMTlkMS00YTQwLWEwZGUtY2M0Zjk0MjA5N2ZmIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzE1OTUsImV4cCI6MTc1NTg5MDc5NSwianRpIjoiVUNrdlpqWk9qcmdUb3BiLS1Bc0prdyJ9.O6y-Pf26mJN-lUk7_spkOiyEGy-ZwsvEwkBQ-wNibI4 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:52381 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52393 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52381 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52395 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52665 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52888 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52913 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:52888 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52931 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53138 - "GET /healthz HTTP/1.1" 404 Not Found
+WARNING:  StatReload detected changes in 'app/models.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [23323]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [25083]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:53202 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53452 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53456 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53452 - "GET /healthz HTTP/1.1" 404 Not Found
+WARNING:  StatReload detected changes in 'app/supabase_service_enhanced.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25083]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [25685]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:53869 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53991 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53997 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53991 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:app.main_enhanced:Token verification result: {'valid': True, 'employee_id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'token_id': 'UCkvZjZOjrgTopb--AsJkw', 'issued_at': datetime.datetime(2025, 8, 19, 19, 26, 35, tzinfo=datetime.timezone.utc), 'expires_at': datetime.datetime(2025, 8, 22, 19, 26, 35, tzinfo=datetime.timezone.utc)}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=%2A&id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Employee data from DB: {'id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'user_id': None, 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400', 'manager_id': None, 'department': 'Front Office', 'position': 'Guest Services Agent', 'hire_date': '2025-08-19', 'employment_status': 'active', 'onboarding_status': 'not_started', 'pay_rate': None, 'pay_frequency': 'biweekly', 'employment_type': 'full_time', 'personal_info': None, 'created_at': '2025-08-19T19:26:35.466722+00:00', 'updated_at': '2025-08-19T19:26:35.466722+00:00'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&employee_id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8&order=created_at.desc "HTTP/2 200 OK"
+ERROR:app.services.onboarding_orchestrator:Failed to initiate onboarding: 1 validation error for OnboardingSession
+manager_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+ERROR:app.main_enhanced:Failed to get welcome data: 1 validation error for OnboardingSession
+manager_id
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+INFO:     127.0.0.1:54127 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6ImU1YzRkZDdmLTBiZDctNGZkMy05NGQ4LTcwZjExZGQxYjJkOCIsImFwcGxpY2F0aW9uX2lkIjoiODMyNzdiY2YtMTlkMS00YTQwLWEwZGUtY2M0Zjk0MjA5N2ZmIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzE1OTUsImV4cCI6MTc1NTg5MDc5NSwianRpIjoiVUNrdlpqWk9qcmdUb3BiLS1Bc0prdyJ9.O6y-Pf26mJN-lUk7_spkOiyEGy-ZwsvEwkBQ-wNibI4 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:54551 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54553 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54551 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54578 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54887 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55120 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55120 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55122 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55125 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55128 - "GET /healthz HTTP/1.1" 404 Not Found
+WARNING:  StatReload detected changes in 'app/models_enhanced.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [25685]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [28749]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'app/models_enhanced.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28749]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [29222]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:55691 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55691 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55693 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55697 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55699 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55701 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55703 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:app.main_enhanced:Token verification result: {'valid': True, 'employee_id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'token_id': 'UCkvZjZOjrgTopb--AsJkw', 'issued_at': datetime.datetime(2025, 8, 19, 19, 26, 35, tzinfo=datetime.timezone.utc), 'expires_at': datetime.datetime(2025, 8, 22, 19, 26, 35, tzinfo=datetime.timezone.utc)}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=%2A&id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Employee data from DB: {'id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'user_id': None, 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400', 'manager_id': None, 'department': 'Front Office', 'position': 'Guest Services Agent', 'hire_date': '2025-08-19', 'employment_status': 'active', 'onboarding_status': 'not_started', 'pay_rate': None, 'pay_frequency': 'biweekly', 'employment_type': 'full_time', 'personal_info': None, 'created_at': '2025-08-19T19:26:35.466722+00:00', 'updated_at': '2025-08-19T19:26:35.466722+00:00'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&employee_id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8&order=created_at.desc "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=property_id%2Cmanager_id&id=eq.id%3D%27fd5f00c7-b4b4-4eb3-9f1b-0deffb47ac94%27+employee_id%3D%27e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8%27+application_id%3D%2783277bcf-19d1-4a40-a0de-cc4f942097ff%27+property_id%3D%279e5d1d9b-0caf-44f0-99dd-8e71b88c1400%27+manager_id%3DNone+token%3D%27PxHAPotpO4iwQZHTSlVMuc-aO3CxCp_-85q4FqyQ77M%27+status%3D%3COnboardingStatus.IN_PROGRESS%3A+%27in_progress%27%3E+current_step%3D%3COnboardingStep.WELCOME%3A+%27welcome%27%3E+phase%3D%3COnboardingPhase.EMPLOYEE%3A+%27employee%27%3E+language_preference%3D%27en%27+steps_completed%3D%5B%5D+progress_percentage%3D0.0+total_steps%3D18+requested_changes%3DNone+completed_forms%3D%7B%7D+required_signatures%3D%7B%7D+uploaded_documents%3D%7B%7D+created_at%3Ddatetime.datetime%282025%2C+8%2C+19%2C+19%2C+36%2C+21%2C+670115%29+updated_at%3DNone+employee_completed_at%3DNone+manager_review_started_at%3DNone+hr_review_started_at%3DNone+approved_at%3DNone+expires_at%3Ddatetime.datetime%282025%2C+8%2C+22%2C+19%2C+36%2C+21%2C+670091%29+reviewed_by%3DNone+hr_reviewed_by%3DNone+manager_comments%3DNone+hr_comments%3DNone+rejection_reason%3DNone+approved_by%3DNone+rejected_by%3DNone+rejected_at%3DNone+notifications_sent%3D%5B%5D+last_reminder_sent%3DNone+federal_compliance_checks%3D%7B%7D+audit_trail%3D%5B%5D+ip_address%3DNone+user_agent%3DNone+last_activity_at%3Ddatetime.datetime%282025%2C+8%2C+19%2C+19%2C+36%2C+21%2C+670196%29 "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to create onboarding session: {'message': 'invalid input syntax for type uuid: "id=\'fd5f00c7-b4b4-4eb3-9f1b-0deffb47ac94\' employee_id=\'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8\' application_id=\'83277bcf-19d1-4a40-a0de-cc4f942097ff\' property_id=\'9e5d1d9b-0caf-44f0-99dd-8e71b88c1400\' manager_id=None token=\'PxHAPotpO4iwQZHTSlVMuc-aO3CxCp_-85q4FqyQ77M\' status=<OnboardingStatus.IN_PROGRESS: \'in_progress\'> current_step=<OnboardingStep.WELCOME: \'welcome\'> phase=<OnboardingPhase.EMPLOYEE: \'employee\'> language_preference=\'en\' steps_completed=[] progress_percentage=0.0 total_steps=18 requested_changes=None completed_forms={} required_signatures={} uploaded_documents={} created_at=datetime.datetime(2025, 8, 19, 19, 36, 21, 670115) updated_at=None employee_completed_at=None manager_review_started_at=None hr_review_started_at=None approved_at=None expires_at=datetime.datetime(2025, 8, 22, 19, 36, 21, 670091) reviewed_by=None hr_reviewed_by=None manager_comments=None hr_comments=None rejection_reason=None approved_by=None rejected_by=None rejected_at=None notifications_sent=[] last_reminder_sent=None federal_compliance_checks={} audit_trail=[] ip_address=None user_agent=None last_activity_at=datetime.datetime(2025, 8, 19, 19, 36, 21, 670196)"', 'code': '22P02', 'hint': None, 'details': None}
+ERROR:app.services.onboarding_orchestrator:Failed to initiate onboarding: {'message': 'invalid input syntax for type uuid: "id=\'fd5f00c7-b4b4-4eb3-9f1b-0deffb47ac94\' employee_id=\'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8\' application_id=\'83277bcf-19d1-4a40-a0de-cc4f942097ff\' property_id=\'9e5d1d9b-0caf-44f0-99dd-8e71b88c1400\' manager_id=None token=\'PxHAPotpO4iwQZHTSlVMuc-aO3CxCp_-85q4FqyQ77M\' status=<OnboardingStatus.IN_PROGRESS: \'in_progress\'> current_step=<OnboardingStep.WELCOME: \'welcome\'> phase=<OnboardingPhase.EMPLOYEE: \'employee\'> language_preference=\'en\' steps_completed=[] progress_percentage=0.0 total_steps=18 requested_changes=None completed_forms={} required_signatures={} uploaded_documents={} created_at=datetime.datetime(2025, 8, 19, 19, 36, 21, 670115) updated_at=None employee_completed_at=None manager_review_started_at=None hr_review_started_at=None approved_at=None expires_at=datetime.datetime(2025, 8, 22, 19, 36, 21, 670091) reviewed_by=None hr_reviewed_by=None manager_comments=None hr_comments=None rejection_reason=None approved_by=None rejected_by=None rejected_at=None notifications_sent=[] last_reminder_sent=None federal_compliance_checks={} audit_trail=[] ip_address=None user_agent=None last_activity_at=datetime.datetime(2025, 8, 19, 19, 36, 21, 670196)"', 'code': '22P02', 'hint': None, 'details': None}
+ERROR:app.main_enhanced:Failed to get welcome data: {'message': 'invalid input syntax for type uuid: "id=\'fd5f00c7-b4b4-4eb3-9f1b-0deffb47ac94\' employee_id=\'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8\' application_id=\'83277bcf-19d1-4a40-a0de-cc4f942097ff\' property_id=\'9e5d1d9b-0caf-44f0-99dd-8e71b88c1400\' manager_id=None token=\'PxHAPotpO4iwQZHTSlVMuc-aO3CxCp_-85q4FqyQ77M\' status=<OnboardingStatus.IN_PROGRESS: \'in_progress\'> current_step=<OnboardingStep.WELCOME: \'welcome\'> phase=<OnboardingPhase.EMPLOYEE: \'employee\'> language_preference=\'en\' steps_completed=[] progress_percentage=0.0 total_steps=18 requested_changes=None completed_forms={} required_signatures={} uploaded_documents={} created_at=datetime.datetime(2025, 8, 19, 19, 36, 21, 670115) updated_at=None employee_completed_at=None manager_review_started_at=None hr_review_started_at=None approved_at=None expires_at=datetime.datetime(2025, 8, 22, 19, 36, 21, 670091) reviewed_by=None hr_reviewed_by=None manager_comments=None hr_comments=None rejection_reason=None approved_by=None rejected_by=None rejected_at=None notifications_sent=[] last_reminder_sent=None federal_compliance_checks={} audit_trail=[] ip_address=None user_agent=None last_activity_at=datetime.datetime(2025, 8, 19, 19, 36, 21, 670196)"', 'code': '22P02', 'hint': None, 'details': None}
+INFO:     127.0.0.1:55854 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6ImU1YzRkZDdmLTBiZDctNGZkMy05NGQ4LTcwZjExZGQxYjJkOCIsImFwcGxpY2F0aW9uX2lkIjoiODMyNzdiY2YtMTlkMS00YTQwLWEwZGUtY2M0Zjk0MjA5N2ZmIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzE1OTUsImV4cCI6MTc1NTg5MDc5NSwianRpIjoiVUNrdlpqWk9qcmdUb3BiLS1Bc0prdyJ9.O6y-Pf26mJN-lUk7_spkOiyEGy-ZwsvEwkBQ-wNibI4 HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:app.main_enhanced:Token verification result: {'valid': False, 'error': 'Invalid token: Signature verification failed', 'error_code': 'INVALID_TOKEN'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55965 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55966 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55968 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:app.main_enhanced:Token verification result: {'valid': False, 'error': 'Invalid token: Signature verification failed', 'error_code': 'INVALID_TOKEN'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:55973 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:56264 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:56266 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56264 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56272 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56274 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56277 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56279 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56269 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:app.main_enhanced:Token verification result: {'valid': False, 'error': 'Invalid token: Signature verification failed', 'error_code': 'INVALID_TOKEN'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:56437 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56438 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:56440 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:app.main_enhanced:Token verification result: {'valid': False, 'error': 'Invalid token: Signature verification failed', 'error_code': 'INVALID_TOKEN'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:56447 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:56697 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56790 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56796 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56790 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56800 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56802 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56805 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56807 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56800 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:56975 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:57245 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57341 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57351 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57341 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57360 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57362 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57365 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57371 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:app.main_enhanced:Token verification result: {'valid': True, 'employee_id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'token_id': 'UCkvZjZOjrgTopb--AsJkw', 'issued_at': datetime.datetime(2025, 8, 19, 19, 26, 35, tzinfo=datetime.timezone.utc), 'expires_at': datetime.datetime(2025, 8, 22, 19, 26, 35, tzinfo=datetime.timezone.utc)}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=%2A&id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Employee data from DB: {'id': 'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8', 'user_id': None, 'application_id': '83277bcf-19d1-4a40-a0de-cc4f942097ff', 'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400', 'manager_id': None, 'department': 'Front Office', 'position': 'Guest Services Agent', 'hire_date': '2025-08-19', 'employment_status': 'active', 'onboarding_status': 'not_started', 'pay_rate': None, 'pay_frequency': 'biweekly', 'employment_type': 'full_time', 'personal_info': None, 'created_at': '2025-08-19T19:26:35.466722+00:00', 'updated_at': '2025-08-19T19:26:35.466722+00:00'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&employee_id=eq.e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8&order=created_at.desc "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=property_id%2Cmanager_id&id=eq.id%3D%276dd2aac0-a0cd-475a-84fd-d4f6f2610f52%27+employee_id%3D%27e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8%27+application_id%3D%2783277bcf-19d1-4a40-a0de-cc4f942097ff%27+property_id%3D%279e5d1d9b-0caf-44f0-99dd-8e71b88c1400%27+manager_id%3DNone+token%3D%27ohA2nKRzMQhzjZqjBOm5A0roxY1fuRk03eMvwLf_gCk%27+status%3D%3COnboardingStatus.IN_PROGRESS%3A+%27in_progress%27%3E+current_step%3D%3COnboardingStep.WELCOME%3A+%27welcome%27%3E+phase%3D%3COnboardingPhase.EMPLOYEE%3A+%27employee%27%3E+language_preference%3D%27en%27+steps_completed%3D%5B%5D+progress_percentage%3D0.0+total_steps%3D18+requested_changes%3DNone+completed_forms%3D%7B%7D+required_signatures%3D%7B%7D+uploaded_documents%3D%7B%7D+created_at%3Ddatetime.datetime%282025%2C+8%2C+19%2C+19%2C+39%2C+8%2C+814393%29+updated_at%3DNone+employee_completed_at%3DNone+manager_review_started_at%3DNone+hr_review_started_at%3DNone+approved_at%3DNone+expires_at%3Ddatetime.datetime%282025%2C+8%2C+22%2C+19%2C+39%2C+8%2C+814060%29+reviewed_by%3DNone+hr_reviewed_by%3DNone+manager_comments%3DNone+hr_comments%3DNone+rejection_reason%3DNone+approved_by%3DNone+rejected_by%3DNone+rejected_at%3DNone+notifications_sent%3D%5B%5D+last_reminder_sent%3DNone+federal_compliance_checks%3D%7B%7D+audit_trail%3D%5B%5D+ip_address%3DNone+user_agent%3DNone+last_activity_at%3Ddatetime.datetime%282025%2C+8%2C+19%2C+19%2C+39%2C+8%2C+815497%29 "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to create onboarding session: {'message': 'invalid input syntax for type uuid: "id=\'6dd2aac0-a0cd-475a-84fd-d4f6f2610f52\' employee_id=\'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8\' application_id=\'83277bcf-19d1-4a40-a0de-cc4f942097ff\' property_id=\'9e5d1d9b-0caf-44f0-99dd-8e71b88c1400\' manager_id=None token=\'ohA2nKRzMQhzjZqjBOm5A0roxY1fuRk03eMvwLf_gCk\' status=<OnboardingStatus.IN_PROGRESS: \'in_progress\'> current_step=<OnboardingStep.WELCOME: \'welcome\'> phase=<OnboardingPhase.EMPLOYEE: \'employee\'> language_preference=\'en\' steps_completed=[] progress_percentage=0.0 total_steps=18 requested_changes=None completed_forms={} required_signatures={} uploaded_documents={} created_at=datetime.datetime(2025, 8, 19, 19, 39, 8, 814393) updated_at=None employee_completed_at=None manager_review_started_at=None hr_review_started_at=None approved_at=None expires_at=datetime.datetime(2025, 8, 22, 19, 39, 8, 814060) reviewed_by=None hr_reviewed_by=None manager_comments=None hr_comments=None rejection_reason=None approved_by=None rejected_by=None rejected_at=None notifications_sent=[] last_reminder_sent=None federal_compliance_checks={} audit_trail=[] ip_address=None user_agent=None last_activity_at=datetime.datetime(2025, 8, 19, 19, 39, 8, 815497)"', 'code': '22P02', 'hint': None, 'details': None}
+ERROR:app.services.onboarding_orchestrator:Failed to initiate onboarding: {'message': 'invalid input syntax for type uuid: "id=\'6dd2aac0-a0cd-475a-84fd-d4f6f2610f52\' employee_id=\'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8\' application_id=\'83277bcf-19d1-4a40-a0de-cc4f942097ff\' property_id=\'9e5d1d9b-0caf-44f0-99dd-8e71b88c1400\' manager_id=None token=\'ohA2nKRzMQhzjZqjBOm5A0roxY1fuRk03eMvwLf_gCk\' status=<OnboardingStatus.IN_PROGRESS: \'in_progress\'> current_step=<OnboardingStep.WELCOME: \'welcome\'> phase=<OnboardingPhase.EMPLOYEE: \'employee\'> language_preference=\'en\' steps_completed=[] progress_percentage=0.0 total_steps=18 requested_changes=None completed_forms={} required_signatures={} uploaded_documents={} created_at=datetime.datetime(2025, 8, 19, 19, 39, 8, 814393) updated_at=None employee_completed_at=None manager_review_started_at=None hr_review_started_at=None approved_at=None expires_at=datetime.datetime(2025, 8, 22, 19, 39, 8, 814060) reviewed_by=None hr_reviewed_by=None manager_comments=None hr_comments=None rejection_reason=None approved_by=None rejected_by=None rejected_at=None notifications_sent=[] last_reminder_sent=None federal_compliance_checks={} audit_trail=[] ip_address=None user_agent=None last_activity_at=datetime.datetime(2025, 8, 19, 19, 39, 8, 815497)"', 'code': '22P02', 'hint': None, 'details': None}
+ERROR:app.main_enhanced:Failed to get welcome data: {'message': 'invalid input syntax for type uuid: "id=\'6dd2aac0-a0cd-475a-84fd-d4f6f2610f52\' employee_id=\'e5c4dd7f-0bd7-4fd3-94d8-70f11dd1b2d8\' application_id=\'83277bcf-19d1-4a40-a0de-cc4f942097ff\' property_id=\'9e5d1d9b-0caf-44f0-99dd-8e71b88c1400\' manager_id=None token=\'ohA2nKRzMQhzjZqjBOm5A0roxY1fuRk03eMvwLf_gCk\' status=<OnboardingStatus.IN_PROGRESS: \'in_progress\'> current_step=<OnboardingStep.WELCOME: \'welcome\'> phase=<OnboardingPhase.EMPLOYEE: \'employee\'> language_preference=\'en\' steps_completed=[] progress_percentage=0.0 total_steps=18 requested_changes=None completed_forms={} required_signatures={} uploaded_documents={} created_at=datetime.datetime(2025, 8, 19, 19, 39, 8, 814393) updated_at=None employee_completed_at=None manager_review_started_at=None hr_review_started_at=None approved_at=None expires_at=datetime.datetime(2025, 8, 22, 19, 39, 8, 814060) reviewed_by=None hr_reviewed_by=None manager_comments=None hr_comments=None rejection_reason=None approved_by=None rejected_by=None rejected_at=None notifications_sent=[] last_reminder_sent=None federal_compliance_checks={} audit_trail=[] ip_address=None user_agent=None last_activity_at=datetime.datetime(2025, 8, 19, 19, 39, 8, 815497)"', 'code': '22P02', 'hint': None, 'details': None}
+INFO:     127.0.0.1:57408 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6ImU1YzRkZDdmLTBiZDctNGZkMy05NGQ4LTcwZjExZGQxYjJkOCIsImFwcGxpY2F0aW9uX2lkIjoiODMyNzdiY2YtMTlkMS00YTQwLWEwZGUtY2M0Zjk0MjA5N2ZmIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzE1OTUsImV4cCI6MTc1NTg5MDc5NSwianRpIjoiVUNrdlpqWk9qcmdUb3BiLS1Bc0prdyJ9.O6y-Pf26mJN-lUk7_spkOiyEGy-ZwsvEwkBQ-wNibI4 HTTP/1.1" 500 Internal Server Error
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:57532 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:57790 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57881 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57881 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57883 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57885 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57893 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57899 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57901 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57903 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:58055 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:58309 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58411 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58413 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58411 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58427 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58429 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58431 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58433 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:58895 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58994 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58996 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58994 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59004 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59006 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59012 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59014 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59016 - "GET /healthz HTTP/1.1" 404 Not Found
+WARNING:  StatReload detected changes in 'app/services/onboarding_orchestrator.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29222]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [34958]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:59453 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59549 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59551 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59551 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59556 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59558 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59560 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59570 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:59791 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:app.main_enhanced:Token verification result: {'valid': False, 'error': 'Invalid token: Signature verification failed', 'error_code': 'INVALID_TOKEN'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:59835 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59836 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:59839 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:app.main_enhanced:Token verification result: {'valid': False, 'error': 'Invalid token: Signature verification failed', 'error_code': 'INVALID_TOKEN'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&token=eq.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 "HTTP/2 200 OK"
+INFO:     127.0.0.1:59842 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjU2NjdiM2I1LTc0ZDYtNDNlNS1iMmViLTA4MjM2NGJhODYyOSIsImFwcGxpY2F0aW9uX2lkIjoiMTMxNDI1MWEtYjcyNy00MThmLTgzYzUtYzVmYTBjZDZjNjlkIiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzA4MDQsImV4cCI6MTc1NTg5MDAwNCwianRpIjoiemczZFkyNmF2N0tzTkZOZXRmV01IdyJ9.bIW4YB9B_HrEQjb4D_3upfHehJXb3juznpXAGaEx9K0 HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60113 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60130 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60130 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60130 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60147 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60149 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60151 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60403 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60680 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60691 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60694 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60691 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60696 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60703 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60696 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60705 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60707 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60749 - "POST /api/onboarding/initiate HTTP/1.1" 404 Not Found
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     127.0.0.1:60966 - "POST /api/onboarding/start HTTP/1.1" 401 Unauthorized
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:60977 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61254 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61265 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61265 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61267 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61272 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61283 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61285 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61287 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61289 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61548 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:app.main_enhanced:Token verification result: {'valid': True, 'employee_id': '207d686c-912b-46d3-b89f-f7e8f8920b22', 'application_id': 'e8eaaa01-e0f6-45d2-ace9-f29d49def5c8', 'token_id': 'b09hVRrxtmsXRdZAkN56rw', 'issued_at': datetime.datetime(2025, 8, 19, 19, 44, 56, tzinfo=datetime.timezone.utc), 'expires_at': datetime.datetime(2025, 8, 22, 19, 44, 56, tzinfo=datetime.timezone.utc)}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=%2A&id=eq.207d686c-912b-46d3-b89f-f7e8f8920b22 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Employee data from DB: {'id': '207d686c-912b-46d3-b89f-f7e8f8920b22', 'user_id': None, 'application_id': 'e8eaaa01-e0f6-45d2-ace9-f29d49def5c8', 'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400', 'manager_id': None, 'department': 'Front Office', 'position': 'Guest Services Agent', 'hire_date': '2025-08-19', 'employment_status': 'active', 'onboarding_status': 'not_started', 'pay_rate': None, 'pay_frequency': 'biweekly', 'employment_type': 'full_time', 'personal_info': None, 'created_at': '2025-08-19T19:44:56.600111+00:00', 'updated_at': '2025-08-19T19:44:56.600111+00:00'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&employee_id=eq.207d686c-912b-46d3-b89f-f7e8f8920b22&order=created_at.desc "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=property_id%2Cmanager_id&id=eq.207d686c-912b-46d3-b89f-f7e8f8920b22 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions "HTTP/2 400 Bad Request"
+WARNING:app.supabase_service_enhanced:onboarding_sessions insert failed due to schema mismatch: {'message': "Could not find the 'form_data' column of 'onboarding_sessions' in the schema cache", 'code': 'PGRST204', 'hint': None, 'details': None}; retrying with reduced columns
+INFO:httpx:HTTP Request: POST https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to create onboarding session: {'message': 'null value in column "manager_id" of relation "onboarding_sessions" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (32eaacfa-41dc-4898-a23d-e42e4a36369f, 207d686c-912b-46d3-b89f-f7e8f8920b22, null, 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400, null, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q..., not_started, welcome, employee, en, null, 0, null, null, null, null, null, 2025-08-19 19:46:42.301875+00, null, null, null, null, null, 2025-08-22 19:46:42.300837+00, null, null, null, null, null, null, null, null, null).'}
+ERROR:app.services.onboarding_orchestrator:Failed to initiate onboarding: {'message': 'null value in column "manager_id" of relation "onboarding_sessions" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (32eaacfa-41dc-4898-a23d-e42e4a36369f, 207d686c-912b-46d3-b89f-f7e8f8920b22, null, 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400, null, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q..., not_started, welcome, employee, en, null, 0, null, null, null, null, null, 2025-08-19 19:46:42.301875+00, null, null, null, null, null, 2025-08-22 19:46:42.300837+00, null, null, null, null, null, null, null, null, null).'}
+ERROR:app.main_enhanced:Failed to get welcome data: {'message': 'null value in column "manager_id" of relation "onboarding_sessions" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (32eaacfa-41dc-4898-a23d-e42e4a36369f, 207d686c-912b-46d3-b89f-f7e8f8920b22, null, 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400, null, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q..., not_started, welcome, employee, en, null, 0, null, null, null, null, null, 2025-08-19 19:46:42.301875+00, null, null, null, null, null, 2025-08-22 19:46:42.300837+00, null, null, null, null, null, null, null, null, null).'}
+INFO:     127.0.0.1:61627 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q2ODZjLTkxMmItNDZkMy1iODlmLWY3ZThmODkyMGIyMiIsImFwcGxpY2F0aW9uX2lkIjoiZThlYWFhMDEtZTBmNi00NWQyLWFjZTktZjI5ZDQ5ZGVmNWM4IiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzI2OTYsImV4cCI6MTc1NTg5MTg5NiwianRpIjoiYjA5aFZScnh0bXNYUmRaQWtONTZydyJ9.-emIpMFR8HmdxpnfXjkjZKOnTgo7Zd1ENAfH2JzXOw0 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:61825 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=id&limit=1 "HTTP/2 200 OK"
+INFO:     127.0.0.1:61827 - "GET /api/healthz HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61831 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61835 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61836 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61838 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61840 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61825 - "GET /healthz HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61842 - "GET /healthz HTTP/1.1" 404 Not Found
+WARNING:  StatReload detected changes in 'app/supabase_service_enhanced.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [34958]
+/opt/homebrew/lib/python3.13/site-packages/pydantic/_internal/_config.py:373: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+WARNING:app.supabase_service_enhanced:SUPABASE_SERVICE_KEY not set, using anon key for admin operations
+INFO:app.supabase_service_enhanced:✅ Enhanced Supabase service initialized
+INFO:     Started server process [40193]
+INFO:     Waiting for application startup.
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/users?select=%2A "HTTP/2 200 OK"
+INFO:     Application startup complete.
+INFO:app.main_enhanced:Token verification result: {'valid': True, 'employee_id': '207d686c-912b-46d3-b89f-f7e8f8920b22', 'application_id': 'e8eaaa01-e0f6-45d2-ace9-f29d49def5c8', 'token_id': 'b09hVRrxtmsXRdZAkN56rw', 'issued_at': datetime.datetime(2025, 8, 19, 19, 44, 56, tzinfo=datetime.timezone.utc), 'expires_at': datetime.datetime(2025, 8, 22, 19, 44, 56, tzinfo=datetime.timezone.utc)}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=%2A&id=eq.207d686c-912b-46d3-b89f-f7e8f8920b22 "HTTP/2 200 OK"
+INFO:app.supabase_service_enhanced:Employee data from DB: {'id': '207d686c-912b-46d3-b89f-f7e8f8920b22', 'user_id': None, 'application_id': 'e8eaaa01-e0f6-45d2-ace9-f29d49def5c8', 'property_id': '9e5d1d9b-0caf-44f0-99dd-8e71b88c1400', 'manager_id': None, 'department': 'Front Office', 'position': 'Guest Services Agent', 'hire_date': '2025-08-19', 'employment_status': 'active', 'onboarding_status': 'not_started', 'pay_rate': None, 'pay_frequency': 'biweekly', 'employment_type': 'full_time', 'personal_info': None, 'created_at': '2025-08-19T19:44:56.600111+00:00', 'updated_at': '2025-08-19T19:44:56.600111+00:00'}
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions?select=%2A&employee_id=eq.207d686c-912b-46d3-b89f-f7e8f8920b22&order=created_at.desc "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: GET https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/employees?select=property_id%2Cmanager_id&id=eq.207d686c-912b-46d3-b89f-f7e8f8920b22 "HTTP/2 200 OK"
+INFO:httpx:HTTP Request: POST https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions "HTTP/2 400 Bad Request"
+WARNING:app.supabase_service_enhanced:onboarding_sessions insert failed due to schema mismatch: {'message': "Could not find the 'form_data' column of 'onboarding_sessions' in the schema cache", 'code': 'PGRST204', 'hint': None, 'details': None}; retrying with reduced columns
+INFO:httpx:HTTP Request: POST https://kzommszdhapvqpekpvnt.supabase.co/rest/v1/onboarding_sessions "HTTP/2 400 Bad Request"
+ERROR:app.supabase_service_enhanced:Failed to create onboarding session: {'message': 'null value in column "manager_id" of relation "onboarding_sessions" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (69da5950-cab1-42aa-8190-145c214bfffc, 207d686c-912b-46d3-b89f-f7e8f8920b22, null, 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400, null, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q..., not_started, welcome, employee, en, null, 0, null, null, null, null, null, 2025-08-19 19:47:40.960722+00, null, null, null, null, null, 2025-08-22 19:47:40.9606+00, null, null, null, null, null, null, null, null, null).'}
+ERROR:app.services.onboarding_orchestrator:Failed to initiate onboarding: {'message': 'null value in column "manager_id" of relation "onboarding_sessions" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (69da5950-cab1-42aa-8190-145c214bfffc, 207d686c-912b-46d3-b89f-f7e8f8920b22, null, 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400, null, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q..., not_started, welcome, employee, en, null, 0, null, null, null, null, null, 2025-08-19 19:47:40.960722+00, null, null, null, null, null, 2025-08-22 19:47:40.9606+00, null, null, null, null, null, null, null, null, null).'}
+ERROR:app.main_enhanced:Failed to get welcome data: {'message': 'null value in column "manager_id" of relation "onboarding_sessions" violates not-null constraint', 'code': '23502', 'hint': None, 'details': 'Failing row contains (69da5950-cab1-42aa-8190-145c214bfffc, 207d686c-912b-46d3-b89f-f7e8f8920b22, null, 9e5d1d9b-0caf-44f0-99dd-8e71b88c1400, null, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q..., not_started, welcome, employee, en, null, 0, null, null, null, null, null, 2025-08-19 19:47:40.960722+00, null, null, null, null, null, 2025-08-22 19:47:40.9606+00, null, null, null, null, null, null, null, null, null).'}
+✅ Official I9 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf
+✅ Official W4 template found: /Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf
+⚠️ Scheduler disabled - missing apscheduler module
+✅ Supabase-enabled backend started successfully
+INFO:     127.0.0.1:62170 - "GET /api/onboarding/welcome/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZV9pZCI6IjIwN2Q2ODZjLTkxMmItNDZkMy1iODlmLWY3ZThmODkyMGIyMiIsImFwcGxpY2F0aW9uX2lkIjoiZThlYWFhMDEtZTBmNi00NWQyLWFjZTktZjI5ZDQ5ZGVmNWM4IiwidG9rZW5fdHlwZSI6Im9uYm9hcmRpbmciLCJpYXQiOjE3NTU2MzI2OTYsImV4cCI6MTc1NTg5MTg5NiwianRpIjoiYjA5aFZScnh0bXNYUmRaQWtONTZydyJ9.-emIpMFR8HmdxpnfXjkjZKOnTgo7Zd1ENAfH2JzXOw0 HTTP/1.1" 500 Internal Server Error
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.websocket_manager:Shutting down WebSocket manager...
+INFO:app.websocket_manager:WebSocket manager shutdown complete
+INFO:     Application shutdown complete.
+INFO:     Finished server process [40193]
+INFO:     Stopping reloader process [23287]

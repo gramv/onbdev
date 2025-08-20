@@ -85,7 +85,7 @@ export default function OfficialI9Display({
         throw new Error(`Federal compliance violation: Missing required I-9 fields: ${missingFields.join(', ')}`);
       }
       
-      const response = await fetch('/api/api/forms/i9/generate', {
+      const response = await fetch('/api/forms/i9/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

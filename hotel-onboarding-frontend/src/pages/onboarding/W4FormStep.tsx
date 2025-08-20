@@ -308,9 +308,9 @@ export default function W4FormStep({
       sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(updatedData))
       
       // Also try to save to backend for persistence
-      const apiUrl = import.meta.env.VITE_API_URL || '/api'
+      const apiUrl = import.meta.env.VITE_API_URL || ''
       axios.post(
-        `${apiUrl}/onboarding/${employee?.id}/w4-form`,
+        `${apiUrl}/api/onboarding/${employee?.id}/w4-form`,
         {
           form_data: formData,
           signed: true,
@@ -327,9 +327,9 @@ export default function W4FormStep({
       
       // Fallback to backend generation
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api'
+        const apiUrl = import.meta.env.VITE_API_URL || ''
         const response = await axios.post(
-          `${apiUrl}/onboarding/${employee?.id}/w4-form/generate-pdf`,
+          `${apiUrl}/api/onboarding/${employee?.id}/w4-form/generate-pdf`,
           {
             employee_data: {
               ...formData,

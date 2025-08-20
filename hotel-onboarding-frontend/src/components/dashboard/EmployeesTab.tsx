@@ -180,7 +180,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       // Only fetch properties for HR users
       let properties = []
       if (userRole === 'hr') {
-        const response = await apiClient.get('/hr/properties', {
+        const response = await apiClient.get('/api/hr/properties', {
           headers: { Authorization: `Bearer ${token}` }
         })
         properties = response.data || []

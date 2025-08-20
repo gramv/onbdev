@@ -162,8 +162,8 @@ export default function DirectDepositStep({
     // Save to backend if we have an employee ID
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api'
-        await axios.post(`${apiUrl}/onboarding/${employee.id}/direct-deposit`, completeData)
+        const apiUrl = import.meta.env.VITE_API_URL || ''
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/direct-deposit`, completeData)
         console.log('Direct deposit data saved to backend')
       } catch (error) {
         console.error('Failed to save direct deposit data to backend:', error)

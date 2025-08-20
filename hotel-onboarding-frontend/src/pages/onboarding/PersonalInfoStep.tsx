@@ -68,11 +68,11 @@ export default function PersonalInfoStep({
           }
         }
         
-        // ALWAYS check cloud data if we have an employee ID (not just when no local data)
-        if (employee?.id && !employee.id.startsWith('demo-')) {
+        // ALWAYS check cloud data if we have an employee ID
+        if (employee?.id) {
           try {
-            const apiUrl = import.meta.env.VITE_API_URL || '/api'
-            const response = await fetch(`${apiUrl}/onboarding/${employee.id}/personal-info`)
+            const apiUrl = import.meta.env.VITE_API_URL || ''
+            const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/personal-info`)
             if (response.ok) {
               const result = await response.json()
               if (result.success && result.data && Object.keys(result.data).length > 0) {

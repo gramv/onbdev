@@ -297,7 +297,7 @@ export default function I9Section2Step({
     await saveProgress(currentStep.id, completeData)
     
     // Save document metadata to cloud via dedicated I-9 Section 2 endpoint
-    if (employee?.id && !employee.id.startsWith('demo-')) {
+    if (employee?.id) {
       try {
         // Prepare document metadata without base64 data for cloud storage
         const documentMetadata = completeData.uploadedDocuments.map(doc => ({

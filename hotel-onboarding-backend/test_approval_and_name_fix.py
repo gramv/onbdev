@@ -64,10 +64,10 @@ def create_application_directly():
 def login_as_manager():
     """Login as manager"""
     response = requests.post(
-        f"{BASE_URL}/auth/login",
+        f"{BASE_URL}/api/auth/login",
         json={
             "email": "manager@demo.com",
-            "password": "Password123!"
+            "password": "test123"
         }
     )
     
@@ -90,7 +90,7 @@ def approve_application(token, app_id):
     print(f"\n📧 Approving application (email should be logged)...")
     
     response = requests.post(
-        f"{BASE_URL}/applications/{app_id}/approve",
+        f"{BASE_URL}/api/applications/{app_id}/approve",
         headers={"Authorization": f"Bearer {token}"},
         json={"send_email": True}
     )

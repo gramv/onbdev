@@ -101,7 +101,7 @@ export class OnboardingFlowController {
   
   constructor() {
     this.autoSaveManager = new AutoSaveManager()
-    this.apiUrl = import.meta.env.VITE_API_URL || '/api'
+    this.apiUrl = import.meta.env.VITE_API_URL || ''
   }
 
   /**
@@ -153,7 +153,7 @@ export class OnboardingFlowController {
 
       // Try to validate token and load session data from API
       try {
-        const response = await fetch(`${this.apiUrl}/onboarding/session/${token}`)
+        const response = await fetch(`${this.apiUrl}/api/onboarding/welcome/${token}`)
         
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -180,9 +180,9 @@ export class OnboardingFlowController {
         return this.session
         
       } catch (apiError) {
-        console.warn('API call failed, falling back to demo mode:', apiError)
-        // Fallback to demo mode if API fails
-        return this.initializeOnboarding('demo-token')
+        console.error('API call failed:', apiError)
+        // Don't fallback to demo mode - throw the error
+        throw apiError
       }
       
     } catch (error) {
@@ -246,7 +246,7 @@ export class OnboardingFlowController {
       }
 
       // Make API call to mark complete in cloud
-      const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/complete/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/complete/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -296,7 +296,7 @@ export class OnboardingFlowController {
       }
 
       // Make API call to save to cloud
-      const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/progress/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/progress/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -187,7 +187,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const fetchTalentPoolCandidates = async () => {
     try {
       setTalentPoolLoading(true)
-      const endpoint = '/hr/applications/talent-pool'
+      const endpoint = '/api/hr/applications/talent-pool'
       const response = await apiClient.get(endpoint, {
         params: {
           property_id: userRole === 'hr' && talentPoolPropertyFilter !== 'all' ? talentPoolPropertyFilter : undefined,
@@ -221,7 +221,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
   const fetchProperties = async () => {
     try {
-      const response = await apiClient.get('/hr/properties')
+      const response = await apiClient.get('/api/hr/properties')
       // Handle wrapped response format
       const propertiesData = response.data.data || response.data
       setProperties(Array.isArray(propertiesData) ? propertiesData : [])

@@ -16,16 +16,26 @@ export default defineConfig({
     port: 3000,
     host: true,
     proxy: {
+      // Single proxy rule for all API endpoints
+      // All API calls should use /api prefix
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        // Keep the /api prefix as backend expects it
-        rewrite: (path) => path
+        // Keep the /api prefix as backend will expect it
+        rewrite: (path) => path,
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.error('Proxy error:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('Proxying:', req.method, req.url, '->', options.target + req.url);
+          });
+        }
       },
+      // Legacy endpoints - will be removed after backend migration
       '/auth': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        // Keep '/auth' so backend receives '/auth/*'
         rewrite: (path) => path
       },
       '/hr': {
@@ -33,18 +43,7 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path
       },
-      // Only proxy manager API calls, not the page itself
-      '/manager/applications': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-      '/manager/property': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-      '/manager/dashboard-stats': {
+      '/manager': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path
@@ -59,13 +58,22 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path
       },
+      '/apply': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+      '/notifications': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
       '/onboarding': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        // Rewrite /onboarding to /api/onboarding to match backend routes
-        rewrite: (path) => path.replace(/^\/onboarding/, '/api/onboarding')
+        rewrite: (path) => path
       },
-      '/notifications': {
+      '/secret': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path

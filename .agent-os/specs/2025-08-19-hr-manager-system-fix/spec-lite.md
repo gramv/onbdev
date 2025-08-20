@@ -1,0 +1,3 @@
+# Spec Summary (Lite)
+
+Fix critical HR property/manager CRUD operations (currently failing and blocking 70% of PRD requirements) and complete Manager Review Dashboard with I-9 Section 2 verification. Prioritizes restoring core functionality that enables HR to manage properties and create manager accounts, while giving managers the tools to properly review applications and complete federal compliance requirements.

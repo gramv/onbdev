@@ -1,0 +1,28 @@
+API Path Fixes Applied - 2025-08-19 14:02:23.253601
+============================================================
+
+Total changes made: 25
+
+Fixes applied:
+- Add /api prefix to onboarding endpoints
+  - src/pages/onboarding/DirectDepositStep.tsx
+  - src/pages/onboarding/HealthInsuranceStep.tsx
+  - src/pages/onboarding/I9CompleteStep.tsx
+  - src/pages/onboarding/W4FormStep.tsx
+- Remove demo- checks
+  - src/pages/onboarding/I9Section1Step.tsx
+  - src/pages/onboarding/I9Section2Step.tsx
+  - src/pages/onboarding/I9CompleteStep.tsx
+  - src/components/I9Section1FormClean.tsx
+- Remove test- and demo- checks
+  - src/components/I9Section1FormClean.tsx
+- Fix double /api/api/ prefixes
+  - src/components/OfficialI9Display.tsx
+  - src/components/OfficialW4Display.tsx
+- Fix apiUrl default value
+  - src/pages/onboarding/DirectDepositStep.tsx
+  - src/pages/onboarding/HealthInsuranceStep.tsx
+  - src/pages/onboarding/I9CompleteStep.tsx
+  - src/pages/onboarding/W4FormStep.tsx
+  - src/pages/onboarding/I9Section1Step.tsx
+  - src/pages/onboarding/I9Section2Step.tsx

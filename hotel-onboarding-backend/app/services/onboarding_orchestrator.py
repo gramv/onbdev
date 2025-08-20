@@ -82,8 +82,13 @@ class OnboardingOrchestrator:
                 created_at=datetime.utcnow()
             )
             
-            # Store session in Supabase
-            await self.supabase_service.create_onboarding_session(session)
+            # Store session in Supabase - pass individual parameters
+            await self.supabase_service.create_onboarding_session(
+                employee_id=session.employee_id,
+                property_id=session.property_id,
+                manager_id=session.manager_id,
+                expires_hours=expires_hours
+            )
             
             # Update employee record
             employee = await self.supabase_service.get_employee_by_id(employee_id)

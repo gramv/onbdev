@@ -325,6 +325,7 @@ async def initialize_test_data():
         logger.error(f"Test data initialization error: {e}")
 
 
+@app.get("/healthz")
 @app.get("/api/healthz")
 async def healthz():
     """Health check with Supabase status"""
@@ -347,6 +348,7 @@ async def healthz():
             detail=str(e)
         )
 
+@app.post("/auth/login", response_model=LoginResponse)
 @app.post("/api/auth/login", response_model=LoginResponse)
 async def login(request: Request):
     """Login with Supabase user lookup"""
@@ -459,6 +461,7 @@ async def login(request: Request):
             detail="An unexpected error occurred during login"
         )
 
+@app.post("/auth/refresh")
 @app.post("/api/auth/refresh")
 async def refresh_token(current_user: User = Depends(get_current_user)):
     """Refresh JWT token for authenticated user using Supabase"""
@@ -520,6 +523,7 @@ async def refresh_token(current_user: User = Depends(get_current_user)):
             detail="An unexpected error occurred during token refresh"
         )
 
+@app.post("/auth/logout")
 @app.post("/api/auth/logout")
 async def logout(current_user: User = Depends(get_current_user)):
     """Logout user (token invalidation handled client-side)"""
@@ -527,6 +531,7 @@ async def logout(current_user: User = Depends(get_current_user)):
         message="Logged out successfully"
     )
 
+@app.get("/auth/me", response_model=UserInfoResponse)
 @app.get("/api/auth/me", response_model=UserInfoResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user information"""
@@ -545,6 +550,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         message="User information retrieved successfully"
     )
 
+@app.get("/manager/applications", response_model=ApplicationsResponse)
 @app.get("/api/manager/applications", response_model=ApplicationsResponse)
 async def get_manager_applications(
     search: Optional[str] = Query(None),
@@ -616,6 +622,7 @@ async def get_manager_applications(
             detail="An error occurred while fetching applications data"
         )
 
+@app.get("/hr/dashboard-stats", response_model=DashboardStatsResponse)
 @app.get("/api/hr/dashboard-stats", response_model=DashboardStatsResponse)
 async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
     """Get dashboard statistics for HR using Supabase - system-wide statistics (all properties)"""
@@ -657,7 +664,7 @@ async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
             detail="An error occurred while fetching dashboard data"
         )
 
-@app.get("/api/hr/properties", response_model=PropertiesResponse)
+@app.get("/hr/properties", response_model=PropertiesResponse)
 async def get_hr_properties(current_user: User = Depends(require_hr_role)):
     """Get all properties for HR using Supabase"""
     try:
@@ -706,7 +713,7 @@ async def get_hr_properties(current_user: User = Depends(require_hr_role)):
             detail="An error occurred while fetching properties data"
         )
 
-@app.post("/api/hr/properties")
+@app.post("/hr/properties")
 async def create_property(
     name: str = Form(...),
     address: str = Form(...),
@@ -749,7 +756,7 @@ async def create_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create property: {str(e)}")
 
-@app.put("/api/hr/properties/{id}")
+@app.put("/hr/properties/{id}")
 async def update_property(
     id: str,
     name: str = Form(...),
@@ -789,7 +796,7 @@ async def update_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update property: {str(e)}")
 
-@app.delete("/api/hr/properties/{id}")
+@app.delete("/hr/properties/{id}")
 async def delete_property(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -854,6 +861,7 @@ async def delete_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete property: {str(e)}")
 
+@app.get("/hr/properties/{property_id}/stats")
 @app.get("/api/hr/properties/{property_id}/stats")
 async def get_property_stats(
     property_id: str,
@@ -896,7 +904,7 @@ async def get_property_stats(
         logger.error(f"Failed to get property stats: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get property statistics: {str(e)}")
 
-@app.get("/api/hr/properties/{id}/managers")
+@app.get("/hr/properties/{id}/managers")
 async def get_property_managers(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -934,7 +942,7 @@ async def get_property_managers(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get property managers: {str(e)}")
 
-@app.post("/api/hr/properties/{id}/managers")
+@app.post("/hr/properties/{id}/managers")
 async def assign_manager_to_property(
     id: str,
     manager_id: str = Form(...),
@@ -986,7 +994,7 @@ async def assign_manager_to_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to assign manager: {str(e)}")
 
-@app.delete("/api/hr/properties/{id}/managers/{manager_id}")
+@app.delete("/hr/properties/{id}/managers/{manager_id}")
 async def remove_manager_from_property(
     id: str,
     manager_id: str,
@@ -1019,7 +1027,7 @@ async def remove_manager_from_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to remove manager: {str(e)}")
 
-@app.get("/api/hr/applications", response_model=ApplicationsResponse)
+@app.get("/hr/applications", response_model=ApplicationsResponse)
 async def get_hr_applications(
     property_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
@@ -1127,6 +1135,7 @@ async def get_hr_applications(
             detail="An error occurred while fetching applications data"
         )
 
+@app.get("/manager/property")
 @app.get("/api/manager/property")
 async def get_manager_property(current_user: User = Depends(require_manager_with_property_access)):
     """Get manager's assigned property details using Supabase with enhanced access control"""
@@ -1182,6 +1191,7 @@ async def get_manager_property(current_user: User = Depends(require_manager_with
             detail="An error occurred while fetching property data"
         )
 
+@app.get("/manager/dashboard-stats")
 @app.get("/api/manager/dashboard-stats")
 async def get_manager_dashboard_stats(current_user: User = Depends(require_manager_with_property_access)):
     """Get dashboard statistics for manager's property using Supabase with enhanced access control - filtered by manager's property_id from JWT"""
@@ -1244,6 +1254,7 @@ async def get_manager_dashboard_stats(current_user: User = Depends(require_manag
             detail="An error occurred while fetching dashboard data"
         )
 
+@app.get("/manager/applications/stats")
 @app.get("/api/manager/applications/stats")
 async def get_manager_application_stats(current_user: User = Depends(require_manager_role)):
     """Get application statistics for managers - property-specific statistics"""
@@ -1282,6 +1293,7 @@ async def get_manager_application_stats(current_user: User = Depends(require_man
             detail=f"Failed to retrieve application statistics: {str(e)}"
         )
 
+@app.get("/manager/applications/departments")
 @app.get("/api/manager/applications/departments")
 async def get_manager_application_departments(current_user: User = Depends(require_manager_role)):
     """Get list of departments from applications for managers - property-specific"""
@@ -1310,6 +1322,7 @@ async def get_manager_application_departments(current_user: User = Depends(requi
             detail=f"Failed to retrieve departments: {str(e)}"
         )
 
+@app.get("/manager/applications/positions")
 @app.get("/api/manager/applications/positions")
 async def get_manager_application_positions(
     department: Optional[str] = Query(None),
@@ -1461,7 +1474,7 @@ async def get_employees(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve employees: {str(e)}")
 
-@app.post("/api/applications/{id}/approve")
+@app.post("/applications/{id}/approve")
 @require_application_access()
 async def approve_application(
     id: str,
@@ -1627,7 +1640,7 @@ async def approve_application(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Approval failed: {str(e)}")
 
-@app.post("/api/applications/{id}/approve-enhanced")
+@app.post("/applications/{id}/approve-enhanced")
 @require_application_access()
 async def approve_application_enhanced(
     id: str,
@@ -1690,7 +1703,7 @@ async def approve_application_enhanced(
             status_code=500
         )
 
-@app.post("/api/applications/{id}/reject")
+@app.post("/applications/{id}/reject")
 @require_application_access()
 async def reject_application(
     id: str,
@@ -1759,7 +1772,7 @@ async def reject_application(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reject application: {str(e)}")
 
-@app.post("/api/applications/{id}/reject-enhanced")
+@app.post("/applications/{id}/reject-enhanced")
 @require_application_access()
 async def reject_application_enhanced(
     id: str,
@@ -1870,7 +1883,7 @@ async def reject_application_enhanced(
             status_code=500
         )
 
-@app.get("/api/hr/applications/talent-pool")
+@app.get("/hr/applications/talent-pool")
 async def get_talent_pool(
     property_id: Optional[str] = Query(None),
     position: Optional[str] = Query(None),
@@ -1925,7 +1938,7 @@ async def get_talent_pool(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve talent pool: {str(e)}")
 
-@app.post("/api/hr/applications/{id}/reactivate")
+@app.post("/hr/applications/{id}/reactivate")
 async def reactivate_application(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -1967,7 +1980,7 @@ async def reactivate_application(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reactivate application: {str(e)}")
 
-@app.get("/api/hr/users")
+@app.get("/hr/users")
 async def get_hr_users(
     role: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
@@ -2032,7 +2045,7 @@ async def get_hr_users(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve users: {str(e)}")
 
-@app.get("/api/hr/managers")
+@app.get("/hr/managers")
 async def get_managers(
     property_id: Optional[str] = Query(None),
     is_active: Optional[bool] = Query(None),
@@ -2098,7 +2111,7 @@ async def get_managers(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve managers: {str(e)}")
 
-@app.post("/api/hr/managers")
+@app.post("/hr/managers")
 async def create_manager(
     email: str = Form(...),
     first_name: str = Form(...),
@@ -2225,7 +2238,7 @@ async def create_manager(
         raise HTTPException(status_code=500, detail=f"Failed to create manager: {str(e)}")
 
 # Notification endpoints
-@app.get("/api/notifications")
+@app.get("/notifications")
 async def get_notifications(
     unread_only: bool = Query(False),
     limit: int = Query(50, le=100),
@@ -2249,7 +2262,7 @@ async def get_notifications(
         logger.error(f"Failed to get notifications: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get notifications: {str(e)}")
 
-@app.get("/api/notifications/count")
+@app.get("/notifications/count")
 async def get_notification_count(
     current_user: User = Depends(get_current_user)
 ):
@@ -2264,7 +2277,7 @@ async def get_notification_count(
         logger.error(f"Failed to get notification count: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get notification count: {str(e)}")
 
-@app.post("/api/notifications/mark-read")
+@app.post("/notifications/mark-read")
 async def mark_notifications_read(
     notification_ids: List[str],
     current_user: User = Depends(get_current_user)
@@ -2286,7 +2299,7 @@ async def mark_notifications_read(
         logger.error(f"Failed to mark notifications as read: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to mark notifications as read: {str(e)}")
 
-@app.get("/api/hr/employees")
+@app.get("/hr/employees")
 async def get_hr_employees(
     property_id: Optional[str] = Query(None),
     department: Optional[str] = Query(None),
@@ -2340,7 +2353,7 @@ async def get_hr_employees(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve HR employees: {str(e)}")
 
-@app.get("/api/hr/employees/{id}")
+@app.get("/hr/employees/{id}")
 async def get_hr_employee_detail(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -2372,7 +2385,7 @@ async def get_hr_employee_detail(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve employee details: {str(e)}")
 
-@app.get("/api/hr/applications/departments")
+@app.get("/hr/applications/departments")
 async def get_hr_application_departments(current_user: User = Depends(require_hr_role)):
     """Get list of departments from applications for HR only - system-wide"""
     try:
@@ -2388,7 +2401,7 @@ async def get_hr_application_departments(current_user: User = Depends(require_hr
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve departments: {str(e)}")
 
-@app.get("/api/hr/applications/positions")
+@app.get("/hr/applications/positions")
 async def get_hr_application_positions(
     department: Optional[str] = Query(None),
     current_user: User = Depends(require_hr_role)
@@ -2411,7 +2424,7 @@ async def get_hr_application_positions(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve positions: {str(e)}")
 
-@app.get("/api/hr/applications/stats")
+@app.get("/hr/applications/stats")
 async def get_hr_application_stats(current_user: User = Depends(require_hr_role)):
     """Get application statistics for HR only - system-wide statistics"""
     try:
@@ -2801,7 +2814,7 @@ async def get_all_properties_api(current_user: User = Depends(require_hr_role)):
             status_code=500
         )
 
-@app.post("/api/apply/{id}")
+@app.post("/apply/{id}")
 async def submit_job_application(id: str, application_data: JobApplicationData):
     """Submit job application to Supabase"""
     try:
@@ -2911,7 +2924,7 @@ async def submit_job_application(id: str, application_data: JobApplicationData):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Application submission failed: {str(e)}")
 
-@app.get("/api/properties/{id}/info")
+@app.get("/properties/{id}/info")
 async def get_property_public_info(id: str):
     """Get property info using Supabase"""
     try:
@@ -2950,7 +2963,7 @@ async def get_property_public_info(id: str):
 # BULK OPERATIONS ENDPOINTS (Phase 1.1)
 # ==========================================
 
-@app.post("/api/hr/applications/bulk-action")
+@app.post("/hr/applications/bulk-action")
 async def bulk_application_action(
     application_ids: List[str] = Form(...),
     action: str = Form(...),
@@ -3003,7 +3016,7 @@ async def bulk_application_action(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk action failed: {str(e)}")
 
-@app.post("/api/hr/applications/bulk-status-update")
+@app.post("/hr/applications/bulk-status-update")
 async def bulk_status_update(
     application_ids: List[str] = Form(...),
     new_status: str = Form(...),
@@ -3054,7 +3067,7 @@ async def bulk_status_update(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk status update failed: {str(e)}")
 
-@app.post("/api/hr/applications/bulk-reactivate")
+@app.post("/hr/applications/bulk-reactivate")
 async def bulk_reactivate_applications(
     application_ids: List[str] = Form(...),
     current_user: User = Depends(require_hr_role)
@@ -3094,7 +3107,7 @@ async def bulk_reactivate_applications(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk reactivation failed: {str(e)}")
 
-@app.post("/api/hr/applications/bulk-talent-pool")
+@app.post("/hr/applications/bulk-talent-pool")
 async def bulk_move_to_talent_pool(
     application_ids: List[str] = Form(...),
     current_user: User = Depends(require_hr_role)
@@ -3134,7 +3147,7 @@ async def bulk_move_to_talent_pool(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Bulk talent pool move failed: {str(e)}")
 
-@app.post("/api/hr/applications/bulk-talent-pool-notify")
+@app.post("/hr/applications/bulk-talent-pool-notify")
 async def bulk_talent_pool_notify(
     application_ids: List[str] = Form(...),
     current_user: User = Depends(require_hr_role)
@@ -3553,7 +3566,7 @@ async def generate_compliance_report(
 # APPLICATION HISTORY & ENHANCED WORKFLOW (Phase 1.2)
 # ==========================================
 
-@app.get("/api/hr/applications/{id}/history")
+@app.get("/hr/applications/{id}/history")
 async def get_application_history(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -3606,7 +3619,7 @@ async def get_application_history(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get application history: {str(e)}")
 
-@app.post("/api/applications/check-duplicate")
+@app.post("/applications/check-duplicate")
 async def check_duplicate_application(
     email: str = Form(...),
     property_id: str = Form(...),
@@ -3638,7 +3651,7 @@ async def check_duplicate_application(
 # MANAGER CRUD OPERATIONS (Phase 1.3)
 # ==========================================
 
-@app.get("/api/hr/managers/{id}")
+@app.get("/hr/managers/{id}")
 async def get_manager_details(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -3677,7 +3690,7 @@ async def get_manager_details(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get manager details: {str(e)}")
 
-@app.put("/api/hr/managers/{id}")
+@app.put("/hr/managers/{id}")
 async def update_manager(
     id: str,
     first_name: str = Form(...),
@@ -3784,7 +3797,7 @@ async def update_manager(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update manager: {str(e)}")
 
-@app.delete("/api/hr/managers/{id}")
+@app.delete("/hr/managers/{id}")
 async def delete_manager(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -3820,7 +3833,7 @@ async def delete_manager(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete manager: {str(e)}")
 
-@app.post("/api/hr/managers/{id}/reactivate")
+@app.post("/hr/managers/{id}/reactivate")
 async def reactivate_manager(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -3854,7 +3867,7 @@ async def reactivate_manager(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reactivate manager: {str(e)}")
 
-@app.post("/api/hr/managers/{id}/reset-password")
+@app.post("/hr/managers/{id}/reset-password")
 async def reset_manager_password(
     id: str,
     new_password: str = Form(...),
@@ -3890,7 +3903,7 @@ async def reset_manager_password(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reset manager password: {str(e)}")
 
-@app.get("/api/hr/managers/{id}/performance")
+@app.get("/hr/managers/{id}/performance")
 async def get_manager_performance(
     id: str,
     current_user: User = Depends(require_hr_role)
@@ -3917,7 +3930,7 @@ async def get_manager_performance(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get manager performance: {str(e)}")
 
-@app.get("/api/hr/managers/unassigned")
+@app.get("/hr/managers/unassigned")
 async def get_unassigned_managers(current_user: User = Depends(require_hr_role)):
     """Get all managers not assigned to any property (HR only)"""
     try:
@@ -3944,7 +3957,7 @@ async def get_unassigned_managers(current_user: User = Depends(require_hr_role))
 # EMPLOYEE SEARCH & MANAGEMENT (Phase 1.4)
 # ==========================================
 
-@app.get("/api/hr/employees/search")
+@app.get("/hr/employees/search")
 async def search_employees(
     q: str = Query(...),
     property_id: Optional[str] = Query(None),
@@ -4019,7 +4032,7 @@ async def search_employees(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to search employees: {str(e)}")
 
-@app.put("/api/hr/employees/{employee_id}/status")
+@app.put("/hr/employees/{employee_id}/status")
 async def update_employee_status(
     employee_id: str,
     new_status: str = Form(...),
@@ -4071,7 +4084,7 @@ async def update_employee_status(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update employee status: {str(e)}")
 
-@app.get("/api/hr/employees/stats")
+@app.get("/hr/employees/stats")
 async def get_hr_employee_statistics(
     property_id: Optional[str] = Query(None),
     current_user: User = Depends(require_hr_role)
@@ -4117,7 +4130,7 @@ async def get_hr_employee_statistics(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get employee statistics: {str(e)}")
 
-@app.post("/api/secret/create-hr")
+@app.post("/secret/create-hr")
 async def create_hr_user(email: str, password: str, secret_key: str):
     """Create HR user with secret key"""
     
@@ -4164,7 +4177,7 @@ async def create_hr_user(email: str, password: str, secret_key: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to create HR user: {str(e)}")
 
-@app.post("/api/secret/create-manager")
+@app.post("/secret/create-manager")
 async def create_manager_user(email: str, password: str, property_name: str, secret_key: str):
     """Create Manager user with secret key"""
     
@@ -4237,7 +4250,7 @@ async def create_manager_user(email: str, password: str, property_name: str, sec
 
 # ===== EMPLOYEE ONBOARDING APIs =====
 
-@app.get("/api/onboard/verify")
+@app.get("/onboard/verify")
 async def verify_onboarding_token(
     token: str = Query(..., description="Onboarding token")
 ):
@@ -4306,7 +4319,7 @@ async def verify_onboarding_token(
             detail=str(e)
         )
 
-@app.post("/api/onboard/update-progress")
+@app.post("/onboard/update-progress")
 async def update_onboarding_progress(
     session_id: str = Form(...),
     step_id: str = Form(...),
@@ -4602,19 +4615,13 @@ async def get_onboarding_welcome_data(token: str):
                 },
                 "employee": {
                     "id": employee.id,
-                    "firstName": getattr(employee, 'first_name', '') or (employee.personal_info.get('first_name', '') if hasattr(employee, 'personal_info') and employee.personal_info else 'Cloud'),
-                    "lastName": getattr(employee, 'last_name', '') or (employee.personal_info.get('last_name', '') if hasattr(employee, 'personal_info') and employee.personal_info else 'Tester'),
-                    "email": getattr(employee, 'email', '') or (employee.personal_info.get('email', '') if hasattr(employee, 'personal_info') and employee.personal_info else 'employee@test.com'),
+                    "first_name": getattr(employee, 'first_name', '') or (employee.personal_info.get('first_name', '') if hasattr(employee, 'personal_info') and employee.personal_info else ''),
+                    "last_name": getattr(employee, 'last_name', '') or (employee.personal_info.get('last_name', '') if hasattr(employee, 'personal_info') and employee.personal_info else ''),
+                    "email": getattr(employee, 'email', '') or (employee.personal_info.get('email', '') if hasattr(employee, 'personal_info') and employee.personal_info else ''),
                     "position": getattr(employee, 'position', ''),
                     "department": getattr(employee, 'department', ''),
-                    "startDate": employee.start_date.isoformat() if hasattr(employee, 'start_date') and employee.start_date else (employee.hire_date.isoformat() if hasattr(employee, 'hire_date') and employee.hire_date else None),
-                    "propertyId": getattr(employee, 'property_id', ''),
-                    "employmentType": getattr(employee, 'employment_type', 'full_time')
-                },
-                "progress": {
-                    "currentStepIndex": 0,
-                    "completedSteps": getattr(session, 'steps_completed', []) or [],
-                    "canProceed": True
+                    "start_date": employee.start_date.isoformat() if hasattr(employee, 'start_date') and employee.start_date else employee.hire_date if hasattr(employee, 'hire_date') else None,
+                    "employment_type": getattr(employee, 'employment_type', 'full_time')
                 },
                 "property": {
                     "id": property_obj.id,
