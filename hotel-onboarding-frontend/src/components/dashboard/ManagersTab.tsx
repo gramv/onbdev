@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Edit, Search, User, Building, Users, RefreshCw, UserX, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Plus, Edit, Search, User, Building, Users, RefreshCw, UserX, ToggleLeft, ToggleRight, Copy, AlertTriangle, CheckCircle } from 'lucide-react'
 import api from '@/services/api'
 
 interface Manager {
@@ -17,10 +18,26 @@ interface Manager {
   email: string
   first_name?: string
   last_name?: string
-  property_id?: string
-  property_name?: string
+  role: 'manager'
   is_active: boolean
+  properties: Array<{
+    id: string
+    name: string
+  }>
   created_at: string
+}
+
+interface CreateManagerResponse {
+  success: boolean
+  data: {
+    id: string
+    email: string
+    temporary_password: string
+    first_name: string
+    last_name: string
+    role: string
+    is_active: boolean
+  }
 }
 
 interface Property {
@@ -63,6 +80,13 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingManager, setEditingManager] = useState<Manager | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+  const [temporaryPassword, setTemporaryPassword] = useState<string>('')
+  const [createdManagerEmail, setCreatedManagerEmail] = useState<string>('')
+  const [passwordCopied, setPasswordCopied] = useState(false)
+  const [isAssignPropertyDialogOpen, setIsAssignPropertyDialogOpen] = useState(false)
+  const [selectedManagerForAssignment, setSelectedManagerForAssignment] = useState<Manager | null>(null)
+  const [selectedPropertyForAssignment, setSelectedPropertyForAssignment] = useState<string>('')
   const { toast } = useToast()
 
   const [formData, setFormData] = useState<ManagerFormData>({
@@ -99,8 +123,8 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
         email: manager.email,
         first_name: manager.first_name,
         last_name: manager.last_name,
-        property_id: manager.properties?.[0]?.id || null,
-        property_name: manager.properties?.[0]?.name || null,
+        role: 'manager' as const,
+        properties: Array.isArray(manager.properties) ? manager.properties : [],
         is_active: manager.is_active !== undefined ? manager.is_active : true,
         created_at: manager.created_at
       }))
@@ -154,7 +178,7 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
   const handleCreateManager = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.email || !formData.first_name || !formData.last_name || !formData.password) {
+    if (!formData.email || !formData.first_name || !formData.last_name) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -168,20 +192,36 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
       const dataObject: any = {
         email: formData.email,
         first_name: formData.first_name,
-        last_name: formData.last_name,
-        password: formData.password
+        last_name: formData.last_name
       }
+      
+      // Add password if provided, otherwise backend will generate one
+      if (formData.password) {
+        dataObject.password = formData.password
+      }
+      
       if (formData.property_id && formData.property_id !== 'none') {
         dataObject.property_id = formData.property_id
       }
 
       // Use the createManager method from API service
-      await api.hr.createManager(dataObject)
-
-      toast({
-        title: "Success",
-        description: "Manager created successfully"
-      })
+      const response = await api.hr.createManager(dataObject)
+      
+      // Check if response contains temporary password
+      const responseData = response.data as CreateManagerResponse['data']
+      if (responseData?.temporary_password) {
+        // Show password modal
+        setTemporaryPassword(responseData.temporary_password)
+        setCreatedManagerEmail(responseData.email)
+        setPasswordCopied(false)
+        setIsPasswordModalOpen(true)
+      } else {
+        // Fallback to simple success message if no password returned
+        toast({
+          title: "Success",
+          description: "Manager created successfully"
+        })
+      }
 
       setIsCreateDialogOpen(false)
       setFormData({
@@ -307,9 +347,70 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
     }
   }
 
+  const handleCopyPassword = () => {
+    navigator.clipboard.writeText(temporaryPassword).then(() => {
+      setPasswordCopied(true)
+      toast({
+        title: "Password Copied",
+        description: "The temporary password has been copied to your clipboard"
+      })
+      // Reset copy status after 3 seconds
+      setTimeout(() => setPasswordCopied(false), 3000)
+    }).catch(() => {
+      toast({
+        title: "Error",
+        description: "Failed to copy password to clipboard",
+        variant: "destructive"
+      })
+    })
+  }
+
+  const handleAssignProperty = async () => {
+    if (!selectedManagerForAssignment || !selectedPropertyForAssignment) return
+
+    try {
+      await api.hr.assignManager(selectedManagerForAssignment.id, selectedPropertyForAssignment)
+      
+      toast({
+        title: "Success",
+        description: "Property assigned successfully"
+      })
+
+      setIsAssignPropertyDialogOpen(false)
+      setSelectedManagerForAssignment(null)
+      setSelectedPropertyForAssignment('')
+      fetchManagers()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to assign property",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleRemoveProperty = async (managerId: string, propertyId: string) => {
+    try {
+      await api.hr.removeManagerFromProperty(propertyId, managerId)
+      
+      toast({
+        title: "Success",
+        description: "Property removed successfully"
+      })
+
+      fetchManagers()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.detail || "Failed to remove property",
+        variant: "destructive"
+      })
+    }
+  }
+
   const openEditDialog = (manager: Manager) => {
     console.log('Opening edit dialog for manager:', manager)
-    console.log('Manager property_id:', manager.property_id)
+    console.log('Manager properties:', manager.properties)
     console.log('Available properties:', properties)
     
     setEditingManager(manager)
@@ -317,7 +418,7 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
       email: manager.email,
       first_name: manager.first_name || '',
       last_name: manager.last_name || '',
-      property_id: manager.property_id || 'none',
+      property_id: manager.properties?.[0]?.id || 'none',
       password: ''
     }
     console.log('Setting initial form data:', initialFormData)
@@ -325,15 +426,21 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
     setIsEditDialogOpen(true)
   }
 
+  const openAssignPropertyDialog = (manager: Manager) => {
+    setSelectedManagerForAssignment(manager)
+    setSelectedPropertyForAssignment('')
+    setIsAssignPropertyDialogOpen(true)
+  }
+
   const filteredManagers = managers.filter(manager => {
     const matchesSearch = 
       manager.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       `${manager.first_name} ${manager.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      manager.property_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      manager.properties.some(prop => prop.name.toLowerCase().includes(searchTerm.toLowerCase()))
     
     const matchesProperty = selectedProperty === 'all' || 
-      (selectedProperty === 'unassigned' && !manager.property_id) ||
-      manager.property_id === selectedProperty
+      (selectedProperty === 'unassigned' && manager.properties.length === 0) ||
+      manager.properties.some(prop => prop.id === selectedProperty)
 
     return matchesSearch && matchesProperty
   })
@@ -369,9 +476,9 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
             <div className="flex items-center space-x-2">
               <Building className="h-5 w-5 text-green-500" />
               <div>
-                <p className="text-sm text-gray-600">Assigned Properties</p>
+                <p className="text-sm text-gray-600">Managers with Properties</p>
                 <p className="text-2xl font-bold">
-                  {managers.filter(m => m.property_id).length}
+                  {managers.filter(m => m.properties && m.properties.length > 0).length}
                 </p>
               </div>
             </div>
@@ -434,14 +541,17 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
                   </div>
                   
                   <div>
-                    <Label htmlFor="password">Password *</Label>
+                    <Label htmlFor="password">Password (Optional)</Label>
                     <Input
                       id="password"
                       type="password"
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      required
+                      placeholder="Leave blank to auto-generate"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      If left blank, a temporary password will be generated
+                    </p>
                   </div>
                   
                   <div>
@@ -597,10 +707,18 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
                       <TableCell>{manager.email}</TableCell>
                       
                       <TableCell>
-                        {manager.property_name ? (
-                          <div className="flex items-center space-x-1">
-                            <Building className="h-4 w-4 text-blue-500" />
-                            <span>{manager.property_name}</span>
+                        {manager.properties && manager.properties.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {manager.properties.map((property) => (
+                              <Badge 
+                                key={property.id} 
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                <Building className="h-3 w-3 mr-1" />
+                                {property.name}
+                              </Badge>
+                            ))}
                           </div>
                         ) : (
                           <Badge variant="outline">Unassigned</Badge>
@@ -631,6 +749,15 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
                                 title="Edit Manager"
                               >
                                 <Edit className="h-4 w-4" />
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openAssignPropertyDialog(manager)}
+                                title="Assign Property"
+                              >
+                                <Building className="h-4 w-4" />
                               </Button>
                               
                               <AlertDialog>
@@ -694,6 +821,146 @@ export default function ManagersTab({ onStatsUpdate = () => {} }: ManagersTabPro
           </div>
         </CardContent>
       </Card>
+
+      {/* Password Display Modal */}
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              Manager Created Successfully!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <Alert className="border-amber-200 bg-amber-50">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-900">
+                <strong>Important:</strong> Please save this password. It will not be shown again.
+                The manager must change this password on first login.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label className="text-sm text-gray-600">Email:</Label>
+                <span className="font-medium">{createdManagerEmail}</span>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm text-gray-600">Temporary Password:</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={temporaryPassword} 
+                    readOnly 
+                    className="font-mono bg-gray-50"
+                    type="text"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={handleCopyPassword}
+                    className={passwordCopied ? "bg-green-50" : ""}
+                  >
+                    {passwordCopied ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="mt-6">
+            <Button onClick={() => setIsPasswordModalOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Property Dialog */}
+      <Dialog open={isAssignPropertyDialogOpen} onOpenChange={setIsAssignPropertyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Property to Manager</DialogTitle>
+            <DialogDescription>
+              Select a property to assign to {selectedManagerForAssignment?.first_name} {selectedManagerForAssignment?.last_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedManagerForAssignment && (
+            <div className="space-y-4 mt-4">
+              {/* Show currently assigned properties */}
+              {selectedManagerForAssignment.properties.length > 0 && (
+                <div>
+                  <Label className="text-sm text-gray-600">Currently Assigned:</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedManagerForAssignment.properties.map((prop) => (
+                      <Badge key={prop.id} variant="secondary">
+                        {prop.name}
+                        <button
+                          onClick={() => handleRemoveProperty(selectedManagerForAssignment.id, prop.id)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                          title="Remove property"
+                        >
+                          ×
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Property selection dropdown */}
+              <div>
+                <Label htmlFor="assign_property">Select Property to Add</Label>
+                <Select 
+                  value={selectedPropertyForAssignment} 
+                  onValueChange={setSelectedPropertyForAssignment}
+                  disabled={propertiesLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      propertiesLoading 
+                        ? "Loading properties..." 
+                        : "Select a property"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {properties
+                      .filter(prop => !selectedManagerForAssignment.properties.some(p => p.id === prop.id))
+                      .map((property) => (
+                        <SelectItem key={property.id} value={property.id}>
+                          {property.name} - {property.city}, {property.state}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setIsAssignPropertyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAssignProperty}
+              disabled={!selectedPropertyForAssignment}
+            >
+              Assign Property
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Manager Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

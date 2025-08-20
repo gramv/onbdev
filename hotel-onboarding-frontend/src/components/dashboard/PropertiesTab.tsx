@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
@@ -12,6 +11,7 @@ import { Plus, Edit, Trash2, QrCode, Search, MapPin, Phone, Users, ArrowUpDown, 
 import api from '@/services/api'
 import { PropertyForm } from './PropertyForm'
 import { QRCodeDisplay, QRCodeCard } from '@/components/ui/qr-code-display'
+import { SmartDeleteDialog } from './SmartDeleteDialog'
 import { Label } from '@radix-ui/react-label'
 
 interface Property {
@@ -74,6 +74,9 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
     phone: ''
   })
   const [submitting, setSubmitting] = useState(false)
+  const [deletingPropertyId, setDeletingPropertyId] = useState<string | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [selectedPropertyForDelete, setSelectedPropertyForDelete] = useState<Property | null>(null)
   const { toast } = useToast()
   
 
@@ -88,17 +91,33 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
 
   const fetchProperties = async () => {
     try {
+      console.log('Fetching properties...')
       const response = await api.hr.getProperties()
       // API service handles response unwrapping
-      setProperties(Array.isArray(response.data) ? response.data : [])
+      const propertiesData = Array.isArray(response.data) ? response.data : []
+      console.log(`Fetched ${propertiesData.length} properties`)
+      setProperties(propertiesData)
       onStatsUpdate()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching properties:', error)
+      
+      let errorMessage = "Failed to fetch properties"
+      if (error.response?.status === 401) {
+        errorMessage = "Session expired. Please log in again."
+      } else if (error.response?.status === 403) {
+        errorMessage = "You don't have permission to view properties."
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to fetch properties",
+        description: errorMessage,
         variant: "destructive"
       })
+      
+      // Set empty array on error to prevent undefined errors
+      setProperties([])
     } finally {
       setLoading(false)
     }
@@ -122,41 +141,62 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
     setSubmitting(true)
 
     try {
-      // Send as URL-encoded form data for consistent backend processing
-      const params = new URLSearchParams()
-      params.append('name', formData.name)
-      params.append('address', formData.address)
-      params.append('city', formData.city)
-      params.append('state', formData.state)
-      params.append('zip_code', formData.zip_code)
-      params.append('phone', formData.phone)
+      // Validate form data before sending
+      if (!formData.name || !formData.address || !formData.city || !formData.state || !formData.zip_code) {
+        throw new Error('Please fill in all required fields')
+      }
 
-      await api.hr.createProperty(Object.fromEntries(params))
+      // Clean and prepare the data
+      const propertyData = {
+        name: formData.name.trim(),
+        address: formData.address.trim(),
+        city: formData.city.trim(),
+        state: formData.state.trim().toUpperCase(),
+        zip_code: formData.zip_code.trim(),
+        phone: formData.phone.trim() || ''
+      }
+
+      // Log the request for debugging
+      console.log('Creating property with data:', propertyData)
+
+      const response = await api.hr.createProperty(propertyData)
 
       toast({
         title: "Success",
-        description: "Property created successfully"
+        description: `Property "${propertyData.name}" created successfully`
       })
 
       setIsCreateDialogOpen(false)
       resetForm()
-      fetchProperties()
+      await fetchProperties() // Wait for fetch to complete
     } catch (error: any) {
       console.error('Error creating property:', error)
 
       let errorMessage = "Failed to create property"
 
-      if (error.response?.data?.detail) {
+      if (error.message) {
+        errorMessage = error.message
+      } else if (error.response?.data?.detail) {
         if (Array.isArray(error.response.data.detail)) {
           // Handle FastAPI validation errors
-          errorMessage = error.response.data.detail.map((err: any) => err.msg).join(', ')
+          const validationErrors = error.response.data.detail.map((err: any) => {
+            // Format field names nicely
+            const field = err.loc?.[err.loc.length - 1] || 'field'
+            const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+            return `${fieldName}: ${err.msg}`
+          })
+          errorMessage = validationErrors.join(', ')
         } else if (typeof error.response.data.detail === 'string') {
           errorMessage = error.response.data.detail
         }
+      } else if (error.response?.status === 500) {
+        errorMessage = "Server error. Please check if all fields are correctly filled and try again."
+      } else if (error.response?.status === 400) {
+        errorMessage = "Invalid data. Please check your input and try again."
       }
 
       toast({
-        title: "Error",
+        title: "Error Creating Property",
         description: errorMessage,
         variant: "destructive"
       })
@@ -172,42 +212,65 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
     setSubmitting(true)
 
     try {
-      // Use URLSearchParams for consistent form encoding (same as create)
-      const params = new URLSearchParams()
-      params.append('name', formData.name)
-      params.append('address', formData.address)
-      params.append('city', formData.city)
-      params.append('state', formData.state)
-      params.append('zip_code', formData.zip_code)
-      params.append('phone', formData.phone)
+      // Validate form data before sending
+      if (!formData.name || !formData.address || !formData.city || !formData.state || !formData.zip_code) {
+        throw new Error('Please fill in all required fields')
+      }
 
-      await api.hr.updateProperty(editingProperty.id, Object.fromEntries(params))
+      // Clean and prepare the data
+      const propertyData = {
+        name: formData.name.trim(),
+        address: formData.address.trim(),
+        city: formData.city.trim(),
+        state: formData.state.trim().toUpperCase(),
+        zip_code: formData.zip_code.trim(),
+        phone: formData.phone.trim() || ''
+      }
+
+      // Log the request for debugging
+      console.log('Updating property with data:', propertyData)
+
+      await api.hr.updateProperty(editingProperty.id, propertyData)
 
       toast({
         title: "Success",
-        description: "Property updated successfully"
+        description: `Property "${propertyData.name}" updated successfully`
       })
 
       setIsEditDialogOpen(false)
       setEditingProperty(null)
       resetForm()
-      fetchProperties()
+      await fetchProperties() // Wait for fetch to complete
     } catch (error: any) {
       console.error('Error updating property:', error)
 
       let errorMessage = "Failed to update property"
 
-      if (error.response?.data?.detail) {
+      if (error.message) {
+        errorMessage = error.message
+      } else if (error.response?.data?.detail) {
         if (Array.isArray(error.response.data.detail)) {
           // Handle FastAPI validation errors
-          errorMessage = error.response.data.detail.map((err: any) => err.msg).join(', ')
+          const validationErrors = error.response.data.detail.map((err: any) => {
+            // Format field names nicely
+            const field = err.loc?.[err.loc.length - 1] || 'field'
+            const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+            return `${fieldName}: ${err.msg}`
+          })
+          errorMessage = validationErrors.join(', ')
         } else if (typeof error.response.data.detail === 'string') {
           errorMessage = error.response.data.detail
         }
+      } else if (error.response?.status === 500) {
+        errorMessage = "Server error. Please check if all fields are correctly filled and try again."
+      } else if (error.response?.status === 404) {
+        errorMessage = "Property not found. It may have been deleted."
+        // Refresh the list as the property no longer exists
+        await fetchProperties()
       }
 
       toast({
-        title: "Error",
+        title: "Error Updating Property",
         description: errorMessage,
         variant: "destructive"
       })
@@ -217,18 +280,24 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
   }
 
   const handleDeleteProperty = async (propertyId: string) => {
+    // Show loading state on the delete button if needed
+    const propertyToDelete = properties.find(p => p.id === propertyId)
+    const propertyName = propertyToDelete?.name || 'property'
+
     try {
+      console.log('Deleting property:', propertyId)
+      
       const response = await api.hr.deleteProperty(propertyId)
 
       // Check if the response contains a detail about manager unassignment
-      const message = response.data?.detail || "Property deleted successfully"
+      const message = response.data?.detail || `Property "${propertyName}" deleted successfully`
       
       toast({
         title: "Success",
         description: message
       })
 
-      fetchProperties()
+      await fetchProperties() // Wait for fetch to complete
     } catch (error: any) {
       console.error('Error deleting property:', error)
 
@@ -242,9 +311,17 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
           
           // Provide more helpful guidance for specific errors
           if (errorMessage.includes("active applications or employees")) {
-            errorMessage += ". Please ensure all applications are processed and employees are inactive before deleting."
+            errorMessage = `Cannot delete "${propertyName}" because it has active applications or employees. Please ensure all applications are processed and employees are reassigned or made inactive before deleting.`
+          } else if (errorMessage.includes("has managers assigned")) {
+            errorMessage = `Cannot delete "${propertyName}" because it has managers assigned. Please unassign all managers first.`
           }
         }
+      } else if (error.response?.status === 404) {
+        errorMessage = "Property not found. It may have already been deleted."
+        // Refresh the list as the property no longer exists
+        await fetchProperties()
+      } else if (error.response?.status === 500) {
+        errorMessage = "Server error occurred while deleting the property. Please try again."
       }
 
       toast({
@@ -539,42 +616,17 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
                           onRegenerate={fetchProperties}
                           showRegenerateButton={true}
                         />
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" title="Delete Property">
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Property</AlertDialogTitle>
-                              <AlertDialogDescription asChild>
-                                <div className="space-y-2">
-                                  <div>Are you sure you want to delete "{property.name}"?</div>
-                                  <div className="text-yellow-600 font-medium">⚠️ Warning: This will:</div>
-                                  <ul className="list-disc list-inside text-sm space-y-1 ml-4">
-                                    <li>Remove all manager assignments from this property</li>
-                                    <li>Clear property references from bulk operations</li>
-                                    <li>Delete the property permanently</li>
-                                    <li>This action cannot be undone</li>
-                                  </ul>
-                                  <div className="text-red-600 text-sm mt-2">
-                                    Note: Properties with active applications or employees cannot be deleted.
-                                  </div>
-                                </div>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteProperty(property.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          title="Delete Property"
+                          onClick={() => {
+                            setSelectedPropertyForDelete(property)
+                            setDeleteDialogOpen(true)
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -604,6 +656,22 @@ function PropertiesTab({ onStatsUpdate = () => {} }: PropertiesTabProps) {
           </DialogContent>
         </Dialog>
 
+        {/* Smart Delete Dialog */}
+        {selectedPropertyForDelete && (
+          <SmartDeleteDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            propertyId={selectedPropertyForDelete.id}
+            propertyName={selectedPropertyForDelete.name}
+            onDelete={async () => {
+              await handleDeleteProperty(selectedPropertyForDelete.id)
+            }}
+            onSuccess={() => {
+              setSelectedPropertyForDelete(null)
+              fetchProperties()
+            }}
+          />
+        )}
 
       </CardContent>
     </Card>

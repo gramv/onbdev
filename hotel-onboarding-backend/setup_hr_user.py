@@ -15,19 +15,17 @@ load_dotenv('.env.test')
 # Get Supabase credentials
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
-SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
 
-if not SUPABASE_URL or not (SUPABASE_ANON_KEY or SUPABASE_SERVICE_KEY):
+if not SUPABASE_URL or not SUPABASE_ANON_KEY:
     print("Error: Missing Supabase credentials in .env.test")
     exit(1)
 
-# Use service key if available, otherwise anon key
-supabase_key = SUPABASE_SERVICE_KEY if SUPABASE_SERVICE_KEY else SUPABASE_ANON_KEY
-supabase: Client = create_client(SUPABASE_URL, supabase_key)
+# Use the anon key from .env.test
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 def hash_password(password: str) -> str:
-    """Hash a password using bcrypt"""
-    salt = bcrypt.gensalt()
+    """Hash a password using bcrypt with salt rounds 12"""
+    salt = bcrypt.gensalt(rounds=12)
     hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed.decode('utf-8')
 
@@ -44,7 +42,7 @@ async def setup_hr_user():
         if result.data:
             # Update existing user
             print("HR user exists. Updating password...")
-            hashed_password = hash_password('Test123!@#')
+            hashed_password = hash_password('Test1234!')
             
             update_result = supabase.table('users').update({
                 'password_hash': hashed_password,
@@ -57,14 +55,14 @@ async def setup_hr_user():
             if update_result.data:
                 print("✅ HR user password updated successfully")
                 print(f"   Email: hr@demo.com")
-                print(f"   Password: Test123!@#")
+                print(f"   Password: Test1234!")
                 print(f"   Role: hr")
             else:
                 print("❌ Failed to update HR user")
         else:
             # Create new HR user
             print("Creating new HR user...")
-            hashed_password = hash_password('Test123!@#')
+            hashed_password = hash_password('Test1234!')
             
             new_user = {
                 'email': 'hr@demo.com',
@@ -80,7 +78,7 @@ async def setup_hr_user():
             if insert_result.data:
                 print("✅ HR user created successfully")
                 print(f"   Email: hr@demo.com")
-                print(f"   Password: Test123!@#")
+                print(f"   Password: Test1234!")
                 print(f"   Role: hr")
             else:
                 print("❌ Failed to create HR user")

@@ -27,6 +27,21 @@ export default function LoginPage() {
     }
   }, [urlReturnUrl, returnUrl, setReturnUrl])
 
+  // Listen for navigation events from AuthContext
+  useEffect(() => {
+    const handleAuthNavigate = (event: CustomEvent) => {
+      const path = event.detail?.path
+      if (path) {
+        navigate(path, { replace: true })
+      }
+    }
+
+    window.addEventListener('auth:navigate', handleAuthNavigate as EventListener)
+    return () => {
+      window.removeEventListener('auth:navigate', handleAuthNavigate as EventListener)
+    }
+  }, [navigate])
+
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {

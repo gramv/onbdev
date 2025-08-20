@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, loading, isAuthenticated, setReturnUrl } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
 
   // Set return URL when user is not authenticated
   useEffect(() => {
@@ -83,14 +84,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
             <div className="space-y-3">
               <Button 
-                onClick={() => window.location.href = user.role === 'hr' ? '/hr' : '/manager'}
+                onClick={() => navigate(user.role === 'hr' ? '/hr' : '/manager')}
                 className="w-full"
               >
                 Go to My Dashboard
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/login'}
+                onClick={() => navigate('/login')}
                 className="w-full"
               >
                 Switch Account

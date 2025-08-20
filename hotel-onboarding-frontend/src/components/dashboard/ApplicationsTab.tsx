@@ -66,10 +66,18 @@ interface OutletContext {
 }
 
 export function ApplicationsTab({ userRole: propUserRole, propertyId: propPropertyId, onStatsUpdate: propOnStatsUpdate }: ApplicationsTabProps) {
-  const outletContext = useOutletContext<OutletContext>()
+  // Safely get outlet context without causing hook errors
+  let outletContext: OutletContext | undefined
+  try {
+    outletContext = useOutletContext<OutletContext>()
+  } catch (error) {
+    // Context might not be available when navigating directly
+    console.log('ApplicationsTab: No outlet context available')
+  }
+  
   const userRole = propUserRole || outletContext?.userRole || 'hr'
   const propertyId = propPropertyId || outletContext?.propertyId
-  const currentProperty = (outletContext as any)?.property
+  const currentProperty = outletContext?.property
   const onStatsUpdate = propOnStatsUpdate || outletContext?.onStatsUpdate || (() => {})
   const { user, token } = useAuth()
   const [applications, setApplications] = useState<JobApplication[]>([])
@@ -129,8 +137,8 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       setLoading(true)
       // Use different endpoints based on user role
       const endpoint = userRole === 'hr' 
-        ? '/hr/applications'
-        : '/manager/applications'
+        ? '/api/hr/applications'
+        : '/api/manager/applications'
       
       console.log('🔍 Fetching applications:', {
         userRole,
@@ -334,7 +342,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
       console.log('🚀 Making approval request to:', `/applications/${selectedApplication.id}/approve`)
       
-      const response = await apiClient.post(`/applications/${selectedApplication.id}/approve`, formData, {
+      const response = await apiClient.post(`/api/applications/${selectedApplication.id}/approve`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -421,7 +429,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       const formData = new FormData()
       formData.append('rejection_reason', rejectionReason.trim())
 
-      const response = await axios.post(`/applications/${selectedApplication.id}/reject`, formData, {
+      const response = await axios.post(`/api/applications/${selectedApplication.id}/reject`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

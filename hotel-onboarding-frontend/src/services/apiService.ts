@@ -119,7 +119,7 @@ class APIService {
 
   async getManagers(): Promise<any[]> {
     try {
-      const data = await this.makeRequest<any>('/hr/managers')
+      const data = await this.makeRequest<any>('/api/hr/managers')
       const managersList = Array.isArray(data) ? data : []
 
       // Normalize to first assigned property for legacy consumers; preserve list via properties
@@ -146,7 +146,7 @@ class APIService {
 
   async getApplications(): Promise<any[]> {
     try {
-      const data = await this.makeRequest<any>('/manager/applications')
+      const data = await this.makeRequest<any>('/api/manager/applications')
       return Array.isArray(data) ? data : []
     } catch (error) {
       console.error('Error fetching applications:', error)
@@ -183,12 +183,12 @@ class APIService {
   }
 
   async refreshManagers(): Promise<any[]> {
-    this.clearCache('/hr/managers')
+    this.clearCache('/api/hr/managers')
     return this.getManagers()
   }
 
   async refreshApplications(): Promise<any[]> {
-    this.clearCache('/manager/applications')
+    this.clearCache('/api/manager/applications')
     return this.getApplications()
   }
 

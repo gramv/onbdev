@@ -618,29 +618,35 @@ async def get_manager_applications(
 
 @app.get("/api/hr/dashboard-stats", response_model=DashboardStatsResponse)
 async def get_hr_dashboard_stats(current_user: User = Depends(require_hr_role)):
-    """Get dashboard statistics for HR using Supabase - system-wide statistics (all properties)"""
+    """Get dashboard statistics for HR - optimized single query approach"""
     try:
-        # Get system-wide counts from Supabase (all properties)
-        total_properties = await supabase_service.get_properties_count()
-        total_managers = await supabase_service.get_managers_count()
-        total_employees = await supabase_service.get_employees_count()
-        pending_applications = await supabase_service.get_pending_applications_count()
+        # Use parallel queries for faster response
+        import asyncio
         
-        # Get additional system-wide statistics
-        approved_applications = await supabase_service.get_approved_applications_count()
-        total_applications = await supabase_service.get_total_applications_count()
-        active_employees = await supabase_service.get_active_employees_count()
-        onboarding_in_progress = await supabase_service.get_onboarding_in_progress_count()
+        # Create all count queries in parallel
+        tasks = [
+            supabase_service.get_properties_count(),
+            supabase_service.get_managers_count(),
+            supabase_service.get_employees_count(),
+            supabase_service.get_pending_applications_count(),
+            supabase_service.get_approved_applications_count(),
+            supabase_service.get_total_applications_count(),
+            supabase_service.get_active_employees_count(),
+            supabase_service.get_onboarding_in_progress_count()
+        ]
+        
+        # Execute all queries in parallel
+        results = await asyncio.gather(*tasks)
         
         stats_data = DashboardStatsData(
-            totalProperties=total_properties,
-            totalManagers=total_managers,
-            totalEmployees=total_employees,
-            pendingApplications=pending_applications,
-            approvedApplications=approved_applications,
-            totalApplications=total_applications,
-            activeEmployees=active_employees,
-            onboardingInProgress=onboarding_in_progress
+            totalProperties=results[0],
+            totalManagers=results[1],
+            totalEmployees=results[2],
+            pendingApplications=results[3],
+            approvedApplications=results[4],
+            totalApplications=results[5],
+            activeEmployees=results[6],
+            onboardingInProgress=results[7]
         )
         
         return success_response(
@@ -789,17 +795,89 @@ async def update_property(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update property: {str(e)}")
 
-@app.delete("/api/hr/properties/{id}")
-async def delete_property(
+@app.get("/api/hr/properties/{id}/can-delete")
+async def check_property_deletion(
     id: str,
     current_user: User = Depends(require_hr_role)
 ):
-    """Delete a property (HR only) using Supabase"""
+    """Check if a property can be deleted and return blocking reasons"""
     try:
         # Check if property exists
         property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
             raise HTTPException(status_code=404, detail="Property not found")
+        
+        # Check for dependencies
+        applications = await supabase_service.get_applications_by_property(id)
+        employees = await supabase_service.get_employees_by_property(id)
+        
+        # Get managers assigned to this property
+        managers_response = supabase_service.client.table('property_managers').select('*, manager:users!property_managers_manager_id_fkey(id, email, first_name, last_name)').eq('property_id', id).execute()
+        assigned_managers = []
+        for pm in managers_response.data:
+            if pm.get('manager'):
+                manager_info = pm['manager']
+                assigned_managers.append({
+                    'id': manager_info['id'],
+                    'email': manager_info['email'],
+                    'name': f"{manager_info.get('first_name', '')} {manager_info.get('last_name', '')}".strip() or manager_info['email']
+                })
+        
+        # Count blockers
+        active_applications = [app for app in applications if app.status == "pending"]
+        active_employees = [emp for emp in employees if emp.employment_status == "active"]
+        
+        can_delete = len(active_applications) == 0 and len(active_employees) == 0
+        
+        # Get other properties for reassignment suggestions
+        all_properties_response = supabase_service.client.table('properties').select('id, name').eq('is_active', True).execute()
+        other_properties = [
+            {'id': p['id'], 'name': p['name']} 
+            for p in all_properties_response.data 
+            if p['id'] != id
+        ][:5]  # Limit to 5 suggestions
+        
+        return {
+            "canDelete": can_delete,
+            "property": {
+                "id": property_obj.id,
+                "name": property_obj.name
+            },
+            "blockers": {
+                "managers": assigned_managers,
+                "activeEmployees": len(active_employees),
+                "pendingApplications": len(active_applications),
+                "totalApplications": len(applications),
+                "totalEmployees": len(employees)
+            },
+            "suggestions": {
+                "autoUnassign": len(assigned_managers) > 0,
+                "reassignToProperties": other_properties[:5]  # Show top 5 properties for reassignment
+            },
+            "message": "Property can be deleted safely" if can_delete else 
+                      f"Cannot delete: {len(active_applications)} pending applications and {len(active_employees)} active employees must be handled first"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking property deletion: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check property deletion: {str(e)}")
+
+@app.delete("/api/hr/properties/{id}")
+async def delete_property(
+    id: str,
+    auto_unassign: bool = True,  # Default to auto-unassign managers
+    current_user: User = Depends(require_hr_role)
+):
+    """Delete a property (HR only) with smart dependency handling"""
+    try:
+        # Check if property exists
+        property_obj = supabase_service.get_property_by_id_sync(id)
+        if not property_obj:
+            raise HTTPException(status_code=404, detail="Property not found")
+        
+        property_name = property_obj.name
         
         # Check for active applications or employees
         applications = await supabase_service.get_applications_by_property(id)
@@ -809,17 +887,36 @@ async def delete_property(
         active_employees = [emp for emp in employees if emp.employment_status == "active"]
         
         if active_applications or active_employees:
+            # Provide detailed error message
+            error_details = []
+            if active_applications:
+                error_details.append(f"{len(active_applications)} pending application(s)")
+            if active_employees:
+                error_details.append(f"{len(active_employees)} active employee(s)")
+            
             raise HTTPException(
                 status_code=400,
-                detail="Cannot delete property with active applications or employees"
+                detail=f"Cannot delete '{property_name}': Has {' and '.join(error_details)}. Please resolve these first."
             )
+        
+        # Track what we're unassigning for the response
+        unassigned_managers = []
+        
+        # First, get the managers that will be unassigned
+        if auto_unassign:
+            managers_response = supabase_service.client.table('property_managers').select('*, manager:users!property_managers_manager_id_fkey(email, first_name, last_name)').eq('property_id', id).execute()
+            for pm in managers_response.data:
+                if pm.get('manager'):
+                    manager_info = pm['manager']
+                    unassigned_managers.append(manager_info['email'])
         
         # First, unassign all managers from this property
         # This handles the foreign key constraint from property_managers table
         try:
             # Delete all property_manager assignments for this property
-            supabase_service.client.table('property_managers').delete().eq('property_id', id).execute()
-            logger.info(f"Removed all manager assignments for property {id}")
+            result = supabase_service.client.table('property_managers').delete().eq('property_id', id).execute()
+            if result.data:
+                logger.info(f"Removed {len(result.data)} manager assignments for property {id}")
         except Exception as e:
             logger.warning(f"Failed to remove manager assignments: {e}")
         
@@ -847,12 +944,114 @@ async def delete_property(
         if not result.data:
             raise HTTPException(status_code=500, detail="Failed to delete property")
         
-        return {"message": "Property deleted successfully", "detail": "All manager assignments have been removed"}
+        # Emit WebSocket event for real-time update
+        try:
+            await websocket_manager.broadcast(json.dumps({
+                "type": "property_deleted",
+                "data": {
+                    "property_id": id,
+                    "property_name": property_name,
+                    "unassigned_managers": unassigned_managers
+                }
+            }))
+        except Exception as e:
+            logger.warning(f"Failed to broadcast property deletion event: {e}")
+        
+        # Build detailed response message
+        detail_message = f"Property '{property_name}' deleted successfully."
+        if unassigned_managers:
+            detail_message += f" Unassigned {len(unassigned_managers)} manager(s): {', '.join(unassigned_managers)}"
+        
+        return {
+            "success": True,
+            "message": "Property deleted successfully",
+            "detail": detail_message,
+            "property": {
+                "id": id,
+                "name": property_name
+            },
+            "unassigned_managers": unassigned_managers
+        }
         
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete property: {str(e)}")
+
+@app.post("/api/hr/properties/{id}/qr-code")
+async def generate_property_qr_code(
+    id: str,
+    current_user: User = Depends(require_hr_or_manager_role)
+):
+    """Generate or regenerate QR code for property job applications"""
+    try:
+        # For managers, validate they have access to this property
+        if current_user.role == "manager":
+            access_controller = get_property_access_controller()
+            if not access_controller.validate_manager_property_access(current_user, id):
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Access denied: You don't have permission for this property"
+                )
+        
+        # Get property details
+        property_obj = await supabase_service.get_property_by_id(id)
+        if not property_obj:
+            raise HTTPException(status_code=404, detail="Property not found")
+        
+        # Generate QR code URL
+        import qrcode
+        import io
+        import base64
+        
+        # Create the application URL
+        frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+        application_url = f"{frontend_url}/apply/{id}"
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(application_url)
+        qr.make(fit=True)
+        
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convert to base64
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        img_str = base64.b64encode(buffer.getvalue()).decode()
+        qr_code_data_url = f"data:image/png;base64,{img_str}"
+        
+        # Update property with QR code
+        update_result = supabase_service.client.table('properties').update({
+            'qr_code_url': qr_code_data_url,
+            'updated_at': datetime.now(timezone.utc).isoformat()
+        }).eq('id', id).execute()
+        
+        if not update_result.data:
+            raise HTTPException(status_code=500, detail="Failed to update property QR code")
+        
+        return {
+            "success": True,
+            "data": {
+                "property_id": id,
+                "property_name": property_obj.name,
+                "application_url": application_url,
+                "qr_code_url": qr_code_data_url,
+                "printable_qr_url": qr_code_data_url
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to generate QR code: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate QR code: {str(e)}")
 
 @app.get("/api/hr/properties/{property_id}/stats")
 async def get_property_stats(
@@ -937,11 +1136,18 @@ async def get_property_managers(
 @app.post("/api/hr/properties/{id}/managers")
 async def assign_manager_to_property(
     id: str,
-    manager_id: str = Form(...),
+    request: Request,
     current_user: User = Depends(require_hr_role)
 ):
     """Assign a manager to a property (HR only) using Supabase"""
     try:
+        # Parse JSON body to get manager_id
+        body = await request.json()
+        manager_id = body.get("manager_id")
+        
+        if not manager_id:
+            raise HTTPException(status_code=400, detail="manager_id is required")
+        
         # Verify property exists
         property_obj = supabase_service.get_property_by_id_sync(id)
         if not property_obj:
@@ -2104,7 +2310,7 @@ async def create_manager(
     first_name: str = Form(...),
     last_name: str = Form(...),
     property_id: Optional[str] = Form(None),
-    password: str = Form(...),
+    password: Optional[str] = Form(None),  # Make password optional - will generate if not provided
     current_user: User = Depends(require_hr_role)
 ):
     """Create a new manager (HR only) using Supabase"""
@@ -2118,13 +2324,26 @@ async def create_manager(
         if not first_name.strip() or not last_name.strip():
             raise HTTPException(status_code=400, detail="First name and last name are required")
         
-        # Validate password strength
-        if len(password) < 8:
-            raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+        # Generate temporary password if not provided
+        if not password:
+            import secrets
+            import string
+            # Generate a secure temporary password
+            alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+            password = ''.join(secrets.choice(alphabet) for _ in range(12))
+            temporary_password = password  # Save for response
+        else:
+            # Validate provided password strength
+            if len(password) < 8:
+                raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+            temporary_password = None  # Don't return if user provided their own
         
         # Create manager user
         manager_id = str(uuid.uuid4())
-        password_hash = supabase_service.hash_password(password)
+        # Hash the password using bcrypt with 12 rounds
+        import bcrypt
+        salt = bcrypt.gensalt(rounds=12)
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
         
         manager_data = {
             "id": manager_id,
@@ -2143,6 +2362,23 @@ async def create_manager(
         
         if result.data:
             created_manager = result.data[0]
+            
+            # If property_id is provided, create the property_managers relationship
+            if property_id and property_id != 'none':
+                try:
+                    # Create property-manager relationship
+                    relationship_data = {
+                        "manager_id": manager_id,
+                        "property_id": property_id,
+                        "assigned_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    relationship_result = supabase_service.client.table('property_managers').insert(relationship_data).execute()
+                    
+                    if relationship_result.data:
+                        logger.info(f"Created property_managers relationship for manager {manager_id} and property {property_id}")
+                except Exception as e:
+                    logger.error(f"Failed to create property_managers relationship: {e}")
+                    # Don't fail the entire operation, but log the error
             
             # Get property name for email
             property_name = "Hotel Onboarding System"
@@ -2193,13 +2429,19 @@ async def create_manager(
                 logger.error(f"Failed to send manager welcome email: {e}")
                 # Don't fail the creation if email fails
             
-            # Assign to property if specified
+            # Assign to property if specified - create junction table entry
             if property_id and property_id != 'none':
                 try:
-                    # Fix: Correct parameter order (manager_id, property_id)
-                    success = await supabase_service.assign_manager_to_property(manager_id, property_id)
-                    if not success:
+                    # Create entry in property_managers junction table
+                    assignment_result = supabase_service.client.table('property_managers').insert({
+                        "manager_id": manager_id,
+                        "property_id": property_id,
+                        "assigned_at": datetime.now(timezone.utc).isoformat()
+                    }).execute()
+                    
+                    if not assignment_result.data:
                         # Manager created but property assignment failed
+                        logger.warning(f"Failed to create property_managers entry for manager {manager_id}")
                         return success_response(
                             data=created_manager,
                             message="Manager created successfully but property assignment failed. Please assign manually."
@@ -2211,8 +2453,14 @@ async def create_manager(
                         message="Manager created successfully but property assignment failed. Please assign manually."
                     )
             
+            # Prepare response with temporary password if generated
+            response_data = {
+                **created_manager,
+                "temporary_password": temporary_password if temporary_password else None
+            }
+            
             return success_response(
-                data=created_manager,
+                data=response_data,
                 message="Manager created successfully. Welcome email sent."
             )
         else:

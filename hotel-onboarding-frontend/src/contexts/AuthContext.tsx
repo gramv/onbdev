@@ -133,8 +133,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setReturnUrl(null)
         localStorage.removeItem('returnUrl')
         
-        // Navigate to return URL after successful login
-        window.location.href = targetReturnUrl
+        // For internal routes, use client-side navigation
+        // For external URLs, use window.location.href
+        if (targetReturnUrl.startsWith('/')) {
+          // Internal route - trigger navigation through a custom event
+          // The LoginPage component will handle this navigation
+          window.dispatchEvent(new CustomEvent('auth:navigate', { 
+            detail: { path: targetReturnUrl } 
+          }))
+        } else {
+          // External URL
+          window.location.href = targetReturnUrl
+        }
       }
       
     } catch (error) {

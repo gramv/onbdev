@@ -151,8 +151,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
     try {
       setExporting(true)
       const endpoint = userRole === 'hr' 
-        ? '/hr/analytics/export?format=json'
-        : '/manager/analytics/export?format=json'
+        ? '/api/hr/analytics/export?format=json'
+        : '/api/manager/analytics/export?format=json'
       const response = await apiClient.get(endpoint)
       
       // Create and download JSON file

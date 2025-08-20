@@ -11,6 +11,8 @@ export default defineConfig({
       "react": path.resolve(__dirname, "./node_modules/react"),
       "react-dom": path.resolve(__dirname, "./node_modules/react-dom"),
     },
+    // Dedupe React to prevent duplicate instances
+    dedupe: ['react', 'react-dom'],
   },
   server: {
     port: 3000,
@@ -32,33 +34,19 @@ export default defineConfig({
           });
         }
       },
+      // WebSocket proxy for real-time updates
+      '/ws': {
+        target: 'ws://localhost:8000',
+        ws: true,
+        changeOrigin: true,
+      },
       // Legacy endpoints - will be removed after backend migration
       '/auth': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path
       },
-      '/hr': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-      '/manager': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
       '/properties': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-      '/applications': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path
-      },
-      '/apply': {
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path
