@@ -6,7 +6,7 @@ Enhanced with standardized API response formats
 
 # Load environment variables FIRST, before any imports that might use them
 from dotenv import load_dotenv
-load_dotenv('.env.test', override=True)
+load_dotenv('.env', override=True)
 
 from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header, Body
 from fastapi.middleware.cors import CORSMiddleware

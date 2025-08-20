@@ -12,7 +12,7 @@ from email.mime.multipart import MIMEMultipart
 import aiosmtplib
 from dotenv import load_dotenv
 
-load_dotenv(".env.test")
+load_dotenv(".env")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
