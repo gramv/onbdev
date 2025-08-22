@@ -34,11 +34,16 @@ export default function AdditionalInformationStep({
 
   // Function to mark all required fields as touched
   const markAllFieldsTouched = () => {
-    const requiredFields = ['has_conviction']
+    const requiredFields = ['has_conviction', 'has_driving_denied', 'has_driving_issues']
     
     // Add reference fields if not checked "no reference"
     if (!formData.has_no_reference) {
       requiredFields.push('reference_name', 'reference_phone', 'reference_relationship', 'reference_years_known')
+    }
+    
+    // Add military fields if not checked "no military service"
+    if (!formData.has_no_military_service) {
+      requiredFields.push('military_branch', 'military_from_to', 'military_rank_duties', 'military_discharge_date')
     }
     
     // Add conditional required fields
@@ -78,7 +83,18 @@ export default function AdditionalInformationStep({
       isValid = false
     }
 
-    // Validate driving record questions if applicable
+    // Validate driving record questions - REQUIRED fields
+    if (!formData.has_driving_denied) {
+      errors.has_driving_denied = 'Please answer the driving license denial question'
+      isValid = false
+    }
+
+    if (!formData.has_driving_issues) {
+      errors.has_driving_issues = 'Please answer the driving license suspension/revocation question'
+      isValid = false
+    }
+
+    // Validate driving explanation if answered yes to either
     if ((formData.has_driving_denied === 'yes' || formData.has_driving_issues === 'yes') && !formData.driving_explanation) {
       errors.driving_explanation = t('jobApplication.steps.additionalInfo.validation.drivingExplanationRequired')
       isValid = false
@@ -100,6 +116,26 @@ export default function AdditionalInformationStep({
       }
       if (!formData.reference_years_known) {
         errors.reference_years_known = 'Years known is required'
+        isValid = false
+      }
+    }
+
+    // Validate military fields (unless has_no_military_service is checked)
+    if (!formData.has_no_military_service) {
+      if (!formData.military_branch) {
+        errors.military_branch = 'Military branch is required'
+        isValid = false
+      }
+      if (!formData.military_from_to) {
+        errors.military_from_to = 'Service dates are required'
+        isValid = false
+      }
+      if (!formData.military_rank_duties) {
+        errors.military_rank_duties = 'Rank and duties are required'
+        isValid = false
+      }
+      if (!formData.military_discharge_date) {
+        errors.military_discharge_date = 'Discharge date is required'
         isValid = false
       }
     }
@@ -132,7 +168,7 @@ export default function AdditionalInformationStep({
           <CardTitle className="flex items-center text-lg">
             <Car className="w-5 h-5 mr-2" />
             {t('jobApplication.steps.additionalInfo.conviction.title')}
-            <sup className="text-blue-600 text-sm ml-1">*</sup>
+            <sup className="text-blue-600 text-sm ml-1">†</sup>
           </CardTitle>
           <p className="text-sm font-semibold text-gray-700 mt-2">
             {t('jobApplication.steps.additionalInfo.conviction.notice')}
@@ -193,7 +229,7 @@ export default function AdditionalInformationStep({
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>{t('jobApplication.steps.additionalInfo.conviction.licenseDenied')}</Label>
+                <Label>{t('jobApplication.steps.additionalInfo.conviction.licenseDenied')} *</Label>
                 <RadioGroup 
                   value={formData.has_driving_denied || ''} 
                   onValueChange={(value) => handleInputChange('has_driving_denied', value)}
@@ -207,10 +243,13 @@ export default function AdditionalInformationStep({
                     <Label htmlFor="driving_denied_no" className="font-normal">{t('common.no')}</Label>
                   </div>
                 </RadioGroup>
+                {getError('has_driving_denied') && (
+                  <p className="text-sm text-red-600">{getError('has_driving_denied')}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label>{t('jobApplication.steps.additionalInfo.conviction.licenseSuspended')}</Label>
+                <Label>{t('jobApplication.steps.additionalInfo.conviction.licenseSuspended')} *</Label>
                 <RadioGroup 
                   value={formData.has_driving_issues || ''} 
                   onValueChange={(value) => handleInputChange('has_driving_issues', value)}
@@ -409,45 +448,61 @@ export default function AdditionalInformationStep({
           {!hasNoMilitaryService && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="military_branch">{t('jobApplication.steps.additionalInfo.military.branch')}</Label>
+              <Label htmlFor="military_branch">{t('jobApplication.steps.additionalInfo.military.branch')} *</Label>
               <Input
                 id="military_branch"
                 value={formData.military_branch || ''}
                 onChange={(e) => handleInputChange('military_branch', e.target.value)}
+                className={getError('military_branch') ? 'border-red-500' : ''}
                 placeholder={t('jobApplication.steps.additionalInfo.placeholders.militaryBranch')}
               />
+              {getError('military_branch') && (
+                <p className="text-sm text-red-600">{getError('military_branch')}</p>
+              )}
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="military_from_to">{t('jobApplication.steps.additionalInfo.military.fromTo')}</Label>
+              <Label htmlFor="military_from_to">{t('jobApplication.steps.additionalInfo.military.fromTo')} *</Label>
               <Input
                 id="military_from_to"
                 value={formData.military_from_to || ''}
                 onChange={(e) => handleInputChange('military_from_to', e.target.value)}
+                className={getError('military_from_to') ? 'border-red-500' : ''}
                 placeholder="MM/YYYY - MM/YYYY"
               />
+              {getError('military_from_to') && (
+                <p className="text-sm text-red-600">{getError('military_from_to')}</p>
+              )}
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="military_rank_duties">{t('jobApplication.steps.additionalInfo.military.rankDuties')}</Label>
+              <Label htmlFor="military_rank_duties">{t('jobApplication.steps.additionalInfo.military.rankDuties')} *</Label>
               <Textarea
                 id="military_rank_duties"
                 value={formData.military_rank_duties || ''}
                 onChange={(e) => handleInputChange('military_rank_duties', e.target.value)}
+                className={getError('military_rank_duties') ? 'border-red-500' : ''}
                 placeholder={t('jobApplication.steps.additionalInfo.placeholders.militaryRankDuties')}
                 rows={2}
               />
+              {getError('military_rank_duties') && (
+                <p className="text-sm text-red-600">{getError('military_rank_duties')}</p>
+              )}
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="military_discharge_date">{t('jobApplication.steps.additionalInfo.military.dischargeDate')}</Label>
+              <Label htmlFor="military_discharge_date">{t('jobApplication.steps.additionalInfo.military.dischargeDate')} *</Label>
               <Input
                 id="military_discharge_date"
                 type="date"
                 value={formData.military_discharge_date || ''}
                 onChange={(e) => handleInputChange('military_discharge_date', e.target.value)}
+                className={getError('military_discharge_date') ? 'border-red-500' : ''}
                 max={new Date().toISOString().split('T')[0]}
               />
+              {getError('military_discharge_date') && (
+                <p className="text-sm text-red-600">{getError('military_discharge_date')}</p>
+              )}
             </div>
           </div>
           )}

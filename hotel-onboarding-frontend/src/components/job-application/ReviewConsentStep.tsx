@@ -24,9 +24,16 @@ export default function ReviewConsentStep({
   onComplete
 }: ReviewConsentStepProps) {
   const { t } = useTranslation()
-  const [signature, setSignature] = useState(formData.signature || '')
+  // Separate states for typed and drawn signatures
+  const [typedSignature, setTypedSignature] = useState(
+    formData.signature && !formData.signature.startsWith('data:') ? formData.signature : ''
+  )
+  const [drawnSignature, setDrawnSignature] = useState(
+    formData.signature && formData.signature.startsWith('data:') ? formData.signature : ''
+  )
   const [signatureDate, setSignatureDate] = useState(formData.signature_date || new Date().toISOString().split('T')[0])
   const [isDrawing, setIsDrawing] = useState(false)
+  const [hasDrawn, setHasDrawn] = useState(false) // Track if user actually drew something
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -38,7 +45,7 @@ export default function ReviewConsentStep({
 
   useEffect(() => {
     validateStep()
-  }, [signature, signatureDate, initials])
+  }, [typedSignature, drawnSignature, signatureDate, initials])
 
   // Function to mark all required fields as touched
   const markAllFieldsTouched = () => {
@@ -47,6 +54,7 @@ export default function ReviewConsentStep({
       'initials_at_will', 
       'initials_screening',
       'signature',
+      'drawn_signature',
       'signature_date'
     ]
     const touchedState: Record<string, boolean> = {}
@@ -83,10 +91,21 @@ export default function ReviewConsentStep({
       isValid = false
     }
 
-    if (!signature || signature.length < 3) {
-      errors.signature = t('jobApplication.steps.reviewConsent.signatureSection.signatureError')
+    // Require BOTH typed name AND drawn signature
+    if (!typedSignature || typedSignature.length < 3) {
+      errors.signature = 'Please type your full name'
       isValid = false
     }
+    
+    if (!drawnSignature) {
+      errors.drawn_signature = 'Please draw your signature'
+      isValid = false
+    }
+    
+    // Combine both for storage - store as JSON object
+    const finalSignature = (typedSignature && drawnSignature) ? 
+      JSON.stringify({ name: typedSignature, signature: drawnSignature }) : 
+      ''
 
     if (!signatureDate) {
       errors.signature_date = t('jobApplication.steps.reviewConsent.signatureSection.dateError')
@@ -95,7 +114,7 @@ export default function ReviewConsentStep({
 
     setLocalErrors(errors)
     updateFormData({ 
-      signature, 
+      signature: finalSignature, 
       signature_date: signatureDate,
       initials_truthfulness: initials.truthfulness,
       initials_at_will: initials.at_will,
@@ -105,7 +124,8 @@ export default function ReviewConsentStep({
   }
 
   const handleSignatureChange = (value: string) => {
-    setSignature(value)
+    setTypedSignature(value)
+    // Don't clear drawn signature - we want both!
     setTouched(prev => ({ ...prev, signature: true }))
   }
 
@@ -132,11 +152,15 @@ export default function ReviewConsentStep({
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
       }
     }
-    setSignature('')
+    setDrawnSignature('')
+    setHasDrawn(false)
+    // Don't clear typed signature when clearing canvas
   }
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDrawing(true)
+    setHasDrawn(true) // Mark that user is drawing
+    // Don't clear typed signature - we want both!
     const canvas = canvasRef.current
     if (canvas) {
       const rect = canvas.getBoundingClientRect()
@@ -162,12 +186,61 @@ export default function ReviewConsentStep({
   }
 
   const stopDrawing = () => {
-    if (isDrawing && canvasRef.current) {
+    if (isDrawing && canvasRef.current && hasDrawn) {
       setIsDrawing(false)
-      // Convert canvas to base64 string
+      // Only save canvas if user actually drew something
       const dataUrl = canvasRef.current.toDataURL()
-      setSignature(dataUrl)
+      setDrawnSignature(dataUrl)
+      setTouched(prev => ({ ...prev, drawn_signature: true }))
+    } else {
+      setIsDrawing(false)
     }
+  }
+
+  // Touch event handlers for mobile support
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault() // Prevent scrolling while drawing
+    e.stopPropagation()
+    setIsDrawing(true)
+    setHasDrawn(true)
+    
+    const canvas = canvasRef.current
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect()
+      const touch = e.touches[0]
+      const context = canvas.getContext('2d')
+      if (context) {
+        context.beginPath()
+        context.moveTo(
+          touch.clientX - rect.left,
+          touch.clientY - rect.top
+        )
+      }
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault() // Prevent scrolling while drawing
+    if (!isDrawing) return
+    
+    const canvas = canvasRef.current
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect()
+      const touch = e.touches[0]
+      const context = canvas.getContext('2d')
+      if (context) {
+        context.lineTo(
+          touch.clientX - rect.left,
+          touch.clientY - rect.top
+        )
+        context.stroke()
+      }
+    }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault()
+    stopDrawing() // Reuse existing stopDrawing function
   }
 
   return (
@@ -282,48 +355,65 @@ export default function ReviewConsentStep({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="signature">{t('jobApplication.steps.reviewConsent.signatureSection.applicantSignature')} *</Label>
-                <div className="space-y-2">
-                  {/* Option 1: Type signature */}
-                  <Input
-                    id="signature"
-                    type="text"
-                    value={typeof signature === 'string' && !signature.startsWith('data:') ? signature : ''}
-                    onChange={(e) => handleSignatureChange(e.target.value)}
-                    className={getError('signature') ? 'border-red-500' : ''}
-                    placeholder={t('jobApplication.steps.reviewConsent.placeholders.typeFullName')}
-                  />
-                  
-                  {/* Option 2: Draw signature */}
-                  <div className="relative">
-                    <canvas
-                      ref={canvasRef}
-                      width={300}
-                      height={100}
-                      className="border border-gray-300 rounded-md cursor-crosshair bg-white"
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
+                <div className="space-y-3">
+                  {/* Step 1: Type your printed name */}
+                  <div>
+                    <Label className="text-sm font-medium">Printed Name *</Label>
+                    <Input
+                      id="signature"
+                      type="text"
+                      value={typedSignature}
+                      onChange={(e) => handleSignatureChange(e.target.value)}
+                      className={getError('signature') ? 'border-red-500 mt-1' : 'mt-1'}
+                      placeholder="Type your full legal name"
                     />
-                    {signature.startsWith('data:') && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={clearSignature}
-                        className="absolute top-1 right-1"
-                      >
-                        {t('jobApplication.steps.reviewConsent.clear')}
-                      </Button>
+                    {getError('signature') && (
+                      <p className="text-sm text-red-600 mt-1">{getError('signature')}</p>
+                    )}
+                  </div>
+                  
+                  {/* Step 2: Draw your signature */}
+                  <div>
+                    <Label className="text-sm font-medium">Signature *</Label>
+                    <div className="relative mt-1">
+                      <canvas
+                        ref={canvasRef}
+                        width={typeof window !== 'undefined' ? Math.min(window.innerWidth - 48, 400) : 400}
+                        height={150}
+                        className={`border rounded-md cursor-crosshair bg-white w-full ${getError('drawn_signature') ? 'border-red-500' : 'border-gray-300'}`}
+                        style={{ 
+                          maxWidth: '400px',
+                          touchAction: 'none' // Disable browser touch gestures
+                        }}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                        onTouchCancel={handleTouchEnd}
+                      />
+                      {drawnSignature && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearSignature}
+                          className="absolute top-1 right-1"
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    {getError('drawn_signature') && (
+                      <p className="text-sm text-red-600 mt-1">{getError('drawn_signature')}</p>
                     )}
                   </div>
                   
                   <p className="text-xs text-gray-500">
-                    {t('jobApplication.steps.reviewConsent.signatureSection.typeOrDraw')}
+                    Please provide both your printed name and signature above
                   </p>
-                  {getError('signature') && (
-                    <p className="text-sm text-red-600">{getError('signature')}</p>
-                  )}
                 </div>
               </div>
               

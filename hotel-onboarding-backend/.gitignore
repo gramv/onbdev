@@ -73,6 +73,9 @@ tmp/
 # Archives
 tests/archive/
 
+# Document uploads
+document_storage/
+
 # Poetry
 poetry.lock
 

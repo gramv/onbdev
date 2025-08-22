@@ -1,0 +1,250 @@
+{
+  "component_tests": [
+    {
+      "test": "Main Application Form",
+      "status": "PASS",
+      "details": "Form loads successfully",
+      "timestamp": "2025-08-21T11:30:13.084601"
+    },
+    {
+      "test": "PersonalInformationStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084613"
+    },
+    {
+      "test": "PositionAvailabilityStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084618"
+    },
+    {
+      "test": "EmploymentHistoryStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084622"
+    },
+    {
+      "test": "EducationSkillsStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084625"
+    },
+    {
+      "test": "AdditionalInformationStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084628"
+    },
+    {
+      "test": "ReviewConsentStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084631"
+    },
+    {
+      "test": "VoluntarySelfIdentificationStep Component",
+      "status": "INFO",
+      "details": "Requires browser testing for full validation",
+      "timestamp": "2025-08-21T11:30:13.084634"
+    }
+  ],
+  "api_tests": [
+    {
+      "test": "Create Test Property",
+      "status": "WARN",
+      "details": "Could not create property: 405",
+      "timestamp": "2025-08-21T11:30:12.974311"
+    },
+    {
+      "test": "Property Info Endpoint",
+      "status": "FAIL",
+      "details": "Status code: 404",
+      "timestamp": "2025-08-21T11:30:13.071537"
+    },
+    {
+      "test": "Application Submit Endpoint",
+      "status": "FAIL",
+      "details": "Status code: 405, Response: {\"success\":false,\"error\":\"Method Not Allowed\",\"error_code\":\"INTERNAL_SERVER_ERROR\",\"status_code\":405,\"timestamp\":\"2025-08-21T15:30:13.074747\",\"detail\":\"Method Not Allowed\"}",
+      "timestamp": "2025-08-21T11:30:13.075533"
+    }
+  ],
+  "performance_metrics": [
+    {
+      "test": "/api/properties/test-property/info Response Time",
+      "status": "PASS",
+      "details": "99.15ms (target: <200ms)",
+      "timestamp": "2025-08-21T11:30:13.183851"
+    },
+    {
+      "test": "/api/health Response Time",
+      "status": "PASS",
+      "details": "2.02ms (target: <200ms)",
+      "timestamp": "2025-08-21T11:30:13.185882"
+    }
+  ],
+  "accessibility_checks": [
+    {
+      "test": "WCAG 2.1 AA Compliance",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185928"
+    },
+    {
+      "test": "Keyboard Navigation (Tab order)",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185930"
+    },
+    {
+      "test": "Screen Reader Compatibility",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185931"
+    },
+    {
+      "test": "Focus Management",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185933"
+    },
+    {
+      "test": "Color Contrast (4.5:1 minimum)",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185934"
+    },
+    {
+      "test": "Form Labels and ARIA attributes",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185935"
+    },
+    {
+      "test": "Error Message Clarity",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185936"
+    },
+    {
+      "test": "Skip Links",
+      "status": "INFO",
+      "details": "Requires automated accessibility testing tools (axe, WAVE)",
+      "timestamp": "2025-08-21T11:30:13.185937"
+    }
+  ],
+  "mobile_tests": [
+    {
+      "test": "Breakpoint 320px",
+      "status": "INFO",
+      "details": "Requires browser testing with viewport resize",
+      "timestamp": "2025-08-21T11:30:13.185911"
+    },
+    {
+      "test": "Breakpoint 375px",
+      "status": "INFO",
+      "details": "Requires browser testing with viewport resize",
+      "timestamp": "2025-08-21T11:30:13.185914"
+    },
+    {
+      "test": "Breakpoint 768px",
+      "status": "INFO",
+      "details": "Requires browser testing with viewport resize",
+      "timestamp": "2025-08-21T11:30:13.185916"
+    },
+    {
+      "test": "Breakpoint 1024px",
+      "status": "INFO",
+      "details": "Requires browser testing with viewport resize",
+      "timestamp": "2025-08-21T11:30:13.185917"
+    },
+    {
+      "test": "Breakpoint 1440px",
+      "status": "INFO",
+      "details": "Requires browser testing with viewport resize",
+      "timestamp": "2025-08-21T11:30:13.185918"
+    },
+    {
+      "test": "Touch target size (44px minimum)",
+      "status": "INFO",
+      "details": "Requires manual mobile device or emulator testing",
+      "timestamp": "2025-08-21T11:30:13.185920"
+    },
+    {
+      "test": "Swipe navigation between steps",
+      "status": "INFO",
+      "details": "Requires manual mobile device or emulator testing",
+      "timestamp": "2025-08-21T11:30:13.185922"
+    },
+    {
+      "test": "Bottom navigation bar visibility",
+      "status": "INFO",
+      "details": "Requires manual mobile device or emulator testing",
+      "timestamp": "2025-08-21T11:30:13.185923"
+    },
+    {
+      "test": "Mobile-optimized select dropdowns",
+      "status": "INFO",
+      "details": "Requires manual mobile device or emulator testing",
+      "timestamp": "2025-08-21T11:30:13.185925"
+    },
+    {
+      "test": "Virtual keyboard handling",
+      "status": "INFO",
+      "details": "Requires manual mobile device or emulator testing",
+      "timestamp": "2025-08-21T11:30:13.185926"
+    }
+  ],
+  "edge_cases": [
+    {
+      "test": "Invalid Data Rejection",
+      "status": "PASS",
+      "details": "Server properly rejects invalid data: 405",
+      "timestamp": "2025-08-21T11:30:13.187622"
+    },
+    {
+      "test": "Empty Data Rejection",
+      "status": "PASS",
+      "details": "Server properly rejects empty data: 405",
+      "timestamp": "2025-08-21T11:30:13.189019"
+    },
+    {
+      "test": "Network interruption during submission",
+      "status": "INFO",
+      "details": "Requires manual testing or browser automation",
+      "timestamp": "2025-08-21T11:30:13.189024"
+    },
+    {
+      "test": "Browser refresh mid-form",
+      "status": "INFO",
+      "details": "Requires manual testing or browser automation",
+      "timestamp": "2025-08-21T11:30:13.189027"
+    },
+    {
+      "test": "Multiple browser tabs with same form",
+      "status": "INFO",
+      "details": "Requires manual testing or browser automation",
+      "timestamp": "2025-08-21T11:30:13.189029"
+    },
+    {
+      "test": "Session expiration handling",
+      "status": "INFO",
+      "details": "Requires manual testing or browser automation",
+      "timestamp": "2025-08-21T11:30:13.189030"
+    },
+    {
+      "test": "Draft recovery after browser crash",
+      "status": "INFO",
+      "details": "Requires manual testing or browser automation",
+      "timestamp": "2025-08-21T11:30:13.189032"
+    },
+    {
+      "test": "Concurrent form edits",
+      "status": "INFO",
+      "details": "Requires manual testing or browser automation",
+      "timestamp": "2025-08-21T11:30:13.189033"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

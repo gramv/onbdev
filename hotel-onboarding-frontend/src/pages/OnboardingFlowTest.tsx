@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { ONBOARDING_WORKFLOW_STEPS } from '@/config/onboardingSteps'
+import { ONBOARDING_STEPS as ONBOARDING_WORKFLOW_STEPS } from '@/config/onboardingSteps.config'
 
 // Import all step components
 import WelcomeStep from './onboarding/WelcomeStep'

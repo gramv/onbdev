@@ -11,7 +11,8 @@ load_dotenv('.env', override=True)
 from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse, FileResponse, Response
+from fastapi.responses import JSONResponse, FileResponse, Response, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Optional, List, Dict, Any
 from datetime import datetime, date, timedelta, timezone
 from pathlib import Path
@@ -145,13 +146,33 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 # CORS Configuration
+# Allow both clickwise.in domains and localhost for development
+allowed_origins = [
+    "https://clickwise.in",
+    "https://www.clickwise.in",
+    "https://app.clickwise.in",  # Alternative frontend subdomain
+    "http://clickwise.in",  # In case of HTTP access
+    "http://www.clickwise.in",
+    "http://app.clickwise.in",
+    "http://localhost:3000",  # Development
+    "http://localhost:5173",  # Vite default
+    "https://hotel-onboarding-frontend.vercel.app",  # Backup Vercel URL
+    "https://hotel-onboarding-frontend-*.vercel.app",  # Preview deployments
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files (frontend build)
+static_dir = Path(__file__).parent.parent / "static"
+if static_dir.exists():
+    app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+    app.mount("/icons", StaticFiles(directory=str(static_dir / "icons")), name="icons")
 
 # Initialize services
 token_manager = OnboardingTokenManager()
@@ -4706,7 +4727,8 @@ async def start_onboarding_session(
         property_obj = await supabase_service.get_property_by_id(property_id)
         
         if employee.email and property_obj:
-            onboarding_url = f"http://localhost:3000/onboard/welcome/{session.token}"
+            frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+            onboarding_url = f"{frontend_url}/onboard/welcome/{session.token}"
             
             await email_service.send_email(
                 employee.email,
@@ -4728,7 +4750,7 @@ async def start_onboarding_session(
                 "employee_id": employee_id,
                 "token": session.token,
                 "expires_at": session.expires_at.isoformat() if session.expires_at else None,
-                "onboarding_url": f"http://localhost:3000/onboard/welcome/{session.token}"
+                "onboarding_url": onboarding_url
             },
             message="Onboarding session started successfully"
         )
@@ -4953,7 +4975,7 @@ async def submit_onboarding_step(
                     <h2>Onboarding Ready for Manager Review</h2>
                     <p>{employee.first_name} {employee.last_name} has completed their onboarding forms.</p>
                     <p>Please review and complete I-9 Section 2 verification.</p>
-                    <p><a href="http://localhost:3000/manager/onboarding/{session_id}/review">Review Onboarding</a></p>
+                    <p><a href="{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/manager/onboarding/{session_id}/review">Review Onboarding</a></p>
                     """,
                     f"{employee.first_name} {employee.last_name} has completed onboarding forms. Please review."
                 )
@@ -5080,7 +5102,7 @@ async def complete_onboarding(
                 <p>Property: {property_obj.name if property_obj else 'N/A'}</p>
                 <p>Position: {employee.position}</p>
                 <p>Please review and complete I-9 Section 2 verification within 3 business days.</p>
-                <p><a href="http://localhost:3000/manager/onboarding/{session_id}/review" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Review Onboarding</a></p>
+                <p><a href="{os.getenv('FRONTEND_URL', 'http://localhost:3000')}/manager/onboarding/{session_id}/review" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Review Onboarding</a></p>
                 """,
                 f"{employee.first_name} {employee.last_name} has completed onboarding. Please review and complete I-9 verification."
             )
@@ -9392,6 +9414,21 @@ async def create_saved_filter(
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
+
+# Catch-all route for SPA - must be last!
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    """Serve the React SPA for all non-API routes"""
+    # Skip API routes
+    if full_path.startswith("api/") or full_path.startswith("auth/") or full_path.startswith("ws/"):
+        raise HTTPException(status_code=404, detail="API endpoint not found")
+    
+    # Serve index.html for all other routes
+    index_path = static_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
+    else:
+        return HTMLResponse(content="<h1>Frontend not found. Please build the React app.</h1>", status_code=404)
 
 if __name__ == "__main__":
     import uvicorn

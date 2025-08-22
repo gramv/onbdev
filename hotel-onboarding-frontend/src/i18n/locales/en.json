@@ -5,6 +5,8 @@
     "submit": "Submit",
     "next": "Next",
     "previous": "Previous",
+    "back": "Back",
+    "continue": "Continue",
     "save": "Save",
     "saveDraft": "Save Draft",
     "loading": "Loading...",

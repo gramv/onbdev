@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { QrCode, Copy, ExternalLink, Printer, RefreshCw, Download } from 'lucide-react'
 import { apiClient } from '@/services/api'
+import { getAppUrlWithPath } from '@/utils/getAppUrl'
 
 interface Property {
   id: string
@@ -92,7 +93,7 @@ export function QRCodeDisplay({
     if (printWindow && (qrData?.printable_qr_url || property.qr_code_url)) {
       const imageUrl = qrData?.printable_qr_url || property.qr_code_url
       const propertyName = qrData?.property_name || property.name
-      const applicationUrl = qrData?.application_url || `http://localhost:3000/apply/${property.id}`
+      const applicationUrl = qrData?.application_url || getAppUrlWithPath(`/apply/${property.id}`)
       
       printWindow.document.write(`
         <!DOCTYPE html>
@@ -239,7 +240,7 @@ export function QRCodeDisplay({
               <Label className="text-sm font-medium">Application URL</Label>
               <div className="flex items-center space-x-2">
                 <Input
-                  value={qrData?.application_url || `http://localhost:3000/apply/${property.id}`}
+                  value={qrData?.application_url || getAppUrlWithPath(`/apply/${property.id}`)}
                   readOnly
                   className="text-sm"
                 />
@@ -247,7 +248,7 @@ export function QRCodeDisplay({
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(
-                    qrData?.application_url || `http://localhost:3000/apply/${property.id}`,
+                    qrData?.application_url || getAppUrlWithPath(`/apply/${property.id}`),
                     'Application URL'
                   )}
                 >
@@ -257,7 +258,7 @@ export function QRCodeDisplay({
                   variant="outline"
                   size="sm"
                   onClick={() => window.open(
-                    qrData?.application_url || `http://localhost:3000/apply/${property.id}`,
+                    qrData?.application_url || getAppUrlWithPath(`/apply/${property.id}`),
                     '_blank'
                   )}
                 >

@@ -5,6 +5,8 @@
     "submit": "Enviar",
     "next": "Siguiente",
     "previous": "Anterior",
+    "back": "Atrás",
+    "continue": "Continuar",
     "save": "Guardar",
     "saveDraft": "Guardar Borrador",
     "loading": "Cargando...",

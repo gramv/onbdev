@@ -1200,5 +1200,285 @@
       transform: scale(1);
     }
   }
+
+  /* Mobile-Specific Responsive Styles */
+  
+  /* Hide scrollbar on mobile for horizontal scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Mobile touch targets - minimum 44px */
+  @media (max-width: 768px) {
+    button, 
+    input[type="checkbox"],
+    input[type="radio"],
+    select,
+    textarea,
+    .clickable {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Increase tap target for checkboxes and radios */
+    input[type="checkbox"],
+    input[type="radio"] {
+      position: relative;
+    }
+    
+    input[type="checkbox"]::before,
+    input[type="radio"]::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+    }
+  }
+  
+  /* Shake animation for errors */
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-4px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(4px);
+    }
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  /* Slide animations */
+  @keyframes slide-in-from-top {
+    from {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slide-in-from-bottom {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slide-in-from-left {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slide-in-from-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-in {
+    animation-duration: 0.3s;
+    animation-fill-mode: both;
+    animation-timing-function: ease-out;
+  }
+  
+  .slide-in-from-top-2 {
+    animation-name: slide-in-from-top;
+  }
+  
+  .slide-in-from-bottom-2 {
+    animation-name: slide-in-from-bottom;
+  }
+  
+  /* Form field focus states for mobile */
+  @media (max-width: 640px) {
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+  }
+  
+  /* Mobile-optimized cards */
+  @media (max-width: 640px) {
+    .card {
+      border-radius: 0.5rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      padding: 1rem;
+    }
+    
+    .card-content {
+      padding: 1rem;
+    }
+  }
+  
+  /* Responsive grid system */
+  .grid-responsive {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+  
+  @media (max-width: 640px) {
+    .grid-responsive {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  /* Mobile navigation styles */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    padding: 1rem;
+    z-index: 50;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  @media (min-width: 768px) {
+    .mobile-nav {
+      position: relative;
+      bottom: auto;
+      border-top: none;
+      box-shadow: none;
+      background: transparent;
+    }
+  }
+  
+  /* Progress bar styles */
+  .progress-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Loading skeleton pulse */
+  @keyframes skeleton-pulse {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  .skeleton-loading {
+    animation: skeleton-pulse 2s ease-in-out infinite;
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  
+  /* Responsive typography */
+  @media (max-width: 640px) {
+    h1 {
+      font-size: 1.5rem;
+    }
+    
+    h2 {
+      font-size: 1.25rem;
+    }
+    
+    h3 {
+      font-size: 1.125rem;
+    }
+    
+    body {
+      font-size: 0.875rem;
+    }
+  }
+  
+  /* Touch-friendly hover states */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-effect:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+    }
+  }
+  
+  /* Mobile-optimized modals */
+  @media (max-width: 640px) {
+    .dialog-content {
+      max-height: 90vh;
+      margin: 1rem;
+      width: calc(100% - 2rem);
+    }
+  }
+  
+  /* Responsive tables */
+  @media (max-width: 640px) {
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  }
+  
+  /* Print styles for forms */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .page-break {
+      page-break-before: always;
+    }
+  }
 }
 

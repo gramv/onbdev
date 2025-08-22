@@ -1,0 +1,37 @@
+{
+  "timestamp": "2025-08-21T02:14:08.063Z",
+  "breakpointTests": [
+    {
+      "breakpoint": "sm:",
+      "count": 13,
+      "status": "PASS"
+    },
+    {
+      "breakpoint": "md:",
+      "count": 3,
+      "status": "PASS"
+    },
+    {
+      "breakpoint": "lg:",
+      "count": 0,
+      "status": "WARN"
+    },
+    {
+      "breakpoint": "xl:",
+      "count": 0,
+      "status": "WARN"
+    },
+    {
+      "breakpoint": "2xl:",
+      "count": 0,
+      "status": "WARN"
+    }
+  ],
+  "touchTargets": [],
+  "mobileOptimizations": [],
+  "summary": {
+    "passed": 17,
+    "failed": 5,
+    "warnings": 3
+  }
+}

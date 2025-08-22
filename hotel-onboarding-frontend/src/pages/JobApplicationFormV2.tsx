@@ -18,14 +18,14 @@ import {
   ChevronRight, 
   CheckCircle2, 
   AlertCircle,
-  Save,
   Phone,
   MapPin,
   Info,
   Building2,
   Send,
   PartyPopper,
-  Globe
+  Globe,
+  Loader2
 } from 'lucide-react'
 import { apiClient } from '@/services/api'
 
@@ -123,12 +123,12 @@ export default function JobApplicationFormV2() {
   const [currentStep, setCurrentStep] = useState(0)
   const [propertyInfo, setPropertyInfo] = useState<PropertyInfo | null>(null)
   const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, any>>({})
   const [stepCompletionStatus, setStepCompletionStatus] = useState<Record<string, boolean>>({})
   const [showEqualOpportunityModal, setShowEqualOpportunityModal] = useState(false)
+  const [languageSelected, setLanguageSelected] = useState(false)
   
   const steps = useMemo(() => getSteps(t), [t])
   
@@ -230,6 +230,15 @@ export default function JobApplicationFormV2() {
     at_will_employment_acknowledged: false
   })
 
+  // Check for saved language preference on mount
+  useEffect(() => {
+    const savedLang = localStorage.getItem('preferred-language')
+    if (savedLang) {
+      i18n.changeLanguage(savedLang)
+      setLanguageSelected(true)
+    }
+  }, [i18n])
+
   // Load property information
   useEffect(() => {
     fetchProperty()
@@ -284,26 +293,6 @@ export default function JobApplicationFormV2() {
       } catch (e) {
         console.error('Failed to load draft:', e)
       }
-    }
-  }
-
-  const saveDraft = async () => {
-    setSaving(true)
-    try {
-      const draftKey = `job-application-draft-${propertyId}`
-      const draftData = {
-        formData,
-        currentStep,
-        stepCompletionStatus,
-        savedAt: new Date().toISOString()
-      }
-      localStorage.setItem(draftKey, JSON.stringify(draftData))
-      
-      // Show success toast or notification
-      setSaving(false)
-    } catch (error) {
-      console.error('Failed to save draft:', error)
-      setSaving(false)
     }
   }
 
@@ -636,6 +625,54 @@ export default function JobApplicationFormV2() {
     return (completedSteps / steps.length) * 100
   }
 
+  // Show language selection screen first
+  if (!languageSelected) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <Globe className="w-8 h-8 text-blue-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold mb-2">
+              Select Your Language
+              <br />
+              <span className="text-xl text-gray-600">Seleccione su idioma</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => {
+                i18n.changeLanguage('en')
+                localStorage.setItem('preferred-language', 'en')
+                setLanguageSelected(true)
+                setShowEqualOpportunityModal(true)
+              }}
+              className="w-full h-14 text-lg"
+              variant="outline"
+            >
+              <span className="text-2xl mr-3">🇺🇸</span>
+              English
+            </Button>
+            <Button
+              onClick={() => {
+                i18n.changeLanguage('es')
+                localStorage.setItem('preferred-language', 'es')
+                setLanguageSelected(true)
+                setShowEqualOpportunityModal(true)
+              }}
+              className="w-full h-14 text-lg"
+              variant="outline"
+            >
+              <span className="text-2xl mr-3">🇪🇸</span>
+              Español
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -676,18 +713,18 @@ export default function JobApplicationFormV2() {
         {/* Header */}
         <Card className="mb-6">
           <CardHeader className="text-center relative">
-            {/* Language Switcher */}
-            <div className="absolute top-4 right-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')}
-                className="flex items-center gap-2 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              >
-                <Globe className="w-4 h-4" />
-                {i18n.language === 'en' ? 'Español' : 'English'}
-              </Button>
-            </div>
+            {/* Minimal Language Toggle */}
+            <button
+              onClick={() => {
+                const newLang = i18n.language === 'en' ? 'es' : 'en'
+                i18n.changeLanguage(newLang)
+                localStorage.setItem('preferred-language', newLang)
+              }}
+              className="absolute top-2 right-2 text-xs text-gray-500 hover:text-gray-700 underline"
+              aria-label="Switch language"
+            >
+              {i18n.language === 'en' ? 'ES' : 'EN'}
+            </button>
             
             <CardTitle className="text-2xl font-bold">{t('jobApplication.title')}</CardTitle>
             <CardDescription>
@@ -779,61 +816,67 @@ export default function JobApplicationFormV2() {
               onComplete={handleStepComplete}
             />
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t">
+            {/* Simplified Navigation - Responsive for Mobile & Desktop */}
+            <div className="flex justify-between gap-3 mt-8 pt-6 border-t">
               <Button
                 variant="outline"
                 onClick={handlePrevious}
                 disabled={currentStep === 0}
-                className="h-12 px-6 font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                className="flex-1 sm:flex-initial sm:min-w-[120px] sm:px-8 h-12 font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors"
               >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                {t('common.previous')}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={saveDraft}
-                disabled={saving}
-                className="h-12 px-6 font-medium hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? t('common.loading') : t('common.saveDraft')}
+                <ChevronLeft className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{t('common.previous')}</span>
+                <span className="sm:hidden">{t('common.back')}</span>
               </Button>
 
               {currentStep === steps.length - 1 ? (
                 <Button
                   onClick={handleSubmit}
                   disabled={loading}
-                  className="h-12 px-8 font-medium bg-blue-600 hover:bg-blue-700 text-white"
+                  className="flex-1 sm:flex-initial sm:min-w-[120px] sm:px-8 h-12 font-medium bg-green-600 hover:bg-green-700 text-white"
                 >
-                  {loading ? t('common.loading') : t('common.submit')}
+                  {loading ? (
+                    <span className="flex items-center justify-center">
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <span className="hidden sm:inline">{t('common.loading')}</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 mr-1 sm:mr-2" />
+                      {t('common.submit')}
+                    </span>
+                  )}
                 </Button>
               ) : (
                 <Button
                   onClick={handleNext}
-                  className="h-12 px-6 font-medium bg-blue-600 hover:bg-blue-700 text-white"
+                  className="flex-1 sm:flex-initial sm:min-w-[120px] sm:px-8 h-12 font-medium bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {t('common.next')}
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <span className="hidden sm:inline">{t('common.next')}</span>
+                  <span className="sm:hidden">{t('common.continue')}</span>
+                  <ChevronRight className="w-4 h-4 ml-1 sm:ml-2" />
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
-
-        {/* Footer Citation - Always visible at bottom of page */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-xs text-gray-600 flex items-start">
-            <sup className="text-blue-600 mr-1">*</sup>
-            {t('jobApplication.steps.additionalInfo.conviction.doNotList')}
-          </p>
-        </div>
+        
+        {/* Legal Disclaimer - Only show on Additional Information step */}
+        {steps[currentStep].id === 'additional-info' && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-xs text-gray-600 flex items-start">
+              <sup className="text-blue-600 mr-1 font-semibold">†</sup>
+              <span className="italic">
+                {t('jobApplication.steps.additionalInfo.conviction.doNotList')}
+              </span>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Equal Opportunity Statement Modal */}
       <Dialog open={showEqualOpportunityModal} onOpenChange={setShowEqualOpportunityModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center space-x-3 mb-2">
               <div className="p-2 bg-blue-100 rounded-lg">
