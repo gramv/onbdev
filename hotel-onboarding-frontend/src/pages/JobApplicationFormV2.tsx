@@ -325,6 +325,36 @@ export default function JobApplicationFormV2() {
     return true
   }
 
+  const scrollToFirstError = () => {
+    setTimeout(() => {
+      // Try multiple selectors for better coverage
+      const errorElement = document.querySelector(
+        '.border-red-500, ' +
+        '[aria-invalid="true"], ' +
+        '.text-red-600' // Also look for error messages
+      )
+      
+      if (errorElement) {
+        // Scroll with offset for better visibility
+        const yOffset = -100 // Leave 100px space at top
+        const y = errorElement.getBoundingClientRect().top + window.pageYOffset + yOffset
+        
+        window.scrollTo({ top: y, behavior: 'smooth' })
+        
+        // Try to focus the input
+        const input = errorElement.tagName === 'INPUT' || 
+                     errorElement.tagName === 'SELECT' || 
+                     errorElement.tagName === 'TEXTAREA' 
+                     ? errorElement 
+                     : errorElement.querySelector('input, select, textarea')
+        
+        if (input && input instanceof HTMLElement) {
+          setTimeout(() => input.focus(), 300)
+        }
+      }
+    }, 150) // Slightly longer delay to ensure all fields update
+  }
+
   const handleNext = () => {
     // Clear any previous errors
     setError('')
@@ -334,11 +364,19 @@ export default function JobApplicationFormV2() {
     const isStepComplete = stepCompletionStatus[currentStepId]
     
     if (!isStepComplete && steps[currentStep].required) {
-      // Show error but don't prevent navigation
+      // Force validation to show all errors
+      setValidationErrors(prev => ({
+        ...prev,
+        [currentStepId]: { _forceValidation: Date.now() } // Use timestamp to trigger re-render
+      }))
+      
+      // Show error and prevent navigation
       setError(`Please complete all required fields in "${steps[currentStep].title}" before proceeding.`)
+      scrollToFirstError()
+      return // Block navigation if step is incomplete
     }
     
-    // Always allow navigation to next step
+    // Allow navigation only if step is complete or not required
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
       saveDraft()
@@ -363,11 +401,20 @@ export default function JobApplicationFormV2() {
         .map(step => step.title)
       
       if (incompleteStepsBefore.length > 0) {
-        setError(`Warning: The following required steps are incomplete: ${incompleteStepsBefore.join(', ')}`)
+        // Force validation on current step
+        const currentStepId = steps[currentStep].id
+        setValidationErrors(prev => ({
+          ...prev,
+          [currentStepId]: { _forceValidation: Date.now() }
+        }))
+        
+        setError(`Cannot skip ahead. Please complete the following required steps first: ${incompleteStepsBefore.join(', ')}`)
+        scrollToFirstError()
+        return // Block navigation if there are incomplete required steps
       }
     }
     
-    // Always allow navigation
+    // Allow navigation only if going backward or all required steps are complete
     setCurrentStep(index)
   }
 
@@ -422,11 +469,11 @@ export default function JobApplicationFormV2() {
         phone: formData.phone?.trim(),
         phone_is_cell: true,  // Default to cell phone
         phone_is_home: false,
-        secondary_phone: null,
-        secondary_phone_is_cell: false,
-        secondary_phone_is_home: false,
+        secondary_phone: formData.alternate_phone || null,  // Map from alternate_phone field
+        secondary_phone_is_cell: formData.alternate_phone_is_cell || false,
+        secondary_phone_is_home: formData.alternate_phone_is_home || false,
         address: formData.address,
-        apartment_unit: null,  // Backend expects this field
+        apartment_unit: formData.apartment_unit || null,  // Send actual data from form
         city: formData.city,
         state: formData.state,
         zip_code: formData.zip_code,
@@ -439,7 +486,7 @@ export default function JobApplicationFormV2() {
         // Work Authorization & Legal
         work_authorized: formData.work_authorized || 'yes',
         sponsorship_required: formData.sponsorship_required || 'no',
-        age_verification: true,
+        age_verification: formData.age_verification !== false,  // Default to true if not explicitly false
         conviction_record: {
           has_conviction: formData.has_criminal_record === 'yes',
           explanation: formData.criminal_record_explanation || null
@@ -468,8 +515,13 @@ export default function JobApplicationFormV2() {
           relationship: formData.references[0].relationship || 'N/A'
         } : { name: 'N/A', years_known: '0', phone: '0000000000', relationship: 'N/A' },
         
-        // Military Service
-        military_service: {},
+        // Military Service - Send actual data from form
+        military_service: formData.has_no_military_service ? {} : {
+          branch: formData.military_branch || null,
+          from_to: formData.military_from_to || null,
+          rank_duties: formData.military_rank_duties || null,
+          discharge_date: formData.military_discharge_date || null
+        },
         
         // Education History - Include both high school and college
         education_history: [

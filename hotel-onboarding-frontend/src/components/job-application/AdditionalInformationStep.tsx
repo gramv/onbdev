@@ -32,6 +32,37 @@ export default function AdditionalInformationStep({
     validateStep()
   }, [formData])
 
+  // Function to mark all required fields as touched
+  const markAllFieldsTouched = () => {
+    const requiredFields = ['has_conviction']
+    
+    // Add reference fields if not checked "no reference"
+    if (!formData.has_no_reference) {
+      requiredFields.push('reference_name', 'reference_phone', 'reference_relationship', 'reference_years_known')
+    }
+    
+    // Add conditional required fields
+    if (formData.has_conviction === 'yes') {
+      requiredFields.push('conviction_explanation')
+    }
+    if (formData.has_driving_denied === 'yes' || formData.has_driving_issues === 'yes') {
+      requiredFields.push('driving_explanation')
+    }
+    
+    const touchedState: Record<string, boolean> = {}
+    requiredFields.forEach(field => {
+      touchedState[field] = true
+    })
+    setTouched(touchedState)
+  }
+
+  // Force validation when requested by parent
+  useEffect(() => {
+    if (externalErrors._forceValidation) {
+      markAllFieldsTouched()
+    }
+  }, [externalErrors._forceValidation])
+
   const validateStep = () => {
     let isValid = true
     const errors: Record<string, string> = {}
@@ -53,7 +84,25 @@ export default function AdditionalInformationStep({
       isValid = false
     }
 
-    // Personal reference is optional, so we don't validate it
+    // Validate reference fields (unless has_no_reference is checked)
+    if (!formData.has_no_reference) {
+      if (!formData.reference_name) {
+        errors.reference_name = 'Reference name is required'
+        isValid = false
+      }
+      if (!formData.reference_phone) {
+        errors.reference_phone = 'Reference phone number is required'
+        isValid = false
+      }
+      if (!formData.reference_relationship) {
+        errors.reference_relationship = 'Relationship is required'
+        isValid = false
+      }
+      if (!formData.reference_years_known) {
+        errors.reference_years_known = 'Years known is required'
+        isValid = false
+      }
+    }
 
     setLocalErrors(errors)
     onComplete(isValid)
@@ -256,8 +305,12 @@ export default function AdditionalInformationStep({
                 id="reference_name"
                 value={formData.reference_name || ''}
                 onChange={(e) => handleInputChange('reference_name', e.target.value)}
+                className={getError('reference_name') ? 'border-red-500' : ''}
                 placeholder={t('jobApplication.steps.additionalInfo.placeholders.referenceName')}
               />
+              {getError('reference_name') && (
+                <p className="text-sm text-red-600">{getError('reference_name')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -267,10 +320,14 @@ export default function AdditionalInformationStep({
                 type="number"
                 value={formData.reference_years_known || ''}
                 onChange={(e) => handleInputChange('reference_years_known', e.target.value)}
+                className={getError('reference_years_known') ? 'border-red-500' : ''}
                 placeholder="5"
                 min="0"
                 max="99"
               />
+              {getError('reference_years_known') && (
+                <p className="text-sm text-red-600">{getError('reference_years_known')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -285,10 +342,13 @@ export default function AdditionalInformationStep({
                     const formatted = formatPhoneNumber(e.target.value)
                     handleInputChange('reference_phone', formatted)
                   }}
-                  className="pl-10"
+                  className={`pl-10 ${getError('reference_phone') ? 'border-red-500' : ''}`}
                   placeholder="(555) 123-4567"
                   maxLength={14}
                 />
+                {getError('reference_phone') && (
+                  <p className="text-sm text-red-600">{getError('reference_phone')}</p>
+                )}
               </div>
             </div>
 
@@ -298,8 +358,12 @@ export default function AdditionalInformationStep({
                 id="reference_relationship"
                 value={formData.reference_relationship || ''}
                 onChange={(e) => handleInputChange('reference_relationship', e.target.value)}
+                className={getError('reference_relationship') ? 'border-red-500' : ''}
                 placeholder={t('jobApplication.steps.additionalInfo.placeholders.referenceRelationship')}
               />
+              {getError('reference_relationship') && (
+                <p className="text-sm text-red-600">{getError('reference_relationship')}</p>
+              )}
             </div>
           </div>
           )}

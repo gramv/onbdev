@@ -54,9 +54,31 @@ export default function PersonalInformationStep({
     { field: 'reliable_transportation', required: true, type: 'string' }
   ]
 
+  // Function to mark all required fields as touched
+  const markAllFieldsTouched = () => {
+    const requiredFields = [
+      'first_name', 'last_name', 'email', 'phone',
+      'address', 'city', 'state', 'zip_code',
+      'age_verification', 'work_authorized', 'sponsorship_required',
+      'reliable_transportation'
+    ]
+    const touchedState: Record<string, boolean> = {}
+    requiredFields.forEach(field => {
+      touchedState[field] = true
+    })
+    setTouched(touchedState)
+  }
+
   useEffect(() => {
     validateStep()
   }, [formData])
+
+  // Force validation when requested by parent
+  useEffect(() => {
+    if (externalErrors._forceValidation) {
+      markAllFieldsTouched()
+    }
+  }, [externalErrors._forceValidation])
 
   const validateStep = () => {
     const stepData = {

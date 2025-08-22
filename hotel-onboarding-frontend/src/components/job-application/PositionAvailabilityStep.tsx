@@ -45,6 +45,33 @@ export default function PositionAvailabilityStep({
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
 
+  // Function to mark all required fields as touched
+  const markAllFieldsTouched = () => {
+    const requiredFields = [
+      'department', 'position', 'employment_type', 'start_date',
+      'availability_weekends', 'availability_holidays', 'previously_employed',
+      'currently_employed', 'referral_source'
+    ]
+    const touchedState: Record<string, boolean> = {}
+    requiredFields.forEach(field => {
+      touchedState[field] = true
+    })
+    // Also mark conditional fields if they're required
+    if (formData.previously_employed === 'yes') {
+      touchedState['previous_employment_details'] = true
+    }
+    if (formData.currently_employed === 'yes') {
+      touchedState['may_contact_current_employer'] = true
+    }
+    if (formData.referral_source === 'employee') {
+      touchedState['employee_referral_name'] = true
+    }
+    if (formData.referral_source === 'other') {
+      touchedState['referral_source_other'] = true
+    }
+    setTouched(touchedState)
+  }
+
   // Validation rules
   const validationRules: ValidationRule[] = [
     { field: 'department', required: true, type: 'string' },
@@ -68,6 +95,13 @@ export default function PositionAvailabilityStep({
   useEffect(() => {
     validateStep()
   }, [formData])
+
+  // Force validation when requested by parent
+  useEffect(() => {
+    if (externalErrors._forceValidation) {
+      markAllFieldsTouched()
+    }
+  }, [externalErrors._forceValidation])
 
   const validateStep = () => {
     const stepData = {
@@ -120,15 +154,12 @@ export default function PositionAvailabilityStep({
     return touched[field] ? (localErrors[field] || externalErrors[field]) : ''
   }
 
-  const departments = propertyInfo?.departments_and_positions 
-    ? Object.keys(propertyInfo.departments_and_positions) 
-    : defaultDepartments
+  // All properties use the same departments - no variations
+  const departments = defaultDepartments
 
-  const positions = formData.department && (
-    propertyInfo?.departments_and_positions?.[formData.department] || 
-    defaultPositions[formData.department as keyof typeof defaultPositions] || 
-    []
-  )
+  // All properties use the same positions for each department
+  const positions = formData.department ? 
+    (defaultPositions[formData.department as keyof typeof defaultPositions] || []) : []
 
   return (
     <div className="space-y-6">

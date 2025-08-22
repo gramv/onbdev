@@ -85,6 +85,7 @@ export default function EducationSkillsStep({
   const [hasNoTechnicalEducation, setHasNoTechnicalEducation] = useState(formData.has_no_technical_education || false)
   const [hasNoOtherEducation, setHasNoOtherEducation] = useState(formData.has_no_other_education || false)
   const [hasNoSkillsCertifications, setHasNoSkillsCertifications] = useState(formData.has_no_skills_certifications || false)
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     // Education is optional, so always mark as complete
@@ -94,6 +95,24 @@ export default function EducationSkillsStep({
     })
     onComplete(true)
   }, [education, skills_certifications])
+
+  // Function to mark all fields as touched (even though education is optional)
+  const markAllFieldsTouched = () => {
+    // Since education is optional, we'll mark basic education fields as touched for visual consistency
+    const touchedState: Record<string, boolean> = {
+      'high_school_name': true,
+      'high_school_location': true,
+      'skills_certifications': true
+    }
+    setTouched(touchedState)
+  }
+
+  // Force validation when requested by parent (even though education is optional)
+  useEffect(() => {
+    if (externalErrors._forceValidation) {
+      markAllFieldsTouched()
+    }
+  }, [externalErrors._forceValidation])
 
   const updateEducationEntry = (school: string, field: string, value: string) => {
     setEducation({

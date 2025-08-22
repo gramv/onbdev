@@ -73,6 +73,21 @@ export default function EmploymentHistoryStep({
     }
   }, [employmentHistory, hasNoWorkHistory, hasInteracted])
 
+  // Function to mark all required fields as touched
+  const markAllFieldsTouched = () => {
+    // Only mark fields as touched if user hasn't checked "no work history"
+    if (!hasNoWorkHistory) {
+      setHasInteracted(true)
+    }
+  }
+
+  // Force validation when requested by parent
+  useEffect(() => {
+    if (externalErrors._forceValidation) {
+      markAllFieldsTouched()
+    }
+  }, [externalErrors._forceValidation])
+
   const validateStep = () => {
     let isValid = true
     const errors: Record<string, string> = {}

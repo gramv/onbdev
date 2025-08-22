@@ -40,6 +40,29 @@ export default function ReviewConsentStep({
     validateStep()
   }, [signature, signatureDate, initials])
 
+  // Function to mark all required fields as touched
+  const markAllFieldsTouched = () => {
+    const requiredFields = [
+      'initials_truthfulness',
+      'initials_at_will', 
+      'initials_screening',
+      'signature',
+      'signature_date'
+    ]
+    const touchedState: Record<string, boolean> = {}
+    requiredFields.forEach(field => {
+      touchedState[field] = true
+    })
+    setTouched(touchedState)
+  }
+
+  // Force validation when requested by parent
+  useEffect(() => {
+    if (externalErrors._forceValidation) {
+      markAllFieldsTouched()
+    }
+  }, [externalErrors._forceValidation])
+
   const validateStep = () => {
     const errors: Record<string, string> = {}
     let isValid = true
@@ -178,10 +201,10 @@ export default function ReviewConsentStep({
                       type="text"
                       value={initials.truthfulness}
                       onChange={(e) => handleInitialsChange('truthfulness', e.target.value)}
-                      className={`w-16 h-10 text-center font-bold text-sm ${
+                      className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_truthfulness') ? 'border-red-500' : ''
                       }`}
-                      placeholder={t('jobApplication.steps.reviewConsent.placeholders.initial')}
+                      placeholder="Initials"
                       maxLength={4}
                     />
                     {getError('initials_truthfulness') && (
@@ -206,10 +229,10 @@ export default function ReviewConsentStep({
                       type="text"
                       value={initials.at_will}
                       onChange={(e) => handleInitialsChange('at_will', e.target.value)}
-                      className={`w-16 h-10 text-center font-bold text-sm ${
+                      className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_at_will') ? 'border-red-500' : ''
                       }`}
-                      placeholder={t('jobApplication.steps.reviewConsent.placeholders.initial')}
+                      placeholder="Initials"
                       maxLength={4}
                     />
                     {getError('initials_at_will') && (
@@ -234,10 +257,10 @@ export default function ReviewConsentStep({
                       type="text"
                       value={initials.screening}
                       onChange={(e) => handleInitialsChange('screening', e.target.value)}
-                      className={`w-16 h-10 text-center font-bold text-sm ${
+                      className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_screening') ? 'border-red-500' : ''
                       }`}
-                      placeholder={t('jobApplication.steps.reviewConsent.placeholders.initial')}
+                      placeholder="Initials"
                       maxLength={4}
                     />
                     {getError('initials_screening') && (
