@@ -64,8 +64,9 @@ from .websocket_manager import websocket_manager
 from .analytics_router import router as analytics_router
 from .notification_router import router as notification_router
 
-# Import OCR service
+# Import OCR services
 from .i9_ocr_service import I9DocumentOCRService
+from .google_ocr_service import GoogleDocumentOCRService
 from .i9_section2 import I9DocumentType
 
 # Import standardized response system
@@ -184,11 +185,58 @@ bulk_employee_ops = BulkEmployeeOperations()
 bulk_communication_service = BulkCommunicationService()
 bulk_audit_service = BulkOperationAuditService()
 
-# Initialize GROQ client
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+# Initialize OCR services with fallback pattern
+ocr_service = None
 
-# Initialize OCR service
-ocr_service = I9DocumentOCRService(groq_client)
+# Try Google Document AI first (preferred)
+try:
+    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or os.getenv("GOOGLE_PROJECT_ID"):
+        google_ocr = GoogleDocumentOCRService(
+            project_id=os.getenv("GOOGLE_PROJECT_ID", "933544811759"),
+            processor_id=os.getenv("GOOGLE_PROCESSOR_ID", "50c628033c5d5dde"),
+            location=os.getenv("GOOGLE_PROCESSOR_LOCATION", "us")
+        )
+        ocr_service = google_ocr
+        logger.info("✅ Using Google Document AI for OCR processing")
+        logger.info(f"   Project: {os.getenv('GOOGLE_PROJECT_ID', '933544811759')}")
+        logger.info(f"   Processor: {os.getenv('GOOGLE_PROCESSOR_ID', '50c628033c5d5dde')}")
+except Exception as e:
+    logger.warning(f"⚠️ Google Document AI initialization failed: {str(e)}")
+    logger.info("   Will try Groq as fallback...")
+
+# Fallback to Groq if Google fails or not configured
+if not ocr_service:
+    try:
+        # Initialize GROQ client
+        groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        
+        # Test Groq client connection and available models
+        if os.getenv("GROQ_API_KEY"):
+            # List available models to verify connection
+            test_response = groq_client.models.list()
+            available_models = [m.id for m in test_response.data]
+            logger.info(f"✅ Groq client connected. Available models: {available_models}")
+            
+            # Check if our vision model is available
+            if "meta-llama/llama-4-scout-17b-16e-instruct" in available_models:
+                logger.info("✅ Llama 4 Scout vision model is available")
+            else:
+                logger.warning("⚠️ Llama 4 Scout model not found in available models")
+                logger.info(f"Available vision models: {[m for m in available_models if 'vision' in m.lower() or 'scout' in m.lower() or 'maverick' in m.lower()]}")
+            
+            # Initialize Groq OCR service
+            ocr_service = I9DocumentOCRService(groq_client)
+            logger.info("✅ Using Groq for OCR processing (fallback)")
+        else:
+            logger.warning("⚠️ GROQ_API_KEY not configured")
+    except Exception as e:
+        logger.error(f"❌ Groq client connection failed: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+
+# Final check
+if not ocr_service:
+    logger.error("❌ No OCR service available - OCR features will be disabled")
+    logger.info("   Configure either Google Document AI or Groq API to enable OCR")
 
 # Include PDF API router
 app.include_router(pdf_router)
@@ -346,26 +394,58 @@ async def initialize_test_data():
         logger.error(f"Test data initialization error: {e}")
 
 
+@app.get("/healthz")
+async def healthz_simple():
+    """Simple health check endpoint without /api prefix"""
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    )
+
 @app.get("/api/healthz")
 async def healthz():
-    """Health check with Supabase status"""
+    """Health check with Supabase status - simplified to avoid middleware issues"""
+    import asyncio
     try:
-        connection_status = await supabase_service.health_check()
-        health_data = {
-            "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "version": "3.0.0",
-            "database": "supabase",
-            "connection": connection_status
-        }
-        return success_response(data=health_data)
+        # Add timeout to prevent hanging
+        connection_status = await asyncio.wait_for(
+            supabase_service.health_check(), 
+            timeout=5.0  # 5 second timeout
+        )
+        
+        # Return simple JSON response directly without using success_response wrapper
+        return JSONResponse(
+            status_code=200,
+            content={
+                "status": "healthy",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "version": "3.0.0",
+                "database": connection_status.get("status", "unknown"),
+                "connection": connection_status.get("connection", "unknown")
+            }
+        )
+    except asyncio.TimeoutError:
+        logger.error("Health check timed out")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "error": "Database connection check exceeded timeout",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
     except Exception as e:
         logger.error(f"Health check failed: {e}")
-        return error_response(
-            message="Health check failed",
-            error_code=ErrorCode.EXTERNAL_SERVICE_ERROR,
+        return JSONResponse(
             status_code=503,
-            detail=str(e)
+            content={
+                "status": "unhealthy",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
         )
 
 @app.post("/api/auth/login", response_model=LoginResponse)

@@ -72,8 +72,22 @@ class I9DocumentOCRService:
                 
             except Exception as api_error:
                 logger.error(f"Groq Vision API error: {str(api_error)}")
-                # Return empty result on API failure
-                ocr_result = self._get_empty_result(document_type)
+                # Add more detailed error info
+                error_details = {
+                    "error_type": type(api_error).__name__,
+                    "error_message": str(api_error),
+                    "model_used": "meta-llama/llama-4-scout-17b-16e-instruct"
+                }
+                logger.error(f"Detailed error: {json.dumps(error_details)}")
+                # Return error details instead of empty result
+                return {
+                    "success": False,
+                    "error": str(api_error),
+                    "error_details": error_details,
+                    "extracted_data": {},
+                    "confidence_score": 0.0,
+                    "processing_notes": [f"OCR API call failed: {str(api_error)}"]
+                }
                 
             # Validate extracted data
             validation_result = self._validate_extracted_data(ocr_result, document_type)

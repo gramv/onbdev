@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Plus, Trash2, Briefcase, Calendar, Phone, DollarSign } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { formValidator, ValidationRule } from '@/utils/formValidation'
 
 interface EmploymentHistoryStepProps {
@@ -197,8 +197,7 @@ export default function EmploymentHistoryStep({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center">
-          <Briefcase className="w-5 h-5 mr-2" />
+        <h3 className="text-lg font-semibold">
           {t('jobApplication.steps.employmentHistory.title')}
         </h3>
         
@@ -252,7 +251,7 @@ export default function EmploymentHistoryStep({
                         value={entry.employer_name}
                         onChange={(e) => updateEmploymentEntry(index, 'employer_name', e.target.value)}
                         className={localErrors[`employment_${index}_employer_name`] ? 'border-red-500' : ''}
-                        placeholder={t('jobApplication.steps.employmentHistory.placeholders.companyName')}
+                        placeholder=""
                       />
                       {hasInteracted && localErrors[`employment_${index}_employer_name`] && (
                         <p className="text-sm text-red-600">{localErrors[`employment_${index}_employer_name`]}</p>
@@ -261,21 +260,18 @@ export default function EmploymentHistoryStep({
 
                     <div className="space-y-2">
                       <Label htmlFor={`employer_phone_${index}`}>{t('jobApplication.steps.employmentHistory.fields.companyPhone')} *</Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          id={`employer_phone_${index}`}
-                          type="tel"
-                          value={entry.employer_phone}
-                          onChange={(e) => {
-                            const formatted = formatPhoneNumber(e.target.value)
-                            updateEmploymentEntry(index, 'employer_phone', formatted)
-                          }}
-                          className={`pl-10 ${localErrors[`employment_${index}_employer_phone`] ? 'border-red-500' : ''}`}
-                          placeholder="(555) 123-4567"
-                          maxLength={14}
-                        />
-                      </div>
+                      <Input
+                        id={`employer_phone_${index}`}
+                        type="tel"
+                        value={entry.employer_phone}
+                        onChange={(e) => {
+                          const formatted = formatPhoneNumber(e.target.value)
+                          updateEmploymentEntry(index, 'employer_phone', formatted)
+                        }}
+                        className={localErrors[`employment_${index}_employer_phone`] ? 'border-red-500' : ''}
+                        placeholder="(555) 123-4567"
+                        maxLength={14}
+                      />
                       {hasInteracted && localErrors[`employment_${index}_employer_phone`] && (
                         <p className="text-sm text-red-600">{localErrors[`employment_${index}_employer_phone`]}</p>
                       )}
@@ -290,7 +286,7 @@ export default function EmploymentHistoryStep({
                       value={entry.employer_address}
                       onChange={(e) => updateEmploymentEntry(index, 'employer_address', e.target.value)}
                       className={localErrors[`employment_${index}_employer_address`] ? 'border-red-500' : ''}
-                      placeholder={t('jobApplication.steps.employmentHistory.placeholders.companyAddress')}
+                      placeholder=""
                     />
                     {hasInteracted && localErrors[`employment_${index}_employer_address`] && (
                       <p className="text-sm text-red-600">{localErrors[`employment_${index}_employer_address`]}</p>
@@ -306,7 +302,7 @@ export default function EmploymentHistoryStep({
                         value={entry.starting_job_title}
                         onChange={(e) => updateEmploymentEntry(index, 'starting_job_title', e.target.value)}
                         className={localErrors[`employment_${index}_starting_job_title`] ? 'border-red-500' : ''}
-                        placeholder={t('jobApplication.steps.employmentHistory.placeholders.jobTitle')}
+                        placeholder=""
                       />
                       {hasInteracted && localErrors[`employment_${index}_starting_job_title`] && (
                         <p className="text-sm text-red-600">{localErrors[`employment_${index}_starting_job_title`]}</p>
@@ -320,7 +316,7 @@ export default function EmploymentHistoryStep({
                         value={entry.ending_job_title}
                         onChange={(e) => updateEmploymentEntry(index, 'ending_job_title', e.target.value)}
                         className={localErrors[`employment_${index}_ending_job_title`] ? 'border-red-500' : ''}
-                        placeholder={t('jobApplication.steps.employmentHistory.placeholders.finalJobTitle')}
+                        placeholder=""
                         disabled={entry.is_current}
                       />
                       {hasInteracted && localErrors[`employment_${index}_ending_job_title`] && (
@@ -344,17 +340,14 @@ export default function EmploymentHistoryStep({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor={`start_date_${index}`}>{t('jobApplication.steps.employmentHistory.fields.startDate')} *</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id={`start_date_${index}`}
-                        type="date"
-                        value={entry.start_date}
-                        onChange={(e) => updateEmploymentEntry(index, 'start_date', e.target.value)}
-                        className={`pl-10 ${localErrors[`employment_${index}_start_date`] ? 'border-red-500' : ''}`}
-                        max={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
+                    <Input
+                      id={`start_date_${index}`}
+                      type="date"
+                      value={entry.start_date}
+                      onChange={(e) => updateEmploymentEntry(index, 'start_date', e.target.value)}
+                      className={localErrors[`employment_${index}_start_date`] ? 'border-red-500' : ''}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
                     {hasInteracted && localErrors[`employment_${index}_start_date`] && (
                       <p className="text-sm text-red-600">{localErrors[`employment_${index}_start_date`]}</p>
                     )}
@@ -362,18 +355,15 @@ export default function EmploymentHistoryStep({
 
                   <div className="space-y-2">
                     <Label htmlFor={`end_date_${index}`}>{t('jobApplication.steps.employmentHistory.fields.endDate')} {!entry.is_current && '*'}</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id={`end_date_${index}`}
-                        type="date"
-                        value={entry.end_date}
-                        onChange={(e) => updateEmploymentEntry(index, 'end_date', e.target.value)}
-                        className={`pl-10 ${localErrors[`employment_${index}_end_date`] ? 'border-red-500' : ''}`}
-                        disabled={entry.is_current}
-                        max={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
+                    <Input
+                      id={`end_date_${index}`}
+                      type="date"
+                      value={entry.end_date}
+                      onChange={(e) => updateEmploymentEntry(index, 'end_date', e.target.value)}
+                      className={localErrors[`employment_${index}_end_date`] ? 'border-red-500' : ''}
+                      disabled={entry.is_current}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
                     {hasInteracted && localErrors[`employment_${index}_end_date`] && (
                       <p className="text-sm text-red-600">{localErrors[`employment_${index}_end_date`]}</p>
                     )}
@@ -386,16 +376,13 @@ export default function EmploymentHistoryStep({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor={`starting_salary_${index}`}>{t('jobApplication.steps.employmentHistory.fields.startingSalary')} *</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id={`starting_salary_${index}`}
-                        value={entry.starting_salary}
-                        onChange={(e) => updateEmploymentEntry(index, 'starting_salary', e.target.value)}
-                        className={`pl-10 ${localErrors[`employment_${index}_starting_salary`] ? 'border-red-500' : ''}`}
-                        placeholder={t('jobApplication.steps.employmentHistory.placeholders.salary')}
-                      />
-                    </div>
+                    <Input
+                      id={`starting_salary_${index}`}
+                      value={entry.starting_salary}
+                      onChange={(e) => updateEmploymentEntry(index, 'starting_salary', e.target.value)}
+                      className={localErrors[`employment_${index}_starting_salary`] ? 'border-red-500' : ''}
+                      placeholder="$12"
+                    />
                     {hasInteracted && localErrors[`employment_${index}_starting_salary`] && (
                       <p className="text-sm text-red-600">{localErrors[`employment_${index}_starting_salary`]}</p>
                     )}
@@ -403,17 +390,14 @@ export default function EmploymentHistoryStep({
 
                   <div className="space-y-2">
                     <Label htmlFor={`ending_salary_${index}`}>{t('jobApplication.steps.employmentHistory.fields.endingSalary')} {!entry.is_current && '*'}</Label>
-                    <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id={`ending_salary_${index}`}
-                        value={entry.ending_salary}
-                        onChange={(e) => updateEmploymentEntry(index, 'ending_salary', e.target.value)}
-                        className={`pl-10 ${localErrors[`employment_${index}_ending_salary`] ? 'border-red-500' : ''}`}
-                        placeholder={t('jobApplication.steps.employmentHistory.placeholders.endingSalary')}
-                        disabled={entry.is_current}
-                      />
-                    </div>
+                    <Input
+                      id={`ending_salary_${index}`}
+                      value={entry.ending_salary}
+                      onChange={(e) => updateEmploymentEntry(index, 'ending_salary', e.target.value)}
+                      className={localErrors[`employment_${index}_ending_salary`] ? 'border-red-500' : ''}
+                      placeholder="$12"
+                      disabled={entry.is_current}
+                    />
                     {hasInteracted && localErrors[`employment_${index}_ending_salary`] && (
                       <p className="text-sm text-red-600">{localErrors[`employment_${index}_ending_salary`]}</p>
                     )}
@@ -426,7 +410,7 @@ export default function EmploymentHistoryStep({
                     id={`responsibilities_${index}`}
                     value={entry.responsibilities}
                     onChange={(e) => updateEmploymentEntry(index, 'responsibilities', e.target.value)}
-                    placeholder={t('jobApplication.steps.employmentHistory.placeholders.responsibilities')}
+                    placeholder=""
                     rows={3}
                   />
                 </div>
@@ -439,7 +423,7 @@ export default function EmploymentHistoryStep({
                       value={entry.reason_for_leaving}
                       onChange={(e) => updateEmploymentEntry(index, 'reason_for_leaving', e.target.value)}
                       className={localErrors[`employment_${index}_reason_for_leaving`] ? 'border-red-500' : ''}
-                      placeholder={t('jobApplication.steps.employmentHistory.placeholders.reasonForLeaving')}
+                      placeholder=""
                     />
                     {hasInteracted && localErrors[`employment_${index}_reason_for_leaving`] && (
                       <p className="text-sm text-red-600">{localErrors[`employment_${index}_reason_for_leaving`]}</p>
@@ -454,27 +438,23 @@ export default function EmploymentHistoryStep({
                       id={`supervisor_name_${index}`}
                       value={entry.supervisor_name}
                       onChange={(e) => updateEmploymentEntry(index, 'supervisor_name', e.target.value)}
-                      placeholder={t('jobApplication.steps.employmentHistory.placeholders.supervisorName')}
+                      placeholder=""
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor={`supervisor_phone_${index}`}>{t('jobApplication.steps.employmentHistory.fields.supervisorPhone')}</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id={`supervisor_phone_${index}`}
-                        type="tel"
-                        value={entry.supervisor_phone}
-                        onChange={(e) => {
-                          const formatted = formatPhoneNumber(e.target.value)
-                          updateEmploymentEntry(index, 'supervisor_phone', formatted)
-                        }}
-                        className="pl-10"
-                        placeholder="(555) 123-4567"
-                        maxLength={14}
-                      />
-                    </div>
+                    <Input
+                      id={`supervisor_phone_${index}`}
+                      type="tel"
+                      value={entry.supervisor_phone}
+                      onChange={(e) => {
+                        const formatted = formatPhoneNumber(e.target.value)
+                        updateEmploymentEntry(index, 'supervisor_phone', formatted)
+                      }}
+                      placeholder="(555) 123-4567"
+                      maxLength={14}
+                    />
                   </div>
                 </div>
 
@@ -512,7 +492,7 @@ export default function EmploymentHistoryStep({
                 id="employment_gaps"
                 value={formData.employment_gaps || ''}
                 onChange={(e) => updateFormData({ employment_gaps: e.target.value })}
-                placeholder={t('jobApplication.steps.employmentHistory.placeholders.employmentGaps')}
+                placeholder=""
                 rows={2}
               />
             </div>

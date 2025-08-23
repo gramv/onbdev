@@ -243,9 +243,11 @@ class PDFFormFiller:
     
     def __init__(self):
         # CRITICAL: Only use official government form templates for federal compliance
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.form_templates = {
-            "i9": "/Users/gouthamvemula/onbclaude/onbdev/official-forms/i9-form-latest.pdf",
-            "w4": "/Users/gouthamvemula/onbclaude/onbdev/official-forms/w4-form-latest.pdf"
+            "i9": os.path.join(base_dir, "static", "i9-form-template.pdf"),
+            "w4": os.path.join(base_dir, "static", "w4-form-template.pdf")
         }
         
         # Validate template files exist
@@ -266,11 +268,9 @@ class PDFFormFiller:
         for form_type, template_path in self.form_templates.items():
             if not os.path.exists(template_path):
                 print(f"⚠️ WARNING: Official {form_type.upper()} template not found at {template_path}")
-                print(f"Federal compliance requires official templates. Creating fallback...")
-                # Create placeholder file for development
-                os.makedirs(os.path.dirname(template_path), exist_ok=True)
-                with open(template_path, 'w') as f:
-                    f.write(f"# Placeholder for official {form_type.upper()} template")
+                print(f"Federal compliance requires official templates. Will use fallback generation if needed.")
+                # Don't try to create files on read-only filesystems (like Heroku)
+                # The static folder should contain these files
             else:
                 print(f"✅ Official {form_type.upper()} template found: {template_path}")
     

@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar, DollarSign, Briefcase, Users, Info } from 'lucide-react'
+// Icons removed for cleaner professional look
 import { formValidator, ValidationRule } from '@/utils/formValidation'
 
 interface PositionAvailabilityStepProps {
@@ -165,13 +165,12 @@ export default function PositionAvailabilityStep({
     <div className="space-y-6">
       {/* Position Selection */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Briefcase className="w-5 h-5 mr-2" />
+        <h3 className="text-lg font-semibold mb-4">
           {t('jobApplication.steps.positionAvailability.positionDetails')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="department">{t('jobApplication.steps.positionAvailability.fields.department')} *</Label>
+            <Label htmlFor="department" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.department')} *</Label>
             <Select 
               value={formData.department || ''} 
               onValueChange={(value) => {
@@ -180,7 +179,7 @@ export default function PositionAvailabilityStep({
               }}
             >
               <SelectTrigger className={getError('department') ? 'border-red-500' : ''}>
-                <SelectValue placeholder={t('jobApplication.steps.positionAvailability.placeholders.selectDepartment')} />
+                <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
                 {departments.map((dept: string) => (
@@ -194,14 +193,14 @@ export default function PositionAvailabilityStep({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="position">{t('jobApplication.steps.positionAvailability.fields.position')} *</Label>
+            <Label htmlFor="position" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.position')} *</Label>
             <Select 
               value={formData.position || ''} 
               onValueChange={(value) => handleInputChange('position', value)}
               disabled={!formData.department}
             >
               <SelectTrigger className={getError('position') ? 'border-red-500' : ''}>
-                <SelectValue placeholder={formData.department ? t('jobApplication.steps.positionAvailability.placeholders.selectPosition') : t('jobApplication.steps.positionAvailability.placeholders.selectDepartmentFirst')} />
+                <SelectValue placeholder={formData.department ? "Select position" : "Select department first"} />
               </SelectTrigger>
               <SelectContent>
                 {positions && positions.map((pos: string) => (
@@ -215,13 +214,13 @@ export default function PositionAvailabilityStep({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="employment_type">{t('jobApplication.steps.positionAvailability.fields.employmentType')} *</Label>
+            <Label htmlFor="employment_type" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.employmentType')} *</Label>
             <Select 
               value={formData.employment_type || ''} 
               onValueChange={(value) => handleInputChange('employment_type', value)}
             >
               <SelectTrigger className={getError('employment_type') ? 'border-red-500' : ''}>
-                <SelectValue placeholder={t('jobApplication.steps.positionAvailability.placeholders.selectEmploymentType')} />
+                <SelectValue placeholder="Select employment type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="full_time">{t('jobApplication.steps.positionAvailability.employmentTypes.fullTime')}</SelectItem>
@@ -236,31 +235,27 @@ export default function PositionAvailabilityStep({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="desired_salary" className="text-base font-medium">{t('jobApplication.steps.positionAvailability.fields.hourlyRate')}</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                id="desired_salary"
-                value={formData.desired_salary || ''}
-                onChange={(e) => handleInputChange('desired_salary', e.target.value)}
-                className="pl-10 h-12 text-base"
-                placeholder="$12"
-              />
-            </div>
+            <Label htmlFor="desired_salary" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.hourlyRate')}</Label>
+            <Input
+              id="desired_salary"
+              value={formData.desired_salary || ''}
+              onChange={(e) => handleInputChange('desired_salary', e.target.value)}
+              className="h-12 text-base"
+              placeholder="$12"
+            />
           </div>
         </div>
       </div>
 
       {/* Availability */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Calendar className="w-5 h-5 mr-2" />
+        <h3 className="text-lg font-semibold mb-4">
           {t('jobApplication.steps.positionAvailability.availability')}
         </h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="space-y-2">
-            <Label htmlFor="start_date">{t('jobApplication.steps.positionAvailability.fields.startDate')} *</Label>
+            <Label htmlFor="start_date" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.startDate')} *</Label>
             <Input
               id="start_date"
               type="date"
@@ -276,13 +271,13 @@ export default function PositionAvailabilityStep({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="shift_preference">{t('jobApplication.steps.positionAvailability.fields.shiftPreference')}</Label>
+            <Label htmlFor="shift_preference" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.shiftPreference')}</Label>
             <Select 
               value={formData.shift_preference || ''} 
               onValueChange={(value) => handleInputChange('shift_preference', value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder={t('jobApplication.steps.positionAvailability.placeholders.selectShift')} />
+                <SelectValue placeholder="Select shift" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="morning">{t('jobApplication.steps.positionAvailability.shiftOptions.morning')}</SelectItem>
@@ -299,16 +294,16 @@ export default function PositionAvailabilityStep({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.positionAvailability.fields.weekends')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.weekends')} *</Label>
             <RadioGroup 
               value={formData.availability_weekends || ''} 
               onValueChange={(value) => handleInputChange('availability_weekends', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="weekends_yes" />
                 <Label htmlFor="weekends_yes" className="font-normal">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="weekends_no" />
                 <Label htmlFor="weekends_no" className="font-normal">{t('common.no')}</Label>
               </div>
@@ -319,16 +314,16 @@ export default function PositionAvailabilityStep({
           </div>
 
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.positionAvailability.fields.holidays')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.holidays')} *</Label>
             <RadioGroup 
               value={formData.availability_holidays || ''} 
               onValueChange={(value) => handleInputChange('availability_holidays', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="holidays_yes" />
                 <Label htmlFor="holidays_yes" className="font-normal">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="holidays_no" />
                 <Label htmlFor="holidays_no" className="font-normal">{t('common.no')}</Label>
               </div>
@@ -342,22 +337,21 @@ export default function PositionAvailabilityStep({
 
       {/* Previous Employment with Hotel */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Users className="w-5 h-5 mr-2" />
+        <h3 className="text-lg font-semibold mb-4">
           {t('jobApplication.steps.positionAvailability.previousEmployment')}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.positionAvailability.fields.previouslyEmployed')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.previouslyEmployed')} *</Label>
             <RadioGroup 
               value={formData.previously_employed || ''} 
               onValueChange={(value) => handleInputChange('previously_employed', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="prev_emp_no" />
                 <Label htmlFor="prev_emp_no" className="font-normal">{t('common.no')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="prev_emp_yes" />
                 <Label htmlFor="prev_emp_yes" className="font-normal">{t('common.yes')}</Label>
               </div>
@@ -369,13 +363,13 @@ export default function PositionAvailabilityStep({
 
           {formData.previously_employed === 'yes' && (
             <div className="space-y-2">
-              <Label htmlFor="previous_employment_details">{t('jobApplication.steps.positionAvailability.fields.previousDetails')} *</Label>
+              <Label htmlFor="previous_employment_details" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.previousDetails')} *</Label>
               <Textarea
                 id="previous_employment_details"
                 value={formData.previous_employment_details || ''}
                 onChange={(e) => handleInputChange('previous_employment_details', e.target.value)}
                 className={getError('previous_employment_details') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.positionAvailability.placeholders.previousDetails')}
+                placeholder=""
                 rows={2}
               />
               {getError('previous_employment_details') && (
@@ -385,12 +379,12 @@ export default function PositionAvailabilityStep({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="relatives_employed">{t('jobApplication.steps.positionAvailability.fields.relatives')}</Label>
+            <Label htmlFor="relatives_employed" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.relatives')}</Label>
             <Input
               id="relatives_employed"
               value={formData.relatives_employed || ''}
               onChange={(e) => handleInputChange('relatives_employed', e.target.value)}
-              placeholder={t('jobApplication.steps.positionAvailability.placeholders.relatives')}
+              placeholder=""
             />
             <p className="text-xs text-gray-500">{t('jobApplication.steps.positionAvailability.hints.relatives')}</p>
           </div>
@@ -399,22 +393,21 @@ export default function PositionAvailabilityStep({
 
       {/* Current Employment Status */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Briefcase className="w-5 h-5 mr-2" />
+        <h3 className="text-lg font-semibold mb-4">
           {t('jobApplication.steps.positionAvailability.currentEmployment')}
         </h3>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.positionAvailability.fields.currentlyEmployed')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.currentlyEmployed')} *</Label>
             <RadioGroup 
               value={formData.currently_employed || ''} 
               onValueChange={(value) => handleInputChange('currently_employed', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="currently_employed_yes" />
                 <Label htmlFor="currently_employed_yes" className="font-normal">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="currently_employed_no" />
                 <Label htmlFor="currently_employed_no" className="font-normal">{t('common.no')}</Label>
               </div>
@@ -426,16 +419,16 @@ export default function PositionAvailabilityStep({
 
           {formData.currently_employed === 'yes' && (
             <div className="space-y-2">
-              <Label>{t('jobApplication.steps.positionAvailability.fields.contactEmployer')} *</Label>
+              <Label className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.contactEmployer')} *</Label>
               <RadioGroup 
                 value={formData.may_contact_current_employer || ''} 
                 onValueChange={(value) => handleInputChange('may_contact_current_employer', value)}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="yes" id="contact_employer_yes" />
                   <Label htmlFor="contact_employer_yes" className="font-normal">{t('common.yes')}</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="no" id="contact_employer_no" />
                   <Label htmlFor="contact_employer_no" className="font-normal">{t('common.no')}</Label>
                 </div>
@@ -450,8 +443,7 @@ export default function PositionAvailabilityStep({
 
       {/* Referral Source */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center">
-          <Info className="w-5 h-5 mr-2" />
+        <h3 className="text-lg font-semibold mb-4">
           {t('jobApplication.steps.positionAvailability.fields.referralSource')}
         </h3>
         <div className="space-y-4">
@@ -460,31 +452,31 @@ export default function PositionAvailabilityStep({
             onValueChange={(value) => handleInputChange('referral_source', value)}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="employee" id="ref_employee" />
                 <Label htmlFor="ref_employee" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.employee')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="indeed" id="ref_indeed" />
                 <Label htmlFor="ref_indeed" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.indeed')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="newspaper" id="ref_newspaper" />
                 <Label htmlFor="ref_newspaper" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.newspaper')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="craigslist" id="ref_craigslist" />
                 <Label htmlFor="ref_craigslist" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.craigslist')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="walkin" id="ref_walkin" />
                 <Label htmlFor="ref_walkin" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.walkin')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="dol" id="ref_dol" />
                 <Label htmlFor="ref_dol" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.dol')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="other" id="ref_other" />
                 <Label htmlFor="ref_other" className="font-normal">{t('jobApplication.steps.positionAvailability.fields.referralOptions.other')}</Label>
               </div>
@@ -496,13 +488,13 @@ export default function PositionAvailabilityStep({
 
           {formData.referral_source === 'employee' && (
             <div className="space-y-2">
-              <Label htmlFor="employee_referral_name">{t('jobApplication.steps.positionAvailability.fields.employeeReferralName')} *</Label>
+              <Label htmlFor="employee_referral_name" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.employeeReferralName')} *</Label>
               <Input
                 id="employee_referral_name"
                 value={formData.employee_referral_name || ''}
                 onChange={(e) => handleInputChange('employee_referral_name', e.target.value)}
                 className={getError('employee_referral_name') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.positionAvailability.placeholders.employeeName')}
+                placeholder=""
               />
               {getError('employee_referral_name') && (
                 <p className="text-sm text-red-600">{getError('employee_referral_name')}</p>
@@ -512,13 +504,13 @@ export default function PositionAvailabilityStep({
 
           {formData.referral_source === 'other' && (
             <div className="space-y-2">
-              <Label htmlFor="referral_source_other">{t('jobApplication.steps.positionAvailability.fields.referralSourceOther')} *</Label>
+              <Label htmlFor="referral_source_other" className="font-semibold text-gray-900">{t('jobApplication.steps.positionAvailability.fields.referralSourceOther')} *</Label>
               <Input
                 id="referral_source_other"
                 value={formData.referral_source_other || ''}
                 onChange={(e) => handleInputChange('referral_source_other', e.target.value)}
                 className={getError('referral_source_other') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.positionAvailability.placeholders.referralOther')}
+                placeholder=""
               />
               {getError('referral_source_other') && (
                 <p className="text-sm text-red-600">{getError('referral_source_other')}</p>

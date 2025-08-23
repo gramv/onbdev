@@ -24,6 +24,28 @@ export default function ReviewConsentStep({
   onComplete
 }: ReviewConsentStepProps) {
   const { t } = useTranslation()
+  
+  // Function to get expected initials from user's name
+  const getExpectedInitials = () => {
+    const firstName = formData.first_name || ''
+    const middleName = formData.middle_name || ''
+    const lastName = formData.last_name || ''
+    
+    // Handle edge case where names might be empty
+    if (!firstName || !lastName) {
+      return ''
+    }
+    
+    // Build initials based on whether middle name exists
+    if (middleName && middleName.length > 0) {
+      return `${firstName[0]}${middleName[0]}${lastName[0]}`.toUpperCase()
+    } else {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase()
+    }
+  }
+  
+  const expectedInitials = getExpectedInitials()
+  
   // Separate states for typed and drawn signatures
   const [typedSignature, setTypedSignature] = useState(
     formData.signature && !formData.signature.startsWith('data:') ? formData.signature : ''
@@ -75,19 +97,28 @@ export default function ReviewConsentStep({
     const errors: Record<string, string> = {}
     let isValid = true
 
-    // Validate initials
-    if (!initials.truthfulness || initials.truthfulness.length < 2) {
-      errors.initials_truthfulness = t('jobApplication.steps.reviewConsent.signatureSection.initialError', { statement: 'first' })
+    // Validate initials - must match expected initials
+    if (!initials.truthfulness) {
+      errors.initials_truthfulness = `Please enter your initials${expectedInitials ? ` (${expectedInitials})` : ''}`
+      isValid = false
+    } else if (expectedInitials && initials.truthfulness.toUpperCase() !== expectedInitials) {
+      errors.initials_truthfulness = `Please enter your correct initials (${expectedInitials})`
       isValid = false
     }
 
-    if (!initials.at_will || initials.at_will.length < 2) {
-      errors.initials_at_will = t('jobApplication.steps.reviewConsent.signatureSection.initialError', { statement: 'second' })
+    if (!initials.at_will) {
+      errors.initials_at_will = `Please enter your initials${expectedInitials ? ` (${expectedInitials})` : ''}`
+      isValid = false
+    } else if (expectedInitials && initials.at_will.toUpperCase() !== expectedInitials) {
+      errors.initials_at_will = `Please enter your correct initials (${expectedInitials})`
       isValid = false
     }
 
-    if (!initials.screening || initials.screening.length < 2) {
-      errors.initials_screening = t('jobApplication.steps.reviewConsent.signatureSection.initialError', { statement: 'third' })
+    if (!initials.screening) {
+      errors.initials_screening = `Please enter your initials${expectedInitials ? ` (${expectedInitials})` : ''}`
+      isValid = false
+    } else if (expectedInitials && initials.screening.toUpperCase() !== expectedInitials) {
+      errors.initials_screening = `Please enter your correct initials (${expectedInitials})`
       isValid = false
     }
 
@@ -262,6 +293,11 @@ export default function ReviewConsentStep({
           <p className="text-sm font-semibold mt-2">
             {t('jobApplication.steps.reviewConsent.readAndInitial')}
           </p>
+          {expectedInitials && (
+            <p className="text-sm text-blue-600 font-medium mt-2">
+              Your initials: {expectedInitials}
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-4">
@@ -277,7 +313,7 @@ export default function ReviewConsentStep({
                       className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_truthfulness') ? 'border-red-500' : ''
                       }`}
-                      placeholder="Initials"
+                      placeholder={expectedInitials || "Initials"}
                       maxLength={4}
                     />
                     {getError('initials_truthfulness') && (
@@ -305,7 +341,7 @@ export default function ReviewConsentStep({
                       className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_at_will') ? 'border-red-500' : ''
                       }`}
-                      placeholder="Initials"
+                      placeholder={expectedInitials || "Initials"}
                       maxLength={4}
                     />
                     {getError('initials_at_will') && (
@@ -333,7 +369,7 @@ export default function ReviewConsentStep({
                       className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_screening') ? 'border-red-500' : ''
                       }`}
-                      placeholder="Initials"
+                      placeholder={expectedInitials || "Initials"}
                       maxLength={4}
                     />
                     {getError('initials_screening') && (

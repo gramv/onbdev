@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formValidator, ValidationRule } from '@/utils/formValidation'
-import { Mail, Phone, MapPin, User, Car, Info } from 'lucide-react'
+// Icons removed for cleaner professional look
 
 interface PersonalInformationStepProps {
   formData: any
@@ -165,41 +165,38 @@ export default function PersonalInformationStep({
         <h3 className="text-lg font-semibold mb-4">{t('jobApplication.steps.personalInfo.fields.firstName').split(' ')[0]}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="first_name">{t('jobApplication.steps.personalInfo.fields.firstName')} *</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="first_name"
-                value={formData.first_name || ''}
-                onChange={(e) => handleInputChange('first_name', e.target.value)}
-                className={`pl-10 ${getError('first_name') ? 'border-red-500' : ''}`}
-                placeholder="John"
-                required
-              />
-            </div>
+            <Label htmlFor="first_name" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.firstName')} *</Label>
+            <Input
+              id="first_name"
+              value={formData.first_name || ''}
+              onChange={(e) => handleInputChange('first_name', e.target.value)}
+              className={getError('first_name') ? 'border-red-500' : ''}
+              placeholder=""
+              required
+            />
             {getError('first_name') && (
               <p className="text-sm text-red-600">{getError('first_name')}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="middle_name">{t('jobApplication.steps.personalInfo.fields.middleName')}</Label>
+            <Label htmlFor="middle_name" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.middleName')}</Label>
             <Input
               id="middle_name"
               value={formData.middle_name || ''}
               onChange={(e) => handleInputChange('middle_name', e.target.value)}
-              placeholder="M"
+              placeholder=""
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="last_name">{t('jobApplication.steps.personalInfo.fields.lastName')} *</Label>
+            <Label htmlFor="last_name" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.lastName')} *</Label>
             <Input
               id="last_name"
               value={formData.last_name || ''}
               onChange={(e) => handleInputChange('last_name', e.target.value)}
               className={getError('last_name') ? 'border-red-500' : ''}
-              placeholder="Doe"
+              placeholder=""
               required
             />
             {getError('last_name') && (
@@ -214,47 +211,41 @@ export default function PersonalInformationStep({
         <h3 className="text-lg font-semibold mb-4">{t('jobApplication.steps.personalInfo.description')}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="email">{t('jobApplication.steps.personalInfo.fields.email')} *</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="email"
-                type="email"
-                value={formData.email || ''}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`pl-10 ${getError('email') ? 'border-red-500' : ''}`}
-                placeholder="john.doe@example.com"
-                required
-              />
-            </div>
+            <Label htmlFor="email" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.email')} *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email || ''}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className={getError('email') ? 'border-red-500' : ''}
+              placeholder=""
+              required
+            />
             {getError('email') && (
               <p className="text-sm text-red-600">{getError('email')}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">{t('jobApplication.steps.personalInfo.fields.phone')} *</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone || ''}
-                onChange={(e) => {
-                  const formatted = formatPhoneNumber(e.target.value)
-                  handleInputChange('phone', formatted)
-                }}
-                className={`pl-10 ${getError('phone') ? 'border-red-500' : ''}`}
-                placeholder="(555) 123-4567"
-                maxLength={14}
-                required
-              />
-            </div>
+            <Label htmlFor="phone" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.phone')} *</Label>
+            <Input
+              id="phone"
+              type="tel"
+              value={formData.phone || ''}
+              onChange={(e) => {
+                const formatted = formatPhoneNumber(e.target.value)
+                handleInputChange('phone', formatted)
+              }}
+              className={getError('phone') ? 'border-red-500' : ''}
+              placeholder="(555) 123-4567"
+              maxLength={14}
+              required
+            />
             {getError('phone') && (
               <p className="text-sm text-red-600">{getError('phone')}</p>
             )}
             <div className="flex gap-4 mt-2">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <Checkbox
                   id="phone_cell"
                   checked={formData.phone_is_cell || false}
@@ -262,7 +253,7 @@ export default function PersonalInformationStep({
                 />
                 <Label htmlFor="phone_cell" className="text-sm font-normal cursor-pointer">{t('jobApplication.steps.personalInfo.fields.phoneType.cell')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <Checkbox
                   id="phone_home"
                   checked={formData.phone_is_home || false}
@@ -277,24 +268,20 @@ export default function PersonalInformationStep({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="alternate_phone">Alternate Phone</Label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                id="alternate_phone"
-                type="tel"
-                value={formData.alternate_phone || ''}
-                onChange={(e) => {
-                  const formatted = formatPhoneNumber(e.target.value)
-                  handleInputChange('alternate_phone', formatted)
-                }}
-                className="pl-10"
-                placeholder="(555) 987-6543"
-                maxLength={14}
-              />
-            </div>
+            <Label htmlFor="alternate_phone" className="font-semibold text-gray-900">Alternate Phone</Label>
+            <Input
+              id="alternate_phone"
+              type="tel"
+              value={formData.alternate_phone || ''}
+              onChange={(e) => {
+                const formatted = formatPhoneNumber(e.target.value)
+                handleInputChange('alternate_phone', formatted)
+              }}
+              placeholder="(555) 123-4567"
+              maxLength={14}
+            />
             <div className="flex gap-4 mt-2">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <Checkbox
                   id="alternate_phone_cell"
                   checked={formData.alternate_phone_is_cell || false}
@@ -302,7 +289,7 @@ export default function PersonalInformationStep({
                 />
                 <Label htmlFor="alternate_phone_cell" className="text-sm font-normal cursor-pointer">Cell</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <Checkbox
                   id="alternate_phone_home"
                   checked={formData.alternate_phone_is_home || false}
@@ -321,42 +308,39 @@ export default function PersonalInformationStep({
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="address">{t('jobApplication.steps.personalInfo.fields.address')} *</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="address"
-                  value={formData.address || ''}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  className={`pl-10 ${getError('address') ? 'border-red-500' : ''}`}
-                  placeholder="123 Main Street"
-                  required
-                />
-              </div>
+              <Label htmlFor="address" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.address')} *</Label>
+              <Input
+                id="address"
+                value={formData.address || ''}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                className={getError('address') ? 'border-red-500' : ''}
+                placeholder=""
+                required
+              />
               {getError('address') && (
                 <p className="text-sm text-red-600">{getError('address')}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="apartment_unit">{t('jobApplication.steps.personalInfo.fields.unit')}</Label>
+              <Label htmlFor="apartment_unit" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.unit')}</Label>
               <Input
                 id="apartment_unit"
                 value={formData.apartment_unit || ''}
                 onChange={(e) => handleInputChange('apartment_unit', e.target.value)}
-                placeholder="Apt 2B"
+                placeholder=""
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="city">{t('jobApplication.steps.personalInfo.fields.city')} *</Label>
+              <Label htmlFor="city" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.city')} *</Label>
               <Input
                 id="city"
                 value={formData.city || ''}
                 onChange={(e) => handleInputChange('city', e.target.value)}
                 className={getError('city') ? 'border-red-500' : ''}
-                placeholder="New York"
+                placeholder=""
                 required
               />
               {getError('city') && (
@@ -365,7 +349,7 @@ export default function PersonalInformationStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="state">{t('jobApplication.steps.personalInfo.fields.state')} *</Label>
+              <Label htmlFor="state" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.state')} *</Label>
               <Select 
                 value={formData.state || ''} 
                 onValueChange={(value) => handleInputChange('state', value)}
@@ -385,7 +369,7 @@ export default function PersonalInformationStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zip_code">{t('jobApplication.steps.personalInfo.fields.zipCode')} *</Label>
+              <Label htmlFor="zip_code" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.zipCode')} *</Label>
               <Input
                 id="zip_code"
                 value={formData.zip_code || ''}
@@ -410,14 +394,14 @@ export default function PersonalInformationStep({
       <div>
         <h3 className="text-lg font-semibold mb-4">{t('jobApplication.steps.additionalInfo.title')}</h3>
         <div className="space-y-4">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
             <Checkbox
               id="age_verification"
               checked={formData.age_verification || false}
               onCheckedChange={(checked) => handleInputChange('age_verification', checked)}
               className={getError('age_verification') ? 'border-red-500' : ''}
             />
-            <Label htmlFor="age_verification" className="text-sm font-normal cursor-pointer">
+            <Label htmlFor="age_verification" className="font-semibold text-gray-900 cursor-pointer">
               {t('jobApplication.steps.personalInfo.fields.eligibility.ageVerification')} *
             </Label>
           </div>
@@ -426,16 +410,16 @@ export default function PersonalInformationStep({
           )}
 
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.personalInfo.fields.eligibility.workAuth')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.eligibility.workAuth')} *</Label>
             <RadioGroup 
               value={formData.work_authorized || ''} 
               onValueChange={(value) => handleInputChange('work_authorized', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="work_auth_yes" />
                 <Label htmlFor="work_auth_yes" className="font-normal cursor-pointer">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="work_auth_no" />
                 <Label htmlFor="work_auth_no" className="font-normal cursor-pointer">{t('common.no')}</Label>
               </div>
@@ -446,16 +430,16 @@ export default function PersonalInformationStep({
           </div>
 
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.personalInfo.fields.eligibility.sponsorship', { propertyName: formData.property_name || 'this hotel' })} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.eligibility.sponsorship', { propertyName: formData.property_name || 'this hotel' })} *</Label>
             <RadioGroup 
               value={formData.sponsorship_required || ''} 
               onValueChange={(value) => handleInputChange('sponsorship_required', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="sponsor_yes" />
                 <Label htmlFor="sponsor_yes" className="font-normal cursor-pointer">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="sponsor_no" />
                 <Label htmlFor="sponsor_no" className="font-normal cursor-pointer">{t('common.no')}</Label>
               </div>
@@ -466,16 +450,16 @@ export default function PersonalInformationStep({
           </div>
 
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.personalInfo.fields.eligibility.transportation')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.eligibility.transportation')} *</Label>
             <RadioGroup 
               value={formData.reliable_transportation || ''} 
               onValueChange={(value) => handleInputChange('reliable_transportation', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="transport_yes" />
                 <Label htmlFor="transport_yes" className="font-normal cursor-pointer">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="transport_no" />
                 <Label htmlFor="transport_no" className="font-normal cursor-pointer">{t('common.no')}</Label>
               </div>
@@ -487,28 +471,28 @@ export default function PersonalInformationStep({
 
           {formData.reliable_transportation === 'yes' && (
             <div className="space-y-2 ml-6">
-              <Label>{t('jobApplication.steps.personalInfo.fields.transportationMethod')} *</Label>
+              <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.transportationMethod')} *</Label>
               <RadioGroup 
                 value={formData.transportation_method || ''} 
                 onValueChange={(value) => handleInputChange('transportation_method', value)}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="public_transport" id="method_public" />
                   <Label htmlFor="method_public" className="font-normal cursor-pointer">{t('jobApplication.steps.personalInfo.fields.transportationOptions.publicTransport')}</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="own_vehicle" id="method_own" />
                   <Label htmlFor="method_own" className="font-normal cursor-pointer">{t('jobApplication.steps.personalInfo.fields.transportationOptions.ownVehicle')}</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="family_friend" id="method_family" />
                   <Label htmlFor="method_family" className="font-normal cursor-pointer">{t('jobApplication.steps.personalInfo.fields.transportationOptions.familyFriend')}</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="rideshare" id="method_rideshare" />
                   <Label htmlFor="method_rideshare" className="font-normal cursor-pointer">{t('jobApplication.steps.personalInfo.fields.transportationOptions.rideshare')}</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                   <RadioGroupItem value="other" id="method_other" />
                   <Label htmlFor="method_other" className="font-normal cursor-pointer">{t('jobApplication.steps.personalInfo.fields.transportationOptions.other')}</Label>
                 </div>
@@ -519,13 +503,13 @@ export default function PersonalInformationStep({
 
               {formData.transportation_method === 'other' && (
                 <div className="space-y-2 ml-6">
-                  <Label htmlFor="transportation_other">{t('jobApplication.steps.personalInfo.fields.transportationOther')} *</Label>
+                  <Label htmlFor="transportation_other" className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.transportationOther')} *</Label>
                   <Input
                     id="transportation_other"
                     value={formData.transportation_other || ''}
                     onChange={(e) => handleInputChange('transportation_other', e.target.value)}
                     className={getError('transportation_other') ? 'border-red-500' : ''}
-                    placeholder={t('jobApplication.steps.personalInfo.placeholders.transportationOther')}
+                    placeholder=""
                   />
                   {getError('transportation_other') && (
                     <p className="text-sm text-red-600">{getError('transportation_other')}</p>

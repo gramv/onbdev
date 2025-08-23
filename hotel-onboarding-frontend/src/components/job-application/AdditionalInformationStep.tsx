@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Users, Phone, Shield, Car, AlertCircle } from 'lucide-react'
+// Icons removed for cleaner professional look
 
 interface AdditionalInformationStepProps {
   formData: any
@@ -165,8 +165,7 @@ export default function AdditionalInformationStep({
       {/* Conviction & Driving Record Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <Car className="w-5 h-5 mr-2" />
+          <CardTitle className="text-lg">
             {t('jobApplication.steps.additionalInfo.conviction.title')}
             <sup className="text-blue-600 text-sm ml-1">†</sup>
           </CardTitle>
@@ -177,23 +176,22 @@ export default function AdditionalInformationStep({
         <CardContent className="space-y-4">
           {/* Notice Alert */}
           <Alert className="bg-yellow-50 border-yellow-200">
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
             <AlertDescription className="text-sm text-gray-700">
               <strong>{t('jobApplication.steps.additionalInfo.conviction.applicantNoticeTitle')}:</strong> {t('jobApplication.steps.additionalInfo.conviction.applicantNotice')}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
-            <Label>{t('jobApplication.steps.additionalInfo.conviction.convictionQuestion')} *</Label>
+            <Label className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.conviction.convictionQuestion')} *</Label>
             <RadioGroup 
               value={formData.has_conviction || ''} 
               onValueChange={(value) => handleInputChange('has_conviction', value)}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="yes" id="conviction_yes" />
                 <Label htmlFor="conviction_yes" className="font-normal">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                 <RadioGroupItem value="no" id="conviction_no" />
                 <Label htmlFor="conviction_no" className="font-normal">{t('common.no')}</Label>
               </div>
@@ -205,7 +203,7 @@ export default function AdditionalInformationStep({
 
           {formData.has_conviction === 'yes' && (
             <div className="space-y-2">
-              <Label htmlFor="conviction_explanation">
+              <Label htmlFor="conviction_explanation" className="font-semibold text-gray-900">
                 {t('jobApplication.steps.additionalInfo.conviction.convictionExplain')} *
               </Label>
               <Textarea
@@ -213,7 +211,7 @@ export default function AdditionalInformationStep({
                 value={formData.conviction_explanation || ''}
                 onChange={(e) => handleInputChange('conviction_explanation', e.target.value)}
                 className={getError('conviction_explanation') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.additionalInfo.placeholders.convictionDetails')}
+                placeholder=""
                 rows={4}
               />
               {getError('conviction_explanation') && (
@@ -229,16 +227,16 @@ export default function AdditionalInformationStep({
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>{t('jobApplication.steps.additionalInfo.conviction.licenseDenied')} *</Label>
+                <Label className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.conviction.licenseDenied')} *</Label>
                 <RadioGroup 
                   value={formData.has_driving_denied || ''} 
                   onValueChange={(value) => handleInputChange('has_driving_denied', value)}
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                     <RadioGroupItem value="yes" id="driving_denied_yes" />
                     <Label htmlFor="driving_denied_yes" className="font-normal">{t('common.yes')}</Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                     <RadioGroupItem value="no" id="driving_denied_no" />
                     <Label htmlFor="driving_denied_no" className="font-normal">{t('common.no')}</Label>
                   </div>
@@ -249,16 +247,16 @@ export default function AdditionalInformationStep({
               </div>
 
               <div className="space-y-2">
-                <Label>{t('jobApplication.steps.additionalInfo.conviction.licenseSuspended')} *</Label>
+                <Label className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.conviction.licenseSuspended')} *</Label>
                 <RadioGroup 
                   value={formData.has_driving_issues || ''} 
                   onValueChange={(value) => handleInputChange('has_driving_issues', value)}
                 >
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                     <RadioGroupItem value="yes" id="driving_yes" />
                     <Label htmlFor="driving_yes" className="font-normal">{t('common.yes')}</Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
                     <RadioGroupItem value="no" id="driving_no" />
                     <Label htmlFor="driving_no" className="font-normal">{t('common.no')}</Label>
                   </div>
@@ -270,13 +268,13 @@ export default function AdditionalInformationStep({
 
               {(formData.has_driving_denied === 'yes' || formData.has_driving_issues === 'yes') && (
                 <div className="space-y-2">
-                  <Label htmlFor="driving_explanation">{t('jobApplication.steps.additionalInfo.conviction.explainBelow')} *</Label>
+                  <Label htmlFor="driving_explanation" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.conviction.explainBelow')} *</Label>
                   <Textarea
                     id="driving_explanation"
                     value={formData.driving_explanation || ''}
                     onChange={(e) => handleInputChange('driving_explanation', e.target.value)}
                     className={getError('driving_explanation') ? 'border-red-500' : ''}
-                    placeholder={t('jobApplication.steps.additionalInfo.placeholders.drivingDetails')}
+                    placeholder=""
                     rows={3}
                   />
                   {getError('driving_explanation') && (
@@ -303,8 +301,7 @@ export default function AdditionalInformationStep({
       {/* Personal Reference Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <Users className="w-5 h-5 mr-2" />
+          <CardTitle className="text-lg">
             {t('jobApplication.steps.additionalInfo.personalReference.title')}
           </CardTitle>
         </CardHeader>
@@ -339,13 +336,13 @@ export default function AdditionalInformationStep({
           {!hasNoReference && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="reference_name">{t('jobApplication.steps.additionalInfo.personalReference.name')}</Label>
+              <Label htmlFor="reference_name" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.personalReference.name')}</Label>
               <Input
                 id="reference_name"
                 value={formData.reference_name || ''}
                 onChange={(e) => handleInputChange('reference_name', e.target.value)}
                 className={getError('reference_name') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.additionalInfo.placeholders.referenceName')}
+                placeholder=""
               />
               {getError('reference_name') && (
                 <p className="text-sm text-red-600">{getError('reference_name')}</p>
@@ -353,7 +350,7 @@ export default function AdditionalInformationStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reference_years_known">{t('jobApplication.steps.additionalInfo.personalReference.yearsKnown')}</Label>
+              <Label htmlFor="reference_years_known" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.personalReference.yearsKnown')}</Label>
               <Input
                 id="reference_years_known"
                 type="number"
@@ -370,35 +367,32 @@ export default function AdditionalInformationStep({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reference_phone">{t('jobApplication.steps.additionalInfo.personalReference.phone')}</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="reference_phone"
-                  type="tel"
-                  value={formData.reference_phone || ''}
-                  onChange={(e) => {
-                    const formatted = formatPhoneNumber(e.target.value)
-                    handleInputChange('reference_phone', formatted)
-                  }}
-                  className={`pl-10 ${getError('reference_phone') ? 'border-red-500' : ''}`}
-                  placeholder="(555) 123-4567"
-                  maxLength={14}
-                />
-                {getError('reference_phone') && (
-                  <p className="text-sm text-red-600">{getError('reference_phone')}</p>
-                )}
-              </div>
+              <Label htmlFor="reference_phone" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.personalReference.phone')}</Label>
+              <Input
+                id="reference_phone"
+                type="tel"
+                value={formData.reference_phone || ''}
+                onChange={(e) => {
+                  const formatted = formatPhoneNumber(e.target.value)
+                  handleInputChange('reference_phone', formatted)
+                }}
+                className={getError('reference_phone') ? 'border-red-500' : ''}
+                placeholder="(555) 123-4567"
+                maxLength={14}
+              />
+              {getError('reference_phone') && (
+                <p className="text-sm text-red-600">{getError('reference_phone')}</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="reference_relationship">{t('jobApplication.steps.additionalInfo.personalReference.relationship')}</Label>
+              <Label htmlFor="reference_relationship" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.personalReference.relationship')}</Label>
               <Input
                 id="reference_relationship"
                 value={formData.reference_relationship || ''}
                 onChange={(e) => handleInputChange('reference_relationship', e.target.value)}
                 className={getError('reference_relationship') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.additionalInfo.placeholders.referenceRelationship')}
+                placeholder=""
               />
               {getError('reference_relationship') && (
                 <p className="text-sm text-red-600">{getError('reference_relationship')}</p>
@@ -412,8 +406,7 @@ export default function AdditionalInformationStep({
       {/* Military Service Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <Shield className="w-5 h-5 mr-2" />
+          <CardTitle className="text-lg">
             {t('jobApplication.steps.additionalInfo.military.title')}
           </CardTitle>
         </CardHeader>
@@ -448,13 +441,13 @@ export default function AdditionalInformationStep({
           {!hasNoMilitaryService && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="military_branch">{t('jobApplication.steps.additionalInfo.military.branch')} *</Label>
+              <Label htmlFor="military_branch" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.military.branch')} *</Label>
               <Input
                 id="military_branch"
                 value={formData.military_branch || ''}
                 onChange={(e) => handleInputChange('military_branch', e.target.value)}
                 className={getError('military_branch') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.additionalInfo.placeholders.militaryBranch')}
+                placeholder=""
               />
               {getError('military_branch') && (
                 <p className="text-sm text-red-600">{getError('military_branch')}</p>
@@ -462,7 +455,7 @@ export default function AdditionalInformationStep({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="military_from_to">{t('jobApplication.steps.additionalInfo.military.fromTo')} *</Label>
+              <Label htmlFor="military_from_to" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.military.fromTo')} *</Label>
               <Input
                 id="military_from_to"
                 value={formData.military_from_to || ''}
@@ -476,13 +469,13 @@ export default function AdditionalInformationStep({
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="military_rank_duties">{t('jobApplication.steps.additionalInfo.military.rankDuties')} *</Label>
+              <Label htmlFor="military_rank_duties" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.military.rankDuties')} *</Label>
               <Textarea
                 id="military_rank_duties"
                 value={formData.military_rank_duties || ''}
                 onChange={(e) => handleInputChange('military_rank_duties', e.target.value)}
                 className={getError('military_rank_duties') ? 'border-red-500' : ''}
-                placeholder={t('jobApplication.steps.additionalInfo.placeholders.militaryRankDuties')}
+                placeholder=""
                 rows={2}
               />
               {getError('military_rank_duties') && (
@@ -491,7 +484,7 @@ export default function AdditionalInformationStep({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="military_discharge_date">{t('jobApplication.steps.additionalInfo.military.dischargeDate')} *</Label>
+              <Label htmlFor="military_discharge_date" className="font-semibold text-gray-900">{t('jobApplication.steps.additionalInfo.military.dischargeDate')} *</Label>
               <Input
                 id="military_discharge_date"
                 type="date"

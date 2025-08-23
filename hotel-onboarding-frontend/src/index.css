@@ -1213,33 +1213,20 @@
     display: none;
   }
   
-  /* Mobile touch targets - minimum 44px */
+  /* Mobile touch targets - minimum 44px for buttons/selects only */
+  /* Checkboxes and radios excluded to maintain proper shape */
+  
+  /* Better mobile touch targets - reasonable size */
   @media (max-width: 768px) {
     button, 
-    input[type="checkbox"],
-    input[type="radio"],
     select,
     textarea,
     .clickable {
       min-height: 44px;
-      min-width: 44px;
     }
     
-    /* Increase tap target for checkboxes and radios */
-    input[type="checkbox"],
-    input[type="radio"] {
-      position: relative;
-    }
-    
-    input[type="checkbox"]::before,
-    input[type="radio"]::before {
-      content: "";
-      position: absolute;
-      top: -10px;
-      left: -10px;
-      right: -10px;
-      bottom: -10px;
-    }
+    /* Keep checkboxes and radios at reasonable size */
+    /* The wrapper divs provide the touch target, not the input itself */
   }
   
   /* Shake animation for errors */

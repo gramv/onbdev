@@ -153,18 +153,22 @@ class EnhancedSupabaseService:
     async def health_check(self) -> Dict[str, Any]:
         """Check Supabase connection health"""
         try:
-            # Simple query to test connection
+            # Simple query to test connection with explicit limit
             result = self.client.table('users').select('id').limit(1).execute()
+            # Ensure we don't return huge data by accident
             return {
                 "status": "healthy",
                 "connection": "active",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
+                "record_count": len(result.data) if result.data else 0
             }
         except Exception as e:
+            # Limit error message length to prevent huge outputs
+            error_msg = str(e)[:200] if str(e) else "Unknown error"
             return {
                 "status": "unhealthy", 
                 "connection": "failed",
-                "error": str(e),
+                "error": error_msg,
                 "timestamp": datetime.utcnow().isoformat()
             }
     

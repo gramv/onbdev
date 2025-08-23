@@ -245,6 +245,11 @@ export default function JobApplicationFormV2() {
     loadDraftApplication()
   }, [propertyId])
   
+  // Auto-scroll to top whenever step changes
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [currentStep])
+  
   // Check for equal opportunity acknowledgment after initial load
   useEffect(() => {
     // Small delay to ensure everything is loaded

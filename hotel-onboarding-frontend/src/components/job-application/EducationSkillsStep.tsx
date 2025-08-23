@@ -216,7 +216,7 @@ export default function EducationSkillsStep({
                     id={`${schoolKey}_name`}
                     value={school.name || ''}
                     onChange={(e) => updateEducationEntry(schoolKey, 'name', e.target.value)}
-                    placeholder={t('jobApplication.steps.education.placeholders.schoolName')}
+                    placeholder=""
                   />
                 </div>
                 <div className="space-y-2">
@@ -225,7 +225,7 @@ export default function EducationSkillsStep({
                     id={`${schoolKey}_location`}
                     value={school.location || ''}
                     onChange={(e) => updateEducationEntry(schoolKey, 'location', e.target.value)}
-                    placeholder={t('jobApplication.steps.education.placeholders.location')}
+                    placeholder=""
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ export default function EducationSkillsStep({
                     id={`${schoolKey}_degree`}
                     value={school.degree_received || ''}
                     onChange={(e) => updateEducationEntry(schoolKey, 'degree_received', e.target.value)}
-                    placeholder={schoolKey === 'high_school' ? t('jobApplication.steps.education.placeholders.diploma') : t('jobApplication.steps.education.placeholders.degree')}
+                    placeholder=""
                   />
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function EducationSkillsStep({
                     id={`${schoolKey}_major`}
                     value={school.major_minor || ''}
                     onChange={(e) => updateEducationEntry(schoolKey, 'major_minor', e.target.value)}
-                    placeholder={t('jobApplication.steps.education.placeholders.major')}
+                    placeholder=""
                   />
                 </div>
               )}
@@ -312,7 +312,7 @@ export default function EducationSkillsStep({
                 id={`${schoolKey}_name`}
                 value={school.name || ''}
                 onChange={(e) => updateEducationEntry(schoolKey, 'name', e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.schoolName')}
+                placeholder=""
               />
             </div>
             <div className="space-y-2">
@@ -321,7 +321,7 @@ export default function EducationSkillsStep({
                 id={`${schoolKey}_location`}
                 value={school.location || ''}
                 onChange={(e) => updateEducationEntry(schoolKey, 'location', e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.location')}
+                placeholder=""
               />
             </div>
           </div>
@@ -360,7 +360,7 @@ export default function EducationSkillsStep({
                 id={`${schoolKey}_degree`}
                 value={school.degree_received || ''}
                 onChange={(e) => updateEducationEntry(schoolKey, 'degree_received', e.target.value)}
-                placeholder={schoolKey === 'high_school' ? t('jobApplication.steps.education.placeholders.diploma') : t('jobApplication.steps.education.placeholders.degree')}
+                placeholder=""
               />
             </div>
           </div>
@@ -372,7 +372,7 @@ export default function EducationSkillsStep({
                 id={`${schoolKey}_major`}
                 value={school.major_minor || ''}
                 onChange={(e) => updateEducationEntry(schoolKey, 'major_minor', e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.major')}
+                placeholder=""
               />
             </div>
           )}
@@ -411,7 +411,7 @@ export default function EducationSkillsStep({
                 id={`college_${index}_name`}
                 value={college.name || ''}
                 onChange={(e) => updateCollegeEntry(index, 'name', e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.universityName')}
+                placeholder=""
               />
             </div>
             <div className="space-y-2">
@@ -420,7 +420,7 @@ export default function EducationSkillsStep({
                 id={`college_${index}_location`}
                 value={college.location || ''}
                 onChange={(e) => updateCollegeEntry(index, 'location', e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.location')}
+                placeholder=""
               />
             </div>
           </div>
@@ -459,7 +459,7 @@ export default function EducationSkillsStep({
                 id={`college_${index}_degree`}
                 value={college.degree_received || ''}
                 onChange={(e) => updateCollegeEntry(index, 'degree_received', e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.collegeDegree')}
+                placeholder=""
               />
             </div>
           </div>
@@ -470,7 +470,7 @@ export default function EducationSkillsStep({
               id={`college_${index}_major`}
               value={college.major_minor || ''}
               onChange={(e) => updateCollegeEntry(index, 'major_minor', e.target.value)}
-              placeholder={t('jobApplication.steps.education.placeholders.collegeMajor')}
+              placeholder=""
             />
           </div>
         </CardContent>
@@ -590,7 +590,7 @@ export default function EducationSkillsStep({
                 id="skills_certifications"
                 value={skills_certifications}
                 onChange={(e) => setSkillsCertifications(e.target.value)}
-                placeholder={t('jobApplication.steps.education.placeholders.skills')}
+                placeholder=""
                 rows={4}
                 className="text-sm"
               />

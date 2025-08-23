@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Set, Optional, Any, List
 from dataclasses import dataclass, field
 from fastapi import WebSocket, WebSocketDisconnect
+from starlette.websockets import WebSocketState
 import jwt
 from contextlib import asynccontextmanager
 
@@ -233,7 +234,7 @@ class WebSocketManager:
             old_connection = self.active_connections[user_id]
             try:
                 # Check if WebSocket is still open before trying to close
-                if old_connection.websocket.client_state.value <= 1:  # CONNECTING or CONNECTED
+                if old_connection.websocket.state in (WebSocketState.CONNECTING, WebSocketState.CONNECTED):
                     await old_connection.websocket.close()
             except Exception as e:
                 logger.warning(f"Error closing existing connection: {e}")
@@ -280,7 +281,7 @@ class WebSocketManager:
         
         try:
             # Check if WebSocket is still open before trying to close
-            if connection.websocket.client_state.value <= 1:  # CONNECTING or CONNECTED
+            if connection.websocket.state in (WebSocketState.CONNECTING, WebSocketState.CONNECTED):
                 await connection.websocket.close()
         except Exception as e:
             logger.warning(f"Error closing WebSocket: {e}")
