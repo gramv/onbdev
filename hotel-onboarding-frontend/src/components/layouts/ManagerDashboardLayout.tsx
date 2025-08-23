@@ -61,6 +61,8 @@ export function ManagerDashboardLayout() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
   const [updateMessage, setUpdateMessage] = useState<string | null>(null)
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0)
+  const refreshDebounceDelay = 5000 // 5 seconds minimum between refreshes
 
   // WebSocket connection for real-time updates
   const { isConnected, lastMessage, connectionError } = useWebSocket(
@@ -117,7 +119,7 @@ export function ManagerDashboardLayout() {
             case 'notification':
             case 'notification_created':
               console.log('[Manager Dashboard] New notification:', data.data)
-              // Increment notification count and show subtle indicator
+              // Only update notification count, no full refresh needed
               setNotificationCount(prev => prev + 1)
               // Add subtle pulse animation to notification bell
               const bellElement = document.querySelector('.notification-bell')
@@ -125,6 +127,7 @@ export function ManagerDashboardLayout() {
                 bellElement.classList.add('animate-pulse')
                 setTimeout(() => bellElement.classList.remove('animate-pulse'), 3000)
               }
+              // No full refresh needed for notifications
               break
               
             default:
@@ -168,15 +171,16 @@ export function ManagerDashboardLayout() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Refresh notification count periodically
+  // Refresh notification count periodically - increased to 60 seconds
+  // WebSocket will handle real-time notification updates
   useEffect(() => {
     // Fetch initial count
     fetchNotificationCount()
     
-    // Set up interval to refresh every 30 seconds
+    // Set up interval to refresh every 60 seconds (reduced frequency)
     const interval = setInterval(() => {
       fetchNotificationCount()
-    }, 30000)
+    }, 60000) // Changed from 30s to 60s
     
     return () => clearInterval(interval)
   }, [])
@@ -230,7 +234,22 @@ export function ManagerDashboardLayout() {
     }
   }
 
-  const handleDataRefresh = async (message?: string) => {
+  const handleDataRefresh = async (message?: string, force: boolean = false) => {
+    // Implement debouncing - don't refresh if we just did within 5 seconds
+    const now = Date.now()
+    if (!force && now - lastRefreshTime < refreshDebounceDelay) {
+      console.log('[Manager Dashboard] Skipping refresh - too soon since last refresh')
+      // Still show the message to indicate we received the update
+      if (message) {
+        setUpdateMessage(message)
+        setTimeout(() => setUpdateMessage(null), 3000)
+      }
+      return
+    }
+    
+    // Update last refresh time
+    setLastRefreshTime(now)
+    
     // Show update message briefly
     if (message) {
       setUpdateMessage(message)
@@ -256,6 +275,25 @@ export function ManagerDashboardLayout() {
       total_employees: 0,
       active_employees: 0
     })
+  }
+
+  // Targeted refresh functions for specific updates
+  const refreshStatsOnly = async () => {
+    try {
+      await fetchDashboardStats()
+      console.log('[Manager Dashboard] Stats refreshed')
+    } catch (error) {
+      console.error('[Manager Dashboard] Failed to refresh stats:', error)
+    }
+  }
+
+  const refreshNotificationsOnly = async () => {
+    try {
+      await fetchNotificationCount()
+      console.log('[Manager Dashboard] Notifications refreshed')
+    } catch (error) {
+      console.error('[Manager Dashboard] Failed to refresh notifications:', error)
+    }
   }
 
   const handleRetry = () => {

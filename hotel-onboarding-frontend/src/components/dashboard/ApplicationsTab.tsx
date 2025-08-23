@@ -246,14 +246,8 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
     }
   }, [searchQuery, statusFilter, departmentFilter, propertyFilter, sortBy, sortOrder])
 
-  // Auto-refresh applications every 30 seconds to prevent stale data
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchApplications()
-    }, 30000) // 30 seconds
-
-    return () => clearInterval(interval)
-  }, [])
+  // Removed auto-refresh interval - WebSocket provides real-time updates
+  // Manual refresh button is available for user control
 
   useEffect(() => {
     if (activeTab === 'talent-pool') {

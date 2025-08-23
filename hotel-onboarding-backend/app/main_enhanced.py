@@ -259,6 +259,16 @@ if not ocr_service:
 if not ocr_service:
     logger.error("❌ No OCR service available - OCR features will be disabled")
     logger.info("   Configure either Google Document AI or Groq API to enable OCR")
+    logger.info("   Set GOOGLE_CREDENTIALS_BASE64 or GROQ_API_KEY environment variable")
+
+# Log service status summary at startup
+logger.info("=" * 60)
+logger.info("SERVICE STATUS SUMMARY:")
+logger.info(f"  ✓ Database (Supabase): {'Connected' if supabase_service else 'Not configured'}")
+logger.info(f"  ✓ OCR Service: {'Available' if ocr_service else 'Not available'}")
+logger.info(f"  ✓ Email Service: {'Configured' if os.getenv('SMTP_HOST') else 'Not configured'}")
+logger.info(f"  ✓ Frontend URL: {os.getenv('FRONTEND_URL', 'Not set')}")
+logger.info("=" * 60)
 
 # Include PDF API router
 app.include_router(pdf_router)
@@ -6596,12 +6606,31 @@ async def save_i9_section1(
 ):
     """Save I-9 Section 1 data for an employee"""
     try:
+        # Check if Supabase service is available
+        if not supabase_service:
+            logger.error("Supabase service not initialized - cannot save I-9 data")
+            return error_response(
+                message="Database service is temporarily unavailable",
+                error_code=ErrorCode.SERVICE_UNAVAILABLE,
+                status_code=503,
+                detail="Database connection not configured"
+            )
+        
         # For test employees, skip validation
         if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
             # Validate employee exists for real employees
-            employee = supabase_service.get_employee_by_id_sync(employee_id)
-            if not employee:
-                return not_found_response("Employee not found")
+            try:
+                employee = supabase_service.get_employee_by_id_sync(employee_id)
+                if not employee:
+                    return not_found_response("Employee not found")
+            except Exception as e:
+                logger.error(f"Failed to fetch employee {employee_id}: {str(e)}")
+                return error_response(
+                    message="Failed to verify employee",
+                    error_code=ErrorCode.DATABASE_ERROR,
+                    status_code=500,
+                    detail=f"Database query failed: {str(e)}"
+                )
         
         # Store I-9 Section 1 data
         i9_data = {
@@ -6616,24 +6645,44 @@ async def save_i9_section1(
         }
         
         # Check if record exists
-        existing = supabase_service.client.table('i9_forms')\
-            .select('*')\
-            .eq('employee_id', employee_id)\
-            .eq('section', 'section1')\
-            .execute()
-        
-        if existing.data:
-            # Update existing record
-            response = supabase_service.client.table('i9_forms')\
-                .update(i9_data)\
+        try:
+            existing = supabase_service.client.table('i9_forms')\
+                .select('*')\
                 .eq('employee_id', employee_id)\
                 .eq('section', 'section1')\
                 .execute()
-        else:
-            # Insert new record
-            response = supabase_service.client.table('i9_forms')\
-                .insert(i9_data)\
-                .execute()
+        except Exception as e:
+            logger.error(f"Failed to check existing I-9 record: {str(e)}")
+            # Try to create the table if it doesn't exist
+            if "relation" in str(e) and "does not exist" in str(e):
+                logger.warning("I-9 forms table may not exist, attempting to create...")
+                # Return error for now - table should be created via migration
+                return error_response(
+                    message="Database table not configured. Please contact support.",
+                    error_code=ErrorCode.DATABASE_ERROR,
+                    status_code=500,
+                    detail="I-9 forms table not found"
+                )
+            raise
+        
+        try:
+            if existing.data:
+                # Update existing record
+                response = supabase_service.client.table('i9_forms')\
+                    .update(i9_data)\
+                    .eq('employee_id', employee_id)\
+                    .eq('section', 'section1')\
+                    .execute()
+                logger.info(f"Updated I-9 Section 1 for employee {employee_id}")
+            else:
+                # Insert new record
+                response = supabase_service.client.table('i9_forms')\
+                    .insert(i9_data)\
+                    .execute()
+                logger.info(f"Created I-9 Section 1 for employee {employee_id}")
+        except Exception as e:
+            logger.error(f"Failed to save I-9 data: {str(e)}")
+            raise
         
         # Update employee onboarding progress (only for real employees)
         if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
@@ -9100,6 +9149,18 @@ async def verify_document_integrity(
         )
 
 # Document Processing with AI (GROQ/Llama)
+@app.options("/api/documents/process")
+async def process_document_options():
+    """Handle OPTIONS request for CORS preflight"""
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        }
+    )
+
 @app.post("/api/documents/process")
 async def process_document_with_ai(
     file: UploadFile = File(...),
@@ -9153,6 +9214,16 @@ async def process_document_with_ai(
         if not doc_type_enum:
             return validation_error_response(
                 f"Unknown document type: {document_type}"
+            )
+        
+        # Check if OCR service is available
+        if not ocr_service:
+            logger.error("OCR service is not initialized - cannot process document")
+            return error_response(
+                message="Document processing service is temporarily unavailable. Please try again later or contact support.",
+                error_code=ErrorCode.SERVICE_UNAVAILABLE,
+                status_code=503,
+                detail="OCR service not configured in this environment"
             )
         
         # Process with OCR service

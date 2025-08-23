@@ -325,14 +325,6 @@ export default function ReviewConsentStep({
               </div>
             ))}
           </div>
-          {(!formData.employment_history || formData.employment_history.filter((e: any) => e.employer_name).length === 0) && (
-            <Alert className="mt-3 border-yellow-200 bg-yellow-50">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-yellow-800">
-                Warning: No employment history provided. This may affect your application.
-              </AlertDescription>
-            </Alert>
-          )}
         </CardContent>
       </Card>
 
