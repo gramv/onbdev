@@ -16,9 +16,10 @@ import { ExportColumn } from '@/components/ui/data-export'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw, RefreshCw } from 'lucide-react'
+import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw, RefreshCw, AlertCircle } from 'lucide-react'
 import { QRCodeDisplay } from '@/components/ui/qr-code-display'
 import { apiClient } from '@/services/api'
+import axios from 'axios'
 
 interface JobApplication {
   id: string
@@ -1388,104 +1389,524 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
           </TabsContent>
         </Tabs>
 
-        {/* Application Detail Modal */}
+        {/* Application Detail Modal - Enhanced with all fields */}
         <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Application Details</DialogTitle>
+              <DialogTitle>Complete Application Details</DialogTitle>
             </DialogHeader>
             
             {selectedApplication && (
               <div className="space-y-6">
-                {/* Application Info */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Position</Label>
-                    <p className="font-medium">{selectedApplication.position}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Department</Label>
-                    <p>{selectedApplication.department}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Property</Label>
-                    <p>{selectedApplication.property_name}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-500">Status</Label>
-                    <div className="mt-1">{getStatusBadge(selectedApplication.status)}</div>
+                {/* Application Status Overview */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Position</Label>
+                      <p className="font-medium">{selectedApplication.position}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Department</Label>
+                      <p>{selectedApplication.department}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Property</Label>
+                      <p>{selectedApplication.property_name}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Status</Label>
+                      <div className="mt-1">{getStatusBadge(selectedApplication.status)}</div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Applicant Information */}
+                {/* Personal Information */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Applicant Information</h3>
+                  <h3 className="text-lg font-semibold mb-3 border-b pb-2">Personal Information</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-gray-500">Full Name</Label>
-                      <p>{selectedApplication.applicant_name}</p>
+                      <p>{selectedApplication.applicant_data.first_name} {selectedApplication.applicant_data.middle_initial ? selectedApplication.applicant_data.middle_initial + ' ' : ''}{selectedApplication.applicant_data.last_name}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-500">Email</Label>
-                      <p>{selectedApplication.applicant_email}</p>
+                      <p>{selectedApplication.applicant_email || selectedApplication.applicant_data.email}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Phone</Label>
-                      <p>{selectedApplication.applicant_phone}</p>
+                      <Label className="text-sm font-medium text-gray-500">Primary Phone</Label>
+                      <p>{selectedApplication.applicant_phone || selectedApplication.applicant_data.phone || 'Not provided'}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Address</Label>
-                      <p>{selectedApplication.applicant_data.address}</p>
+                      <Label className="text-sm font-medium text-gray-500">Secondary Phone</Label>
+                      <p>
+                        {selectedApplication.applicant_data.secondary_phone || 'Not provided'}
+                        {selectedApplication.applicant_data.secondary_phone && selectedApplication.applicant_data.secondary_phone_type && 
+                          ` (${selectedApplication.applicant_data.secondary_phone_type})`
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Street Address</Label>
+                      <p>
+                        {selectedApplication.applicant_data.address || 'Not provided'}
+                        {selectedApplication.applicant_data.apartment_unit && `, ${selectedApplication.applicant_data.apartment_unit}`}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-500">City, State ZIP</Label>
                       <p>{selectedApplication.applicant_data.city}, {selectedApplication.applicant_data.state} {selectedApplication.applicant_data.zip_code}</p>
                     </div>
+                    {/* SSN and Date of Birth removed - collected during onboarding phase for privacy compliance */}
+                  </div>
+                </div>
+
+                {/* Position & Compensation */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 border-b pb-2">Position & Compensation</h3>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Work Authorization</Label>
-                      <p>{selectedApplication.applicant_data.work_authorized}</p>
+                      <Label className="text-sm font-medium text-gray-500">Position Applied For</Label>
+                      <p>{selectedApplication.position}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Experience Years</Label>
-                      <p>{selectedApplication.applicant_data.experience_years}</p>
+                      <Label className="text-sm font-medium text-gray-500">Department</Label>
+                      <p>{selectedApplication.department}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Hotel Experience</Label>
-                      <p>{selectedApplication.applicant_data.hotel_experience}</p>
+                      <Label className="text-sm font-medium text-gray-500">Desired Salary</Label>
+                      <p>{selectedApplication.applicant_data.salary_desired || 'Not specified'}</p>
                     </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-500">Employment Type</Label>
-                      <p>{selectedApplication.applicant_data.employment_type}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-500">Shift Preference</Label>
-                      <p>{selectedApplication.applicant_data.shift_preference}</p>
+                      <p>{selectedApplication.applicant_data.employment_type || 'Not specified'}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Review Information */}
-                {selectedApplication.reviewed_by && (
+                {/* Legal & Compliance */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 border-b pb-2">Legal & Compliance</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">18 Years or Older</Label>
+                      <p>{selectedApplication.applicant_data.age_verification === true ? 'Yes' : selectedApplication.applicant_data.age_verification === false ? 'No' : 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Work Authorization</Label>
+                      <p>{selectedApplication.applicant_data.work_authorized === 'yes' ? 'Yes' : selectedApplication.applicant_data.work_authorized === 'no' ? 'No' : 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Requires Sponsorship</Label>
+                      <p>{selectedApplication.applicant_data.sponsorship_required === 'yes' ? 'Yes' : selectedApplication.applicant_data.sponsorship_required === 'no' ? 'No' : 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Criminal Record</Label>
+                      <p>
+                        {selectedApplication.applicant_data.conviction_record?.has_conviction === true 
+                          ? 'Yes - See explanation' 
+                          : selectedApplication.applicant_data.conviction_record?.has_conviction === false 
+                          ? 'No' 
+                          : 'Not provided'}
+                      </p>
+                    </div>
+                    {selectedApplication.applicant_data.conviction_record?.has_conviction === true && 
+                     selectedApplication.applicant_data.conviction_record?.explanation && (
+                      <div className="col-span-2">
+                        <Label className="text-sm font-medium text-gray-500">Criminal Record Explanation</Label>
+                        <p className="text-sm bg-yellow-50 p-2 rounded">
+                          {selectedApplication.applicant_data.conviction_record.explanation}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Availability & Schedule */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 border-b pb-2">Availability & Schedule</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Available Start Date</Label>
+                      <p>{selectedApplication.applicant_data.start_date || 'Immediately'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Shift Preference</Label>
+                      <p>{selectedApplication.applicant_data.shift_preference || 'Any'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Employment Type</Label>
+                      <p>{selectedApplication.applicant_data.employment_type || 'Not specified'}</p>
+                    </div>
+                    {selectedApplication.applicant_data.employment_type === 'Seasonal' && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Seasonal Dates</Label>
+                        <p>
+                          {selectedApplication.applicant_data.seasonal_start_date && selectedApplication.applicant_data.seasonal_end_date
+                            ? `${selectedApplication.applicant_data.seasonal_start_date} to ${selectedApplication.applicant_data.seasonal_end_date}`
+                            : 'Not specified'
+                          }
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Previous Hotel Experience */}
+                {(selectedApplication.applicant_data.worked_before_hotel === 'Yes' || selectedApplication.applicant_data.hotel_experience) && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3">Review Information</h3>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">Previous Hotel Experience</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Reviewed By</Label>
-                        <p>{selectedApplication.reviewed_by}</p>
+                        <Label className="text-sm font-medium text-gray-500">Worked at This Hotel Before</Label>
+                        <p>{selectedApplication.applicant_data.worked_before_hotel || 'No'}</p>
                       </div>
+                      {selectedApplication.applicant_data.worked_before_hotel === 'Yes' && (
+                        <>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">Previous Work Period</Label>
+                            <p>
+                              {selectedApplication.applicant_data.worked_before_from && selectedApplication.applicant_data.worked_before_to
+                                ? `${selectedApplication.applicant_data.worked_before_from} to ${selectedApplication.applicant_data.worked_before_to}`
+                                : 'Not specified'
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">Previous Position</Label>
+                            <p>{selectedApplication.applicant_data.worked_before_position || 'Not specified'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">Previous Supervisor</Label>
+                            <p>{selectedApplication.applicant_data.worked_before_supervisor || 'Not specified'}</p>
+                          </div>
+                        </>
+                      )}
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Reviewed At</Label>
-                        <p>{selectedApplication.reviewed_at ? formatDate(selectedApplication.reviewed_at) : 'N/A'}</p>
+                        <Label className="text-sm font-medium text-gray-500">General Hotel Experience</Label>
+                        <p>{selectedApplication.applicant_data.hotel_experience || 'None'}</p>
                       </div>
-                      {selectedApplication.rejection_reason && (
-                        <div className="col-span-2">
-                          <Label className="text-sm font-medium text-gray-500">Rejection Reason</Label>
-                          <p className="text-red-600">{selectedApplication.rejection_reason}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Education History */}
+                {selectedApplication.applicant_data.education && selectedApplication.applicant_data.education.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">Education History</h3>
+                    <div className="space-y-3">
+                      {selectedApplication.applicant_data.education.map((edu: any, index: number) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">School Name</Label>
+                              <p className="text-sm">{edu.school_name || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Location</Label>
+                              <p className="text-sm">{edu.school_location || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Years Attended</Label>
+                              <p className="text-sm">{edu.years_attended || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Degree/Diploma</Label>
+                              <p className="text-sm">{edu.degree_received || 'Not provided'}</p>
+                            </div>
+                            {edu.major && (
+                              <div>
+                                <Label className="text-sm font-medium text-gray-500">Major/Course of Study</Label>
+                                <p className="text-sm">{edu.major}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Employment History */}
+                {selectedApplication.applicant_data.employment_history && selectedApplication.applicant_data.employment_history.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">Employment History</h3>
+                    <div className="space-y-3">
+                      {selectedApplication.applicant_data.employment_history.map((job: any, index: number) => (
+                        <div key={index} className="bg-gray-50 p-3 rounded">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Company</Label>
+                              <p className="text-sm font-medium">{job.company || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Position</Label>
+                              <p className="text-sm">{job.position || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Employment Period</Label>
+                              <p className="text-sm">
+                                {job.from_date && job.to_date 
+                                  ? `${job.from_date} to ${job.to_date}` 
+                                  : job.from_date 
+                                    ? `${job.from_date} to Present` 
+                                    : 'Not provided'
+                                }
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Supervisor</Label>
+                              <p className="text-sm">{job.supervisor || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Phone</Label>
+                              <p className="text-sm">{job.phone || 'Not provided'}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">May Contact</Label>
+                              <p className="text-sm">{job.may_contact || 'Not specified'}</p>
+                            </div>
+                            <div className="col-span-2">
+                              <Label className="text-sm font-medium text-gray-500">Reason for Leaving</Label>
+                              <p className="text-sm">{job.reason_left || 'Not provided'}</p>
+                            </div>
+                            {job.responsibilities && (
+                              <div className="col-span-2">
+                                <Label className="text-sm font-medium text-gray-500">Responsibilities</Label>
+                                <p className="text-sm">{job.responsibilities}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* References */}
+                {(selectedApplication.applicant_data.personal_reference || selectedApplication.applicant_data.personal_reference_name) && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">References</h3>
+                    <div className="bg-gray-50 p-3 rounded">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Reference Name</Label>
+                          <p className="text-sm">
+                            {typeof selectedApplication.applicant_data.personal_reference === 'object'
+                              ? (selectedApplication.applicant_data.personal_reference.name || 'Not specified')
+                              : (selectedApplication.applicant_data.personal_reference_name || 'Not specified')
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Relationship</Label>
+                          <p className="text-sm">
+                            {typeof selectedApplication.applicant_data.personal_reference === 'object'
+                              ? (selectedApplication.applicant_data.personal_reference.relationship || 'Not specified')
+                              : (selectedApplication.applicant_data.personal_reference_relationship || 'Not specified')
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Phone</Label>
+                          <p className="text-sm">
+                            {typeof selectedApplication.applicant_data.personal_reference === 'object'
+                              ? (selectedApplication.applicant_data.personal_reference.phone || 'Not provided')
+                              : (selectedApplication.applicant_data.personal_reference_phone || 'Not provided')
+                            }
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Email</Label>
+                          <p className="text-sm">
+                            {typeof selectedApplication.applicant_data.personal_reference === 'object'
+                              ? (selectedApplication.applicant_data.personal_reference.email || 'Not provided')
+                              : (selectedApplication.applicant_data.personal_reference_email || 'Not provided')
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Military Service */}
+                {selectedApplication.applicant_data.military_service && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">Military Service</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Service Status</Label>
+                        <p>
+                          {typeof selectedApplication.applicant_data.military_service === 'object' 
+                            ? (selectedApplication.applicant_data.military_service.served ? 'Yes' : 'No')
+                            : (selectedApplication.applicant_data.military_service || 'Not specified')
+                          }
+                        </p>
+                      </div>
+                      {(typeof selectedApplication.applicant_data.military_service === 'object' 
+                        ? selectedApplication.applicant_data.military_service.served === true
+                        : selectedApplication.applicant_data.military_service !== 'Never Served') && (
+                        <>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">Branch</Label>
+                            <p>
+                              {typeof selectedApplication.applicant_data.military_service === 'object'
+                                ? (selectedApplication.applicant_data.military_service.branch || 'Not specified')
+                                : (selectedApplication.applicant_data.military_branch || 'Not specified')
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">Service Dates</Label>
+                            <p>
+                              {typeof selectedApplication.applicant_data.military_service === 'object'
+                                ? (selectedApplication.applicant_data.military_service.from_date && selectedApplication.applicant_data.military_service.to_date
+                                  ? `${selectedApplication.applicant_data.military_service.from_date} to ${selectedApplication.applicant_data.military_service.to_date}`
+                                  : 'Not specified')
+                                : (selectedApplication.applicant_data.military_from && selectedApplication.applicant_data.military_to
+                                  ? `${selectedApplication.applicant_data.military_from} to ${selectedApplication.applicant_data.military_to}`
+                                  : 'Not specified')
+                              }
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">Discharge Type</Label>
+                            <p>
+                              {typeof selectedApplication.applicant_data.military_service === 'object'
+                                ? (selectedApplication.applicant_data.military_service.type_of_discharge || 'Not specified')
+                                : (selectedApplication.applicant_data.military_discharge_type || 'Not specified')
+                              }
+                            </p>
+                          </div>
+                          {typeof selectedApplication.applicant_data.military_service === 'object' && 
+                           selectedApplication.applicant_data.military_service.rank_at_discharge && (
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Rank at Discharge</Label>
+                              <p>{selectedApplication.applicant_data.military_service.rank_at_discharge}</p>
+                            </div>
+                          )}
+                          {typeof selectedApplication.applicant_data.military_service === 'object' && 
+                           selectedApplication.applicant_data.military_service.disabilities_related && (
+                            <div>
+                              <Label className="text-sm font-medium text-gray-500">Service-Related Disabilities</Label>
+                              <p>{selectedApplication.applicant_data.military_service.disabilities_related}</p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Skills & Qualifications */}
+                {(selectedApplication.applicant_data.skills || selectedApplication.applicant_data.languages || selectedApplication.applicant_data.certifications) && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">Skills & Qualifications</h3>
+                    <div className="space-y-3">
+                      {selectedApplication.applicant_data.skills && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Skills</Label>
+                          <p className="text-sm">{selectedApplication.applicant_data.skills}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicant_data.languages && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Languages</Label>
+                          <p className="text-sm">{selectedApplication.applicant_data.languages}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicant_data.certifications && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Certifications</Label>
+                          <p className="text-sm">{selectedApplication.applicant_data.certifications}</p>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
+
+                {/* Equal Opportunity Information */}
+                {(selectedApplication.applicant_data.gender || selectedApplication.applicant_data.race_ethnicity || selectedApplication.applicant_data.veteran_status || selectedApplication.applicant_data.disability_status) && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 border-b pb-2">Equal Opportunity Information (Voluntary)</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedApplication.applicant_data.gender && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Gender</Label>
+                          <p>{selectedApplication.applicant_data.gender}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicant_data.race_ethnicity && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Race/Ethnicity</Label>
+                          <p>{selectedApplication.applicant_data.race_ethnicity}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicant_data.veteran_status && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Veteran Status</Label>
+                          <p>{selectedApplication.applicant_data.veteran_status}</p>
+                        </div>
+                      )}
+                      {selectedApplication.applicant_data.disability_status && (
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Disability Status</Label>
+                          <p>{selectedApplication.applicant_data.disability_status}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Information */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 border-b pb-2">Additional Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">How did you hear about this position?</Label>
+                      <p>{selectedApplication.applicant_data.how_heard || 'Not specified'}</p>
+                    </div>
+                    {selectedApplication.applicant_data.additional_comments && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Additional Comments</Label>
+                        <p className="text-sm bg-gray-50 p-2 rounded">{selectedApplication.applicant_data.additional_comments}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Application Metadata */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 border-b pb-2">Application Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Applied On</Label>
+                      <p>{formatDate(selectedApplication.applied_at)}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-500">Application ID</Label>
+                      <p className="text-xs font-mono">{selectedApplication.id}</p>
+                    </div>
+                    {selectedApplication.reviewed_by && (
+                      <>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Reviewed By</Label>
+                          <p>{selectedApplication.reviewed_by}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Reviewed At</Label>
+                          <p>{selectedApplication.reviewed_at ? formatDate(selectedApplication.reviewed_at) : 'N/A'}</p>
+                        </div>
+                      </>
+                    )}
+                    {selectedApplication.rejection_reason && (
+                      <div className="col-span-2">
+                        <Label className="text-sm font-medium text-gray-500">Rejection Reason</Label>
+                        <p className="text-red-600 bg-red-50 p-2 rounded">{selectedApplication.rejection_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </DialogContent>

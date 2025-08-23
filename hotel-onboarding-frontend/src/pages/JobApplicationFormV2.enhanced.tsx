@@ -175,7 +175,7 @@ export default function JobApplicationFormV2() {
   const steps = useMemo(() => getSteps(t), [t])
 
   // Initialize formData with proper structure
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     // Personal Information
     first_name: '',
     middle_name: '',
@@ -184,6 +184,9 @@ export default function JobApplicationFormV2() {
     phone: '',
     phone_is_cell: false,
     phone_is_home: false,
+    alternate_phone: '',
+    alternate_phone_is_cell: false,
+    alternate_phone_is_home: false,
     address: '',
     apartment_unit: '',
     city: '',
@@ -198,24 +201,37 @@ export default function JobApplicationFormV2() {
     
     // Position & Availability
     position_applying_for: '',
+    position: '',
     department: '',
+    salary_desired: '',
     how_heard_about_us: '',
     referral_source: '',
+    referral_details: '',
     desired_salary: '',
     start_date: '',
+    shift_preference: '',
     schedule_preference: '',
     available_weekends: '',
     available_holidays: '',
     hours_per_week: '',
     employment_type: '',
+    seasonal_start_date: '',
+    seasonal_end_date: '',
+    
+    // Previous Hotel Employment
+    previous_hotel_employment: '',
+    previous_hotel_details: '',
     
     // Employment History
-    employment_history: Array(2).fill({
+    employment_history: Array(3).fill({
       employer_name: '',
+      employer_address: '',
       job_title: '',
       start_date: '',
       end_date: '',
       is_current: false,
+      starting_salary: '',
+      ending_salary: '',
       reason_for_leaving: '',
       responsibilities: '',
       supervisor_name: '',
@@ -226,11 +242,22 @@ export default function JobApplicationFormV2() {
     // Education & Skills
     highest_education: '',
     school_name: '',
+    school_location: '',
+    years_attended: '',
+    graduated: '',
     degree_obtained: '',
     graduation_year: '',
     skills: '',
     certifications: '',
     languages_spoken: '',
+    
+    // Military Service
+    military_branch: '',
+    military_from_date: '',
+    military_to_date: '',
+    military_rank: '',
+    military_discharge_type: '',
+    military_disabilities: '',
     
     // Additional Information
     professional_references: Array(3).fill({
@@ -243,6 +270,10 @@ export default function JobApplicationFormV2() {
     has_criminal_record: '',
     criminal_record_explanation: '',
     additional_comments: '',
+    
+    // Experience
+    experience_years: '',
+    hotel_experience: '',
     
     // Voluntary Self-Identification
     gender: '',
@@ -259,11 +290,16 @@ export default function JobApplicationFormV2() {
     race_two_or_more: false,
     referral_source_voluntary: '',
     
-    // Consent
+    // Consent & Signature
     physical_requirements_acknowledged: false,
     background_check_consent: false,
     information_accuracy_certified: false,
-    at_will_employment_acknowledged: false
+    at_will_employment_acknowledged: false,
+    signature: '',
+    signature_date: '',
+    initials_truthfulness: '',
+    initials_at_will: '',
+    initials_screening: ''
   })
 
   // Generate unique application ID
@@ -478,19 +514,183 @@ export default function JobApplicationFormV2() {
     }
   }
 
+  const compileApplicationData = (): any => {
+    // Compile all data from formData state which has been updated by each step
+    
+    // Extract middle initial from middle_name if it exists
+    const middleInitial = formData.middle_name ? (formData.middle_name as string).charAt(0).toUpperCase() : null
+    
+    // Parse conviction record - map from actual field names used in AdditionalInformationStep
+    const convictionRecord = {
+      has_conviction: formData.has_conviction === 'yes',
+      explanation: formData.has_conviction === 'yes' ? (formData.conviction_explanation || null) : null
+    }
+    
+    // Parse personal reference - map from actual field names used in AdditionalInformationStep
+    const personalReference = {
+      name: formData.reference_name || formData.professional_references?.[0]?.name || '',
+      relationship: formData.reference_relationship || formData.professional_references?.[0]?.relationship || '',
+      phone: formData.reference_phone || formData.professional_references?.[0]?.phone || '',
+      email: formData.reference_email || formData.professional_references?.[0]?.email || ''
+    }
+    
+    // Parse military service
+    const militaryService = {
+      served: formData.military_service === 'yes' || (formData.military_branch ? true : false),
+      branch: formData.military_branch || null,
+      from_date: formData.military_from_date || null,
+      to_date: formData.military_to_date || null,
+      rank_at_discharge: formData.military_rank || null,
+      type_of_discharge: formData.military_discharge_type || null,
+      disabilities_related: formData.military_disabilities || null
+    }
+    
+    // Parse education history
+    const educationHistory = []
+    if (formData.school_name) {
+      educationHistory.push({
+        school_name: formData.school_name,
+        location: formData.school_location || '',
+        years_attended: formData.years_attended || formData.graduation_year || '',
+        graduated: formData.graduated === 'yes' || formData.highest_education?.includes('degree'),
+        degree_received: formData.degree_obtained || null
+      })
+    }
+    
+    // Parse employment history
+    const employmentHistory = (formData.employment_history || []).filter((emp: any) => 
+      emp.employer_name && emp.employer_name.trim() !== ''
+    ).map((emp: any) => ({
+      company_name: emp.employer_name || '',
+      phone: emp.supervisor_phone || '',
+      address: emp.employer_address || '',
+      supervisor: emp.supervisor_name || '',
+      job_title: emp.job_title || '',
+      starting_salary: emp.starting_salary || '',
+      ending_salary: emp.ending_salary || '',
+      from_date: emp.start_date || '',
+      to_date: emp.end_date || (emp.is_current ? 'Present' : ''),
+      reason_for_leaving: emp.reason_for_leaving || '',
+      may_contact: emp.may_contact || false
+    }))
+    
+    // Parse voluntary self-identification
+    const voluntarySelfIdentification = {
+      gender: formData.gender || null,
+      race_ethnicity: formData.ethnicity || null,
+      veteran_status: formData.veteran_status || null,
+      disability_status: formData.disability_status || null
+    }
+    
+    // Build complete application data matching backend model
+    const applicationData = {
+      // Personal Information
+      first_name: formData.first_name,
+      middle_initial: middleInitial,
+      last_name: formData.last_name,
+      email: formData.email,
+      phone: formData.phone,
+      phone_is_cell: formData.phone_is_cell || false,
+      phone_is_home: formData.phone_is_home || false,
+      secondary_phone: formData.alternate_phone || null,
+      secondary_phone_is_cell: formData.alternate_phone_is_cell || false,
+      secondary_phone_is_home: formData.alternate_phone_is_home || false,
+      address: formData.address,
+      apartment_unit: formData.apartment_unit || null,
+      city: formData.city,
+      state: formData.state,
+      zip_code: formData.zip_code,
+      
+      // Position Information
+      department: formData.department || '',
+      position: formData.position_applying_for || formData.position || '',
+      salary_desired: formData.salary_desired || formData.desired_salary || null,
+      
+      // Work Authorization & Legal
+      work_authorized: formData.work_authorized,
+      sponsorship_required: formData.sponsorship_required,
+      age_verification: formData.age_verification || false,
+      conviction_record: convictionRecord,
+      
+      // Availability
+      start_date: formData.start_date || new Date().toISOString().split('T')[0],
+      shift_preference: formData.shift_preference || formData.schedule_preference || 'flexible',
+      employment_type: formData.employment_type || 'full_time',
+      seasonal_start_date: formData.seasonal_start_date || null,
+      seasonal_end_date: formData.seasonal_end_date || null,
+      
+      // Previous Hotel Employment
+      previous_hotel_employment: formData.previous_hotel_employment === 'yes' || false,
+      previous_hotel_details: formData.previous_hotel_details || null,
+      
+      // How did you hear about us?
+      how_heard: formData.how_heard_about_us || formData.referral_source_voluntary || '',
+      how_heard_detailed: formData.referral_source || formData.referral_details || null,
+      
+      // References
+      personal_reference: personalReference,
+      
+      // Military Service
+      military_service: militaryService,
+      
+      // Education History
+      education_history: educationHistory,
+      
+      // Employment History
+      employment_history: employmentHistory,
+      
+      // Skills, Languages, and Certifications
+      skills_languages_certifications: [
+        formData.skills,
+        formData.languages_spoken,
+        formData.certifications
+      ].filter(Boolean).join('; ') || null,
+      
+      // Voluntary Self-Identification
+      voluntary_self_identification: voluntarySelfIdentification,
+      
+      // Experience
+      experience_years: formData.experience_years || '0-1',
+      hotel_experience: formData.hotel_experience || 'no',
+      
+      // Additional Information
+      additional_comments: formData.additional_comments || ''
+    }
+    
+    return applicationData
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     setError('')
 
     try {
-      const response = await apiClient.post('/api/apply', {
-        property_id: propertyId,
-        ...formData,
-        application_id: applicationId,
-        submitted_at: new Date().toISOString()
-      })
+      // Compile all application data
+      const compiledData = compileApplicationData()
+      
+      // Add signature data if present
+      if ((formData as any).signature) {
+        (compiledData as any).signature = (formData as any).signature
+      }
+      if ((formData as any).signature_date) {
+        (compiledData as any).signature_date = (formData as any).signature_date
+      }
+      if ((formData as any).initials_truthfulness) {
+        (compiledData as any).initials_truthfulness = (formData as any).initials_truthfulness
+      }
+      if ((formData as any).initials_at_will) {
+        (compiledData as any).initials_at_will = (formData as any).initials_at_will
+      }
+      if ((formData as any).initials_screening) {
+        (compiledData as any).initials_screening = (formData as any).initials_screening
+      }
+      
+      console.log('Submitting application data:', compiledData)
+      
+      // Submit to backend - note the endpoint expects property ID in URL
+      const response = await apiClient.post(`/api/apply/${propertyId}`, compiledData)
 
-      if (response.data.success) {
+      if (response.data.success || response.data.application_id) {
         setApplicationSubmitted(true)
         
         // Clear saved draft
@@ -502,7 +702,12 @@ export default function JobApplicationFormV2() {
       }
     } catch (err: any) {
       console.error('Submission error:', err)
-      setError(err.response?.data?.error || 'Failed to submit application. Please try again.')
+      setError(err.response?.data?.detail || err.response?.data?.error || 'Failed to submit application. Please try again.')
+      
+      // Log validation errors if present
+      if (err.response?.data?.detail && typeof err.response.data.detail === 'object') {
+        console.error('Validation errors:', err.response.data.detail)
+      }
       
       // If network error, retry with exponential backoff
       if (err.code === 'ERR_NETWORK') {

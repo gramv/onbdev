@@ -66,7 +66,14 @@ from .notification_router import router as notification_router
 
 # Import OCR services
 from .i9_ocr_service import I9DocumentOCRService
-from .google_ocr_service import GoogleDocumentOCRService
+try:
+    # Try production version first (with enhanced credential handling)
+    from .google_ocr_service_production import GoogleDocumentOCRServiceProduction as GoogleDocumentOCRService
+    logger.info("Using production Google OCR service with enhanced credential handling")
+except ImportError:
+    # Fall back to original version
+    from .google_ocr_service import GoogleDocumentOCRService
+    logger.info("Using standard Google OCR service")
 from .i9_section2 import I9DocumentType
 
 # Import standardized response system
@@ -190,7 +197,14 @@ ocr_service = None
 
 # Try Google Document AI first (preferred)
 try:
-    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or os.getenv("GOOGLE_PROJECT_ID"):
+    # Check for any form of Google credentials
+    has_google_creds = (
+        os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or 
+        os.getenv("GOOGLE_CREDENTIALS_BASE64") or 
+        os.getenv("GOOGLE_PROJECT_ID")
+    )
+    
+    if has_google_creds:
         google_ocr = GoogleDocumentOCRService(
             project_id=os.getenv("GOOGLE_PROJECT_ID", "933544811759"),
             processor_id=os.getenv("GOOGLE_PROCESSOR_ID", "50c628033c5d5dde"),
@@ -200,6 +214,14 @@ try:
         logger.info("✅ Using Google Document AI for OCR processing")
         logger.info(f"   Project: {os.getenv('GOOGLE_PROJECT_ID', '933544811759')}")
         logger.info(f"   Processor: {os.getenv('GOOGLE_PROCESSOR_ID', '50c628033c5d5dde')}")
+        
+        # Log credential source for debugging
+        if os.getenv("GOOGLE_CREDENTIALS_BASE64"):
+            logger.info("   Using base64-encoded credentials (production mode)")
+        elif os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+            logger.info(f"   Using credentials file: {os.getenv('GOOGLE_APPLICATION_CREDENTIALS')}")
+        else:
+            logger.info("   Using default application credentials")
 except Exception as e:
     logger.warning(f"⚠️ Google Document AI initialization failed: {str(e)}")
     logger.info("   Will try Groq as fallback...")
@@ -286,8 +308,18 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
         # Second priority: If names still empty, try employee record
         if not first_name or not last_name:
             if employee:
-                first_name = first_name or employee.get("first_name", "")
-                last_name = last_name or employee.get("last_name", "")
+                # Check if employee has personal_info with names first
+                if hasattr(employee, 'personal_info') and employee.personal_info:
+                    personal_info = employee.personal_info
+                    if isinstance(personal_info, dict):
+                        first_name = first_name or personal_info.get('first_name', '')
+                        last_name = last_name or personal_info.get('last_name', '')
+                
+                # Then check direct attributes on employee object
+                if not first_name:
+                    first_name = first_name or (employee.first_name if hasattr(employee, 'first_name') else "")
+                if not last_name:
+                    last_name = last_name or (employee.last_name if hasattr(employee, 'last_name') else "")
         
         # Last resort: default values
         first_name = first_name or "Unknown"
@@ -494,8 +526,8 @@ async def login(request: Request):
         
         # Generate token
         if existing_user.role == "manager":
-            manager_properties = supabase_service.get_manager_properties_sync(existing_user.id)
-            if not manager_properties:
+            # Use property_id directly from user object
+            if not existing_user.property_id:
                 return error_response(
                     message="Manager not configured",
                     error_code=ErrorCode.AUTHORIZATION_ERROR,
@@ -505,7 +537,7 @@ async def login(request: Request):
             
             expire = datetime.now(timezone.utc) + timedelta(hours=24)
             # Get manager's property ID for WebSocket room subscription
-            property_id = manager_properties[0].id if manager_properties else None
+            property_id = existing_user.property_id
             
             payload = {
                 "sub": existing_user.id,  # Standard JWT field for subject (user ID)
@@ -540,7 +572,8 @@ async def login(request: Request):
                 "email": existing_user.email,
                 "role": existing_user.role,
                 "first_name": existing_user.first_name,
-                "last_name": existing_user.last_name
+                "last_name": existing_user.last_name,
+                "property_id": getattr(existing_user, 'property_id', None)
             },
             expires_at=expire.isoformat(),
             token_type="Bearer"
@@ -3175,6 +3208,7 @@ async def submit_job_application(id: str, application_data: JobApplicationData):
         application_id = str(uuid.uuid4())
         
         # Convert employment history to dict for storage
+        # Process employment history
         employment_history_data = []
         if application_data.employment_history:
             for emp in application_data.employment_history:
@@ -3192,28 +3226,125 @@ async def submit_job_application(id: str, application_data: JobApplicationData):
                     "may_contact": emp.may_contact
                 })
         
+        # Process education history
+        education_history_data = []
+        if application_data.education_history:
+            for edu in application_data.education_history:
+                education_history_data.append({
+                    "school_name": edu.school_name,
+                    "location": edu.location,
+                    "years_attended": edu.years_attended,
+                    "graduated": edu.graduated,
+                    "degree_received": edu.degree_received
+                })
+        
+        # Process conviction record (nested object)
+        conviction_record_data = {
+            "has_conviction": application_data.conviction_record.has_conviction,
+            "explanation": application_data.conviction_record.explanation
+        } if application_data.conviction_record else {"has_conviction": False, "explanation": None}
+        
+        # Process personal reference (nested object)
+        personal_reference_data = {
+            "name": application_data.personal_reference.name,
+            "years_known": application_data.personal_reference.years_known,
+            "phone": application_data.personal_reference.phone,
+            "relationship": application_data.personal_reference.relationship
+        } if application_data.personal_reference else None
+        
+        # Process military service (nested object)
+        military_service_data = {
+            "branch": application_data.military_service.branch,
+            "from_date": application_data.military_service.from_date,
+            "to_date": application_data.military_service.to_date,
+            "rank_at_discharge": application_data.military_service.rank_at_discharge,
+            "type_of_discharge": application_data.military_service.type_of_discharge,
+            "disabilities_related": application_data.military_service.disabilities_related
+        } if application_data.military_service else None
+        
+        # Process voluntary self identification (nested object)
+        voluntary_self_id_data = None
+        if application_data.voluntary_self_identification:
+            voluntary_self_id_data = {
+                "gender": application_data.voluntary_self_identification.gender,
+                "ethnicity": application_data.voluntary_self_identification.ethnicity,
+                "veteran_status": application_data.voluntary_self_identification.veteran_status,
+                "disability_status": application_data.voluntary_self_identification.disability_status
+            }
+        
+        # Build complete applicant_data with ALL fields from JobApplicationData model
         job_application = JobApplication(
             id=application_id,
             property_id=id,
             department=application_data.department,
             position=application_data.position,
             applicant_data={
+                # Personal Information (complete set)
                 "first_name": application_data.first_name,
+                "middle_initial": application_data.middle_initial,
                 "last_name": application_data.last_name,
                 "email": application_data.email,
                 "phone": application_data.phone,
+                "phone_is_cell": application_data.phone_is_cell,
+                "phone_is_home": application_data.phone_is_home,
+                "secondary_phone": application_data.secondary_phone,
+                "secondary_phone_is_cell": application_data.secondary_phone_is_cell,
+                "secondary_phone_is_home": application_data.secondary_phone_is_home,
                 "address": application_data.address,
+                "apartment_unit": application_data.apartment_unit,
                 "city": application_data.city,
                 "state": application_data.state,
                 "zip_code": application_data.zip_code,
+                
+                # Position Information
+                "department": application_data.department,
+                "position": application_data.position,
+                "salary_desired": application_data.salary_desired,
+                
+                # Work Authorization & Legal
                 "work_authorized": application_data.work_authorized,
                 "sponsorship_required": application_data.sponsorship_required,
+                "age_verification": application_data.age_verification,
+                "conviction_record": conviction_record_data,
+                
+                # Availability
                 "start_date": application_data.start_date,
                 "shift_preference": application_data.shift_preference,
                 "employment_type": application_data.employment_type,
+                "seasonal_start_date": application_data.seasonal_start_date,
+                "seasonal_end_date": application_data.seasonal_end_date,
+                
+                # Previous Hotel Employment
+                "previous_hotel_employment": application_data.previous_hotel_employment,
+                "previous_hotel_details": application_data.previous_hotel_details,
+                
+                # How did you hear about us?
+                "how_heard": application_data.how_heard,
+                "how_heard_detailed": application_data.how_heard_detailed,
+                
+                # References
+                "personal_reference": personal_reference_data,
+                
+                # Military Service
+                "military_service": military_service_data,
+                
+                # Education History
+                "education_history": education_history_data,
+                
+                # Employment History
+                "employment_history": employment_history_data,
+                
+                # Skills, Languages, and Certifications
+                "skills_languages_certifications": application_data.skills_languages_certifications,
+                
+                # Voluntary Self-Identification
+                "voluntary_self_identification": voluntary_self_id_data,
+                
+                # Experience
                 "experience_years": application_data.experience_years,
                 "hotel_experience": application_data.hotel_experience,
-                "employment_history": employment_history_data,
+                
+                # Additional Comments
                 "additional_comments": application_data.additional_comments
             },
             status=ApplicationStatus.PENDING,
@@ -7626,10 +7757,10 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
                 return not_found_response("Employee not found")
             
             # Get property name
-            property_id = employee.get("property_id")
+            property_id = employee.property_id if hasattr(employee, 'property_id') else None
             if property_id:
                 property_data = await supabase_service.get_property_by_id(property_id)
-                property_name = property_data.get("name", "Hotel") if property_data else "Hotel"
+                property_name = property_data.name if (property_data and hasattr(property_data, 'name')) else "Hotel"
             else:
                 property_name = "Hotel"
         
@@ -7697,10 +7828,10 @@ async def generate_human_trafficking_pdf(employee_id: str, request: Request):
                 return not_found_response("Employee not found")
             
             # Get property name
-            property_id = employee.get("property_id")
+            property_id = employee.property_id if hasattr(employee, 'property_id') else None
             if property_id:
                 property_data = await supabase_service.get_property_by_id(property_id)
-                property_name = property_data.get("name", "Hotel") if property_data else "Hotel"
+                property_name = property_data.name if (property_data and hasattr(property_data, 'name')) else "Hotel"
             else:
                 property_name = "Hotel"
         
@@ -7760,10 +7891,10 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
                 return not_found_response("Employee not found")
             
             # Get property name
-            property_id = employee.get("property_id")
+            property_id = employee.property_id if hasattr(employee, 'property_id') else None
             if property_id:
                 property_data = await supabase_service.get_property_by_id(property_id)
-                property_name = property_data.get("name", "Hotel") if property_data else "Hotel"
+                property_name = property_data.name if (property_data and hasattr(property_data, 'name')) else "Hotel"
             else:
                 property_name = "Hotel"
         

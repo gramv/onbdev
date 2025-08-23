@@ -1,45 +1,62 @@
 #!/usr/bin/env python3
 """
-Check what property the manager is assigned to
+Check manager property assignment
 """
 
 import os
-from dotenv import load_dotenv
-from supabase import create_client, Client
+import sys
+from pathlib import Path
+
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent))
 
 # Load environment variables
-load_dotenv(".env.test")
+from dotenv import load_dotenv
+load_dotenv('.env', override=True)
 
-# Initialize Supabase client
-url = os.getenv('SUPABASE_URL')
-key = os.getenv('SUPABASE_ANON_KEY')
+from app.supabase_service_enhanced import EnhancedSupabaseService
 
-supabase: Client = create_client(url, key)
-
-# Get manager user
-manager_result = supabase.table('users').select('*').eq('email', 'manager@demo.com').execute()
-if manager_result.data:
-    manager = manager_result.data[0]
-    print(f"Manager ID: {manager['id']}")
-    print(f"Manager Name: {manager['first_name']} {manager['last_name']}")
+def check_manager():
+    """Check manager property assignment"""
+    print("Checking manager property assignment...")
     
-    # Check property assignment
-    pm_result = supabase.table('property_managers').select('*, properties(*)').eq('manager_id', manager['id']).execute()
-    if pm_result.data:
-        for assignment in pm_result.data:
-            print(f"\nAssigned Property:")
-            print(f"  Property ID: {assignment['property_id']}")
-            if assignment.get('properties'):
-                print(f"  Property Name: {assignment['properties']['name']}")
-                print(f"  Property Address: {assignment['properties']['address']}")
-    else:
-        print("\n❌ No property assignment found")
+    # Initialize Supabase service
+    supabase = EnhancedSupabaseService()
+    
+    try:
+        # Get manager user
+        manager_email = "manager@demo.com"
+        result = supabase.client.table('users').select('*').eq('email', manager_email).execute()
         
-        # List available properties
-        props_result = supabase.table('properties').select('*').limit(5).execute()
-        if props_result.data:
-            print("\nAvailable properties:")
-            for prop in props_result.data:
-                print(f"  {prop['id']}: {prop['name']}")
-else:
-    print("❌ Manager not found")
+        if result.data:
+            manager = result.data[0]
+            print(f"\nManager found:")
+            print(f"  ID: {manager.get('id')}")
+            print(f"  Email: {manager.get('email')}")
+            print(f"  Role: {manager.get('role')}")
+            print(f"  Property ID: {manager.get('property_id')}")
+            print(f"  Is Active: {manager.get('is_active')}")
+            
+            # Check if property exists
+            if manager.get('property_id'):
+                prop_result = supabase.client.table('properties').select('*').eq('id', manager.get('property_id')).execute()
+                if prop_result.data:
+                    prop = prop_result.data[0]
+                    print(f"\nProperty found:")
+                    print(f"  ID: {prop.get('id')}")
+                    print(f"  Name: {prop.get('name')}")
+                    print(f"  Is Active: {prop.get('is_active')}")
+                else:
+                    print(f"\n❌ Property {manager.get('property_id')} not found!")
+            else:
+                print(f"\n❌ Manager has no property_id assigned!")
+        else:
+            print(f"❌ Manager {manager_email} not found!")
+            
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    check_manager()

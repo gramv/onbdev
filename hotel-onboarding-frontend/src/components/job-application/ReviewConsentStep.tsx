@@ -7,7 +7,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { 
   FileText, 
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react'
 
 interface ReviewConsentStepProps {
@@ -274,6 +275,30 @@ export default function ReviewConsentStep({
     stopDrawing() // Reuse existing stopDrawing function
   }
 
+  // Add a summary section showing what data will be submitted
+  const getDataSummary = () => {
+    const summary = []
+    
+    // Check personal info
+    if (formData.first_name && formData.last_name) {
+      summary.push(`Name: ${formData.first_name} ${formData.middle_name || ''} ${formData.last_name}`.trim())
+    }
+    if (formData.email) {
+      summary.push(`Email: ${formData.email}`)
+    }
+    if (formData.phone) {
+      summary.push(`Phone: ${formData.phone}`)
+    }
+    if (formData.position_applying_for || formData.position) {
+      summary.push(`Position: ${formData.position_applying_for || formData.position}`)
+    }
+    if (formData.department) {
+      summary.push(`Department: ${formData.department}`)
+    }
+    
+    return summary
+  }
+
   return (
     <div className="space-y-6">
       <Alert>
@@ -282,6 +307,34 @@ export default function ReviewConsentStep({
           {t('jobApplication.steps.reviewConsent.readInstructions')}
         </AlertDescription>
       </Alert>
+
+      {/* Data Summary Card */}
+      <Card className="border-blue-200 bg-blue-50/50">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Application Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1 text-sm">
+            {getDataSummary().map((item, index) => (
+              <div key={index} className="flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+          {(!formData.employment_history || formData.employment_history.filter((e: any) => e.employer_name).length === 0) && (
+            <Alert className="mt-3 border-yellow-200 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800">
+                Warning: No employment history provided. This may affect your application.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Consent Statement */}
       <Card>
@@ -313,7 +366,7 @@ export default function ReviewConsentStep({
                       className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_truthfulness') ? 'border-red-500' : ''
                       }`}
-                      placeholder={expectedInitials || "Initials"}
+                      placeholder="Initials"
                       maxLength={4}
                     />
                     {getError('initials_truthfulness') && (
@@ -341,7 +394,7 @@ export default function ReviewConsentStep({
                       className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_at_will') ? 'border-red-500' : ''
                       }`}
-                      placeholder={expectedInitials || "Initials"}
+                      placeholder="Initials"
                       maxLength={4}
                     />
                     {getError('initials_at_will') && (
@@ -369,7 +422,7 @@ export default function ReviewConsentStep({
                       className={`w-24 h-14 text-center font-bold text-base ${
                         getError('initials_screening') ? 'border-red-500' : ''
                       }`}
-                      placeholder={expectedInitials || "Initials"}
+                      placeholder="Initials"
                       maxLength={4}
                     />
                     {getError('initials_screening') && (
