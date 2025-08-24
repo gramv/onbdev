@@ -7414,10 +7414,22 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         # Get request body
         body = await request.json()
         
-        # Extract form data and documents data
-        form_data = body.get('formData', {})
-        documents_data = body.get('documentsData', {})
-        signature_data = body.get('signatureData', {})
+        # Check if employee_data is provided (from ReviewAndSign component)
+        employee_data_from_request = body.get('employee_data')
+        
+        if employee_data_from_request:
+            # When called from ReviewAndSign component, extract data from employee_data
+            logger.info(f"Received employee_data from ReviewAndSign for I9 generation")
+            logger.info(f"employee_data keys: {list(employee_data_from_request.keys()) if isinstance(employee_data_from_request, dict) else 'not a dict'}")
+            form_data = employee_data_from_request
+            documents_data = employee_data_from_request.get('documentsData', {}) if isinstance(employee_data_from_request, dict) else {}
+            signature_data = employee_data_from_request.get('signatureData', {}) if isinstance(employee_data_from_request, dict) else {}
+        else:
+            # Fallback to direct extraction (for backwards compatibility)
+            logger.info(f"Using direct extraction for I9 generation")
+            form_data = body.get('formData', {})
+            documents_data = body.get('documentsData', {})
+            signature_data = body.get('signatureData', {})
         
         # Get employee data if available
         employee = None
@@ -7430,6 +7442,11 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         # Initialize PDF form filler
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
+        
+        # Debug log the form_data to see what we're working with
+        logger.info(f"Form data fields available: {list(form_data.keys()) if isinstance(form_data, dict) else 'not a dict'}")
+        logger.info(f"Sample form data - firstName: {form_data.get('firstName', 'NOT FOUND') if isinstance(form_data, dict) else 'N/A'}")
+        logger.info(f"Sample form data - ssn: {form_data.get('ssn', 'NOT FOUND')[:7] + '****' if isinstance(form_data, dict) and form_data.get('ssn') else 'NOT FOUND'}")
         
         # Prepare Section 1 data from form
         pdf_data = {
