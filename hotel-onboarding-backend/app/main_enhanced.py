@@ -7451,28 +7451,28 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         logger.info(f"Sample form data - ssn: {form_data.get('ssn', 'NOT FOUND')[:7] + '****' if isinstance(form_data, dict) and form_data.get('ssn') else 'NOT FOUND'}")
         logger.info(f"Documents data received: {bool(documents_data)}, has uploadedDocuments: {bool(documents_data.get('uploadedDocuments') if documents_data else False)}")
         
-        # Prepare Section 1 data from form
+        # Prepare Section 1 data from form - using snake_case keys as sent from frontend
         pdf_data = {
-            'first_name': form_data.get('firstName', ''),
-            'last_name': form_data.get('lastName', ''),
-            'middle_initial': form_data.get('middleInitial', ''),
-            'other_last_names': form_data.get('otherLastNames', ''),
+            'first_name': form_data.get('first_name', ''),
+            'last_name': form_data.get('last_name', ''),
+            'middle_initial': form_data.get('middle_initial', ''),
+            'other_last_names': form_data.get('other_names', ''),  # Frontend sends 'other_names'
             'address': form_data.get('address', ''),
-            'apartment': form_data.get('apartment', ''),
+            'apartment': form_data.get('apt_number', ''),  # Frontend sends 'apt_number'
             'city': form_data.get('city', ''),
             'state': form_data.get('state', ''),
-            'zip_code': form_data.get('zipCode', ''),
-            'date_of_birth': form_data.get('dateOfBirth', ''),
+            'zip_code': form_data.get('zip_code', ''),  # Frontend sends 'zip_code' not 'zipCode'
+            'date_of_birth': form_data.get('date_of_birth', ''),  # Frontend sends 'date_of_birth'
             'ssn': form_data.get('ssn', ''),
             'email': form_data.get('email', ''),
             'phone': form_data.get('phone', ''),
-            'citizenship_status': form_data.get('citizenshipStatus', ''),
-            'alien_number': form_data.get('alienNumber', ''),
-            'uscis_number': form_data.get('uscisNumber', ''),
-            'form_i94_number': form_data.get('formI94Number', ''),
-            'foreign_passport_number': form_data.get('foreignPassportNumber', ''),
-            'country_of_issuance': form_data.get('countryOfIssuance', ''),
-            'expiration_date': form_data.get('expirationDate', ''),
+            'citizenship_status': form_data.get('citizenship_status', ''),  # Frontend sends 'citizenship_status'
+            'alien_number': form_data.get('alien_registration_number', ''),  # Frontend sends 'alien_registration_number'
+            'uscis_number': form_data.get('uscis_number', ''),  # Check if this is sent
+            'form_i94_number': form_data.get('form_i94_number', ''),  # Check if this is sent
+            'foreign_passport_number': form_data.get('foreign_passport_number', ''),  # Frontend sends 'foreign_passport_number'
+            'country_of_issuance': form_data.get('country_of_issuance', ''),  # Frontend sends 'country_of_issuance'
+            'expiration_date': form_data.get('expiration_date', ''),  # Frontend sends 'expiration_date'
             'signature': signature_data.get('signature', ''),
             'signature_date': signature_data.get('signedAt', datetime.now().strftime('%m/%d/%Y'))
         }
