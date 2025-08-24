@@ -6675,6 +6675,78 @@ async def save_i9_section1(
             logger.error(f"Failed to save I-9 data: {str(e)}")
             raise
         
+        # Auto-save signed I-9 document to Supabase storage
+        if data.get("signed") and data.get("signature"):
+            try:
+                logger.info(f"Auto-saving signed I-9 document for employee {employee_id}")
+                
+                # Generate signed I-9 PDF
+                from .pdf_forms import PDFFormFiller
+                pdf_filler = PDFFormFiller()
+                
+                # Prepare PDF data
+                pdf_data = {
+                    'first_name': data.get('firstName', ''),
+                    'last_name': data.get('lastName', ''),
+                    'middle_initial': data.get('middleInitial', ''),
+                    'other_last_names': data.get('otherLastNames', ''),
+                    'address': data.get('address', ''),
+                    'apartment': data.get('apartment', ''),
+                    'city': data.get('city', ''),
+                    'state': data.get('state', ''),
+                    'zip_code': data.get('zipCode', ''),
+                    'date_of_birth': data.get('dateOfBirth', ''),
+                    'ssn': data.get('ssn', ''),
+                    'email': data.get('email', ''),
+                    'phone': data.get('phone', ''),
+                    'citizenship_status': data.get('citizenshipStatus', ''),
+                    'alien_number': data.get('alienNumber', ''),
+                    'uscis_number': data.get('uscisNumber', ''),
+                    'form_i94_number': data.get('formI94Number', ''),
+                    'foreign_passport_number': data.get('foreignPassportNumber', ''),
+                    'country_of_issuance': data.get('countryOfIssuance', ''),
+                    'expiration_date': data.get('expirationDate', ''),
+                    'signature': data.get('signature', ''),
+                    'signature_date': data.get('signatureDate', datetime.now().strftime('%m/%d/%Y')),
+                    'preparer_signature': data.get('preparerSignature', ''),
+                    'preparer_name': data.get('preparerName', ''),
+                    'preparer_date': data.get('preparerDate', '')
+                }
+                
+                # Generate PDF with signature
+                pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
+                
+                # Get employee info for property_id
+                employee = None
+                if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
+                    try:
+                        employee = supabase_service.get_employee_by_id_sync(employee_id)
+                    except:
+                        pass
+                
+                # Save to Supabase storage
+                doc_storage = DocumentStorageService()
+                stored_doc = await doc_storage.store_document(
+                    file_content=pdf_bytes,
+                    filename=f"signed_i9_section1_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    document_type=DocumentType.I9_FORM,
+                    employee_id=employee_id,
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else None,
+                    uploaded_by='system',
+                    metadata={
+                        'signed': True,
+                        'signature_timestamp': data.get('signedAt'),
+                        'signature_ip': data.get('ipAddress'),
+                        'auto_saved': True,
+                        'form_type': 'i9_section1',
+                        'section': 'section1'
+                    }
+                )
+                logger.info(f"Auto-saved signed I-9 Section 1 PDF for employee {employee_id}: {stored_doc.document_id}")
+            except Exception as e:
+                # Log but don't fail if auto-save fails
+                logger.error(f"Failed to auto-save signed I-9 document: {e}")
+        
         # Update employee onboarding progress (only for real employees)
         if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
             try:
@@ -6888,6 +6960,66 @@ async def save_w4_form(
                 response = supabase_service.client.table('w4_forms')\
                     .insert(w4_data)\
                     .execute()
+            
+            # Auto-save signed W-4 document to Supabase storage
+            if data.get("signed") and data.get("signatureData"):
+                try:
+                    logger.info(f"Auto-saving signed W-4 document for employee {employee_id}")
+                    
+                    # Generate signed W-4 PDF
+                    from .pdf_forms import PDFFormFiller
+                    pdf_filler = PDFFormFiller()
+                    
+                    # Prepare PDF data from form data
+                    form_data = data.get("formData", {})
+                    signature_data = data.get("signatureData", {})
+                    
+                    pdf_data = {
+                        'first_name': form_data.get('firstName', ''),
+                        'last_name': form_data.get('lastName', ''),
+                        'middle_initial': form_data.get('middleInitial', ''),
+                        'address': form_data.get('address', ''),
+                        'city': form_data.get('city', ''),
+                        'state': form_data.get('state', ''),
+                        'zip_code': form_data.get('zipCode', ''),
+                        'ssn': form_data.get('ssn', ''),
+                        'filing_status': form_data.get('filingStatus', ''),
+                        'multiple_jobs': form_data.get('multipleJobs', False),
+                        'qualifying_children': form_data.get('qualifyingChildren', 0),
+                        'other_dependents': form_data.get('otherDependents', 0),
+                        'other_income': form_data.get('otherIncome', 0),
+                        'deductions': form_data.get('deductions', 0),
+                        'extra_withholding': form_data.get('extraWithholding', 0),
+                        'step2c_checked': form_data.get('step2cChecked', False),
+                        'signature': signature_data.get('signature', ''),
+                        'signature_date': signature_data.get('signedAt', datetime.now().strftime('%m/%d/%Y'))
+                    }
+                    
+                    # Generate PDF with signature
+                    pdf_bytes = pdf_filler.fill_w4_form(pdf_data)
+                    
+                    # Save to Supabase storage
+                    doc_storage = DocumentStorageService()
+                    stored_doc = await doc_storage.store_document(
+                        file_content=pdf_bytes,
+                        filename=f"signed_w4_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                        document_type=DocumentType.W4_FORM,
+                        employee_id=employee_id,
+                        property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else None,
+                        uploaded_by='system',
+                        metadata={
+                            'signed': True,
+                            'signature_timestamp': signature_data.get('signedAt'),
+                            'signature_ip': signature_data.get('ipAddress'),
+                            'auto_saved': True,
+                            'form_type': 'w4_form',
+                            'tax_year': 2025
+                        }
+                    )
+                    logger.info(f"Auto-saved signed W-4 PDF for employee {employee_id}: {stored_doc.document_id}")
+                except Exception as e:
+                    # Log but don't fail if auto-save fails
+                    logger.error(f"Failed to auto-save signed W-4 document: {e}")
             
             # Update employee onboarding progress
             progress_update = {
@@ -8079,6 +8211,32 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         
         # Generate PDF
         pdf_bytes = pdf_filler.create_company_policies_pdf(pdf_data)
+        
+        # Check if this is a signed document (has signature_data in request)
+        signature_data = body.get('signature_data')
+        if signature_data:
+            # This is a signed document - save to Supabase storage
+            try:
+                doc_storage = DocumentStorageService()
+                stored_doc = await doc_storage.store_document(
+                    file_content=pdf_bytes,
+                    filename=f"signed_company_policies_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    document_type=DocumentType.COMPANY_POLICIES,
+                    employee_id=employee_id,
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None),
+                    uploaded_by='system',
+                    metadata={
+                        'signed': True,
+                        'signature_timestamp': signature_data.get('signedAt'),
+                        'signature_ip': signature_data.get('ipAddress'),
+                        'auto_saved': True,
+                        'form_type': 'company_policies'
+                    }
+                )
+                logger.info(f"Auto-saved signed Company Policies PDF for employee {employee_id}: {stored_doc.document_id}")
+            except Exception as save_error:
+                logger.error(f"Failed to auto-save signed Company Policies PDF: {save_error}")
+                # Don't fail the request if save fails - still return the PDF
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
