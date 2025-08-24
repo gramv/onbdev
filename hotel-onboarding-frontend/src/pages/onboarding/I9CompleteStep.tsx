@@ -660,31 +660,38 @@ export default function I9CompleteStep({
       try {
         const apiUrl = import.meta.env.VITE_API_URL || ''
         
-        // Generate and save complete I-9 PDF with both sections
-        const pdfResponse = await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-complete/generate-pdf`, {
+        // Save I-9 Section 1 with signature
+        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {
           formData,
-          documentsData,
-          signatureData: signature
-        })
-        
-        if (pdfResponse.data?.data?.pdf) {
-          // Update the PDF URL with the new complete PDF
-          setPdfUrl(pdfResponse.data.data.pdf)
-          console.log('Complete I-9 PDF with both sections generated and auto-saved')
-        }
-        
-        // Also save to i9-complete endpoint for data persistence
-        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-complete`, {
-          formData,
-          documentsData,
           signed: true,
-          signatureData: signature,
-          completedAt: completeData.completedAt
+          signatureData: signature.signature,
+          completedAt: completeData.completedAt,
+          pdfUrl: pdfUrl
         })
-        console.log('Complete I-9 data saved to cloud')
+        console.log('I-9 Section 1 with signature saved to cloud')
         
+        // Save I-9 Section 2 documents if we have them
+        if (documentsData && documentsData.uploadedDocuments) {
+          const documentMetadata = documentsData.uploadedDocuments.map((doc: any) => ({
+            id: doc.id,
+            type: doc.type,
+            documentType: doc.documentType,
+            fileName: doc.fileName,
+            fileSize: doc.fileSize,
+            uploadedAt: doc.uploadedAt,
+            ocrData: doc.ocrData
+          }))
+          
+          await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section2`, {
+            documentSelection: documentsData.documentSelection || '',
+            uploadedDocuments: documentMetadata,
+            verificationComplete: true,
+            completedAt: completeData.completedAt
+          })
+          console.log('I-9 Section 2 documents saved to cloud')
+        }
       } catch (error) {
-        console.error('Failed to save complete I-9 data to backend:', error)
+        console.error('Failed to save I-9 data to backend:', error)
         // Continue even if backend save fails - data is in session storage
       }
     }
@@ -695,7 +702,8 @@ export default function I9CompleteStep({
     // Update session storage directly to ensure it's available for validation
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeData))
     
-    // No need to regenerate PDF locally - we got it from the server with both sections
+    // Regenerate PDF with signature
+    await generateCompletePdf(documentsData, signature)
     
     setIsSigned(true)
     await markStepComplete(currentStep.id, completeData)
