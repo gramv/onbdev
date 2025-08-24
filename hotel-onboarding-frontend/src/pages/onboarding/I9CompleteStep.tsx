@@ -13,7 +13,7 @@ import PDFViewer from '@/components/PDFViewer'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { useStepValidation } from '@/hooks/useStepValidation'
 import { i9Section1Validator } from '@/utils/stepValidators'
-import { generateCleanI9Pdf } from '@/utils/i9PdfGeneratorClean'
+import { generateCleanI9Pdf, addSignatureToExistingPdf } from '@/utils/i9PdfGeneratorClean'
 import { scrollToTop } from '@/utils/scrollHelpers'
 import axios from 'axios'
 
@@ -243,9 +243,9 @@ export default function I9CompleteStep({
       // Include signature data if already signed
       if (isSigned && signatureData) {
         console.log('Including existing signature in PDF regeneration')
-        generateCompletePdf(documentsData, signatureData)
+        generateCompletePdf(documentsData, signatureData, formData)
       } else {
-        generateCompletePdf(documentsData)
+        generateCompletePdf(documentsData, null, formData)
       }
     }
   }, [activeTab, pdfUrl, isGeneratingPdf, documentsComplete, isSigned, signatureData])
@@ -568,22 +568,23 @@ export default function I9CompleteStep({
       })
     }
     
-    // Generate PDF before showing preview
-    await generateCompletePdf(data)
+    // Generate PDF before showing preview - pass formData to ensure all fields are included
+    await generateCompletePdf(data, null, formData)
     
     setActiveTab('preview')
   }
   
-  const generateCompletePdf = async (documents?: any, signatureData?: any) => {
+  const generateCompletePdf = async (documents?: any, signatureData?: any, formDataOverride?: any) => {
     setIsGeneratingPdf(true)
     try {
       // Debug log to see the structure
       console.log('Documents received in generateCompletePdf:', documents)
       console.log('Extracted data:', documents?.extractedData)
+      console.log('Form data being used:', formDataOverride || formData)
       
       // Prepare complete form data including Section 2 info from documents
       const completeFormData = {
-        ...formData,
+        ...(formDataOverride || formData),
         // Add Section 2 data from document extraction
         section2: documents?.extractedData && documents.extractedData.length > 0 ? {
           documents: documents.extractedData, // Pass all documents
@@ -702,8 +703,15 @@ export default function I9CompleteStep({
     // Update session storage directly to ensure it's available for validation
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeData))
     
-    // Regenerate PDF with signature embedded (matching working branch approach)
-    await generateCompletePdf(documentsData, signature)
+    // Don't regenerate! Just add signature to the existing perfect PDF
+    if (pdfUrl) {
+      console.log('Adding signature to existing PDF with all data')
+      const signedPdf = await addSignatureToExistingPdf(pdfUrl, signature)
+      setPdfUrl(signedPdf)
+      console.log('✓ Signature added to PDF without regeneration')
+    } else {
+      console.error('No existing PDF to sign - this should not happen')
+    }
     
     setIsSigned(true)
     await markStepComplete(currentStep.id, completeData)

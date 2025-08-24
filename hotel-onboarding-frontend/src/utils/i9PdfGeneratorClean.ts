@@ -458,3 +458,59 @@ export async function generateCleanI9Pdf(formData: I9FormData): Promise<Uint8Arr
     throw error
   }
 }
+
+// Simple function to add signature to existing PDF
+export async function addSignatureToExistingPdf(existingPdfBase64: string, signatureData: any): Promise<string> {
+  console.log('Adding signature to existing PDF')
+  
+  try {
+    // Convert base64 to bytes
+    const pdfBytes = Uint8Array.from(atob(existingPdfBase64), c => c.charCodeAt(0))
+    
+    // Load the existing PDF
+    const pdfDoc = await PDFDocument.load(pdfBytes)
+    
+    // Process signature
+    const processedSignature = await processSignatureForPDF(signatureData.signature)
+    const base64Data = processedSignature.split(',')[1]
+    const signatureImageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
+    const signatureImage = await pdfDoc.embedPng(signatureImageBytes)
+    
+    // Get first page and add signature
+    const pages = pdfDoc.getPages()
+    const firstPage = pages[0]
+    
+    // Add signature at the standard position
+    const scale = 0.22
+    const scaledWidth = signatureImage.width * scale
+    const scaledHeight = signatureImage.height * scale
+    
+    firstPage.drawImage(signatureImage, {
+      x: 50,   // Left margin
+      y: 330,  // Above bottom section (same as in generateCleanI9Pdf)
+      width: scaledWidth,
+      height: scaledHeight,
+    })
+    
+    console.log('✓ Signature added at x:50, y:330')
+    
+    // Save and convert back to base64
+    const signedPdfBytes = await pdfDoc.save()
+    
+    // Convert to base64
+    let binary = ''
+    const chunkSize = 8192
+    for (let i = 0; i < signedPdfBytes.length; i += chunkSize) {
+      const chunk = signedPdfBytes.slice(i, i + chunkSize)
+      binary += String.fromCharCode.apply(null, Array.from(chunk))
+    }
+    const base64String = btoa(binary)
+    
+    console.log('✓ Signed PDF created, length:', base64String.length)
+    return base64String
+    
+  } catch (error) {
+    console.error('Error adding signature to PDF:', error)
+    throw error
+  }
+}
