@@ -1,1 +1,50 @@
 hotel-onboarding-backend/.env
+
+# Debug and testing tools
+debug-tools/
+*.py.test
+test_*.py
+setup_*.py
+create_*.py
+fix_*.py
+verify_*.py
+debug_*.py
+check_*.py
+update_*.py
+add_*.py
+remove_*.py
+clear_*.py
+download_*.py
+
+# IDE and OS files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+.hypothesis/
