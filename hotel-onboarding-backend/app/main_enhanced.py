@@ -7431,38 +7431,28 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
-        # Prepare Section 1 data from form (support snake_case form coming from UI)
-        raw_citizenship = (form_data.get('citizenship_status') or form_data.get('citizenshipStatus') or '').strip().lower()
-        citizenship_map = {
-            'citizen': 'us_citizen',
-            'us_citizen': 'us_citizen',
-            'national': 'noncitizen_national',
-            'noncitizen_national': 'noncitizen_national',
-            'permanent_resident': 'permanent_resident',
-            'authorized_alien': 'authorized_alien',
-        }
-        normalized_citizenship = citizenship_map.get(raw_citizenship, raw_citizenship)
-
+        # Prepare Section 1 data from form
         pdf_data = {
-            'employee_first_name': form_data.get('first_name', form_data.get('firstName', '')),
-            'employee_last_name': form_data.get('last_name', form_data.get('lastName', '')),
-            'employee_middle_initial': form_data.get('middle_initial', form_data.get('middleInitial', '')),
-            'other_last_names': form_data.get('other_names', form_data.get('otherLastNames', '')),
-            'address_street': form_data.get('address', ''),
-            'address_apt': form_data.get('apt_number', form_data.get('apartment', '')),
-            'address_city': form_data.get('city', ''),
-            'address_state': form_data.get('state', ''),
-            'address_zip': form_data.get('zip_code', form_data.get('zipCode', '')),
-            'date_of_birth': form_data.get('date_of_birth', form_data.get('dateOfBirth', '')),
+            'first_name': form_data.get('firstName', ''),
+            'last_name': form_data.get('lastName', ''),
+            'middle_initial': form_data.get('middleInitial', ''),
+            'other_last_names': form_data.get('otherLastNames', ''),
+            'address': form_data.get('address', ''),
+            'apartment': form_data.get('apartment', ''),
+            'city': form_data.get('city', ''),
+            'state': form_data.get('state', ''),
+            'zip_code': form_data.get('zipCode', ''),
+            'date_of_birth': form_data.get('dateOfBirth', ''),
             'ssn': form_data.get('ssn', ''),
             'email': form_data.get('email', ''),
             'phone': form_data.get('phone', ''),
-            'citizenship_status': normalized_citizenship,
-            'uscis_number': form_data.get('alien_registration_number', form_data.get('uscisNumber', '')),
-            'i94_admission_number': form_data.get('i94_admission_number', form_data.get('formI94Number', '')),
-            'passport_number': form_data.get('foreign_passport_number', form_data.get('foreignPassportNumber', '')),
-            'passport_country': form_data.get('country_of_issuance', form_data.get('countryOfIssuance', '')),
-            'work_authorization_expiration': form_data.get('expiration_date', form_data.get('expirationDate', '')),
+            'citizenship_status': form_data.get('citizenshipStatus', ''),
+            'alien_number': form_data.get('alienNumber', ''),
+            'uscis_number': form_data.get('uscisNumber', ''),
+            'form_i94_number': form_data.get('formI94Number', ''),
+            'foreign_passport_number': form_data.get('foreignPassportNumber', ''),
+            'country_of_issuance': form_data.get('countryOfIssuance', ''),
+            'expiration_date': form_data.get('expirationDate', ''),
             'signature': signature_data.get('signature', ''),
             'signature_date': signature_data.get('signedAt', datetime.now().strftime('%m/%d/%Y')),
             'preparer_signature': form_data.get('preparerSignature', ''),
@@ -7481,12 +7471,12 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
                 # Map OCR data to Section 2 fields based on document type
                 if 'passport' in doc_type:
                     pdf_data['document_title_1'] = 'U.S. Passport'
-                    pdf_data['issuing_authority_1'] = ocr_data.get('issuingAuthority', 'United States Department of State')
+                    pdf_data['issuing_authority_1'] = 'United States Department of State'
                     pdf_data['document_number_1'] = ocr_data.get('documentNumber', '')
                     pdf_data['expiration_date_1'] = ocr_data.get('expirationDate', '')
                 elif 'driver' in doc_type or 'license' in doc_type:
                     pdf_data['document_title_2'] = "Driver's License"
-                    pdf_data['issuing_authority_2'] = ocr_data.get('issuingState', ocr_data.get('issuingAuthority', ''))
+                    pdf_data['issuing_authority_2'] = ocr_data.get('issuingState', '')
                     pdf_data['document_number_2'] = ocr_data.get('documentNumber', '')
                     pdf_data['expiration_date_2'] = ocr_data.get('expirationDate', '')
                 elif 'social' in doc_type or 'ssn' in doc_type:
@@ -7772,19 +7762,7 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
-        # Normalize citizenship to the values expected by PDFFormFiller
-        raw_citizenship = (form_data.get("citizenship_status") or "").strip().lower()
-        citizenship_map = {
-            "citizen": "us_citizen",
-            "us_citizen": "us_citizen",
-            "national": "noncitizen_national",
-            "noncitizen_national": "noncitizen_national",
-            "permanent_resident": "permanent_resident",
-            "authorized_alien": "authorized_alien",
-        }
-        normalized_citizenship = citizenship_map.get(raw_citizenship, raw_citizenship)
-
-        # Map form data to PDF fields (Section 1 only in this endpoint)
+        # Map form data to PDF fields
         pdf_data = {
             "employee_last_name": form_data.get("last_name", ""),
             "employee_first_name": form_data.get("first_name", ""),
@@ -7799,13 +7777,31 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
             "ssn": form_data.get("ssn", ""),
             "email": form_data.get("email", ""),
             "phone": form_data.get("phone", ""),
-            "citizenship_status": normalized_citizenship,
+            "citizenship_us_citizen": form_data.get("citizenship_status") == "citizen",
+            "citizenship_noncitizen_national": form_data.get("citizenship_status") == "national",
+            "citizenship_permanent_resident": form_data.get("citizenship_status") == "permanent_resident",
+            "citizenship_authorized_alien": form_data.get("citizenship_status") == "authorized_alien",
             "uscis_number": form_data.get("alien_registration_number", ""),
-            "i94_admission_number": form_data.get("i94_admission_number", ""),
+            "i94_admission_number": form_data.get("foreign_passport_number", ""),
             "passport_number": form_data.get("foreign_passport_number", ""),
             "passport_country": form_data.get("country_of_issuance", ""),
-            "work_authorization_expiration": form_data.get("expiration_date", ""),
             "employee_signature_date": form_data.get("completed_at", datetime.utcnow().isoformat()),
+            
+            # Section 2 fields (auto-filled from OCR data)
+            "document_title_1": form_data.get("document_title_1", ""),
+            "issuing_authority_1": form_data.get("issuing_authority_1", ""),
+            "document_number_1": form_data.get("document_number_1", ""),
+            "expiration_date_1": form_data.get("expiration_date_1", ""),
+            
+            "document_title_2": form_data.get("document_title_2", ""),
+            "issuing_authority_2": form_data.get("issuing_authority_2", ""),
+            "document_number_2": form_data.get("document_number_2", ""),
+            "expiration_date_2": form_data.get("expiration_date_2", ""),
+            
+            "document_title_3": form_data.get("document_title_3", ""),
+            "issuing_authority_3": form_data.get("issuing_authority_3", ""),
+            "document_number_3": form_data.get("document_number_3", ""),
+            "expiration_date_3": form_data.get("expiration_date_3", "")
         }
         
         # Generate PDF
@@ -7820,48 +7816,27 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
                 "employee_i9"
             )
             
-            # Auto-save signed I-9 to Supabase Storage
+            # Auto-save signed I-9 to database
             try:
-                # Upload to Supabase Storage
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                file_path = f"i9-forms/{employee_id}_{timestamp}.pdf"
-                
-                # Upload the PDF to storage bucket
-                storage_response = supabase_service.client.storage.from_('signed-documents').upload(
-                    file_path,
-                    pdf_bytes,
-                    file_options={
-                        "content-type": "application/pdf",
-                        "upsert": False  # Don't overwrite existing files
+                doc_storage = DocumentStorageService()
+                stored_doc = await doc_storage.store_document(
+                    file_content=pdf_bytes,
+                    filename=f"signed_i9_section1_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    document_type=DocumentType.I9_FORM,
+                    employee_id=employee_id,
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
+                    uploaded_by='system',
+                    metadata={
+                        'signed': True,
+                        'signature_timestamp': signature_data.get('signedAt'),
+                        'signature_ip': signature_data.get('ipAddress'),
+                        'auto_saved': True,
+                        'form_type': 'i9_section1'
                     }
                 )
-                
-                # Get the URL for the stored file
-                file_url = supabase_service.client.storage.from_('signed-documents').get_public_url(file_path)
-                
-                # Save metadata to signed_documents table
-                property_id = employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property'
-                doc_record = {
-                    'employee_id': employee_id,
-                    'document_type': 'i9_form',
-                    'document_name': f'I-9 Section 1 - {form_data.get("first_name", "")} {form_data.get("last_name", "")}',
-                    'pdf_url': file_url,
-                    'signed_at': datetime.now().isoformat(),
-                    'property_id': property_id,
-                    'metadata': {
-                        'signed': True,
-                        'signature_timestamp': signature_data.get('signedAt') if isinstance(signature_data, dict) else None,
-                        'signature_ip': signature_data.get('ipAddress') if isinstance(signature_data, dict) else None,
-                        'auto_saved': True,
-                        'form_type': 'i9_section1',
-                        'storage_path': file_path
-                    }
-                }
-                
-                supabase_service.client.table('signed_documents').insert(doc_record).execute()
-                logger.info(f"Auto-saved signed I-9 Section 1 PDF to Storage: {file_path}")
+                logger.info(f"Auto-saved signed I-9 Section 1 PDF for employee {employee_id}: {stored_doc.document_id}")
             except Exception as save_error:
-                logger.error(f"Failed to auto-save signed I-9 PDF to Storage: {save_error}")
+                logger.error(f"Failed to auto-save signed I-9 PDF: {save_error}")
                 # Don't fail the request if save fails - still return the PDF
         
         # Return PDF as base64
