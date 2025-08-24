@@ -670,25 +670,27 @@ export default function I9CompleteStep({
         })
         console.log('I-9 Section 1 with signature saved to cloud')
         
-        // Generate signed PDF on backend with all form data including OCR extracted fields
+        // Send existing filled PDF to backend to overlay signature
         try {
           const pdfResponse = await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1/generate-pdf`, {
+            existing_pdf: pdfUrl,  // Send the already-filled PDF
+            signature_data: signature,
+            // Still send form data as backup in case existing_pdf is missing
             employee_data: {
               ...formData,
               // Include Section 2 document data extracted from OCR
               ...(documentsData?.extractedData?.[0] || {}),
               ...(documentsData?.extractedData?.[1] || {})
-            },
-            signature_data: signature
+            }
           })
           
           if (pdfResponse.data?.data?.pdf) {
-            console.log('Signed I-9 PDF generated on backend successfully')
-            // Optionally update the local PDF URL with backend-generated one
-            // setPdfUrl(pdfResponse.data.data.pdf)
+            console.log('Signed I-9 PDF with overlay generated on backend successfully')
+            // Update the local PDF URL with backend-generated signed version
+            setPdfUrl(pdfResponse.data.data.pdf)
           }
         } catch (pdfError) {
-          console.error('Failed to generate signed PDF on backend:', pdfError)
+          console.error('Failed to overlay signature on PDF via backend:', pdfError)
           // Continue - local PDF is still available
         }
         
@@ -724,8 +726,8 @@ export default function I9CompleteStep({
     // Update session storage directly to ensure it's available for validation
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeData))
     
-    // Regenerate PDF with signature
-    await generateCompletePdf(documentsData, signature)
+    // Don't regenerate PDF locally - backend will overlay signature on existing filled PDF
+    // await generateCompletePdf(documentsData, signature) // REMOVED - this was losing form data
     
     setIsSigned(true)
     await markStepComplete(currentStep.id, completeData)

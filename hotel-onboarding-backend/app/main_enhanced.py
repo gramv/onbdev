@@ -7803,17 +7803,38 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
             "expiration_date_3": form_data.get("expiration_date_3", "")
         }
         
-        # Generate PDF
-        pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
-        
-        # Add signature if available (check both in form_data and as separate field in request)
+        # Check for existing PDF to just overlay signature
+        existing_pdf = body.get('existing_pdf')
         signature_data = body.get('signature_data') or form_data.get('signatureData') if form_data else None
-        if signature_data:
+        
+        if existing_pdf and signature_data:
+            # Just overlay signature on existing filled PDF
+            logger.info(f"Overlaying signature on existing I-9 PDF for employee {employee_id}")
+            
+            # Remove data URI prefix if present
+            if existing_pdf.startswith('data:'):
+                existing_pdf = existing_pdf.split(',')[1]
+            
+            # Decode base64 PDF
+            pdf_bytes = base64.b64decode(existing_pdf)
+            
+            # Add signature overlay
             pdf_bytes = pdf_filler.add_signature_to_pdf(
                 pdf_bytes, 
                 signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
                 "employee_i9"
             )
+        else:
+            # Generate new PDF (fallback for when existing PDF not provided)
+            pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
+            
+            # Add signature if available
+            if signature_data:
+                pdf_bytes = pdf_filler.add_signature_to_pdf(
+                    pdf_bytes, 
+                    signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
+                    "employee_i9"
+                )
         
         # Auto-save signed I-9 PDF if signature is present
         if signature_data:

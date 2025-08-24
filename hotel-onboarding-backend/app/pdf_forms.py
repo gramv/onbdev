@@ -1019,8 +1019,10 @@ class PDFFormFiller:
             
             # Define signature position based on form type
             if signature_type == "employee_i9":
-                # I-9 employee signature position (approximate)
-                rect = fitz.Rect(350, 650, 500, 680)
+                # I-9 employee signature position - matches frontend exactly
+                # Frontend uses: x:50, y:330 with bottom-left origin
+                # PyMuPDF also uses bottom-left origin, so coordinates match directly
+                rect = fitz.Rect(50, 330, 250, 380)  # x1, y1, x2, y2 (width:200, height:50)
             elif signature_type == "employer_i9":
                 # I-9 employer signature position (approximate)
                 rect = fitz.Rect(350, 750, 500, 780)
