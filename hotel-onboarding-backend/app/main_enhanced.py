@@ -7418,6 +7418,7 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         form_data = body.get('formData', {})
         documents_data = body.get('documentsData', {})
         signature_data = body.get('signatureData', {})
+        provided_pdf_base64 = body.get('pdfData') or body.get('pdf_data')
         
         # Get employee data if available
         employee = None
@@ -7431,6 +7432,28 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         from .pdf_forms import PDFFormFiller
         pdf_filler = PDFFormFiller()
         
+        # If the client provided a fully filled PDF (base64), just overlay the signature and return
+        if provided_pdf_base64:
+            try:
+                pdf_bytes = base64.b64decode(provided_pdf_base64)
+                if signature_data and (signature_data.get('signature') if isinstance(signature_data, dict) else signature_data):
+                    pdf_bytes = pdf_filler.add_signature_to_pdf(
+                        pdf_bytes,
+                        signature_data.get('signature') if isinstance(signature_data, dict) else signature_data,
+                        "employee_i9"
+                    )
+                # Convert to base64 for response
+                pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+                return success_response(
+                    data={
+                        "pdf": pdf_base64,
+                        "filename": f"I9_Complete_{form_data.get('first_name', form_data.get('firstName', 'Employee'))}_{form_data.get('last_name', form_data.get('lastName', ''))}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                    },
+                    message="Complete I-9 PDF generated successfully"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to use provided filled PDF, falling back to server fill: {e}")
+
         # Prepare Section 1 data from form (support snake_case form coming from UI)
         raw_citizenship = (form_data.get('citizenship_status') or form_data.get('citizenshipStatus') or '').strip().lower()
         citizenship_map = {

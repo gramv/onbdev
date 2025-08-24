@@ -664,7 +664,8 @@ export default function I9CompleteStep({
         const pdfResponse = await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-complete/generate-pdf`, {
           formData: formData,
           documentsData: documentsData,
-          signatureData: signature
+          signatureData: signature,
+          pdfData: pdfUrl
         })
         
         if (pdfResponse.data?.data?.pdf) {
