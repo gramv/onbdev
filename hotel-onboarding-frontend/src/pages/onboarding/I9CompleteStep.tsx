@@ -236,19 +236,14 @@ export default function I9CompleteStep({
     loadData()
   }, [currentStep.id, progress.completedSteps, employee])
   
-  // Regenerate PDF when returning to preview tab
+  // Generate PDF when returning to preview tab (only if no PDF exists)
   useEffect(() => {
     if (activeTab === 'preview' && !pdfUrl && !isGeneratingPdf && documentsComplete) {
-      console.log('Regenerating PDF on preview tab - formData citizenship_status:', formData.citizenship_status)
-      // Include signature data if already signed
-      if (isSigned && signatureData) {
-        console.log('Including existing signature in PDF regeneration')
-        generateCompletePdf(documentsData, signatureData, formData)
-      } else {
-        generateCompletePdf(documentsData, null, formData)
-      }
+      console.log('Generating initial PDF for preview tab')
+      // Only generate if we don't have a PDF yet
+      generateCompletePdf(documentsData, null, formData)
     }
-  }, [activeTab, pdfUrl, isGeneratingPdf, documentsComplete, isSigned, signatureData])
+  }, [activeTab, pdfUrl, isGeneratingPdf, documentsComplete])
   
   // Cleanup PDF data when component unmounts to free memory
   useEffect(() => {
@@ -574,7 +569,7 @@ export default function I9CompleteStep({
     setActiveTab('preview')
   }
   
-  const generateCompletePdf = async (documents?: any, signatureData?: any, formDataOverride?: any) => {
+  const generateCompletePdf = async (documents?: any, _unused?: any, formDataOverride?: any) => {
     setIsGeneratingPdf(true)
     try {
       // Debug log to see the structure
@@ -591,9 +586,8 @@ export default function I9CompleteStep({
           documentVerificationDate: new Date().toISOString()
         } : null,
         // Add supplement data if applicable
-        supplementA: needsSupplements === 'translator' ? supplementsData : null,
-        // Add signature data if available
-        signatureData: signatureData || null
+        supplementA: needsSupplements === 'translator' ? supplementsData : null
+        // No signature here - signatures are added later via overlay
       }
       
       console.log('Complete form data being sent to PDF generator:', completeFormData)
