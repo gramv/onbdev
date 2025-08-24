@@ -236,9 +236,9 @@ export default function I9CompleteStep({
     loadData()
   }, [currentStep.id, progress.completedSteps, employee])
   
-  // Generate PDF when returning to preview tab (only if no PDF exists)
+  // Generate PDF when returning to preview tab (only if no PDF exists and not already signed)
   useEffect(() => {
-    if (activeTab === 'preview' && !pdfUrl && !isGeneratingPdf && documentsComplete) {
+    if (activeTab === 'preview' && !isSigned && !pdfUrl && !isGeneratingPdf && documentsComplete) {
       console.log('Generating initial PDF for preview tab')
       // Only generate if we don't have a PDF yet
       generateCompletePdf(documentsData, null, formData)
@@ -369,15 +369,17 @@ export default function I9CompleteStep({
     if (newTabIndex < currentTabIndex) {
       // Don't reset signed state if just navigating back
       // User will need to explicitly change data to require re-signing
-      if (activeTab === 'preview') {
-        // Clear PDF to force regeneration with current data
+      if (activeTab === 'preview' && !isSigned) {
+        // Only clear pre-sign so preview can regenerate; keep signed PDFs intact
         setPdfUrl(null)
       }
       
       // Don't reset completion states when just navigating
       // Only reset if data actually changes (handled in individual handlers)
-      // Clear PDF to force regeneration with current data
-      setPdfUrl(null)
+      if (!isSigned) {
+        // Only clear pre-sign to allow regeneration when user edits
+        setPdfUrl(null)
+      }
     }
     
     // Allow navigation if tab is enabled

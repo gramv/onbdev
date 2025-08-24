@@ -7512,10 +7512,8 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         else:
             logger.warning("⚠️ No documents data found for Section 2 pre-fill")
         
-        # Generate complete I-9 PDF with both sections
+        # Generate complete I-9 PDF with both sections ONLY if client did not provide filled PDF earlier
         pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
-        
-        # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
         
         # Auto-save if this is a signed document
