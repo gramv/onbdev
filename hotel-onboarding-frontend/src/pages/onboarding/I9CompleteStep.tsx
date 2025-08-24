@@ -661,10 +661,10 @@ export default function I9CompleteStep({
         const apiUrl = import.meta.env.VITE_API_URL || ''
         
         // Generate and save complete I-9 PDF with both sections
-        const pdfResponse = await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1/generate-pdf`, {
-          employee_data: employee,
-          form_data: formData,  // This already has all Section 1 and Section 2 fields mapped from OCR
-          signature_data: signature
+        const pdfResponse = await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-complete/generate-pdf`, {
+          formData,
+          documentsData,
+          signatureData: signature
         })
         
         if (pdfResponse.data?.data?.pdf) {

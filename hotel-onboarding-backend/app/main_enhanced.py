@@ -7699,7 +7699,6 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
         # Check if form data is provided in request body (for preview)
         body = await request.json()
         employee_data_from_request = body.get('employee_data')
-        form_data_from_request = body.get('form_data')  # Get the actual form data with all I-9 fields
         
         # For test employees, skip employee lookup
         if employee_id.startswith('test-'):
@@ -7710,9 +7709,9 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
             if not employee:
                 return not_found_response("Employee not found")
         
-        # Use form data from request if provided (for preview/signing)
-        if form_data_from_request:
-            form_data = form_data_from_request  # This has all the I-9 fields!
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
         # For test employees, use session data instead of database
         elif employee_id.startswith('test-'):
             # Try to get I-9 data from onboarding_form_data table (which exists)
@@ -7808,36 +7807,13 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
         pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
         
         # Add signature if available
-        signature_data = body.get('signature_data') or (form_data.get('signatureData') if form_data else None)
+        signature_data = form_data.get('signatureData') if form_data else None
         if signature_data:
             pdf_bytes = pdf_filler.add_signature_to_pdf(
                 pdf_bytes, 
                 signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
                 "employee_i9"
             )
-            
-            # Auto-save signed I-9 to database
-            try:
-                doc_storage = DocumentStorageService()
-                stored_doc = await doc_storage.store_document(
-                    file_content=pdf_bytes,
-                    filename=f"signed_i9_section1_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                    document_type=DocumentType.I9_FORM,
-                    employee_id=employee_id,
-                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
-                    uploaded_by='system',
-                    metadata={
-                        'signed': True,
-                        'signature_timestamp': signature_data.get('signedAt'),
-                        'signature_ip': signature_data.get('ipAddress'),
-                        'auto_saved': True,
-                        'form_type': 'i9_section1'
-                    }
-                )
-                logger.info(f"Auto-saved signed I-9 Section 1 PDF for employee {employee_id}: {stored_doc.document_id}")
-            except Exception as save_error:
-                logger.error(f"Failed to auto-save signed I-9 PDF: {save_error}")
-                # Don't fail the request if save fails - still return the PDF
         
         # Return PDF as base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -7865,7 +7841,6 @@ async def generate_w4_pdf(employee_id: str, request: Request):
         # Check if form data is provided in request body (for preview)
         body = await request.json()
         employee_data_from_request = body.get('employee_data')
-        form_data_from_request = body.get('form_data')  # Get the actual form data
         
         # For test employees, skip employee lookup
         if employee_id.startswith('test-'):
@@ -7876,12 +7851,9 @@ async def generate_w4_pdf(employee_id: str, request: Request):
             if not employee:
                 return not_found_response("Employee not found")
         
-        # Use form data from request if provided (for preview/signing)
-        if form_data_from_request:
-            form_data = form_data_from_request  # Use actual form data
-            w4_data = {"form_data": form_data}
-        elif employee_data_from_request:
-            form_data = employee_data_from_request  # Fallback for compatibility
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
             w4_data = {"form_data": form_data}
         # For test employees, use session data instead of database
         elif employee_id.startswith('test-'):
@@ -7979,36 +7951,13 @@ async def generate_w4_pdf(employee_id: str, request: Request):
         pdf_bytes = pdf_filler.fill_w4_form(pdf_data)
         
         # Add signature if available
-        signature_data = body.get('signature_data') or (form_data.get('signatureData') if form_data else None)
+        signature_data = form_data.get('signatureData') if form_data else None
         if signature_data:
             pdf_bytes = pdf_filler.add_signature_to_pdf(
                 pdf_bytes, 
                 signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
                 "employee_w4"
             )
-            
-            # Auto-save signed W-4 to database
-            try:
-                doc_storage = DocumentStorageService()
-                stored_doc = await doc_storage.store_document(
-                    file_content=pdf_bytes,
-                    filename=f"signed_w4_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                    document_type=DocumentType.W4_FORM,
-                    employee_id=employee_id,
-                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
-                    uploaded_by='system',
-                    metadata={
-                        'signed': True,
-                        'signature_timestamp': signature_data.get('signedAt'),
-                        'signature_ip': signature_data.get('ipAddress'),
-                        'auto_saved': True,
-                        'form_type': 'w4_2025'
-                    }
-                )
-                logger.info(f"Auto-saved signed W-4 PDF for employee {employee_id}: {stored_doc.document_id}")
-            except Exception as save_error:
-                logger.error(f"Failed to auto-save signed W-4 PDF: {save_error}")
-                # Don't fail the request if save fails - still return the PDF
         
         # Return PDF as base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -8329,7 +8278,6 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         # Check if form data is provided in request body (for preview)
         body = await request.json()
         employee_data_from_request = body.get('employee_data')
-        form_data_from_request = body.get('form_data')  # Get the actual form data with initials
         
         # For test/demo employees, skip employee lookup
         if employee_id.startswith('test-') or employee_id.startswith('demo-'):
@@ -8349,9 +8297,9 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
             else:
                 property_name = "Hotel"
         
-        # Use form data from request if provided (for preview/signing)
-        if form_data_from_request:
-            form_data = form_data_from_request  # This has the initials!
+        # Use form data from request if provided (for preview)
+        if employee_data_from_request:
+            form_data = employee_data_from_request
         else:
             # Try to fetch saved company policies data
             saved_policies = await supabase_service.get_onboarding_step_data(
