@@ -7486,10 +7486,12 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         # Add Section 2 data from OCR documents
         if documents_data and documents_data.get('uploadedDocuments'):
             uploaded_docs = documents_data.get('uploadedDocuments', [])
+            logger.info(f"Processing {len(uploaded_docs)} uploaded documents for Section 2")
             
             for doc in uploaded_docs:
                 doc_type = doc.get('documentType', '').lower()
                 ocr_data = doc.get('ocrData', {})
+                logger.info(f"Document type: {doc_type}, has OCR data: {bool(ocr_data)}")
                 
                 # Map OCR data to Section 2 fields based on document type
                 if 'passport' in doc_type:
@@ -7507,6 +7509,8 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
                     pdf_data['issuing_authority_3'] = 'Social Security Administration'
                     pdf_data['document_number_3'] = ocr_data.get('ssn', '')
                     pdf_data['expiration_date_3'] = 'N/A'
+        else:
+            logger.warning("⚠️ No documents data found for Section 2 pre-fill")
         
         # Generate complete I-9 PDF with both sections
         pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
