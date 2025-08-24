@@ -120,9 +120,9 @@ export const API_ENDPOINTS = {
   
   // Document endpoints
   documents: {
-    upload: '/documents/upload',
-    download: (id: string) => `/documents/${id}/download`,
-    process: '/documents/process',
+    upload: '/api/documents/upload',
+    download: (id: string) => `/api/documents/${id}/download`,
+    process: '/api/documents/process',
   },
   
   // Notification endpoints

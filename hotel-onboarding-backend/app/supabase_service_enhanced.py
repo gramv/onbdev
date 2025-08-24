@@ -3372,6 +3372,108 @@ class EnhancedSupabaseService:
         except Exception as e:
             logger.error(f"Failed to get saved filters: {e}")
             return []
+    
+    # =====================================================
+    # DOCUMENT OPERATIONS
+    # =====================================================
+    
+    async def save_document(self, table_name: str, document_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Save a signed document to the specified table"""
+        try:
+            # Add timestamp if not present
+            if "created_at" not in document_data:
+                document_data["created_at"] = datetime.now(timezone.utc).isoformat()
+            
+            # Add ID if not present
+            if "id" not in document_data:
+                document_data["id"] = str(uuid.uuid4())
+            
+            # Insert the document
+            result = self.client.table(table_name).insert(document_data).execute()
+            
+            if result.data:
+                logger.info(f"Document saved to {table_name}: {document_data.get('id')}")
+                
+                # Log audit event for compliance
+                await self.log_audit_event(
+                    table_name, 
+                    document_data["id"], 
+                    "INSERT",
+                    new_values=document_data,
+                    compliance_event=True
+                )
+                
+                return result.data[0]
+            return None
+            
+        except Exception as e:
+            logger.error(f"Failed to save document to {table_name}: {e}")
+            return None
+    
+    async def get_employee_documents(self, employee_id: str, document_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get all documents for an employee"""
+        try:
+            documents = []
+            
+            # Get from signed_documents table
+            query = self.client.table("signed_documents").select("*").eq("employee_id", employee_id)
+            if document_type:
+                query = query.eq("document_type", document_type)
+            result = query.execute()
+            if result.data:
+                documents.extend(result.data)
+            
+            # Get W4 forms
+            if not document_type or document_type == "w4":
+                result = self.client.table("w4_forms").select("*").eq("employee_id", employee_id).execute()
+                if result.data:
+                    for doc in result.data:
+                        doc["document_type"] = "w4"
+                        documents.append(doc)
+            
+            # Get I9 forms
+            if not document_type or document_type == "i9":
+                result = self.client.table("i9_forms").select("*").eq("employee_id", employee_id).execute()
+                if result.data:
+                    for doc in result.data:
+                        doc["document_type"] = "i9"
+                        documents.append(doc)
+            
+            return documents
+            
+        except Exception as e:
+            logger.error(f"Failed to get employee documents: {e}")
+            return []
+    
+    async def update_document_status(self, table_name: str, document_id: str, status: str) -> bool:
+        """Update document status"""
+        try:
+            update_data = {
+                "status": status,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            result = self.client.table(table_name).update(update_data).eq("id", document_id).execute()
+            
+            if result.data:
+                logger.info(f"Document {document_id} status updated to {status}")
+                
+                # Log audit event
+                await self.log_audit_event(
+                    table_name,
+                    document_id,
+                    "UPDATE",
+                    old_values={"status": "previous"},
+                    new_values=update_data,
+                    compliance_event=True
+                )
+                
+                return True
+            return False
+            
+        except Exception as e:
+            logger.error(f"Failed to update document status: {e}")
+            return False
 
 
 # Global instance

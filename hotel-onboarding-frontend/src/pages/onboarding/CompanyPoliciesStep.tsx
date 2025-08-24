@@ -1016,7 +1016,7 @@ export default function CompanyPoliciesStep({
                   ]}
                   language={language}
                   usePDFPreview={true}
-                  pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`}
+                  pdfEndpoint={`${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`}
                 />
               )}
 

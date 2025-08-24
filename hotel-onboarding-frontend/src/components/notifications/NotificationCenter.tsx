@@ -65,7 +65,7 @@ export default function NotificationCenter() {
 
   // WebSocket connection for real-time notifications
   const { lastMessage, isConnected } = useWebSocket({
-    url: `ws://localhost:8000/ws/notifications`,
+    url: `${import.meta.env.VITE_API_URL?.replace('https', 'wss').replace('http', 'ws')}/ws/notifications`,
     token: user?.token,
     reconnect: true,
     onMessage: (data) => {

@@ -66,7 +66,7 @@ export function ManagerDashboardLayout() {
 
   // WebSocket connection for real-time updates
   const { isConnected, lastMessage, connectionError } = useWebSocket(
-    'ws://localhost:8000/ws/dashboard',
+    `${import.meta.env.VITE_API_URL?.replace('https', 'wss').replace('http', 'ws')}/ws/dashboard`,
     {
       enabled: !!user && user.role === 'manager',
       onMessage: (event) => {

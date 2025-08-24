@@ -186,7 +186,7 @@ export default function I9Section2Step({
           formData.append('employee_id', employee.id)
 
           const response = await axios.post(
-            `${import.meta.env.VITE_API_URL || '/api'}/api/documents/process`,
+            `${import.meta.env.VITE_API_URL || '/api'}/documents/process`,
             formData,
             {
               headers: {

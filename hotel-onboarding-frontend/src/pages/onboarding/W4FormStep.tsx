@@ -512,7 +512,7 @@ export default function W4FormStep({
             onSign={handleSign}
             onBack={() => setShowReview(false)}
             usePDFPreview={true}
-            pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id}/w4-form/generate-pdf`}
+            pdfEndpoint={`${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
             pdfUrl={pdfUrl}
             federalCompliance={{
               formName: 'Form W-4, Employee\'s Withholding Certificate',

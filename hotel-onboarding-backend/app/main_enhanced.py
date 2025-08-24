@@ -23,7 +23,7 @@ import jwt
 import logging
 import base64
 import io
-from groq import Groq
+# from groq import Groq  # Removed - Only Google Document AI for government IDs
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -75,6 +75,24 @@ except ImportError:
     from .google_ocr_service import GoogleDocumentOCRService
     logger.info("Using standard Google OCR service")
 from .i9_section2 import I9DocumentType
+
+# Define request models for OCR and document endpoints
+from pydantic import BaseModel
+
+class DocumentProcessRequest(BaseModel):
+    document_type: str  # Changed from I9DocumentType to str
+    file_content: str  # Changed from image_data to file_content
+    employee_id: Optional[str] = None  # Added employee_id field
+    file_name: Optional[str] = None
+
+class SaveDocumentRequest(BaseModel):
+    pdf_base64: Optional[str] = None  # Added for base64 PDF data
+    pdf_url: Optional[str] = None
+    signature_data: Optional[str] = None
+    signed_at: Optional[str] = None
+    property_id: Optional[str] = None
+    form_data: Optional[dict] = None
+    metadata: Optional[dict] = None
 
 # Import standardized response system
 from .response_models import *
@@ -226,40 +244,13 @@ except Exception as e:
     logger.warning(f"⚠️ Google Document AI initialization failed: {str(e)}")
     logger.info("   Will try Groq as fallback...")
 
-# Fallback to Groq if Google fails or not configured
+# NO FALLBACK - Government IDs require Google Document AI only for security/compliance
+# As per requirement: "we should only use google document ai. no fallbacks and no shit. we are dealing with gov id's"
 if not ocr_service:
-    try:
-        # Initialize GROQ client
-        groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        
-        # Test Groq client connection and available models
-        if os.getenv("GROQ_API_KEY"):
-            # List available models to verify connection
-            test_response = groq_client.models.list()
-            available_models = [m.id for m in test_response.data]
-            logger.info(f"✅ Groq client connected. Available models: {available_models}")
-            
-            # Check if our vision model is available
-            if "meta-llama/llama-4-scout-17b-16e-instruct" in available_models:
-                logger.info("✅ Llama 4 Scout vision model is available")
-            else:
-                logger.warning("⚠️ Llama 4 Scout model not found in available models")
-                logger.info(f"Available vision models: {[m for m in available_models if 'vision' in m.lower() or 'scout' in m.lower() or 'maverick' in m.lower()]}")
-            
-            # Initialize Groq OCR service
-            ocr_service = I9DocumentOCRService(groq_client)
-            logger.info("✅ Using Groq for OCR processing (fallback)")
-        else:
-            logger.warning("⚠️ GROQ_API_KEY not configured")
-    except Exception as e:
-        logger.error(f"❌ Groq client connection failed: {str(e)}")
-        logger.error(f"Error type: {type(e).__name__}")
-
-# Final check
-if not ocr_service:
-    logger.error("❌ No OCR service available - OCR features will be disabled")
-    logger.info("   Configure either Google Document AI or Groq API to enable OCR")
-    logger.info("   Set GOOGLE_CREDENTIALS_BASE64 or GROQ_API_KEY environment variable")
+    logger.error("❌ Google Document AI is REQUIRED for government ID processing")
+    logger.error("   For security and compliance, only Google Document AI is authorized for government documents")
+    logger.error("   Please configure GOOGLE_CREDENTIALS_BASE64 or GOOGLE_APPLICATION_CREDENTIALS")
+    # OCR features will not be available without Google Document AI
 
 # Log service status summary at startup
 logger.info("=" * 60)
@@ -7058,6 +7049,23 @@ async def save_health_insurance(
             status_code=500
         )
 
+def _get_document_title(document_type: str) -> str:
+    """Map document type to official I-9 document title"""
+    doc_titles = {
+        'drivers_license': 'Driver\'s License',
+        'state_id': 'State ID Card',
+        'state_id_card': 'State ID Card',
+        'us_passport': 'U.S. Passport',
+        'passport': 'U.S. Passport',
+        'permanent_resident_card': 'Permanent Resident Card',
+        'green_card': 'Permanent Resident Card',
+        'employment_authorization_card': 'Employment Authorization Card',
+        'social_security_card': 'Social Security Card',
+        'ssn_card': 'Social Security Card',
+        'birth_certificate': 'Birth Certificate'
+    }
+    return doc_titles.get(document_type.lower(), document_type)
+
 @app.post("/api/onboarding/{employee_id}/i9-complete")
 async def save_i9_complete(
     employee_id: str,
@@ -7097,7 +7105,65 @@ async def save_i9_complete(
                 })
             }
         
-        # Save I-9 Section 1 data with signature
+        # Extract Section 2 fields from documents OCR data
+        section2_fields = {}
+        documents_data = data.get('documentsData', {})
+        uploaded_docs = documents_data.get('uploadedDocuments', [])
+        
+        # Process uploaded documents to extract Section 2 fields
+        if uploaded_docs:
+            # Determine which list(s) the employee is using
+            list_a_doc = None
+            list_b_doc = None
+            list_c_doc = None
+            
+            for doc in uploaded_docs:
+                doc_type = doc.get('type', '').lower()
+                ocr_data = doc.get('ocrData', {})
+                
+                if doc_type == 'list_a':
+                    list_a_doc = doc
+                elif doc_type == 'list_b':
+                    list_b_doc = doc
+                elif doc_type == 'list_c':
+                    list_c_doc = doc
+            
+            # Map OCR data to Section 2 fields
+            if list_a_doc:  # List A document (passport, permanent resident card)
+                ocr_data = list_a_doc.get('ocrData', {})
+                doc_type = list_a_doc.get('documentType', '')
+                
+                section2_fields['document_title_1'] = _get_document_title(doc_type)
+                section2_fields['issuing_authority_1'] = ocr_data.get('issuingAuthority', '')
+                section2_fields['document_number_1'] = ocr_data.get('documentNumber', '')
+                section2_fields['expiration_date_1'] = ocr_data.get('expirationDate', '')
+                
+            elif list_b_doc and list_c_doc:  # List B + C combination
+                # List B document (driver's license, state ID)
+                b_ocr = list_b_doc.get('ocrData', {})
+                b_type = list_b_doc.get('documentType', '')
+                
+                section2_fields['document_title_2'] = _get_document_title(b_type)
+                section2_fields['issuing_authority_2'] = b_ocr.get('issuingAuthority', '')
+                section2_fields['document_number_2'] = b_ocr.get('documentNumber', '')
+                section2_fields['expiration_date_2'] = b_ocr.get('expirationDate', '')
+                
+                # List C document (SSN card, birth certificate)
+                c_ocr = list_c_doc.get('ocrData', {})
+                c_type = list_c_doc.get('documentType', '')
+                
+                section2_fields['document_title_3'] = _get_document_title(c_type)
+                section2_fields['issuing_authority_3'] = c_ocr.get('issuingAuthority', '')
+                section2_fields['document_number_3'] = c_ocr.get('documentNumber', '')
+                section2_fields['expiration_date_3'] = c_ocr.get('expirationDate', 'N/A')
+        
+        # Log Section 2 fields that were extracted
+        if section2_fields:
+            logger.info(f"✅ Section 2 fields auto-populated from OCR: {section2_fields}")
+        else:
+            logger.warning("⚠️ No Section 2 fields extracted from OCR data")
+        
+        # Save I-9 Section 1 data with signature AND Section 2 fields
         section1_data = {
             'employee_id': employee_id,
             'section': 'section1_complete',
@@ -7105,7 +7171,9 @@ async def save_i9_complete(
                 **data.get('formData', {}),
                 'supplements': data.get('supplementsData'),
                 'documents_uploaded': data.get('documentsData'),
-                'needs_supplements': data.get('needsSupplements')
+                'needs_supplements': data.get('needsSupplements'),
+                # Add Section 2 fields extracted from OCR
+                **section2_fields
             },
             'signed': data.get('signed', False),
             'signature_data': data.get('signatureData', {}).get('signature'),  # Store base64 signature image
@@ -7114,11 +7182,15 @@ async def save_i9_complete(
             'updated_at': datetime.now(timezone.utc).isoformat()
         }
         
-        # For demo mode, skip database save
-        if employee_id == 'demo-employee-001':
+        # For demo mode, skip database save but return Section 2 fields
+        if employee_id == 'demo-employee-001' or employee_id.startswith('test-emp-'):
             logger.info(f"Demo mode: Simulating save of I-9 complete data")
             return success_response(
-                data={'id': f'demo-i9-{employee_id}'},
+                data={
+                    'id': f'demo-i9-{employee_id}',
+                    'section2_fields': section2_fields,
+                    'documents_saved': bool(uploaded_docs)
+                },
                 message="I-9 complete data saved successfully (demo mode)"
             )
         
@@ -7450,7 +7522,23 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
             "i94_admission_number": form_data.get("foreign_passport_number", ""),
             "passport_number": form_data.get("foreign_passport_number", ""),
             "passport_country": form_data.get("country_of_issuance", ""),
-            "employee_signature_date": form_data.get("completed_at", datetime.utcnow().isoformat())
+            "employee_signature_date": form_data.get("completed_at", datetime.utcnow().isoformat()),
+            
+            # Section 2 fields (auto-filled from OCR data)
+            "document_title_1": form_data.get("document_title_1", ""),
+            "issuing_authority_1": form_data.get("issuing_authority_1", ""),
+            "document_number_1": form_data.get("document_number_1", ""),
+            "expiration_date_1": form_data.get("expiration_date_1", ""),
+            
+            "document_title_2": form_data.get("document_title_2", ""),
+            "issuing_authority_2": form_data.get("issuing_authority_2", ""),
+            "document_number_2": form_data.get("document_number_2", ""),
+            "expiration_date_2": form_data.get("expiration_date_2", ""),
+            
+            "document_title_3": form_data.get("document_title_3", ""),
+            "issuing_authority_3": form_data.get("issuing_authority_3", ""),
+            "document_number_3": form_data.get("document_number_3", ""),
+            "expiration_date_3": form_data.get("expiration_date_3", "")
         }
         
         # Generate PDF
@@ -9695,6 +9783,173 @@ async def create_saved_filter(
             message="Failed to create saved filter",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
+        )
+
+###############################################################################
+# DOCUMENT PROCESSING AND OCR ENDPOINTS
+###############################################################################
+
+@app.options("/api/documents/process")
+async def process_document_options():
+    """Handle CORS preflight for document processing"""
+    return Response(status_code=200)
+
+@app.post("/api/documents/process")
+async def process_document(
+    file: UploadFile = File(...),
+    document_type: str = Form(...),
+    employee_id: Optional[str] = Form(None),
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Process document with OCR to extract text and fields"""
+    
+    if not ocr_service:
+        return error_response(
+            message="Document processing service is temporarily unavailable",
+            error_code=ErrorCode.SERVICE_UNAVAILABLE,
+            status_code=503
+        )
+    
+    try:
+        # Read file content and convert to base64
+        file_content = await file.read()
+        import base64
+        file_content_base64 = f"data:{file.content_type};base64,{base64.b64encode(file_content).decode('utf-8')}"
+        
+        # Extract fields using OCR service
+        result = ocr_service.extract_document_fields(
+            document_type=document_type,
+            image_data=file_content_base64,
+            file_name=file.filename or "document.jpg"
+        )
+        
+        # Check if OCR failed
+        if "error" in result:
+            return error_response(
+                message=result.get("error", "OCR processing failed"),
+                error_code=ErrorCode.PROCESSING_ERROR,
+                status_code=422
+            )
+        
+        return success_response(
+            data=result,
+            message="Document processed successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Document processing error: {str(e)}")
+        return error_response(
+            message="Failed to process document",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+###############################################################################
+# DOCUMENT STORAGE ENDPOINTS
+###############################################################################
+
+@app.post("/api/onboarding/{employee_id}/company-policies/save")
+async def save_company_policies(
+    employee_id: str,
+    request: SaveDocumentRequest,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Save signed company policies document to database"""
+    
+    try:
+        # Save to signed_documents table
+        document_data = {
+            "employee_id": employee_id,
+            "document_type": "company_policies",
+            "document_name": "Company Policies Acknowledgment",
+            "pdf_url": request.pdf_url,
+            "signed_at": request.signed_at or datetime.utcnow().isoformat(),
+            "signature_data": request.signature_data,
+            "property_id": request.property_id,
+            "metadata": request.metadata or {}
+        }
+        
+        result = await supabase_service.save_document("signed_documents", document_data)
+        
+        return success_response(
+            data=result,
+            message="Company policies saved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error saving company policies: {str(e)}")
+        return error_response(
+            message="Failed to save company policies",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/api/onboarding/{employee_id}/w4-form/save")
+async def save_w4_form(
+    employee_id: str,
+    request: SaveDocumentRequest,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Save signed W-4 form to database"""
+    
+    try:
+        # Save to w4_forms table
+        document_data = {
+            "employee_id": employee_id,
+            "data": request.form_data,
+            "pdf_url": request.pdf_url,
+            "signed_at": request.signed_at or datetime.utcnow().isoformat(),
+            "signature_data": request.signature_data
+        }
+        
+        result = await supabase_service.save_document("w4_forms", document_data)
+        
+        return success_response(
+            data=result,
+            message="W-4 form saved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error saving W-4 form: {str(e)}")
+        return error_response(
+            message="Failed to save W-4 form",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/api/onboarding/{employee_id}/i9-section1/save")
+async def save_i9_section1(
+    employee_id: str,
+    request: SaveDocumentRequest,
+    current_user: Optional[dict] = Depends(get_current_user_optional)
+):
+    """Save I-9 Section 1 to database"""
+    
+    try:
+        # Save to i9_forms table
+        document_data = {
+            "employee_id": employee_id,
+            "section": "section1",
+            "data": request.form_data
+        }
+        
+        result = await supabase_service.save_document("i9_forms", document_data)
+        
+        return success_response(
+            data=result,
+            message="I-9 Section 1 saved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error saving I-9 Section 1: {str(e)}")
+        return error_response(
+            message="Failed to save I-9 Section 1",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500,
+            detail=str(e)
         )
 
 # Catch-all route for SPA - must be last!

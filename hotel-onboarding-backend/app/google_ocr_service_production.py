@@ -38,23 +38,31 @@ class GoogleDocumentOCRServiceProduction:
         credentials = self._get_credentials()
         
         # Initialize Document AI client with credentials
-        if credentials:
-            self.client = documentai_v1.DocumentProcessorServiceClient(credentials=credentials)
-            logger.info("✅ Using explicit Google credentials")
-        else:
-            # Fall back to default credentials (for local development with gcloud auth)
-            self.client = documentai_v1.DocumentProcessorServiceClient()
-            logger.info("📝 Using default Google credentials")
+        try:
+            if credentials:
+                self.client = documentai_v1.DocumentProcessorServiceClient(credentials=credentials)
+                logger.info("✅ Using explicit Google credentials")
+            else:
+                # Try default credentials (for local development with gcloud auth)
+                self.client = documentai_v1.DocumentProcessorServiceClient()
+                logger.info("📝 Using default Google credentials")
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to initialize Google Document AI client: {e}")
+            logger.info("ℹ️ OCR service will not be available. Using fallback if configured.")
+            self.client = None
         
-        # Build processor name
-        self.processor_name = self.client.processor_path(
-            self.project_id, self.location, self.processor_id
-        )
+        # Build processor name only if client initialized
+        if self.client:
+            self.processor_name = self.client.processor_path(
+                self.project_id, self.location, self.processor_id
+            )
+            logger.info(f"Initialized Google Document AI with processor: {self.processor_name}")
+        else:
+            self.processor_name = None
+            logger.info("Google Document AI not available - will use fallback OCR")
         
         # Reuse validator from Groq service
         self.validator = USCISDocumentValidator()
-        
-        logger.info(f"Initialized Google Document AI with processor: {self.processor_name}")
     
     def _get_credentials(self):
         """Get Google credentials from environment variables
@@ -109,6 +117,16 @@ class GoogleDocumentOCRServiceProduction:
         
         Exact same interface as original service for drop-in replacement
         """
+        # Check if client is available
+        if not self.client:
+            logger.warning("Google Document AI client not available - OCR service disabled")
+            return {
+                "error": "OCR service not available",
+                "extracted_text": None,
+                "confidence": 0,
+                "fields": {}
+            }
+        
         try:
             # Prepare image for Google API
             image_bytes = self._prepare_image(image_data)
@@ -194,61 +212,113 @@ class GoogleDocumentOCRServiceProduction:
         
         extracted = {}
         
-        # Extract from entities if available
+        # Log the Document AI response structure for debugging
+        logger.info(f"Document AI response - Pages: {len(document.pages) if hasattr(document, 'pages') else 0}")
+        
+        # FIRST: Check formFields in pages (where Form Parser puts key-value pairs)
+        if hasattr(document, 'pages') and document.pages:
+            for page in document.pages:
+                if hasattr(page, 'form_fields') and page.form_fields:
+                    logger.info(f"Found {len(page.form_fields)} form fields in page")
+                    
+                    for form_field in page.form_fields:
+                        # Get field name and value
+                        field_name = ""
+                        field_value = ""
+                        
+                        # Extract field name
+                        if hasattr(form_field, 'field_name') and form_field.field_name:
+                            if hasattr(form_field.field_name, 'text_anchor') and form_field.field_name.text_anchor:
+                                field_name = self._get_text_from_anchor(document.text, form_field.field_name.text_anchor)
+                        
+                        # Extract field value
+                        if hasattr(form_field, 'field_value') and form_field.field_value:
+                            if hasattr(form_field.field_value, 'text_anchor') and form_field.field_value.text_anchor:
+                                field_value = self._get_text_from_anchor(document.text, form_field.field_value.text_anchor)
+                        
+                        if field_name and field_value:
+                            # Normalize field name for matching
+                            field_name_lower = field_name.lower().strip()
+                            logger.debug(f"Form field: '{field_name}' = '{field_value}'")
+                            
+                            # Map common field names to our required I-9 fields
+                            # For document numbers
+                            if any(x in field_name_lower for x in ['dl', 'license number', 'license no', 'driver license', 
+                                                                   'passport no', 'passport number', 'document number',
+                                                                   'card number', 'id number', 'lic no']):
+                                if "document_number" not in extracted:
+                                    extracted["document_number"] = field_value.strip()
+                                    logger.info(f"Extracted document_number: {field_value}")
+                            
+                            # For expiration dates
+                            elif any(x in field_name_lower for x in ['exp', 'expires', 'expiration', 'expiry',
+                                                                     'valid until', 'valid through']):
+                                if "expiration_date" not in extracted:
+                                    extracted["expiration_date"] = field_value.strip()
+                                    logger.info(f"Extracted expiration_date: {field_value}")
+                            
+                            # For issuing authority (state/country)
+                            elif any(x in field_name_lower for x in ['state', 'issued by', 'issuing', 'authority',
+                                                                     'country', 'iss']):
+                                if "issuing_authority" not in extracted:
+                                    extracted["issuing_authority"] = field_value.strip()
+                                    logger.info(f"Extracted issuing_authority: {field_value}")
+                            
+                            # For issue dates (less critical but useful)
+                            elif any(x in field_name_lower for x in ['issue', 'issued', 'iss date', 'date issued']):
+                                if "issue_date" not in extracted:
+                                    extracted["issue_date"] = field_value.strip()
+                                    logger.info(f"Extracted issue_date: {field_value}")
+        
+        # SECOND: Check entities if available (some processors use entities instead of formFields)
         if hasattr(document, 'entities') and document.entities:
+            logger.info(f"Found {len(document.entities)} entities")
             for entity in document.entities:
                 entity_type = entity.type_.lower() if entity.type_ else ""
                 entity_text = entity.mention_text or ""
                 
-                # Map Google entity types to our field names
-                field_mapping = {
-                    "person": ["first_name", "last_name"],
-                    "given_name": "first_name",
-                    "family_name": "last_name",
-                    "surname": "last_name",
-                    "date_of_birth": "date_of_birth",
-                    "dob": "date_of_birth",
-                    "expiration_date": "expiration_date",
-                    "expires": "expiration_date",
-                    "issue_date": "issue_date",
-                    "issued": "issue_date",
-                    "document_number": "document_number",
-                    "license_number": "document_number",
-                    "passport_number": "document_number",
-                    "card_number": "document_number",
-                    "ssn": "ssn",
-                    "social_security_number": "ssn",
-                    "address": "address",
-                    "issuing_authority": "issuing_authority",
-                    "state": "issuing_authority",
-                    "country": "issuing_authority"
-                }
+                logger.debug(f"Entity: type='{entity_type}', text='{entity_text}'")
                 
-                for google_type, our_field in field_mapping.items():
-                    if google_type in entity_type:
-                        if isinstance(our_field, list):
-                            # Handle name splitting
-                            names = entity_text.split()
-                            if len(names) >= 2:
-                                extracted["first_name"] = names[0]
-                                extracted["last_name"] = " ".join(names[1:])
-                        else:
-                            extracted[our_field] = entity_text
+                # Map entity types to our fields
+                if "document_number" not in extracted and any(x in entity_type for x in ["document_number", "license_number", "passport_number"]):
+                    extracted["document_number"] = entity_text
+                elif "expiration_date" not in extracted and any(x in entity_type for x in ["expiration", "expires"]):
+                    extracted["expiration_date"] = entity_text
+                elif "issuing_authority" not in extracted and any(x in entity_type for x in ["state", "country", "authority"]):
+                    extracted["issuing_authority"] = entity_text
         
-        # Fallback to text extraction if entities not sufficient
-        if not extracted or len(extracted) < 3:
-            extracted.update(self._extract_from_text(document.text, document_type))
+        # THIRD: Fallback to text extraction if we don't have all required fields
+        if not extracted.get("document_number") or not extracted.get("expiration_date") or not extracted.get("issuing_authority"):
+            logger.info("Using text extraction fallback for missing fields")
+            text_extracted = self._extract_from_text(document.text, document_type)
+            
+            # Only fill in missing fields
+            for field in ["document_number", "expiration_date", "issuing_authority"]:
+                if field not in extracted and field in text_extracted:
+                    extracted[field] = text_extracted[field]
+                    logger.info(f"Text extraction found {field}: {text_extracted[field]}")
         
-        # Normalize dates
-        for field in ["date_of_birth", "expiration_date", "issue_date"]:
-            if field in extracted:
-                extracted[field] = self._normalize_date(extracted[field])
+        # Normalize dates to YYYY-MM-DD format
+        if "expiration_date" in extracted:
+            extracted["expiration_date"] = self._normalize_date(extracted["expiration_date"])
+        if "issue_date" in extracted:
+            extracted["issue_date"] = self._normalize_date(extracted["issue_date"])
         
-        # Normalize SSN if present
-        if "ssn" in extracted:
-            extracted["ssn"] = self._normalize_ssn(extracted["ssn"])
-        
+        logger.info(f"Final extracted fields: {json.dumps(extracted)}")
         return extracted
+    
+    def _get_text_from_anchor(self, full_text: str, text_anchor) -> str:
+        """Extract text using text anchor indices"""
+        if not text_anchor or not hasattr(text_anchor, 'text_segments'):
+            return ""
+        
+        text_segments = []
+        for segment in text_anchor.text_segments:
+            start_index = int(segment.start_index) if segment.start_index else 0
+            end_index = int(segment.end_index) if segment.end_index else len(full_text)
+            text_segments.append(full_text[start_index:end_index])
+        
+        return " ".join(text_segments).strip()
     
     def _extract_from_text(self, text: str, document_type: I9DocumentType) -> Dict[str, Any]:
         """Extract fields from raw text using regex patterns"""
@@ -257,57 +327,115 @@ class GoogleDocumentOCRServiceProduction:
         lines = text.split('\n')
         
         # Document-specific patterns
-        if document_type == I9DocumentType.DRIVERS_LICENSE:
-            # License number patterns
+        if document_type in [I9DocumentType.DRIVERS_LICENSE, I9DocumentType.STATE_ID_CARD]:
+            # Process all lines for driver's license / state ID
             for line in lines:
-                # Look for DL number
-                dl_match = re.search(r'DL\s*(?:#|NO|NUMBER)?\s*([A-Z0-9]{5,15})', line, re.I)
-                if dl_match:
-                    extracted["document_number"] = dl_match.group(1)
+                # Look for DL/ID number with various formats
+                if "document_number" not in extracted:
+                    # Common patterns: "DL 12345678", "DLN:12345678", "License No. 12345"
+                    dl_patterns = [
+                        r'(?:DL|DLN|LICENSE\s*(?:NO|NUMBER)?|ID\s*(?:NO|NUMBER)?)[:\s#]*([A-Z0-9]{5,20})',
+                        r'(?:DRIVER\s*LICENSE|DRIVER\'S\s*LICENSE)[:\s]*([A-Z0-9]{5,20})',
+                        r'\b([A-Z]{1,3}\d{5,15})\b',  # Some states use letter prefix
+                        r'\b(\d{7,12})\b'  # Pure numeric license numbers
+                    ]
+                    for pattern in dl_patterns:
+                        match = re.search(pattern, line, re.I)
+                        if match:
+                            potential_number = match.group(1).strip()
+                            # Validate it looks like a license number
+                            if len(potential_number) >= 5 and not potential_number.isalpha():
+                                extracted["document_number"] = potential_number
+                                break
                 
-                # Look for expiration
-                exp_match = re.search(r'EXP(?:IRES?)?\s*[:\s]*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})', line, re.I)
-                if exp_match:
-                    extracted["expiration_date"] = exp_match.group(1)
+                # Look for expiration date
+                if "expiration_date" not in extracted:
+                    exp_patterns = [
+                        r'(?:EXP|EXPIRES?|EXPIRATION)[:\s]*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
+                        r'(?:VALID\s*(?:UNTIL|THROUGH|TO))[:\s]*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})',
+                        r'(\d{2}[/-]\d{2}[/-]\d{4})\s*(?:EXP|EXPIRES?)',
+                        r'EXP[:\s]*(\d{2}/\d{2}/\d{4})'
+                    ]
+                    for pattern in exp_patterns:
+                        match = re.search(pattern, line, re.I)
+                        if match:
+                            extracted["expiration_date"] = match.group(1)
+                            break
                 
-                # Look for DOB
-                dob_match = re.search(r'DOB\s*[:\s]*(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})', line, re.I)
-                if dob_match:
-                    extracted["date_of_birth"] = dob_match.group(1)
+                # Look for state/issuing authority
+                if "issuing_authority" not in extracted:
+                    # State abbreviations
+                    state_abbr = r'\b(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b'
+                    # Full state names
+                    state_names = r'\b(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming)\b'
+                    
+                    state_match = re.search(state_abbr, line)
+                    if state_match:
+                        extracted["issuing_authority"] = state_match.group(1)
+                    else:
+                        state_match = re.search(state_names, line, re.I)
+                        if state_match:
+                            extracted["issuing_authority"] = state_match.group(1)
         
         elif document_type == I9DocumentType.US_PASSPORT:
             for line in lines:
-                # Passport number (usually 9 digits)
-                passport_match = re.search(r'([A-Z]?\d{8,9})', line)
-                if passport_match and "document_number" not in extracted:
-                    extracted["document_number"] = passport_match.group(1)
+                # Passport number (letter + 8 digits or just 9 digits)
+                if "document_number" not in extracted:
+                    passport_patterns = [
+                        r'(?:PASSPORT\s*(?:NO|NUMBER)?)[:\s]*([A-Z]?\d{8,9})',
+                        r'\b([A-Z]\d{8})\b',  # Letter + 8 digits
+                        r'\b(\d{9})\b'  # 9 digits
+                    ]
+                    for pattern in passport_patterns:
+                        match = re.search(pattern, line, re.I)
+                        if match:
+                            extracted["document_number"] = match.group(1)
+                            break
                 
-                # Look for USA or United States
-                if "USA" in line or "United States" in line:
-                    extracted["issuing_authority"] = "United States of America"
+                # Look for expiration date
+                if "expiration_date" not in extracted:
+                    date_match = re.search(r'(?:DATE\s*OF\s*EXPIRATION|EXPIRATION\s*DATE|EXP)[:\s]*(\d{1,2}\s+\w{3}\s+\d{4}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})', line, re.I)
+                    if date_match:
+                        extracted["expiration_date"] = date_match.group(1)
+                
+                # Issuing authority for US passport
+                if "issuing_authority" not in extracted:
+                    if any(x in line.upper() for x in ["UNITED STATES", "USA", "U.S.A", "AMERICA"]):
+                        extracted["issuing_authority"] = "United States of America"
+        
+        elif document_type == I9DocumentType.PERMANENT_RESIDENT_CARD:
+            for line in lines:
+                # Green card number (3 letters + 10 digits)
+                if "document_number" not in extracted:
+                    card_match = re.search(r'\b([A-Z]{3}\d{10})\b', line)
+                    if card_match:
+                        extracted["document_number"] = card_match.group(1)
+                
+                # Expiration date
+                if "expiration_date" not in extracted:
+                    exp_match = re.search(r'(?:CARD\s*EXPIRES|EXPIRES)[:\s]*(\d{2}/\d{2}/\d{4})', line, re.I)
+                    if exp_match:
+                        extracted["expiration_date"] = exp_match.group(1)
+                
+                # USCIS as issuing authority
+                if "issuing_authority" not in extracted and "USCIS" in line.upper():
+                    extracted["issuing_authority"] = "U.S. Citizenship and Immigration Services"
         
         elif document_type == I9DocumentType.SSN_CARD:
             for line in lines:
                 # SSN pattern
-                ssn_match = re.search(r'(\d{3}[-\s]?\d{2}[-\s]?\d{4})', line)
-                if ssn_match:
-                    extracted["ssn"] = ssn_match.group(1)
+                if "document_number" not in extracted:
+                    ssn_match = re.search(r'(\d{3}[-\s]?\d{2}[-\s]?\d{4})', line)
+                    if ssn_match:
+                        extracted["document_number"] = ssn_match.group(1)
+                
+                # SSN cards don't expire
+                extracted["expiration_date"] = "N/A"
                 
                 # Look for Social Security Administration
-                if "Social Security" in line:
-                    extracted["issuing_authority"] = "Social Security Administration"
-        
-        # Extract names (common patterns)
-        name_lines = [l for l in lines[:10] if len(l) > 3 and l[0].isupper()]
-        if name_lines and "first_name" not in extracted:
-            # Assume first all-caps line with spaces is the name
-            for line in name_lines:
-                if ' ' in line and line.replace(' ', '').isalpha():
-                    parts = line.split()
-                    if len(parts) >= 2:
-                        extracted["first_name"] = parts[0]
-                        extracted["last_name"] = " ".join(parts[1:])
-                        break
+                if "issuing_authority" not in extracted:
+                    if "SOCIAL SECURITY" in line.upper():
+                        extracted["issuing_authority"] = "Social Security Administration"
         
         return extracted
     
