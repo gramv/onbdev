@@ -6731,7 +6731,7 @@ async def save_i9_section1(
                     filename=f"signed_i9_section1_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
                     document_type=DocumentType.I9_FORM,
                     employee_id=employee_id,
-                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else None,
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
                     uploaded_by='system',
                     metadata={
                         'signed': True,
@@ -7005,7 +7005,7 @@ async def save_w4_form(
                         filename=f"signed_w4_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
                         document_type=DocumentType.W4_FORM,
                         employee_id=employee_id,
-                        property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else None,
+                        property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
                         uploaded_by='system',
                         metadata={
                             'signed': True,
@@ -7406,6 +7406,136 @@ async def get_i9_complete(employee_id: str):
             "success": False,
             "error": str(e)
         }
+
+@app.post("/api/onboarding/{employee_id}/i9-complete/generate-pdf")
+async def generate_i9_complete_pdf(employee_id: str, request: Request):
+    """Generate complete I-9 PDF with both Section 1 and Section 2 data"""
+    try:
+        # Get request body
+        body = await request.json()
+        
+        # Extract form data and documents data
+        form_data = body.get('formData', {})
+        documents_data = body.get('documentsData', {})
+        signature_data = body.get('signatureData', {})
+        
+        # Get employee data if available
+        employee = None
+        if not (employee_id.startswith('test-') or employee_id.startswith('demo-')):
+            try:
+                employee = supabase_service.get_employee_by_id_sync(employee_id)
+            except:
+                pass
+        
+        # Initialize PDF form filler
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Prepare Section 1 data from form
+        pdf_data = {
+            'first_name': form_data.get('firstName', ''),
+            'last_name': form_data.get('lastName', ''),
+            'middle_initial': form_data.get('middleInitial', ''),
+            'other_last_names': form_data.get('otherLastNames', ''),
+            'address': form_data.get('address', ''),
+            'apartment': form_data.get('apartment', ''),
+            'city': form_data.get('city', ''),
+            'state': form_data.get('state', ''),
+            'zip_code': form_data.get('zipCode', ''),
+            'date_of_birth': form_data.get('dateOfBirth', ''),
+            'ssn': form_data.get('ssn', ''),
+            'email': form_data.get('email', ''),
+            'phone': form_data.get('phone', ''),
+            'citizenship_status': form_data.get('citizenshipStatus', ''),
+            'alien_number': form_data.get('alienNumber', ''),
+            'uscis_number': form_data.get('uscisNumber', ''),
+            'form_i94_number': form_data.get('formI94Number', ''),
+            'foreign_passport_number': form_data.get('foreignPassportNumber', ''),
+            'country_of_issuance': form_data.get('countryOfIssuance', ''),
+            'expiration_date': form_data.get('expirationDate', ''),
+            'signature': signature_data.get('signature', ''),
+            'signature_date': signature_data.get('signedAt', datetime.now().strftime('%m/%d/%Y')),
+            'preparer_signature': form_data.get('preparerSignature', ''),
+            'preparer_name': form_data.get('preparerName', ''),
+            'preparer_date': form_data.get('preparerDate', '')
+        }
+        
+        # Add Section 2 data from OCR documents
+        if documents_data and documents_data.get('uploadedDocuments'):
+            uploaded_docs = documents_data.get('uploadedDocuments', [])
+            
+            for doc in uploaded_docs:
+                doc_type = doc.get('documentType', '').lower()
+                ocr_data = doc.get('ocrData', {})
+                
+                # Map OCR data to Section 2 fields based on document type
+                if 'passport' in doc_type:
+                    pdf_data['document_title_1'] = 'U.S. Passport'
+                    pdf_data['issuing_authority_1'] = 'United States Department of State'
+                    pdf_data['document_number_1'] = ocr_data.get('documentNumber', '')
+                    pdf_data['expiration_date_1'] = ocr_data.get('expirationDate', '')
+                elif 'driver' in doc_type or 'license' in doc_type:
+                    pdf_data['document_title_2'] = "Driver's License"
+                    pdf_data['issuing_authority_2'] = ocr_data.get('issuingState', '')
+                    pdf_data['document_number_2'] = ocr_data.get('documentNumber', '')
+                    pdf_data['expiration_date_2'] = ocr_data.get('expirationDate', '')
+                elif 'social' in doc_type or 'ssn' in doc_type:
+                    pdf_data['document_title_3'] = 'Social Security Card'
+                    pdf_data['issuing_authority_3'] = 'Social Security Administration'
+                    pdf_data['document_number_3'] = ocr_data.get('ssn', '')
+                    pdf_data['expiration_date_3'] = 'N/A'
+        
+        # Generate complete I-9 PDF with both sections
+        pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        # Auto-save if this is a signed document
+        if signature_data and signature_data.get('signature'):
+            try:
+                logger.info(f"Auto-saving complete signed I-9 document for employee {employee_id}")
+                
+                # Save to Supabase storage
+                doc_storage = DocumentStorageService()
+                stored_doc = await doc_storage.store_document(
+                    file_content=pdf_bytes,
+                    filename=f"signed_i9_complete_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    document_type=DocumentType.I9_FORM,
+                    employee_id=employee_id,
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
+                    uploaded_by='system',
+                    metadata={
+                        'signed': True,
+                        'signature_timestamp': signature_data.get('signedAt'),
+                        'signature_ip': signature_data.get('ipAddress'),
+                        'auto_saved': True,
+                        'form_type': 'i9_complete',
+                        'has_section1': True,
+                        'has_section2': bool(documents_data and documents_data.get('uploadedDocuments')),
+                        'ready_for_manager_review': True
+                    }
+                )
+                logger.info(f"Auto-saved complete I-9 PDF for employee {employee_id}: {stored_doc.document_id}")
+            except Exception as e:
+                # Log but don't fail if auto-save fails
+                logger.error(f"Failed to auto-save complete I-9 document: {e}")
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"I9_Complete_{form_data.get('firstName', 'Employee')}_{form_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Complete I-9 PDF generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate complete I-9 PDF error: {e}")
+        return error_response(
+            message="Failed to generate complete I-9 PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
 
 @app.get("/api/onboarding/{employee_id}/i9-section1")
 async def get_i9_section1(employee_id: str):
@@ -8151,7 +8281,7 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         
         # For test/demo employees, skip employee lookup
         if employee_id.startswith('test-') or employee_id.startswith('demo-'):
-            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee", "property_id": "test-property"}
             property_name = "Test Hotel"
         else:
             # Get employee data
@@ -8223,7 +8353,7 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
                     filename=f"signed_company_policies_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
                     document_type=DocumentType.COMPANY_POLICIES,
                     employee_id=employee_id,
-                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None),
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
                     uploaded_by='system',
                     metadata={
                         'signed': True,
