@@ -84,3 +84,4 @@ poetry.lock
 *.pem
 *.crt
 *secret*
+.vercel
