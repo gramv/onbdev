@@ -8298,8 +8298,9 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
                 property_name = "Hotel"
         
         # Use form data from request if provided (for preview)
-        if employee_data_from_request:
-            form_data = employee_data_from_request
+        form_data_from_request = body.get('form_data')
+        if form_data_from_request:
+            form_data = form_data_from_request
         else:
             # Try to fetch saved company policies data
             saved_policies = await supabase_service.get_onboarding_step_data(
@@ -8329,12 +8330,14 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
         # Map form data to PDF data - include all form fields for initials and signature
+        signature_data = body.get('signature_data')
         pdf_data = {
             **form_data,  # Include all form data (initials, signature, etc.)
             "firstName": first_name,
             "lastName": last_name,
             "property_name": property_name,
             "employee_id": employee_id,
+            "signatureData": signature_data  # Add signature data for PDF generation
         }
         
         logger.info(f"PDF data being sent to generator: {pdf_data}")
@@ -8343,7 +8346,6 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         pdf_bytes = pdf_filler.create_company_policies_pdf(pdf_data)
         
         # Check if this is a signed document (has signature_data in request)
-        signature_data = body.get('signature_data')
         if signature_data:
             # This is a signed document - save to Supabase storage
             try:
