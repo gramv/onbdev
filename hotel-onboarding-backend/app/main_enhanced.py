@@ -7421,9 +7421,11 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
             # When called from ReviewAndSign component, extract data from employee_data
             logger.info(f"Received employee_data from ReviewAndSign for I9 generation")
             logger.info(f"employee_data keys: {list(employee_data_from_request.keys()) if isinstance(employee_data_from_request, dict) else 'not a dict'}")
-            form_data = employee_data_from_request
-            documents_data = employee_data_from_request.get('documentsData', {}) if isinstance(employee_data_from_request, dict) else {}
-            signature_data = employee_data_from_request.get('signatureData', {}) if isinstance(employee_data_from_request, dict) else {}
+            # Extract form fields directly (excluding documentsData and signatureData)
+            form_data = {k: v for k, v in employee_data_from_request.items() 
+                        if k not in ['documentsData', 'signatureData']}
+            documents_data = employee_data_from_request.get('documentsData', {})
+            signature_data = employee_data_from_request.get('signatureData', {})
         else:
             # Fallback to direct extraction (for backwards compatibility)
             logger.info(f"Using direct extraction for I9 generation")
@@ -7447,6 +7449,7 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
         logger.info(f"Form data fields available: {list(form_data.keys()) if isinstance(form_data, dict) else 'not a dict'}")
         logger.info(f"Sample form data - firstName: {form_data.get('firstName', 'NOT FOUND') if isinstance(form_data, dict) else 'N/A'}")
         logger.info(f"Sample form data - ssn: {form_data.get('ssn', 'NOT FOUND')[:7] + '****' if isinstance(form_data, dict) and form_data.get('ssn') else 'NOT FOUND'}")
+        logger.info(f"Documents data received: {bool(documents_data)}, has uploadedDocuments: {bool(documents_data.get('uploadedDocuments') if documents_data else False)}")
         
         # Prepare Section 1 data from form
         pdf_data = {
@@ -7471,11 +7474,14 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
             'country_of_issuance': form_data.get('countryOfIssuance', ''),
             'expiration_date': form_data.get('expirationDate', ''),
             'signature': signature_data.get('signature', ''),
-            'signature_date': signature_data.get('signedAt', datetime.now().strftime('%m/%d/%Y')),
-            'preparer_signature': form_data.get('preparerSignature', ''),
-            'preparer_name': form_data.get('preparerName', ''),
-            'preparer_date': form_data.get('preparerDate', '')
+            'signature_date': signature_data.get('signedAt', datetime.now().strftime('%m/%d/%Y'))
         }
+        
+        # Only add preparer fields if they have actual values (not empty strings)
+        if form_data.get('preparerSignature'):
+            pdf_data['preparer_signature'] = form_data.get('preparerSignature')
+            pdf_data['preparer_name'] = form_data.get('preparerName', '')
+            pdf_data['preparer_date'] = form_data.get('preparerDate', '')
         
         # Add Section 2 data from OCR documents
         if documents_data and documents_data.get('uploadedDocuments'):

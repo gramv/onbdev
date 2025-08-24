@@ -995,7 +995,11 @@ export default function I9CompleteStep({
             ) : (
               <ReviewAndSign
                 formType="i9-complete"
-                formData={formData}
+                formData={{
+                  ...formData,
+                  documentsData: documentsData,
+                  signatureData: null  // Will be added when signing
+                }}
                 title={language === 'es' ? 'Revisar I-9 Completo' : 'Review Complete I-9'}
                 description={language === 'es' 
                   ? 'Revise toda la información antes de firmar'
