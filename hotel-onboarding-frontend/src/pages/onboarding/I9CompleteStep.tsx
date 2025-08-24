@@ -670,6 +670,28 @@ export default function I9CompleteStep({
         })
         console.log('I-9 Section 1 with signature saved to cloud')
         
+        // Generate signed PDF on backend with all form data including OCR extracted fields
+        try {
+          const pdfResponse = await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1/generate-pdf`, {
+            employee_data: {
+              ...formData,
+              // Include Section 2 document data extracted from OCR
+              ...(documentsData?.extractedData?.[0] || {}),
+              ...(documentsData?.extractedData?.[1] || {})
+            },
+            signature_data: signature
+          })
+          
+          if (pdfResponse.data?.data?.pdf) {
+            console.log('Signed I-9 PDF generated on backend successfully')
+            // Optionally update the local PDF URL with backend-generated one
+            // setPdfUrl(pdfResponse.data.data.pdf)
+          }
+        } catch (pdfError) {
+          console.error('Failed to generate signed PDF on backend:', pdfError)
+          // Continue - local PDF is still available
+        }
+        
         // Save I-9 Section 2 documents if we have them
         if (documentsData && documentsData.uploadedDocuments) {
           const documentMetadata = documentsData.uploadedDocuments.map((doc: any) => ({

@@ -7806,14 +7806,38 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
         # Generate PDF
         pdf_bytes = pdf_filler.fill_i9_form(pdf_data)
         
-        # Add signature if available
-        signature_data = form_data.get('signatureData') if form_data else None
+        # Add signature if available (check both in form_data and as separate field in request)
+        signature_data = body.get('signature_data') or form_data.get('signatureData') if form_data else None
         if signature_data:
             pdf_bytes = pdf_filler.add_signature_to_pdf(
                 pdf_bytes, 
                 signature_data.get('signature') if isinstance(signature_data, dict) else signature_data, 
                 "employee_i9"
             )
+        
+        # Auto-save signed I-9 PDF if signature is present
+        if signature_data:
+            try:
+                doc_storage = DocumentStorageService()
+                stored_doc = await doc_storage.store_document(
+                    file_content=pdf_bytes,
+                    filename=f"signed_i9_section1_{employee_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    document_type=DocumentType.I9_FORM,
+                    employee_id=employee_id,
+                    property_id=employee.get('property_id') if isinstance(employee, dict) else getattr(employee, 'property_id', None) if employee else 'test-property',
+                    uploaded_by='system',
+                    metadata={
+                        'signed': True,
+                        'signature_timestamp': signature_data.get('signedAt') if isinstance(signature_data, dict) else None,
+                        'auto_saved': True,
+                        'form_type': 'i9_section1',
+                        'has_ocr_data': bool(form_data.get("document_title_1") or form_data.get("document_title_2"))
+                    }
+                )
+                logger.info(f"Auto-saved signed I-9 Section 1 PDF for employee {employee_id}: {stored_doc.document_id}")
+            except Exception as save_error:
+                logger.error(f"Failed to auto-save signed I-9 PDF: {save_error}")
+                # Don't fail the request if save fails - still return the PDF
         
         # Return PDF as base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
