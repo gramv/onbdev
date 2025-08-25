@@ -1019,9 +1019,44 @@ class PDFFormFiller:
             
             # Define signature position based on form type
             if signature_type == "employee_i9":
-                # I-9 employee signature position - slightly smaller and moved up
-                # Previous: (50,330)-(250,380) size 200x50. New: move ~+20y and reduce height/width.
-                rect = fitz.Rect(60, 350, 240, 390)  # width:180, height:40
+                # Prefer anchor-based placement using the label "Signature of Employee"
+                rect = None
+                try:
+                    for p_index in range(len(doc)):
+                        page = doc[p_index]
+                        blocks = page.get_text("blocks")
+                        # Sort top-to-bottom, left-to-right
+                        blocks.sort(key=lambda b: (b[1], b[0]))
+                        anchor = None
+                        for b in blocks:
+                            x0, y0, x1, y1, text, *_ = b
+                            t = (text or "").strip().lower()
+                            if not t:
+                                continue
+                            # Match common I-9 label variants
+                            # e.g., "Signature of Employee" or just a block containing both words
+                            if ("signature" in t and "employee" in t):
+                                anchor = fitz.Rect(x0, y0, x1, y1)
+                                break
+                        if anchor:
+                            # Place signature to the right of the label, slightly above the baseline
+                            sig_width = 180
+                            sig_height = 40
+                            x_left = anchor.x1 + 10
+                            y_bottom = anchor.y1 + 6  # move above label baseline
+                            # Ensure stays within page
+                            x_right = min(x_left + sig_width, page.rect.x1 - 10)
+                            x_left = x_right - sig_width
+                            y_top = min(y_bottom + sig_height, page.rect.y1 - 10)
+                            rect = fitz.Rect(x_left, y_bottom, x_right, y_top)
+                            page_num = p_index
+                            break
+                except Exception:
+                    rect = None
+
+                if rect is None:
+                    # Fallback to conservative default if anchor not found
+                    rect = fitz.Rect(60, 350, 240, 390)  # width:180, height:40
             elif signature_type == "employer_i9":
                 # I-9 employer signature position (approximate)
                 rect = fitz.Rect(350, 750, 500, 780)
