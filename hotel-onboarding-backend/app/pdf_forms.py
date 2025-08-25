@@ -1039,11 +1039,15 @@ class PDFFormFiller:
                                 anchor = fitz.Rect(x0, y0, x1, y1)
                                 break
                         if anchor:
-                            # Place signature to the right of the label, slightly above the baseline
-                            sig_width = 180
-                            sig_height = 40
-                            x_left = anchor.x1 + 10
-                            y_bottom = anchor.y1 + 6  # move above label baseline
+                            # Place signature centered on the signature line to the RIGHT of the label text
+                            # The official label spans ~x=42..459 at y≈350..358. The line for signature extends across the rest.
+                            # Target a wider box starting around x≈180–220 and height ~36 just over the line.
+                            sig_width = 320
+                            sig_height = 36
+                            # Start a bit right from label start to sit on the line segment
+                            x_left = max(anchor.x0 + 140, 180)
+                            # Slightly below label baseline so it overlays the line
+                            y_bottom = anchor.y1 + 10
                             # Ensure stays within page
                             x_right = min(x_left + sig_width, page.rect.x1 - 10)
                             x_left = x_right - sig_width
