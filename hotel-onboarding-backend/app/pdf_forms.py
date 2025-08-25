@@ -1019,42 +1019,88 @@ class PDFFormFiller:
             
             # Define signature position based on form type
             if signature_type == "employee_i9":
-                # Prefer anchor-based placement using the label "Signature of Employee"
+                # Prefer precise placement over the actual AcroForm signature field
                 rect = None
+                anchor = None
                 try:
+                    # First, try to find the "Signature of Employee" text anchor
                     for p_index in range(len(doc)):
                         page = doc[p_index]
                         blocks = page.get_text("blocks")
-                        # Sort top-to-bottom, left-to-right
                         blocks.sort(key=lambda b: (b[1], b[0]))
-                        anchor = None
                         for b in blocks:
                             x0, y0, x1, y1, text, *_ = b
                             t = (text or "").strip().lower()
                             if not t:
                                 continue
-                            # Match common I-9 label variants
-                            # e.g., "Signature of Employee" or just a block containing both words
                             if ("signature" in t and "employee" in t):
                                 anchor = fitz.Rect(x0, y0, x1, y1)
+                                anchor_page_num = p_index
                                 break
                         if anchor:
-                            # Place signature centered on the signature line to the RIGHT of the label text
-                            # The official label spans ~x=42..459 at y≈350..358. The line for signature extends across the rest.
-                            # Target a wider box starting around x≈180–220 and height ~36 just over the line.
-                            sig_width = 320
-                            sig_height = 36
-                            # Start a bit right from label start to sit on the line segment
-                            x_left = max(anchor.x0 + 140, 180)
-                            # Slightly below label baseline so it overlays the line
-                            y_bottom = anchor.y1 + 10
-                            # Ensure stays within page
-                            x_right = min(x_left + sig_width, page.rect.x1 - 10)
-                            x_left = x_right - sig_width
-                            y_top = min(y_bottom + sig_height, page.rect.y1 - 10)
-                            rect = fitz.Rect(x_left, y_bottom, x_right, y_top)
-                            page_num = p_index
                             break
+
+                    # Next, scan widgets (AcroForm fields) for the signature widget
+                    best_candidate = None
+                    best_distance = 10**9
+                    for p_index in range(len(doc)):
+                        page = doc[p_index]
+                        try:
+                            widgets = page.widgets()
+                        except Exception:
+                            widgets = None
+                        if not widgets:
+                            continue
+                        for w in widgets:
+                            try:
+                                name = (getattr(w, "field_name", "") or "").lower()
+                                label = (getattr(w, "field_label", "") or "").lower()
+                                rect_w = fitz.Rect(w.rect)
+                            except Exception:
+                                continue
+                            # Look for signature-related widgets, avoid employer/preparer/translator fields
+                            text_match = ("signature" in name) or ("signature" in label)
+                            if not text_match:
+                                continue
+                            if any(ex in name for ex in ["employer", "preparer", "translator"]) or \
+                               any(ex in label for ex in ["employer", "preparer", "translator"]):
+                                continue
+
+                            if anchor is not None and p_index == anchor_page_num:
+                                # Prefer the widget to the right of the label and vertically aligned
+                                widget_center_y = (rect_w.y0 + rect_w.y1) / 2
+                                anchor_center_y = (anchor.y0 + anchor.y1) / 2
+                                vertical_distance = abs(widget_center_y - anchor_center_y)
+                                horizontal_bias = 0 if rect_w.x0 >= anchor.x1 - 5 else 2000
+                                score = vertical_distance + horizontal_bias
+                                if score < best_distance:
+                                    best_distance = score
+                                    best_candidate = (p_index, rect_w)
+                            else:
+                                # Fallback scoring: prefer upper-half page widgets for employee section
+                                score = rect_w.y0
+                                if score < best_distance:
+                                    best_distance = score
+                                    best_candidate = (p_index, rect_w)
+
+                    if best_candidate:
+                        page_num, rect = best_candidate
+                        # Deflate a bit so signature sits nicely within the field boundary
+                        pad_x, pad_y = 6, 4
+                        rect = fitz.Rect(rect.x0 + pad_x, rect.y0 + pad_y, rect.x1 - pad_x, rect.y1 - pad_y)
+
+                    # If widget not found, fallback to anchor-derived heuristics
+                    if rect is None and anchor is not None:
+                        page = doc[anchor_page_num]
+                        sig_width = 300
+                        sig_height = 34
+                        x_left = max(anchor.x1 + 12, anchor.x0 + 160)
+                        y_bottom = anchor.y1 + 8
+                        x_right = min(x_left + sig_width, page.rect.x1 - 10)
+                        x_left = x_right - sig_width
+                        y_top = min(y_bottom + sig_height, page.rect.y1 - 10)
+                        rect = fitz.Rect(x_left, y_bottom, x_right, y_top)
+                        page_num = anchor_page_num
                 except Exception:
                     rect = None
 
