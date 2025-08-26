@@ -958,6 +958,20 @@ class PDFFormFiller:
                         field_value = field_mappings[field_name]
                         self._set_widget_value(widget, field_value)
                         print(f"✓ IRS COMPLIANCE: Filled field '{field_name}' with value '{field_value}'")
+                        # Ensure the signature date visually appears at the exact spot requested
+                        if field_name == W4_FORM_FIELDS["employee_signature_date"] and field_value:
+                            try:
+                                # Coordinates provided use PyMuPDF coordinate system (bottom-left origin)
+                                page.insert_text(
+                                    (508.0, 122.88),
+                                    str(field_value),
+                                    fontname="helv",
+                                    fontsize=10,
+                                    color=(0, 0, 0)
+                                )
+                                print("✓ Placed W-4 employee signature date overlay at (508, 122.88)")
+                            except Exception as overlay_err:
+                                print(f"⚠ Failed to overlay W-4 signature date text: {overlay_err}")
                     else:
                         # Log unmapped fields for compliance verification
                         print(f"⚠ UNMAPPED FIELD: '{field_name}' - verify IRS compliance")
@@ -1019,90 +1033,23 @@ class PDFFormFiller:
             
             # Define signature position based on form type
             if signature_type == "employee_i9":
-                # Prefer precise placement over the actual AcroForm signature field
-                rect = None
-                anchor = None
-                try:
-                    # First, try to find the "Signature of Employee" text anchor
-                    for p_index in range(len(doc)):
-                        page = doc[p_index]
-                        blocks = page.get_text("blocks")
-                        blocks.sort(key=lambda b: (b[1], b[0]))
-                        for b in blocks:
-                            x0, y0, x1, y1, text, *_ = b
-                            t = (text or "").strip().lower()
-                            if not t:
-                                continue
-                            if ("signature" in t and "employee" in t):
-                                anchor = fitz.Rect(x0, y0, x1, y1)
-                                anchor_page_num = p_index
-                                break
-                        if anchor:
-                            break
-
-                    # Next, scan widgets (AcroForm fields) for the signature widget
-                    best_candidate = None
-                    best_distance = 10**9
-                    for p_index in range(len(doc)):
-                        page = doc[p_index]
-                        try:
-                            widgets = page.widgets()
-                        except Exception:
-                            widgets = None
-                        if not widgets:
-                            continue
-                        for w in widgets:
-                            try:
-                                name = (getattr(w, "field_name", "") or "").lower()
-                                label = (getattr(w, "field_label", "") or "").lower()
-                                rect_w = fitz.Rect(w.rect)
-                            except Exception:
-                                continue
-                            # Look for signature-related widgets, avoid employer/preparer/translator fields
-                            text_match = ("signature" in name) or ("signature" in label)
-                            if not text_match:
-                                continue
-                            if any(ex in name for ex in ["employer", "preparer", "translator"]) or \
-                               any(ex in label for ex in ["employer", "preparer", "translator"]):
-                                continue
-
-                            if anchor is not None and p_index == anchor_page_num:
-                                # Prefer the widget to the right of the label and vertically aligned
-                                widget_center_y = (rect_w.y0 + rect_w.y1) / 2
-                                anchor_center_y = (anchor.y0 + anchor.y1) / 2
-                                vertical_distance = abs(widget_center_y - anchor_center_y)
-                                horizontal_bias = 0 if rect_w.x0 >= anchor.x1 - 5 else 2000
-                                score = vertical_distance + horizontal_bias
-                                if score < best_distance:
-                                    best_distance = score
-                                    best_candidate = (p_index, rect_w)
-                            else:
-                                # Fallback scoring: prefer upper-half page widgets for employee section
-                                score = rect_w.y0
-                                if score < best_distance:
-                                    best_distance = score
-                                    best_candidate = (p_index, rect_w)
-
-                    if best_candidate:
-                        page_num, rect = best_candidate
-                        # Deflate a bit so signature sits nicely within the field boundary
-                        pad_x, pad_y = 6, 4
-                        rect = fitz.Rect(rect.x0 + pad_x, rect.y0 + pad_y, rect.x1 - pad_x, rect.y1 - pad_y)
-
-                    # If widget not found, fallback to anchor-derived heuristics
-                    if rect is None and anchor is not None:
-                        page = doc[anchor_page_num]
-                        sig_width = 300
-                        sig_height = 34
-                        x_left = max(anchor.x1 + 12, anchor.x0 + 160)
-                        y_bottom = anchor.y1 + 8
-                        x_right = min(x_left + sig_width, page.rect.x1 - 10)
-                        x_left = x_right - sig_width
-                        y_top = min(y_bottom + sig_height, page.rect.y1 - 10)
-                        rect = fitz.Rect(x_left, y_bottom, x_right, y_top)
-                        page_num = anchor_page_num
-                except Exception:
-                    rect = None
+                # Place at explicit rectangle derived from provided polygon points
+                # Points: (151.33,435.54),(291.33,431.54),(296,431.54),(222,424.21),(192.67,442.21),(160.67,424.88)
+                pts = [
+                    (151.33, 435.54),
+                    (291.33, 431.54),
+                    (296.00, 431.54),
+                    (222.00, 424.21),
+                    (192.67, 442.21),
+                    (160.67, 424.88),
+                ]
+                xs = [p[0] for p in pts]
+                ys = [p[1] for p in pts]
+                x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
+                # Slightly expand to allow a tiny overflow as requested
+                expand_x, expand_y = 2.0, 2.0
+                rect = fitz.Rect(max(0, x0 - expand_x), max(0, y0 - expand_y), x1 + expand_x, y1 + expand_y)
+                page_num = 0
 
                 if rect is None:
                     # Fallback to conservative default if anchor not found
