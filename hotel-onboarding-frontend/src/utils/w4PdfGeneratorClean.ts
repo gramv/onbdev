@@ -159,18 +159,17 @@ export async function generateCleanW4Pdf(formData: W4FormData): Promise<Uint8Arr
         
         console.log('✓ Added signature to W-4 form')
         
-        // Add date text next to signature
-        // The form field f1_14[0] is filled, but we also need visual text
+        // Add date text at exact coordinate requested
         try {
           firstPage.drawText(dateFormatted, {
-            x: 390,  // Position at the date field location based on field mapping
-            y: 82,   // Align with signature line (slightly below signature)
+            x: 508,    // exact x
+            y: 122.88, // exact y
             size: 10,
             color: rgb(0, 0, 0),
           })
-          console.log('✓ Added date next to signature')
+          console.log('✓ Added date text at (508, 122.88)')
         } catch (e) {
-          console.log('⚠️ Could not add date text:', e)
+          console.log('⚠️ Could not add date text at requested coordinates:', e)
         }
         
       } catch (error) {

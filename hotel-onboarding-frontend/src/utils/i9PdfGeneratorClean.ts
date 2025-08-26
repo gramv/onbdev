@@ -480,19 +480,47 @@ export async function addSignatureToExistingPdf(existingPdfBase64: string, signa
     const pages = pdfDoc.getPages()
     const firstPage = pages[0]
     
-    // Add signature at the standard position
-    const scale = 0.22
-    const scaledWidth = signatureImage.width * scale
-    const scaledHeight = signatureImage.height * scale
-    
+    // Place signature inside the explicit rectangle user provided
+    // Points: (151.33,435.54),(291.33,431.54),(296,431.54),(222,424.21),(192.67,442.21),(160.67,424.88)
+    const pts = [
+      { x: 151.33, y: 435.54 },
+      { x: 291.33, y: 431.54 },
+      { x: 296.00, y: 431.54 },
+      { x: 222.00, y: 424.21 },
+      { x: 192.67, y: 442.21 },
+      { x: 160.67, y: 424.88 },
+    ]
+    const xs = pts.map(p => p.x)
+    const ys = pts.map(p => p.y)
+    const x0 = Math.min(...xs)
+    const y0 = Math.min(...ys)
+    const x1 = Math.max(...xs)
+    const y1 = Math.max(...ys)
+    const pad = 2
+    const targetW = Math.max(1, (x1 - x0) - pad * 2)
+    const targetH = Math.max(1, (y1 - y0) - pad * 2)
+
+    // Fit the signature into the target rect preserving aspect ratio
+    const imgW = signatureImage.width
+    const imgH = signatureImage.height
+    const ratio = imgW / imgH
+    let drawW = targetW
+    let drawH = drawW / ratio
+    if (drawH > targetH) {
+      drawH = targetH
+      drawW = drawH * ratio
+    }
+    const drawX = x0 + pad + (targetW - drawW) / 2
+    const drawY = y0 + pad + (targetH - drawH) / 2
+
     firstPage.drawImage(signatureImage, {
-      x: 50,   // Left margin
-      y: 330,  // Above bottom section (same as in generateCleanI9Pdf)
-      width: scaledWidth,
-      height: scaledHeight,
+      x: drawX,
+      y: drawY,
+      width: drawW,
+      height: drawH,
     })
     
-    console.log('✓ Signature added at x:50, y:330')
+    console.log(`✓ Signature added inside rect [${x0},${y0}]–[${x1},${y1}] at (${drawX.toFixed(2)}, ${drawY.toFixed(2)})`)
     
     // Save and convert back to base64
     const signedPdfBytes = await pdfDoc.save()
