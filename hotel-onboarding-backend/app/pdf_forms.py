@@ -362,9 +362,10 @@ class PDFFormFiller:
             page = doc[0]  # Direct deposit is a single page form
             
             # Helper function to add text at specific coordinates
+            # Shift down by 2mm (5.67 points)
             def add_text(x, y, text, fontsize=10):
                 if text:
-                    page.insert_text((x, y), str(text), fontsize=fontsize, color=(0, 0, 0))
+                    page.insert_text((x, y - 5.67), str(text), fontsize=fontsize, color=(0, 0, 0))
             
             # Map the fields based on the JSON mappings
             fields = field_mappings.get('fields', [])
@@ -390,6 +391,10 @@ class PDFFormFiller:
                 x = rect.get('x', 0)
                 y = rect.get('y', 0)
                 
+                # Skip company and payroll manager fields - we don't need them
+                if field_name in ['company_name', 'company_code', 'payroll_mgr_name', 'payroll_mgr_signature', 'employee_file_number']:
+                    continue
+                
                 # Map field names to data
                 if field_name == 'employee_name':
                     add_text(x, y, full_name)
@@ -411,24 +416,20 @@ class PDFFormFiller:
                         add_text(x, y, f"${deposit_amount}")
                 elif field_name == 'bank1_checking' and field.get('type') == 'CheckBox':
                     if account_type == 'checking':
-                        # Draw a checkmark
-                        page.draw_rect(fitz.Rect(x, y-9, x+9, y), color=(0, 0, 0))
-                        page.insert_text((x+2, y-2), "✓", fontsize=10)
+                        # Draw a filled checkbox with checkmark - shift down by 5.67
+                        page.draw_rect(fitz.Rect(x, y-9-5.67, x+9, y-5.67), fill=(0, 0, 0), width=0.5)
+                        page.insert_text((x+1, y-2-5.67), "✓", fontsize=12, color=(1, 1, 1))
                 elif field_name == 'bank1_savings' and field.get('type') == 'CheckBox':
                     if account_type == 'savings':
-                        # Draw a checkmark
-                        page.draw_rect(fitz.Rect(x, y-9, x+9, y), color=(0, 0, 0))
-                        page.insert_text((x+2, y-2), "✓", fontsize=10)
+                        # Draw a filled checkbox with checkmark - shift down by 5.67
+                        page.draw_rect(fitz.Rect(x, y-9-5.67, x+9, y-5.67), fill=(0, 0, 0), width=0.5)
+                        page.insert_text((x+1, y-2-5.67), "✓", fontsize=12, color=(1, 1, 1))
                 elif field_name == 'bank1_entire_net_amount' and field.get('type') == 'CheckBox':
                     if deposit_type == 'full':
-                        # Draw a checkmark
-                        page.draw_rect(fitz.Rect(x, y-9, x+9, y), color=(0, 0, 0))
-                        page.insert_text((x+2, y-2), "✓", fontsize=10)
-                elif field_name == 'company_name':
-                    property_name = employee_data.get('property', {}).get('name', 'Hotel Property')
-                    add_text(x, y, property_name)
-                elif field_name == 'company_code':
-                    add_text(x, y, 'HC-001')  # Default company code
+                        # Draw a filled checkbox with checkmark - shift down by 5.67
+                        page.draw_rect(fitz.Rect(x, y-9-5.67, x+9, y-5.67), fill=(0, 0, 0), width=0.5)
+                        page.insert_text((x+1, y-2-5.67), "✓", fontsize=12, color=(1, 1, 1))
+                # Skip company_name and company_code - we don't need them
             
             # Add signature if provided
             signature_data = employee_data.get('signatureData') or employee_data.get('signature_data')
@@ -437,46 +438,42 @@ class PDFFormFiller:
                     import base64
                     from PIL import Image
                     
-                    # Find the employee_signature field coordinates
-                    sig_field = next((f for f in fields if f['name'] == 'employee_signature'), None)
-                    if sig_field:
-                        sig_rect = sig_field['rect']
-                        
-                        # Process signature
-                        if ',' in signature_data:
-                            signature_data = signature_data.split(',')[1]
-                        
-                        img_data = base64.b64decode(signature_data)
-                        img = Image.open(io.BytesIO(img_data))
-                        
-                        # Convert to RGB if needed
-                        if img.mode == 'RGBA':
-                            bg = Image.new('RGB', img.size, (255, 255, 255))
-                            bg.paste(img, mask=img.split()[3])
-                            img = bg
-                        
-                        # Scale signature to fit
-                        max_width = 120
-                        max_height = 30
-                        img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-                        
-                        # Save to buffer
-                        img_buffer = io.BytesIO()
-                        img.save(img_buffer, format='PNG')
-                        img_buffer.seek(0)
-                        
-                        # Insert signature image
-                        from reportlab.lib.utils import ImageReader
-                        img_reader = ImageReader(img_buffer)
-                        
-                        # Insert at signature location
-                        x = sig_rect['x']
-                        y = sig_rect['y'] - 20  # Adjust y position
-                        
-                        # Use PyMuPDF to insert image
-                        pix = fitz.Pixmap(img_buffer.getvalue())
-                        page.insert_image(fitz.Rect(x, y-30, x+120, y), pixmap=pix)
-                        
+                    # Process signature
+                    if ',' in signature_data:
+                        signature_data = signature_data.split(',')[1]
+                    
+                    img_data = base64.b64decode(signature_data)
+                    img = Image.open(io.BytesIO(img_data))
+                    
+                    # Convert to RGB if needed
+                    if img.mode == 'RGBA':
+                        bg = Image.new('RGB', img.size, (255, 255, 255))
+                        bg.paste(img, mask=img.split()[3])
+                        img = bg
+                    
+                    # Scale signature to fit
+                    max_width = 120
+                    max_height = 30
+                    img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+                    
+                    # Save to buffer
+                    img_buffer = io.BytesIO()
+                    img.save(img_buffer, format='PNG')
+                    img_buffer.seek(0)
+                    
+                    # Use the exact coordinates provided by user, adjusted for 2mm shift
+                    # Original coordinates: x: 212, y: 386.88
+                    # Shift down by 5.67 points (2mm)
+                    x = 212
+                    y = 386.88 - 5.67  # Apply 2mm shift
+                    
+                    # Use PyMuPDF to insert image at exact position
+                    pix = fitz.Pixmap(img_buffer.getvalue())
+                    # PyMuPDF uses bottom-left origin, so adjust y coordinate
+                    page_height = page.rect.height
+                    y_from_bottom = page_height - y - 30  # 30 is approximate signature height
+                    page.insert_image(fitz.Rect(x, y_from_bottom, x+120, y_from_bottom+30), pixmap=pix)
+                    
                 except Exception as e:
                     print(f"Error adding signature to Direct Deposit form: {e}")
             

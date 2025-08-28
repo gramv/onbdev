@@ -8091,21 +8091,25 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
         # Map form data to PDF data - handling both nested and flat structures
+        primary_account = form_data.get("primaryAccount") or form_data.get("formData", {}).get("primaryAccount", {}) or {}
+        
+        # Build the data structure expected by fill_direct_deposit_form
         pdf_data = {
-            "firstName": first_name,
-            "lastName": last_name,
+            "first_name": first_name,
+            "last_name": last_name,
             "employee_id": employee_id,
             "email": form_data.get("email") or form_data.get("formData", {}).get("email", "") or employee.get("email", ""),
             "ssn": form_data.get("ssn") or form_data.get("formData", {}).get("ssn", ""),
-            "paymentMethod": form_data.get("paymentMethod") or form_data.get("formData", {}).get("paymentMethod", ""),
-            "primaryAccount": form_data.get("primaryAccount") or form_data.get("formData", {}).get("primaryAccount", {}) or {
-                "bankName": form_data.get("bankName", ""),
-                "accountType": form_data.get("accountType", ""),
-                "routingNumber": form_data.get("routingNumber", ""),
-                "accountNumber": form_data.get("accountNumber", ""),
+            "direct_deposit": {
+                "bank_name": primary_account.get("bankName", ""),
+                "account_type": primary_account.get("accountType", "checking"),
+                "routing_number": primary_account.get("routingNumber", ""),
+                "account_number": primary_account.get("accountNumber", ""),
+                "deposit_type": "full" if form_data.get("paymentMethod") == "directDeposit" else "partial",
+                "deposit_amount": primary_account.get("depositAmount", ""),
             },
             "signatureData": form_data.get("signatureData") or form_data.get("formData", {}).get("signatureData", ""),
-            "property": {"name": "Hotel Property"},  # You may want to get this from employee data
+            "property": {"name": ""},  # Remove company info as requested
         }
         
         # Generate PDF using template overlay
