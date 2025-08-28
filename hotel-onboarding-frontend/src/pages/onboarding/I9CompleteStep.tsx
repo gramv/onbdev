@@ -185,6 +185,7 @@ export default function I9CompleteStep({
         }
         if (dataToUse.signatureData) setSignatureData(dataToUse.signatureData)
         if (dataToUse.signedFormDataHash) setSignedFormDataHash(dataToUse.signedFormDataHash)
+        if (dataToUse.pdfUrl) setPdfUrl(dataToUse.pdfUrl)
         if (dataToUse.ssnMismatch) setSsnMismatch(dataToUse.ssnMismatch)
         if (dataToUse.activeTab && !dataToUse.isSigned) {
           setActiveTab(dataToUse.activeTab)
@@ -693,18 +694,33 @@ export default function I9CompleteStep({
       }
     }
     
-    // Save the signed status to session storage immediately
+    // Save the signed status immediately and persist signed PDF for back/forward navigation
     await saveProgress(currentStep.id, completeData)
-    
-    // Update session storage directly to ensure it's available for validation
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(completeData))
     
     // Don't regenerate! Just add signature to the existing perfect PDF
+    let finalSignedPdfUrl = pdfUrl
     if (pdfUrl) {
       console.log('Adding signature to existing PDF with all data')
       const signedPdf = await addSignatureToExistingPdf(pdfUrl, signature)
-      setPdfUrl(signedPdf)
+      finalSignedPdfUrl = signedPdf
       console.log('✓ Signature added to PDF without regeneration')
+      
+      // Update state with signed PDF BEFORE setting isSigned
+      setPdfUrl(signedPdf)
+      
+      // Persist the signed PDF so it doesn't vanish on tab changes
+      const persisted = {
+        ...completeData,
+        pdfUrl: signedPdf,
+        isSigned: true,
+        signed: true,
+        signatureData: signature
+      }
+      sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify(persisted))
+      
+      // Also update the complete data with signed PDF
+      completeData.pdfUrl = signedPdf
     } else {
       console.error('No existing PDF to sign - this should not happen')
     }

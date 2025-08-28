@@ -480,36 +480,29 @@ export async function addSignatureToExistingPdf(existingPdfBase64: string, signa
     const pages = pdfDoc.getPages()
     const firstPage = pages[0]
     
-    // Place signature inside the explicit rectangle user provided
-    // Points: (151.33,435.54),(291.33,431.54),(296,431.54),(222,424.21),(192.67,442.21),(160.67,424.88)
-    const pts = [
-      { x: 151.33, y: 435.54 },
-      { x: 291.33, y: 431.54 },
-      { x: 296.00, y: 431.54 },
-      { x: 222.00, y: 424.21 },
-      { x: 192.67, y: 442.21 },
-      { x: 160.67, y: 424.88 },
-    ]
-    const xs = pts.map(p => p.x)
-    const ys = pts.map(p => p.y)
-    const x0 = Math.min(...xs)
-    const y0 = Math.min(...ys)
-    const x1 = Math.max(...xs)
-    const y1 = Math.max(...ys)
-    const pad = 2
+    // Place signature in a larger, more visible area
+    // Using a much larger rectangle for better visibility (similar to W-4 approach)
+    const x0 = 150  // Start position
+    const y0 = 410  // Bottom position (adjusted for visibility)
+    const x1 = x0 + 250  // Width of 250 pixels for better visibility
+    const y1 = y0 + 60   // Height of 60 pixels for better visibility
+    const pad = 5  // Increased padding for cleaner appearance
     const targetW = Math.max(1, (x1 - x0) - pad * 2)
     const targetH = Math.max(1, (y1 - y0) - pad * 2)
 
     // Fit the signature into the target rect preserving aspect ratio
-    const imgW = signatureImage.width
-    const imgH = signatureImage.height
+    // Use a scale factor similar to W-4 for consistent sizing
+    const scale = 0.3  // Slightly larger scale than W-4's 0.25 for better visibility
+    const imgW = signatureImage.width * scale
+    const imgH = signatureImage.height * scale
     const ratio = imgW / imgH
-    let drawW = targetW
+    let drawW = Math.min(targetW, imgW)
     let drawH = drawW / ratio
     if (drawH > targetH) {
       drawH = targetH
       drawW = drawH * ratio
     }
+    // Center the signature in the target rectangle
     const drawX = x0 + pad + (targetW - drawW) / 2
     const drawY = y0 + pad + (targetH - drawH) / 2
 

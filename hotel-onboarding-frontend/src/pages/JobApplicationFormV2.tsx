@@ -301,6 +301,22 @@ export default function JobApplicationFormV2() {
     }
   }
 
+  const saveDraft = () => {
+    // Save current application state as draft to localStorage
+    const draftKey = `job-application-draft-${propertyId}`
+    const draftData = {
+      formData,
+      currentStep,
+      stepCompletionStatus,
+      savedAt: new Date().toISOString()
+    }
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(draftData))
+    } catch (e) {
+      console.error('Failed to save draft:', e)
+    }
+  }
+
   const updateFormData = (stepData: any) => {
     setFormData(prev => ({ ...prev, ...stepData }))
   }

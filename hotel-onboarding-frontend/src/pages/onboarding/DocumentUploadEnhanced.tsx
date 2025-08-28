@@ -324,7 +324,7 @@ export default function DocumentUploadEnhanced({
       // Call backend API
       const apiUrl = import.meta.env.VITE_API_URL || '/api'
       const response = await axios.post(
-        `${apiUrl}/api/documents/process`,
+        `${apiUrl}/documents/process`,
         formData,
         {
           headers: {

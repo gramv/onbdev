@@ -30,6 +30,10 @@ export default function PDFViewer({
   const [pdfSrc, setPdfSrc] = useState<string>('')
 
   useEffect(() => {
+    // Reset loading and error when source changes
+    setLoading(true)
+    setError(null)
+
     if (pdfData) {
       // Convert base64 to blob URL
       try {

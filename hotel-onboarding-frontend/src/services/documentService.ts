@@ -284,7 +284,7 @@ class DocumentService {
 
 // Export singleton instance
 export const documentService = new DocumentService(
-  import.meta.env.VITE_API_URL || '/api/api'
+  import.meta.env.VITE_API_URL || '/api'
 )
 
 // Export types

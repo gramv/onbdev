@@ -1,0 +1,808 @@
+{
+  "version": "2024.02",
+  "last_updated": "2024-12-27",
+  "source": "Public bank websites and FDIC data - Top 20 US Banks",
+  "banks": [
+    {
+      "routing": "021000021",
+      "bank_name": "JPMorgan Chase Bank, N.A.",
+      "short_name": "Chase",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "026009593",
+      "bank_name": "Bank of America, N.A.",
+      "short_name": "Bank of America",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NC",
+      "verified": true
+    },
+    {
+      "routing": "121000248",
+      "bank_name": "Wells Fargo Bank, N.A.",
+      "short_name": "Wells Fargo",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "021000089",
+      "bank_name": "Citibank N.A.",
+      "short_name": "Citibank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "071000013",
+      "bank_name": "U.S. Bank N.A.",
+      "short_name": "US Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "MN",
+      "verified": true
+    },
+    {
+      "routing": "031000503",
+      "bank_name": "PNC Bank, N.A.",
+      "short_name": "PNC Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "PA",
+      "verified": true
+    },
+    {
+      "routing": "031100649",
+      "bank_name": "Capital One, N.A.",
+      "short_name": "Capital One",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "VA",
+      "verified": true
+    },
+    {
+      "routing": "021200025",
+      "bank_name": "TD Bank, N.A.",
+      "short_name": "TD Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "ME",
+      "verified": true
+    },
+    {
+      "routing": "061000104",
+      "bank_name": "Truist Bank",
+      "short_name": "Truist",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NC",
+      "verified": true
+    },
+    {
+      "routing": "124000054",
+      "bank_name": "Charles Schwab Bank, N.A.",
+      "short_name": "Charles Schwab",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NV",
+      "verified": true
+    },
+    {
+      "routing": "256074974",
+      "bank_name": "Navy Federal Credit Union",
+      "short_name": "Navy Federal",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "VA",
+      "verified": true
+    },
+    {
+      "routing": "031176110",
+      "bank_name": "Capital One 360",
+      "short_name": "Capital One 360",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "VA",
+      "verified": true
+    },
+    {
+      "routing": "124303120",
+      "bank_name": "Ally Bank",
+      "short_name": "Ally Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "UT",
+      "verified": true
+    },
+    {
+      "routing": "021001033",
+      "bank_name": "HSBC Bank USA, N.A.",
+      "short_name": "HSBC",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "026013673",
+      "bank_name": "Bank of America - California",
+      "short_name": "Bank of America CA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "322271627",
+      "bank_name": "JPMorgan Chase Bank - California",
+      "short_name": "Chase CA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "021200339",
+      "bank_name": "KeyBank N.A.",
+      "short_name": "KeyBank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OH",
+      "verified": true
+    },
+    {
+      "routing": "071000152",
+      "bank_name": "Fifth Third Bank",
+      "short_name": "Fifth Third",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OH",
+      "verified": true
+    },
+    {
+      "routing": "041000124",
+      "bank_name": "Huntington National Bank",
+      "short_name": "Huntington",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OH",
+      "verified": true
+    },
+    {
+      "routing": "065000090",
+      "bank_name": "Regions Bank",
+      "short_name": "Regions",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "AL",
+      "verified": true
+    },
+    {
+      "routing": "021502011",
+      "bank_name": "M&T Bank",
+      "short_name": "M&T Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "031101169",
+      "bank_name": "Citizens Bank",
+      "short_name": "Citizens",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "PA",
+      "verified": true
+    },
+    {
+      "routing": "267084131",
+      "bank_name": "Santander Bank, N.A.",
+      "short_name": "Santander",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "MA",
+      "verified": true
+    },
+    {
+      "routing": "101000019",
+      "bank_name": "BMO Harris Bank N.A.",
+      "short_name": "BMO Harris",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "IL",
+      "verified": true
+    },
+    {
+      "routing": "121000358",
+      "bank_name": "Wells Fargo - California",
+      "short_name": "Wells Fargo CA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "111000025",
+      "bank_name": "Bank of the West",
+      "short_name": "Bank of the West",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "062000080",
+      "bank_name": "Comerica Bank",
+      "short_name": "Comerica",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "113000023",
+      "bank_name": "Bank of America - Texas",
+      "short_name": "Bank of America TX",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "111900659",
+      "bank_name": "Wells Fargo - Texas",
+      "short_name": "Wells Fargo TX",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "322271627",
+      "bank_name": "Chase Bank - California",
+      "short_name": "Chase CA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "111000614",
+      "bank_name": "JPMorgan Chase Bank - Texas",
+      "short_name": "Chase TX",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "071000248",
+      "bank_name": "JPMorgan Chase Bank - Illinois",
+      "short_name": "Chase IL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "IL",
+      "verified": true
+    },
+    {
+      "routing": "083000137",
+      "bank_name": "JPMorgan Chase Bank - Michigan",
+      "short_name": "Chase MI",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "MI",
+      "verified": true
+    },
+    {
+      "routing": "044000037",
+      "bank_name": "JPMorgan Chase Bank - Ohio",
+      "short_name": "Chase OH",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OH",
+      "verified": true
+    },
+    {
+      "routing": "122100024",
+      "bank_name": "JPMorgan Chase Bank - Arizona",
+      "short_name": "Chase AZ",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "AZ",
+      "verified": true
+    },
+    {
+      "routing": "267084131",
+      "bank_name": "JPMorgan Chase Bank - Florida",
+      "short_name": "Chase FL", 
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "FL",
+      "verified": true
+    },
+    {
+      "routing": "125008547",
+      "bank_name": "JPMorgan Chase Bank - Washington",
+      "short_name": "Chase WA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "WA",
+      "verified": true
+    },
+    {
+      "routing": "325070760",
+      "bank_name": "JPMorgan Chase Bank - Oregon",
+      "short_name": "Chase OR",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OR",
+      "verified": true
+    },
+    {
+      "routing": "103000648",
+      "bank_name": "JPMorgan Chase Bank - Colorado",
+      "short_name": "Chase CO",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CO",
+      "verified": true
+    },
+    {
+      "routing": "063100277",
+      "bank_name": "Bank of America - Florida",
+      "short_name": "Bank of America FL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "FL",
+      "verified": true
+    },
+    {
+      "routing": "267084199",
+      "bank_name": "Chase Bank - Florida",
+      "short_name": "Chase FL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "FL",
+      "verified": true
+    },
+    {
+      "routing": "063000047",
+      "bank_name": "Wells Fargo - Florida",
+      "short_name": "Wells Fargo FL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "FL",
+      "verified": true
+    },
+    {
+      "routing": "031207607",
+      "bank_name": "Discover Bank",
+      "short_name": "Discover",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "DE",
+      "verified": true
+    },
+    {
+      "routing": "124001545",
+      "bank_name": "American Express National Bank",
+      "short_name": "American Express",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "UT",
+      "verified": true
+    },
+    {
+      "routing": "084003997",
+      "bank_name": "USAA Federal Savings Bank",
+      "short_name": "USAA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "271070801",
+      "bank_name": "Chime - Stride Bank",
+      "short_name": "Chime",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "OK",
+      "verified": true
+    },
+    {
+      "routing": "073972181",
+      "bank_name": "PayPal - Wells Fargo",
+      "short_name": "PayPal",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "211370545",
+      "bank_name": "SoFi Bank, N.A.",
+      "short_name": "SoFi",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CT",
+      "verified": true
+    },
+    {
+      "routing": "031101279",
+      "bank_name": "The Bancorp Bank",
+      "short_name": "Bancorp",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "DE",
+      "verified": true
+    },
+    {
+      "routing": "084106768",
+      "bank_name": "Cash App - Sutton Bank",
+      "short_name": "Cash App",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "OH",
+      "verified": true
+    },
+    {
+      "routing": "124303162",
+      "bank_name": "Green Dot Bank",
+      "short_name": "Green Dot",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "UT",
+      "verified": true
+    },
+    {
+      "routing": "073905527",
+      "bank_name": "Venmo - Wells Fargo",
+      "short_name": "Venmo",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "091311229",
+      "bank_name": "Prime Alliance Bank",
+      "short_name": "Prime Alliance",
+      "ach_supported": true,
+      "wire_supported": false,
+      "state": "UT",
+      "verified": true
+    },
+    {
+      "routing": "322286803",
+      "bank_name": "Pentagon Federal Credit Union",
+      "short_name": "PenFed",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "VA",
+      "verified": true
+    },
+    {
+      "routing": "321081669",
+      "bank_name": "SchoolsFirst Federal Credit Union",
+      "short_name": "SchoolsFirst",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "314074269",
+      "bank_name": "USAA - Texas",
+      "short_name": "USAA TX",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "021200025",
+      "bank_name": "TD Bank - Maine/Vermont/New Hampshire",
+      "short_name": "TD Bank ME/VT/NH",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "ME",
+      "verified": true
+    },
+    {
+      "routing": "031201360",
+      "bank_name": "TD Bank - New Jersey/Pennsylvania",
+      "short_name": "TD Bank NJ/PA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NJ",
+      "verified": true
+    },
+    {
+      "routing": "026013673",
+      "bank_name": "TD Bank - New York",
+      "short_name": "TD Bank NY",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "054001220",
+      "bank_name": "TD Bank - Maryland/DC/Virginia",
+      "short_name": "TD Bank MD/DC/VA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "MD",
+      "verified": true
+    },
+    {
+      "routing": "067014822",
+      "bank_name": "TD Bank - Florida",
+      "short_name": "TD Bank FL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "FL",
+      "verified": true
+    },
+    {
+      "routing": "053904483",
+      "bank_name": "TD Bank - South Carolina",
+      "short_name": "TD Bank SC",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "SC",
+      "verified": true
+    },
+    {
+      "routing": "063102152",
+      "bank_name": "Regions Bank - Alabama",
+      "short_name": "Regions AL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "AL",
+      "verified": true
+    },
+    {
+      "routing": "062005690",
+      "bank_name": "Regions Bank - Florida",
+      "short_name": "Regions FL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "FL",
+      "verified": true
+    },
+    {
+      "routing": "061101375",
+      "bank_name": "Regions Bank - Georgia",
+      "short_name": "Regions GA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "GA",
+      "verified": true
+    },
+    {
+      "routing": "084000024",
+      "bank_name": "Regions Bank - Tennessee",
+      "short_name": "Regions TN",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TN",
+      "verified": true
+    },
+    {
+      "routing": "113000505",
+      "bank_name": "Regions Bank - Texas",
+      "short_name": "Regions TX",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TX",
+      "verified": true
+    },
+    {
+      "routing": "021001208",
+      "bank_name": "Goldman Sachs Bank USA",
+      "short_name": "Goldman Sachs",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "084000026",
+      "bank_name": "First Horizon Bank",
+      "short_name": "First Horizon",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "TN",
+      "verified": true
+    },
+    {
+      "routing": "021001088",
+      "bank_name": "Morgan Stanley Private Bank",
+      "short_name": "Morgan Stanley",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "021000018",
+      "bank_name": "State Street Bank and Trust",
+      "short_name": "State Street",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "MA",
+      "verified": true
+    },
+    {
+      "routing": "021001486",
+      "bank_name": "BNY Mellon",
+      "short_name": "BNY Mellon",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "086001630",
+      "bank_name": "Zions Bank",
+      "short_name": "Zions Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "UT",
+      "verified": true
+    },
+    {
+      "routing": "121100782",
+      "bank_name": "Union Bank (MUFG)",
+      "short_name": "Union Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CA",
+      "verified": true
+    },
+    {
+      "routing": "053101121",
+      "bank_name": "SunTrust Bank (Now Truist)",
+      "short_name": "SunTrust",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "GA",
+      "verified": true
+    },
+    {
+      "routing": "031001175",
+      "bank_name": "Citizens Financial Group",
+      "short_name": "Citizens Bank",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "RI",
+      "verified": true
+    },
+    {
+      "routing": "021200866",
+      "bank_name": "Citizens Bank - Massachusetts",
+      "short_name": "Citizens MA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "MA",
+      "verified": true
+    },
+    {
+      "routing": "241070417",
+      "bank_name": "Citizens Bank - Pennsylvania",
+      "short_name": "Citizens PA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "PA",
+      "verified": true
+    },
+    {
+      "routing": "021313103",
+      "bank_name": "Citizens Bank - New York",
+      "short_name": "Citizens NY",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NY",
+      "verified": true
+    },
+    {
+      "routing": "065400137",
+      "bank_name": "Synovus Bank",
+      "short_name": "Synovus",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "GA",
+      "verified": true
+    },
+    {
+      "routing": "103112976",
+      "bank_name": "BOK Financial",
+      "short_name": "BOK Financial",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OK",
+      "verified": true
+    },
+    {
+      "routing": "071923828",
+      "bank_name": "Northern Trust",
+      "short_name": "Northern Trust",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "IL",
+      "verified": true
+    },
+    {
+      "routing": "043000261",
+      "bank_name": "PNC Bank - Pennsylvania",
+      "short_name": "PNC PA",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "PA",
+      "verified": true
+    },
+    {
+      "routing": "041000124",
+      "bank_name": "PNC Bank - Ohio",
+      "short_name": "PNC OH",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "OH",
+      "verified": true
+    },
+    {
+      "routing": "043002900",
+      "bank_name": "PNC Bank - New Jersey",
+      "short_name": "PNC NJ",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "NJ",
+      "verified": true
+    },
+    {
+      "routing": "071921891",
+      "bank_name": "PNC Bank - Illinois",
+      "short_name": "PNC IL",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "IL",
+      "verified": true
+    },
+    {
+      "routing": "253177049",
+      "bank_name": "BECU",
+      "short_name": "BECU",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "WA",
+      "verified": true
+    },
+    {
+      "routing": "021407912",
+      "bank_name": "Webster Bank",
+      "short_name": "Webster",
+      "ach_supported": true,
+      "wire_supported": true,
+      "state": "CT",
+      "verified": true
+    },
+    {
+      "routing": "011000015",
+      "bank_name": "Federal Reserve Bank",
+      "short_name": "Federal Reserve",
+      "ach_supported": false,
+      "wire_supported": true,
+      "state": "MA",
+      "verified": true
+    }
+  ]
+}

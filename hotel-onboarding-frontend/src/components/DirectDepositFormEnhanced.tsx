@@ -9,11 +9,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { CreditCard, Building, Plus, Trash2, AlertTriangle, Info, Upload, Check, Clock, FileText, Save } from 'lucide-react'
+import { CreditCard, Building, Plus, Trash2, AlertTriangle, Info, Upload, Check, Clock, FileText, Save, Loader2 } from 'lucide-react'
 import DocumentUpload from '@/components/DocumentUpload'
 import { DocumentType } from '@/types/documents'
 import { DocumentMetadata } from '@/services/documentService'
 import { useAutoSave } from '@/hooks/useAutoSave'
+import routingValidationService, { ValidationResult } from '@/services/routingValidationService'
 
 interface BankAccount {
   bankName: string
@@ -53,32 +54,21 @@ interface DirectDepositFormEnhancedProps {
   sessionToken?: string
 }
 
-// Routing number validation using ABA checksum
-const validateRoutingNumber = (routing: string): boolean => {
-  if (!/^\d{9}$/.test(routing)) return false
-  
-  // ABA checksum algorithm
-  const weights = [3, 7, 1, 3, 7, 1, 3, 7, 1]
-  let sum = 0
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(routing[i]) * weights[i]
-  }
-  return sum % 10 === 0
+// Routing number validation states
+interface RoutingValidationState {
+  isValidating: boolean
+  validationResult: ValidationResult | null
+  bankName: string
+  warnings: string[]
 }
 
-// Common bank routing numbers for validation
-const KNOWN_BANKS: Record<string, string> = {
-  '021000021': 'JPMorgan Chase',
-  '026009593': 'Bank of America',
-  '121000358': 'Wells Fargo',
-  '056008849': 'PNC Bank',
-  '053101121': 'SunTrust Bank',
-  '071000013': 'US Bank',
-  '111000025': 'Bank of the West',
-  '021200025': 'TD Bank',
-  '031100649': 'Capital One',
-  '021001033': 'HSBC'
-}
+// Initialize routing validation states for each account
+const createInitialValidationState = (): RoutingValidationState => ({
+  isValidating: false,
+  validationResult: null,
+  bankName: '',
+  warnings: []
+})
 
 export default function DirectDepositFormEnhanced({
   initialData = {},
@@ -118,6 +108,10 @@ export default function DirectDepositFormEnhanced({
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({})
   const [showErrors, setShowErrors] = useState(false)
   const [isValid, setIsValid] = useState(false)
+  
+  // Routing validation states
+  const [primaryRoutingValidation, setPrimaryRoutingValidation] = useState<RoutingValidationState>(createInitialValidationState())
+  const [additionalRoutingValidations, setAdditionalRoutingValidations] = useState<RoutingValidationState[]>([])
 
   // Update form data when initialData changes (for navigation back)
   useEffect(() => {
@@ -243,7 +237,7 @@ export default function DirectDepositFormEnhanced({
       }
       if (!formData.primaryAccount.routingNumber.trim()) {
         newErrors['primaryAccount.routingNumber'] = t('required_field')
-      } else if (!validateRoutingNumber(formData.primaryAccount.routingNumber)) {
+      } else if (!routingValidationService.validateABAChecksum(formData.primaryAccount.routingNumber)) {
         newErrors['primaryAccount.routingNumber'] = t('invalid_routing')
       }
       if (!formData.primaryAccount.accountNumber.trim()) {
@@ -275,7 +269,7 @@ export default function DirectDepositFormEnhanced({
           }
           if (!account.routingNumber.trim()) {
             newErrors[`additionalAccounts.${index}.routingNumber`] = t('required_field')
-          } else if (!validateRoutingNumber(account.routingNumber)) {
+          } else if (!routingValidationService.validateABAChecksum(account.routingNumber)) {
             newErrors[`additionalAccounts.${index}.routingNumber`] = t('invalid_routing')
           }
           if (!account.accountNumber.trim()) {
@@ -331,6 +325,89 @@ export default function DirectDepositFormEnhanced({
   }, [formData, validateForm])
 
 
+  // Handle routing number validation
+  const validateRoutingAsync = useCallback(async (
+    routingNumber: string, 
+    isPrimary: boolean = true, 
+    accountIndex: number = 0
+  ) => {
+    if (routingNumber.length !== 9) return
+    
+    const updateValidation = (state: RoutingValidationState) => {
+      if (isPrimary) {
+        setPrimaryRoutingValidation(state)
+      } else {
+        setAdditionalRoutingValidations(prev => {
+          const newValidations = [...prev]
+          newValidations[accountIndex] = state
+          return newValidations
+        })
+      }
+    }
+    
+    // Set validating state
+    updateValidation({
+      isValidating: true,
+      validationResult: null,
+      bankName: '',
+      warnings: []
+    })
+    
+    try {
+      const result = await routingValidationService.validateRouting(routingNumber)
+      
+      // Update bank name if valid
+      if (result.valid && result.bank) {
+        const warnings = routingValidationService.getBankWarnings(routingNumber)
+        
+        updateValidation({
+          isValidating: false,
+          validationResult: result,
+          bankName: result.bank.bank_name || result.bank.short_name,
+          warnings
+        })
+        
+        // Auto-fill bank name in form
+        if (isPrimary) {
+          setFormData(prev => ({
+            ...prev,
+            primaryAccount: {
+              ...prev.primaryAccount,
+              bankName: result.bank!.bank_name
+            }
+          }))
+        } else {
+          setFormData(prev => {
+            const newAccounts = [...prev.additionalAccounts]
+            newAccounts[accountIndex] = {
+              ...newAccounts[accountIndex],
+              bankName: result.bank!.bank_name
+            }
+            return { ...prev, additionalAccounts: newAccounts }
+          })
+        }
+      } else {
+        updateValidation({
+          isValidating: false,
+          validationResult: result,
+          bankName: '',
+          warnings: []
+        })
+      }
+    } catch (error) {
+      console.error('Routing validation error:', error)
+      updateValidation({
+        isValidating: false,
+        validationResult: {
+          valid: false,
+          error: 'Unable to validate routing number'
+        },
+        bankName: '',
+        warnings: []
+      })
+    }
+  }, [])
+
   const handleInputChange = (field: string, value: any) => {
     const keys = field.split('.')
     if (keys.length === 1) {
@@ -350,15 +427,9 @@ export default function DirectDepositFormEnhanced({
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
 
-    // Auto-detect bank from routing number
-    if (field.endsWith('routingNumber') && value.length === 9) {
-      const bankName = KNOWN_BANKS[value]
-      if (bankName && field.startsWith('primaryAccount')) {
-        setFormData(prev => ({
-          ...prev,
-          primaryAccount: { ...prev.primaryAccount, bankName }
-        }))
-      }
+    // Trigger async routing validation when routing number changes
+    if (field === 'primaryAccount.routingNumber' && value.length === 9) {
+      validateRoutingAsync(value, true)
     }
   }
 
@@ -387,13 +458,9 @@ export default function DirectDepositFormEnhanced({
       setErrors(prev => ({ ...prev, [fieldKey]: '' }))
     }
 
-    // Auto-detect bank from routing number
+    // Trigger async routing validation for additional accounts
     if (field === 'routingNumber' && value.length === 9) {
-      const bankName = KNOWN_BANKS[value]
-      if (bankName) {
-        newAccounts[index].bankName = bankName
-        setFormData(prev => ({ ...prev, additionalAccounts: newAccounts }))
-      }
+      validateRoutingAsync(value, false, index)
     }
   }
 
@@ -609,16 +676,33 @@ export default function DirectDepositFormEnhanced({
                     placeholder="9-digit routing number"
                     maxLength={9}
                   />
-                  {formData.primaryAccount.routingNumber.length === 9 && !errors['primaryAccount.routingNumber'] && (
+                  {primaryRoutingValidation.isValidating && (
+                    <Loader2 className="absolute right-3 top-3 h-4 w-4 text-gray-400 animate-spin" />
+                  )}
+                  {!primaryRoutingValidation.isValidating && 
+                   primaryRoutingValidation.validationResult?.valid && 
+                   formData.primaryAccount.routingNumber.length === 9 && (
                     <Check className="absolute right-3 top-3 h-4 w-4 text-green-600" />
                   )}
                 </div>
                 {shouldShowError('primaryAccount.routingNumber') && errors['primaryAccount.routingNumber'] && (
                   <p className="text-red-600 text-xs mt-1">{errors['primaryAccount.routingNumber']}</p>
                 )}
-                {KNOWN_BANKS[formData.primaryAccount.routingNumber] && (
-                  <p className="text-green-600 text-xs mt-1">{t('bank_detected')}: {KNOWN_BANKS[formData.primaryAccount.routingNumber]}</p>
+                {primaryRoutingValidation.bankName && (
+                  <p className="text-green-600 text-xs mt-1 flex items-center">
+                    <Building className="h-3 w-3 mr-1" />
+                    {t('bank_detected')}: {primaryRoutingValidation.bankName}
+                    {primaryRoutingValidation.validationResult?.bank?.ach_supported === false && (
+                      <span className="ml-2 text-amber-600">(Wire only)</span>
+                    )}
+                  </p>
                 )}
+                {primaryRoutingValidation.warnings.map((warning, idx) => (
+                  <p key={idx} className="text-amber-600 text-xs mt-1 flex items-center">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    {warning}
+                  </p>
+                ))}
               </div>
               
               {/* Account number and confirmation */}

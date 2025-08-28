@@ -6,7 +6,6 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, date
 import io
 import base64
-import logging
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
@@ -19,9 +18,6 @@ try:
 except ImportError:
     HAS_PYMUPDF = False
     print("Warning: PyMuPDF not available. PDF form filling will use fallback methods.")
-
-# Set up logger
-logger = logging.getLogger(__name__)
 
 try:
     from PyPDF2 import PdfReader, PdfWriter
@@ -251,8 +247,7 @@ class PDFFormFiller:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.form_templates = {
             "i9": os.path.join(base_dir, "static", "i9-form-template.pdf"),
-            "w4": os.path.join(base_dir, "static", "w4-form-template.pdf"),
-            "direct_deposit": os.path.join(base_dir, "static", "direct-deposit-template.pdf")
+            "w4": os.path.join(base_dir, "static", "w4-form-template.pdf")
         }
         
         # Validate template files exist
@@ -335,341 +330,6 @@ class PDFFormFiller:
         except Exception as e:
             print(f"Error filling W-4 form: {e}")
             raise Exception(f"Failed to generate official W-4 form: {e} - No fallback allowed for IRS compliance")
-    
-    def fill_direct_deposit_form(self, employee_data: Dict[str, Any]) -> bytes:
-        """Fill Direct Deposit form with employee data using the official fillable template"""
-        if not HAS_PYMUPDF:
-            raise Exception("PyMuPDF required for official Direct Deposit template")
-            
-        logger.info(f"Filling Direct Deposit form with data keys: {list(employee_data.keys())}")
-        logger.info(f"Employee data sample: firstName={employee_data.get('firstName')}, email={employee_data.get('email')}")
-            
-        try:
-            # Open the official Direct Deposit PDF
-            doc = fitz.open(self.form_templates["direct_deposit"])
-            
-            # Get the first page (Direct Deposit form is single page)
-            page = doc[0]
-            
-            fields_set_count = 0
-            text_fields_set_count = 0
-
-            # Helper function to safely set field value
-            def set_field_value(field_name: str, value: Any):
-                """Safely set a form field value"""
-                if value is None:
-                    return
-                    
-                found = False
-                for widget in page.widgets():
-                    if widget.field_name == field_name:
-                        if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
-                            # For checkboxes, set to "Yes" or clear
-                            if value:
-                                widget.field_value = "Yes"
-                                logger.info(f"[DD-PDF] Set checkbox {field_name} = Yes")
-                            else:
-                                widget.field_value = "Off"
-                        else:
-                            # For text fields
-                            widget.field_value = str(value)
-                            logger.info(f"[DD-PDF] Set field {field_name} = {value}")
-                        # Force appearance stream generation
-                        widget.update()
-                        found = True
-                        nonlocal fields_set_count
-                        fields_set_count += 1
-                        break
-                if not found:
-                    logger.warning(f"[DD-PDF] Field not found in template: {field_name}")
-            
-            # Log all widget names once for diagnostics
-            try:
-                widget_names = [(w.field_name, w.field_type) for w in page.widgets()]
-                logger.info(f"[DD-PDF] Template widgets: {widget_names}")
-            except Exception:
-                pass
-
-            # Employee Information Section
-            # Get employee name from the data (combining first and last name)
-            first_name = employee_data.get('firstName', '') or employee_data.get('first_name', '')
-            last_name = employee_data.get('lastName', '') or employee_data.get('last_name', '')
-            full_name = f"{first_name} {last_name}".strip()
-            
-            set_field_value("employee_name", full_name)
-            if full_name:
-                text_fields_set_count += 1
-            
-            # SSN - mask it for security if needed
-            raw_ssn = employee_data.get('ssn', '') or employee_data.get('social_security_number', '')
-            # Normalize SSN to digits and format ###-##-#### when 9 digits
-            import re
-            digits = re.sub(r"\D", "", str(raw_ssn))
-            ssn = f"{digits[0:3]}-{digits[3:5]}-{digits[5:9]}" if len(digits) == 9 else raw_ssn
-            
-            # Enhanced logging for SSN debugging
-            logger.info(f"[DD-Template] SSN Debug:")
-            logger.info(f"[DD-Template] - Raw SSN from data: {raw_ssn[:3] + '****' if raw_ssn else 'empty'}")
-            logger.info(f"[DD-Template] - Formatted SSN: {ssn[:3] + '****' if ssn else 'empty'}")
-            logger.info(f"[DD-Template] - Setting field 'social_security_number' with value")
-            
-            set_field_value("social_security_number", ssn)
-            if ssn:
-                logger.info(f"[DD-Template] SSN field successfully set in PDF template")
-                text_fields_set_count += 1
-            else:
-                logger.warning(f"[DD-Template] No SSN value to set in PDF template")
-            
-            # Email
-            email = employee_data.get('email', '') or employee_data.get('employee_email', '')
-            set_field_value("employee_email", email)
-            if email:
-                text_fields_set_count += 1
-            
-            # Date (current date when form is generated)
-            from datetime import datetime
-            current_date = datetime.now().strftime("%m/%d/%Y")
-            set_field_value("employee_date", current_date)
-            if current_date:
-                text_fields_set_count += 1
-            
-            # Note: Employee signature is handled later in the code at the correct position (line ~627)
-            # Removed duplicate signature insertion that was placing it in wrong location
-            
-            # Bank Account Information
-            # Handle nested structure from frontend
-            primary_account = employee_data.get('primaryAccount', {})
-            if not primary_account and employee_data.get('formData'):
-                # Check if data is nested under formData
-                form_data = employee_data.get('formData', {})
-                primary_account = form_data.get('primaryAccount', {})
-            
-            # Also check for flat structure (if data was flattened)
-            bank_name = primary_account.get('bankName') or employee_data.get('bankName', '')
-            routing_number = primary_account.get('routingNumber') or employee_data.get('routingNumber', '')
-            account_number = primary_account.get('accountNumber') or employee_data.get('accountNumber', '')
-            account_type = primary_account.get('accountType') or employee_data.get('accountType', '')
-            
-            # Bank 1 fields (primary account)
-            if bank_name or routing_number or account_number:
-                set_field_value("bank1_name", bank_name)
-                set_field_value("bank1_routing_number", routing_number)
-                set_field_value("bank1_account_number", account_number)
-                
-                # Set account type checkboxes
-                set_field_value("bank1_checking", account_type == "checking")
-                set_field_value("bank1_savings", account_type == "savings")
-                set_field_value("bank1_other", account_type not in ["checking", "savings"] and account_type != "")
-                
-                # Primary account deposit logic: if deposit amount present, set amount; else entire net
-                primary_deposit_amount = primary_account.get('depositAmount') or employee_data.get('depositAmount', '')
-                if primary_deposit_amount:
-                    set_field_value("bank1_deposit_amount", primary_deposit_amount)
-                    set_field_value("bank1_entire_net_amount", False)
-                else:
-                    set_field_value("bank1_entire_net_amount", True)
-            
-            # Bank 2 (secondary account if exists)
-            secondary_account = employee_data.get('secondaryAccount', {})
-            if secondary_account:
-                set_field_value("bank2_name", secondary_account.get('bankName', ''))
-                set_field_value("bank2_routing_number", secondary_account.get('routingNumber', ''))
-                set_field_value("bank2_account_number", secondary_account.get('accountNumber', ''))
-                
-                account_type_2 = secondary_account.get('accountType', '')
-                set_field_value("bank2_checking", account_type_2 == "checking")
-                set_field_value("bank2_savings", account_type_2 == "savings")
-                set_field_value("bank2_other", account_type_2 not in ["checking", "savings"] and account_type_2 != "")
-                
-                # If there's a specific amount for secondary
-                deposit_amount = secondary_account.get('depositAmount', '')
-                if deposit_amount:
-                    set_field_value("bank2_deposit_amount", deposit_amount)
-                else:
-                    set_field_value("bank2_entire_net_amount", True)
-            
-            # Company fields - leaving empty as requested (will be filled by payroll/HR later)
-            # set_field_value("company_code", "")
-            # set_field_value("company_name", "")
-            # set_field_value("employee_file_number", "")
-            # set_field_value("payroll_mgr_name", "")
-            # set_field_value("payroll_mgr_signature", "")
-
-            # Optional tertiary account mapping if provided
-            tertiary_account = employee_data.get('tertiaryAccount', {})
-            if tertiary_account:
-                set_field_value("bank3_name", tertiary_account.get('bankName', ''))
-                set_field_value("bank3_routing_number", tertiary_account.get('routingNumber', ''))
-                set_field_value("bank3_account_number", tertiary_account.get('accountNumber', ''))
-                account_type_3 = tertiary_account.get('accountType', '')
-                set_field_value("bank3_checking", account_type_3 == "checking")
-                set_field_value("bank3_savings", account_type_3 == "savings")
-                set_field_value("bank3_other", account_type_3 not in ["checking", "savings"] and account_type_3 != "")
-                amt3 = tertiary_account.get('depositAmount', '')
-                if amt3:
-                    set_field_value("bank3_deposit_amount", amt3)
-                else:
-                    set_field_value("bank3_entire_net_amount", True)
-
-            # If core text fields didn't bind, force fallback (prevents empty previews)
-            if text_fields_set_count < 2:
-                raise Exception("DirectDeposit template text fields not bound; forcing fallback")
-
-            # Ensure SSN text is visible near its label in case widget appearance is suppressed
-            try:
-                if ssn:
-                    # Draw SSN into the known SSN field rectangle if present, else near the label
-                    ssn_rect = None
-                    try:
-                        for w in page.widgets():
-                            if w.field_name == "social_security_number":
-                                ssn_rect = w.rect
-                                break
-                    except Exception:
-                        ssn_rect = None
-                    if ssn_rect:
-                        page.insert_text((ssn_rect.x0 + 2, ssn_rect.y0 + (ssn_rect.height * 0.75)), str(ssn), fontsize=9, color=(0, 0, 0), fontname="helv")
-                    else:
-                        ssn_labels = page.search_for("Social Security #") or page.search_for("Social Security")
-                        if ssn_labels:
-                            lab = ssn_labels[0]
-                            page.insert_text((lab.x1 + 8, lab.y0 + (lab.height * 0.75)), str(ssn), fontsize=9, color=(0, 0, 0), fontname="helv")
-            except Exception:
-                pass
-
-            # If we didn't set any fields, the template field names likely don't match
-            if fields_set_count == 0:
-                raise Exception("No matching fields found in direct deposit template")
-            
-            # IMPORTANT: Generate appearance streams AND add text overlay for guaranteed visibility
-            # This ensures the filled values appear in all PDF viewers
-            for page in doc:
-                for widget in page.widgets():
-                    # Skip SSN field to prevent double overlay
-                    if widget.field_name == "social_security_number":
-                        logger.info(f"[DD-PDF] Skipping text overlay for SSN field to prevent duplication")
-                        widget.update()  # Still update the widget appearance
-                        continue
-                    
-                    if widget.field_value and widget.field_value not in ["Off", ""]:
-                        # Update widget with appearance generation
-                        widget.update()
-                        
-                        # Add text overlay for guaranteed visibility
-                        rect = widget.rect
-                        
-                        # For checkboxes, draw a checkmark
-                        if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
-                            if widget.field_value == "Yes":
-                                # Draw a checkmark in the checkbox
-                                check_path = page.new_shape()
-                                # Draw checkmark path
-                                check_path.draw_line((rect.x0 + 2, rect.y0 + rect.height/2),
-                                                    (rect.x0 + rect.width/3, rect.y0 + rect.height - 2))
-                                check_path.draw_line((rect.x0 + rect.width/3, rect.y0 + rect.height - 2),
-                                                    (rect.x0 + rect.width - 2, rect.y0 + 2))
-                                check_path.finish(color=(0, 0, 0), width=1.5)
-                                logger.info(f"[DD-PDF] Drew checkmark for {widget.field_name} at ({rect.x0}, {rect.y0})")
-                        else:
-                            # For text fields, overlay the text
-                            # Calculate appropriate font size based on field height
-                            font_size = min(10, rect.height * 0.7)
-                            
-                            # Insert text at field position
-                            # Note: PDF y-coordinate is from bottom, so we adjust
-                            text_y = rect.y0 + (rect.height * 0.75)
-                            
-                            page.insert_text(
-                                (rect.x0 + 2, text_y),  # Slight padding from left
-                                str(widget.field_value),
-                                fontsize=font_size,
-                                color=(0, 0, 0),
-                                fontname="helv"  # Helvetica
-                            )
-                            logger.info(f"[DD-PDF] Overlaid text '{widget.field_value[:20]}...' for {widget.field_name} at ({rect.x0}, {text_y})")
-            
-            # Add signature image if provided
-            signature_data = employee_data.get('signatureData', None)
-            if signature_data:
-                try:
-                    # Extract base64 signature
-                    if isinstance(signature_data, dict):
-                        signature_base64 = signature_data.get('signature', '')
-                    else:
-                        signature_base64 = signature_data
-                    
-                    if signature_base64 and signature_base64.startswith('data:image'):
-                        signature_base64 = signature_base64.split(',')[1]
-                    
-                    if signature_base64:
-                        # Decode signature image
-                        signature_bytes = base64.b64decode(signature_base64)
-                        
-                        # Process signature to ensure transparency (like I-9 and W-4)
-                        try:
-                            from PIL import Image
-                            import io
-                            
-                            # Open signature image
-                            img = Image.open(io.BytesIO(signature_bytes))
-                            
-                            # Convert to RGBA to handle transparency
-                            if img.mode != 'RGBA':
-                                img = img.convert('RGBA')
-                            
-                            # Get image data
-                            datas = img.getdata()
-                            
-                            # Make white pixels transparent
-                            newData = []
-                            for item in datas:
-                                # If pixel is white or near-white, make it transparent
-                                if item[0] > 240 and item[1] > 240 and item[2] > 240:
-                                    newData.append((255, 255, 255, 0))  # Transparent
-                                else:
-                                    # Keep the original pixel but ensure full opacity for non-white
-                                    newData.append((item[0], item[1], item[2], 255))
-                            
-                            img.putdata(newData)
-                            
-                            # Save processed image to bytes
-                            output = io.BytesIO()
-                            img.save(output, format='PNG')
-                            output.seek(0)
-                            processed_signature_bytes = output.read()
-                            
-                        except Exception as e:
-                            logger.warning(f"[DD-PDF] Could not process signature for transparency: {e}")
-                            processed_signature_bytes = signature_bytes
-                        
-                        # Direct Deposit signature position - employee signature line
-                        # Coordinates based on actual form layout
-                        # x: 135-360 (middle area), y: 378-401 (lower middle of form)
-                        rect = fitz.Rect(135, 378, 360, 401)  # Actual employee signature location
-                        
-                        # Insert signature image on first page with transparency
-                        page = doc[0]
-                        page.insert_image(rect, pixmap=fitz.Pixmap(processed_signature_bytes))
-                        
-                        logger.info(f"[DD-PDF] Added transparent signature image at ({rect.x0}, {rect.y0})")
-                except Exception as sig_err:
-                    logger.error(f"[DD-PDF] Failed to add signature: {sig_err}")
-                    # Continue without signature rather than failing
-            
-            # Save with proper options for form field visibility
-            pdf_bytes = doc.write(garbage=3, deflate=True)
-            doc.close()
-            
-            # Log summary of what was filled
-            logger.info(f"Direct Deposit PDF generated for {first_name} {last_name}")
-            if signature_data:
-                logger.info("[DD-PDF] PDF includes digital signature")
-            
-            return pdf_bytes
-            
-        except Exception as e:
-            print(f"Error filling Direct Deposit form: {e}")
-            raise Exception(f"Failed to generate Direct Deposit form: {e}")
     
     def create_health_insurance_form(self, employee_data: Dict[str, Any]) -> bytes:
         """Create health insurance enrollment form based on packet template"""
@@ -1244,11 +904,7 @@ class PDFFormFiller:
                 W4_FORM_FIELDS["step4c_extra_withholding"]: str(int(self._safe_numeric(employee_data.get('extra_withholding', 0)))) if self._safe_numeric(employee_data.get('extra_withholding', 0)) > 0 else '',
                 
                 # Step 5: Signature Date (IRS date format)
-                W4_FORM_FIELDS["employee_signature_date"]: self._format_date(employee_data.get('signature_date', datetime.now().strftime('%Y-%m-%d'))),
-
-                # Employer section (manager-provided). Only filled when provided to avoid employee-side edits
-                # First date of employment should reflect the manager-approved start date
-                W4_FORM_FIELDS["first_date_employment"]: self._format_date(employee_data.get('first_date_employment')) if employee_data.get('first_date_employment') else ''
+                W4_FORM_FIELDS["employee_signature_date"]: self._format_date(employee_data.get('signature_date', datetime.now().strftime('%Y-%m-%d')))
             }
             
             # DEBUG: Log which date field we're filling
@@ -1281,14 +937,15 @@ class PDFFormFiller:
                     if field_name and ("f1_14" in field_name or "f1_15" in field_name):
                         print(f"DEBUG: Found date/employer field: '{field_name}' at rect: {list(widget.rect)}")
                     
-                    # CRITICAL: Skip employer section fields by default, EXCEPT when explicitly provided
+                    # CRITICAL: Skip employer section fields - these should only be filled by manager
                     if field_name and ("EmployerSection" in field_name or field_name.endswith("f1_15[0]")):
-                        # Allow the specific employer date field if value provided
-                        if field_name == W4_FORM_FIELDS["first_date_employment"] and field_mappings.get(W4_FORM_FIELDS["first_date_employment"]):
-                            pass  # allow filling
-                        else:
-                            print(f"⚠ SKIPPING EMPLOYER FIELD: '{field_name}' - Reserved for manager approval")
-                            continue
+                        print(f"⚠ SKIPPING EMPLOYER FIELD: '{field_name}' - Reserved for manager approval")
+                        continue
+                    
+                    # Also skip if this is the employer's date field that might be confused with employee date
+                    if field_name == "topmostSubform[0].Page1[0].EmployerSection[0].f1_14[0]":
+                        print(f"⚠ SKIPPING EMPLOYER DATE FIELD: '{field_name}' - First date of employment for manager only")
+                        continue
                     
                     # CRITICAL: The employee signature date field should be in Step 5, not employer section
                     # Based on PDF analysis, both f1_14[0] and f1_15[0] at y=730 are in employer section
@@ -1301,20 +958,6 @@ class PDFFormFiller:
                         field_value = field_mappings[field_name]
                         self._set_widget_value(widget, field_value)
                         print(f"✓ IRS COMPLIANCE: Filled field '{field_name}' with value '{field_value}'")
-                        # Ensure the signature date visually appears at the exact spot requested
-                        if field_name == W4_FORM_FIELDS["employee_signature_date"] and field_value:
-                            try:
-                                # Coordinates provided use PyMuPDF coordinate system (bottom-left origin)
-                                page.insert_text(
-                                    (508.0, 122.88),
-                                    str(field_value),
-                                    fontname="helv",
-                                    fontsize=10,
-                                    color=(0, 0, 0)
-                                )
-                                print("✓ Placed W-4 employee signature date overlay at (508, 122.88)")
-                            except Exception as overlay_err:
-                                print(f"⚠ Failed to overlay W-4 signature date text: {overlay_err}")
                     else:
                         # Log unmapped fields for compliance verification
                         print(f"⚠ UNMAPPED FIELD: '{field_name}' - verify IRS compliance")
@@ -1376,27 +1019,10 @@ class PDFFormFiller:
             
             # Define signature position based on form type
             if signature_type == "employee_i9":
-                # Place at explicit rectangle derived from provided polygon points
-                # Points: (151.33,435.54),(291.33,431.54),(296,431.54),(222,424.21),(192.67,442.21),(160.67,424.88)
-                pts = [
-                    (151.33, 435.54),
-                    (291.33, 431.54),
-                    (296.00, 431.54),
-                    (222.00, 424.21),
-                    (192.67, 442.21),
-                    (160.67, 424.88),
-                ]
-                xs = [p[0] for p in pts]
-                ys = [p[1] for p in pts]
-                x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
-                # Slightly expand to allow a tiny overflow as requested
-                expand_x, expand_y = 2.0, 2.0
-                rect = fitz.Rect(max(0, x0 - expand_x), max(0, y0 - expand_y), x1 + expand_x, y1 + expand_y)
-                page_num = 0
-
-                if rect is None:
-                    # Fallback to conservative default if anchor not found
-                    rect = fitz.Rect(60, 350, 240, 390)  # width:180, height:40
+                # I-9 employee signature position - matches frontend exactly
+                # Frontend uses: x:50, y:330 with bottom-left origin
+                # PyMuPDF also uses bottom-left origin, so coordinates match directly
+                rect = fitz.Rect(50, 330, 250, 380)  # x1, y1, x2, y2 (width:200, height:50)
             elif signature_type == "employer_i9":
                 # I-9 employer signature position (approximate)
                 rect = fitz.Rect(350, 750, 500, 780)
@@ -2220,337 +1846,346 @@ class PDFFormFiller:
         buffer.seek(0)
         return buffer.read()
     
-    def create_weapons_policy_pdf(self, employee_data: Dict[str, Any], signature_data: Dict[str, Any] = None, is_preview: bool = False) -> bytes:
-        """Create weapons policy PDF with optional signature"""
-        from reportlab.pdfgen import canvas
-        from reportlab.lib import colors
-        from reportlab.lib.utils import simpleSplit
-        import base64
-        
+    def create_weapons_policy_pdf(self, employee_data: Dict[str, Any]) -> bytes:
+        """Create weapons policy PDF"""
         buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=letter)
-        width, height = letter
+        doc = SimpleDocTemplate(buffer, pagesize=letter,
+                              rightMargin=72, leftMargin=72,
+                              topMargin=72, bottomMargin=36)
         
-        # Title
-        c.setFont("Helvetica-Bold", 18)
-        c.drawCentredString(width / 2, height - 50, "WEAPONS PROHIBITION POLICY")
+        styles = getSampleStyleSheet()
+        story = []
         
-        # Employee information
-        c.setFont("Helvetica", 12)
+        story.append(Paragraph("WEAPONS PROHIBITION POLICY", styles['Title']))
+        story.append(Spacer(1, 20))
+        
         employee_name = f"{employee_data.get('firstName', '')} {employee_data.get('lastName', '')}".strip()
-        c.drawString(72, height - 100, f"Employee: {employee_name}")
-        c.drawString(72, height - 120, f"Property: {employee_data.get('property_name', 'Hotel Property')}")
-        c.drawString(72, height - 140, f"Date: {datetime.now().strftime('%B %d, %Y')}")
+        story.append(Paragraph(f"Employee: {employee_name}", styles['Normal']))
+        story.append(Paragraph(f"Property: {employee_data.get('property_name', 'Hotel Property')}", styles['Normal']))
+        story.append(Paragraph(f"Date: {datetime.now().strftime('%B %d, %Y')}", styles['Normal']))
+        story.append(Spacer(1, 30))
         
-        # Policy text
-        c.setFont("Helvetica", 11)
-        policy_text = (
+        story.append(Paragraph(
             "The Company strictly forbids any employee to possess, concealed, or otherwise, any weapon on their person "
             "while on the Hotel premises. This includes but is not limited to fire arms, knives, etc and regardless of "
             "whether an Employee possesses any governmental licenses and/or approvals. The Company also forbids brandishing "
             "firearms in the parking lot (other than for lawful self-defense) and prohibiting threats or threatening "
             "behavior of any type. Violation of this policy may lead to disciplinary action, up to and including "
-            "termination of employment."
-        )
+            "termination of employment.",
+            styles['BodyText']
+        ))
         
-        # Word wrap the policy text
-        text_y = height - 180
-        lines = simpleSplit(policy_text, "Helvetica", 11, width - 144)
-        for line in lines:
-            c.drawString(72, text_y, line)
-            text_y -= 15
-        
-        text_y -= 30
-        
-        # Acknowledgment text
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(72, text_y, "ACKNOWLEDGMENT")
-        text_y -= 20
-        
-        c.setFont("Helvetica", 11)
-        ack_text = (
-            "I have read and understood the Weapons Prohibition Policy. I understand that violation of this policy "
-            "may result in disciplinary action up to and including termination of employment."
-        )
-        
-        lines = simpleSplit(ack_text, "Helvetica", 11, width - 144)
-        for line in lines:
-            c.drawString(72, text_y, line)
-            text_y -= 15
-        
-        text_y -= 40
-        
-        # Signature section
-        c.setFont("Helvetica", 12)
-        c.drawString(72, text_y, "Employee Signature:")
-        c.line(200, text_y - 2, 400, text_y - 2)
-        
-        # Add signature if provided and not preview
-        if not is_preview and signature_data and signature_data.get('signatureImage'):
-            try:
-                sig_data = signature_data.get('signatureImage', '')
-                if sig_data.startswith('data:image'):
-                    sig_data = sig_data.split(',')[1]
-                
-                # Decode and process signature
-                sig_bytes = base64.b64decode(sig_data)
-                
-                from PIL import Image as PILImage
-                import io as pil_io
-                from reportlab.lib.utils import ImageReader
-                
-                # Open and process signature image
-                sig_img = PILImage.open(pil_io.BytesIO(sig_bytes))
-                
-                if sig_img.mode != 'RGBA':
-                    sig_img = sig_img.convert('RGBA')
-                
-                # Create white background and composite
-                background = PILImage.new('RGBA', sig_img.size, (255, 255, 255, 255))
-                
-                # Process pixels for black signature
-                data = sig_img.getdata()
-                newData = []
-                for item in data:
-                    if item[3] < 50 or (item[0] > 240 and item[1] > 240 and item[2] > 240):
-                        newData.append((255, 255, 255, 0))  # Transparent
-                    else:
-                        newData.append((0, 0, 0, item[3]))  # Black with original alpha
-                
-                sig_img.putdata(newData)
-                final_img = PILImage.alpha_composite(background, sig_img)
-                final_img = final_img.convert('RGB')
-                
-                # Resize to fit
-                final_img.thumbnail((180, 40), PILImage.Resampling.LANCZOS)
-                
-                # Save to bytes
-                img_buffer = pil_io.BytesIO()
-                final_img.save(img_buffer, format='PNG')
-                img_buffer.seek(0)
-                
-                # Draw signature
-                c.saveState()
-                img_reader = ImageReader(img_buffer)
-                c.drawImage(img_reader, 210, text_y - 30, width=final_img.width, height=final_img.height, preserveAspectRatio=True, mask='auto')
-                c.restoreState()
-                
-            except Exception as e:
-                # Fallback to text
-                c.setFont("Helvetica-Oblique", 12)
-                c.drawString(210, text_y, signature_data.get('name', employee_name))
-        elif is_preview:
-            c.setFont("Helvetica", 10)
-            c.setFillColor(colors.HexColor('#6b7280'))
-            c.drawString(210, text_y, "[Signature will appear here]")
-            c.setFillColor(colors.black)
-        
-        text_y -= 40
-        
-        # Date signed
-        c.setFont("Helvetica", 12)
-        c.drawString(72, text_y, "Date:")
-        c.line(110, text_y - 2, 250, text_y - 2)
-        if not is_preview and signature_data:
-            c.drawString(115, text_y, datetime.now().strftime('%m/%d/%Y'))
-        elif is_preview:
-            c.setFillColor(colors.HexColor('#6b7280'))
-            c.drawString(115, text_y, "[Date will appear here]")
-            c.setFillColor(colors.black)
-        
-        # Save the PDF
-        c.save()
+        doc.build(story)
         buffer.seek(0)
         return buffer.read()
     
-    def add_signature_to_pdf(self, pdf_bytes: bytes, signature_data: Any, signature_type: str = "employee_i9") -> bytes:
-        """
-        Add signature overlay to existing PDF with enhancement for visibility
+    def create_direct_deposit_pdf(self, employee_data: Dict[str, Any]) -> bytes:
+        """Create complete ADP-style direct deposit enrollment form PDF"""
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=letter)
+        width, height = letter
         
-        Args:
-            pdf_bytes: The PDF file as bytes
-            signature_data: Base64 encoded signature image or dict with 'signature' key
-            signature_type: Type of signature to determine position
-                          - "employee_i9": I-9 employee signature
-                          - "employer_i9": I-9 employer signature  
-                          - "employee_w4": W-4 employee signature
-                          - "direct_deposit": Direct deposit signature
+        # === HEADER SECTION ===
+        # ADP Logo placeholder (would be actual logo in production)
+        c.setFont("Helvetica-Bold", 24)
+        c.setFillColorRGB(0, 0.2, 0.4)
+        c.drawString(50, height - 40, "ADP")
+        c.setFillColorRGB(0, 0, 0)
         
-        Returns:
-            PDF bytes with signature added
-        """
-        if not HAS_PYMUPDF:
-            logger.warning("PyMuPDF not available, returning PDF without signature")
-            return pdf_bytes
+        # Title
+        c.setFont("Helvetica-Bold", 18)
+        c.drawString(150, height - 40, "Employee Direct Deposit Enrollment Form")
         
-        try:
-            # Open PDF from bytes
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+        # === PAYROLL MANAGER SECTION ===
+        c.setStrokeColorRGB(0.8, 0.8, 0.8)
+        c.setFillColorRGB(0.95, 0.95, 0.95)
+        c.rect(40, height - 140, width - 80, 70, fill=1, stroke=1)
+        
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(50, height - 60, "Payroll Manager – Please complete this section and send a copy to ADP for enrollment. (Please print.)")
+        
+        c.setFont("Helvetica", 9)
+        y_pos = height - 85
+        
+        # Row 1: Company info
+        c.setStrokeColorRGB(0.5, 0.5, 0.5)
+        c.rect(50, y_pos - 20, 120, 18, stroke=1, fill=0)
+        c.drawString(52, y_pos - 15, "Company Code:")
+        c.drawString(130, y_pos - 15, "_________")
+        
+        property_name = employee_data.get('property_name', '') or employee_data.get('property', {}).get('name', '') if isinstance(employee_data.get('property'), dict) else ''
+        c.rect(180, y_pos - 20, 250, 18, stroke=1, fill=0)
+        c.drawString(182, y_pos - 15, f"Company Name: {property_name or '________________________'}")
+        
+        c.rect(440, y_pos - 20, 120, 18, stroke=1, fill=0)
+        c.drawString(442, y_pos - 15, "Employee File #: _______")
+        
+        # Row 2: Manager info
+        y_pos -= 30
+        c.drawString(50, y_pos, "Payroll Mgr. Name: _________________________")
+        c.drawString(270, y_pos, "Payroll Mgr. Signature: _________________________")
+        
+        # === INSTRUCTIONS SECTION ===
+        y_pos = height - 170
+        c.setFont("Helvetica", 9)
+        c.setFillColorRGB(0, 0, 0.4)
+        instructions = [
+            "To enroll in Full Service Direct Deposit, simply fill out this form and give to your payroll manager. Attach a voided check for each checking",
+            "account - not a deposit slip. If depositing to a savings account, ask your bank to give you the Routing/Transit Number for your account.",
+            "It isn't always the same as the number on a savings deposit slip. This will help ensure that you are paid correctly."
+        ]
+        
+        for line in instructions:
+            c.drawString(50, y_pos, line)
+            y_pos -= 11
             
-            # Extract base64 signature
-            if isinstance(signature_data, dict):
-                signature_base64 = signature_data.get('signature', '')
-            else:
-                signature_base64 = signature_data
+        # === SAMPLE CHECK SECTION ===
+        y_pos -= 15
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(50, y_pos, "Below is a sample check MICR line, detailing where the information necessary to complete this form can be found.")
+        
+        # Draw sample check box
+        y_pos -= 15
+        c.setStrokeColorRGB(0.3, 0.3, 0.3)
+        c.setFillColorRGB(0.98, 0.98, 0.98)
+        c.rect(50, y_pos - 70, width - 100, 70, fill=1, stroke=1)
+        
+        # Sample MICR line
+        c.setFont("Courier", 11)
+        c.setFillColorRGB(0, 0, 0)
+        c.drawString(70, y_pos - 45, "⑆012345678⑆  123456789⑈  0101")
+        
+        # Labels with arrows
+        c.setFont("Helvetica", 8)
+        c.drawString(70, y_pos - 60, "Routing/Transit #")
+        c.drawString(180, y_pos - 60, "Checking Account #")
+        c.drawString(300, y_pos - 60, "Check #")
+        
+        # Draw arrows pointing up
+        c.setStrokeColorRGB(0.5, 0.5, 0.5)
+        c.line(110, y_pos - 55, 110, y_pos - 48)
+        c.line(230, y_pos - 55, 230, y_pos - 48)
+        c.line(330, y_pos - 55, 330, y_pos - 48)
+        
+        # Check memo line
+        c.setFont("Helvetica", 9)
+        c.drawString(70, y_pos - 25, "Memo ________________________________")
+        c.drawString(350, y_pos - 25, "$ __________")
+        
+        # === IMPORTANT NOTICE / AUTHORIZATION ===
+        y_pos -= 90
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColorRGB(0.8, 0, 0)
+        c.drawString(50, y_pos, "IMPORTANT! Please read and sign before completing and submitting.")
+        
+        y_pos -= 15
+        c.setFont("Helvetica", 8)
+        c.setFillColorRGB(0, 0, 0)
+        auth_text = [
+            "I hereby authorize ADP to deposit any amounts owed me, as instructed by my employer, by initiating credit entries to my account at the",
+            "financial institution (hereinafter \"Bank\") indicated on this form. Further, I authorize Bank to accept and to credit any credit entries indicated",
+            "by ADP to my account. In the event that ADP deposits funds erroneously into my account, I authorize ADP to debit my account for an",
+            "amount not to exceed the original amount of the erroneous credit."
+        ]
+        
+        for line in auth_text:
+            c.drawString(50, y_pos, line)
+            y_pos -= 10
             
-            if not signature_base64:
-                logger.warning("No signature data provided")
-                doc.close()
-                return pdf_bytes
+        y_pos -= 5
+        more_text = [
+            "This authorization is to remain in full force and effect until ADP and Bank have received written notice from me of its termination in such",
+            "time and in such manner as to afford ADP and Bank reasonable opportunity to act on it."
+        ]
+        
+        for line in more_text:
+            c.drawString(50, y_pos, line)
+            y_pos -= 10
             
-            # Remove data URI prefix if present
-            if signature_base64.startswith('data:image'):
-                signature_base64 = signature_base64.split(',')[1]
+        # === EMPLOYEE INFORMATION SECTION ===
+        y_pos -= 20
+        c.setFont("Helvetica-Bold", 11)
+        c.setFillColorRGB(0, 0.2, 0.4)
+        c.drawString(50, y_pos, "Employee Information")
+        c.setFillColorRGB(0, 0, 0)
+        
+        y_pos -= 20
+        c.setFont("Helvetica", 10)
+        
+        # Employee details
+        full_name = f"{employee_data.get('firstName', '')} {employee_data.get('lastName', '')}".strip()
+        c.drawString(50, y_pos, f"Employee Name: {full_name or '________________________________'}")
+        
+        ssn = employee_data.get('ssn', '')
+        if ssn and len(ssn) >= 4:
+            ssn_masked = f"XXX-XX-{ssn[-4:]}"
+        else:
+            ssn_masked = "XXX-XX-____"
+        c.drawString(280, y_pos, f"Social Security #: {ssn_masked}")
+        c.drawString(450, y_pos, f"Date: {datetime.now().strftime('%m/%d/%Y')}")
+        
+        y_pos -= 20
+        email = employee_data.get('email', '')
+        c.drawString(50, y_pos, f"Employee Email: {email or '________________________________'}")
+        
+        # === ACCOUNT INFORMATION SECTION ===
+        y_pos -= 30
+        c.setFont("Helvetica-Bold", 11)
+        c.setFillColorRGB(0, 0.2, 0.4)
+        c.drawString(50, y_pos, "Account Information")
+        c.setFillColorRGB(0, 0, 0)
+        
+        y_pos -= 15
+        c.setFont("Helvetica", 8)
+        c.drawString(50, y_pos, "Please include a voided check or bank letter for each account. The last item must be for the remaining amount owed to you.")
+        
+        y_pos -= 20
+        
+        # Get payment method and account info
+        payment_method = employee_data.get('paymentMethod', 'direct_deposit')
+        
+        if payment_method == 'paper_check':
+            # Paper check option
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(50, y_pos, "☑ Paper Check")
+            y_pos -= 15
+            c.setFont("Helvetica", 9)
+            c.drawString(70, y_pos, "I elect to receive a paper check. I understand checks must be picked up on payday at the hotel.")
             
-            # Decode signature image
-            signature_bytes = base64.b64decode(signature_base64)
+        else:
+            # Direct deposit accounts
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(50, y_pos, "☑ Direct Deposit")
+            y_pos -= 20
             
-            # Process and enhance signature image
-            enhanced_signature_bytes = self._enhance_signature_image(signature_bytes, signature_type)
-            
-            # Define signature positions based on type
-            signature_positions = {
-                "employee_i9": {
-                    "page": 0,
-                    "rect": fitz.Rect(350, 650, 650, 710),  # x, y from bottom-left, width:300, height:60 (larger)
-                    "description": "I-9 Employee Signature"
-                },
-                "employer_i9": {
-                    "page": 0,
-                    "rect": fitz.Rect(350, 750, 650, 810),  # Employer section position
-                    "description": "I-9 Employer Signature"
-                },
-                "employee_w4": {
-                    "page": 0,
-                    "rect": fitz.Rect(150, 650, 350, 690),  # W-4 signature position
-                    "description": "W-4 Employee Signature"
-                },
-                "direct_deposit": {
-                    "page": 0,
-                    "rect": fitz.Rect(135, 378, 360, 401),  # Employee signature line position
-                    "description": "Direct Deposit Signature"
-                }
-            }
-            
-            # Get position for this signature type
-            sig_info = signature_positions.get(signature_type, signature_positions["employee_i9"])
-            
-            # Get the appropriate page
-            if sig_info["page"] < len(doc):
-                page = doc[sig_info["page"]]
+            # Primary account
+            primary_account = employee_data.get('primaryAccount', {})
+            if primary_account:
+                c.setFont("Helvetica-Bold", 9)
+                c.drawString(50, y_pos, "Account 1 (Primary):")
+                y_pos -= 15
                 
-                # Insert enhanced signature image
-                page.insert_image(
-                    sig_info["rect"],
-                    pixmap=fitz.Pixmap(enhanced_signature_bytes)
-                )
+                c.setFont("Helvetica", 9)
+                bank_name = primary_account.get('bankName', '')
+                c.drawString(50, y_pos, f"Bank Name/City/State: {bank_name or '________________________________'}")
+                y_pos -= 15
                 
-                logger.info(f"Added {sig_info['description']} at rect: {sig_info['rect']}")
-            else:
-                logger.warning(f"Page {sig_info['page']} not found in PDF")
+                routing = primary_account.get('routingNumber', '')
+                c.drawString(50, y_pos, f"Routing Number: {routing or '_________'}")
+                
+                account = primary_account.get('accountNumber', '')
+                if account and len(account) > 4:
+                    # Mask account number except last 4
+                    account_masked = '*' * (len(account) - 4) + account[-4:]
+                else:
+                    account_masked = account or '______________'
+                c.drawString(200, y_pos, f"Account Number: {account_masked}")
+                
+                account_type = primary_account.get('accountType', 'checking')
+                check_char = '☑' if account_type == 'checking' else '☐'
+                save_char = '☑' if account_type == 'savings' else '☐'
+                c.drawString(380, y_pos, f"{check_char} Checking  {save_char} Savings")
+                y_pos -= 15
+                
+                # Amount/percentage
+                percentage = primary_account.get('percentage', 100)
+                c.drawString(50, y_pos, f"Amount: $________ or Percentage: {percentage}%")
+                y_pos -= 20
             
-            # Save modified PDF
-            modified_pdf_bytes = doc.write(garbage=3, deflate=True)
-            doc.close()
-            
-            return modified_pdf_bytes
-            
-        except Exception as e:
-            logger.error(f"Error adding signature to PDF: {e}")
-            import traceback
-            traceback.print_exc()
-            # Return original PDF if signature addition fails
-            return pdf_bytes
-    
-    def _enhance_signature_image(self, signature_bytes: bytes, signature_type: str) -> bytes:
-        """
-        Enhance signature image for better visibility
-        - Convert to grayscale
-        - Apply threshold to make lines darker
-        - Resize appropriately for the form
-        - Enhance contrast
-        """
-        try:
-            from PIL import Image, ImageEnhance, ImageOps, ImageFilter
-            import io
-            
-            # Open signature image
-            img = Image.open(io.BytesIO(signature_bytes))
-            
-            # Convert to RGBA if not already (to handle transparency)
-            if img.mode != 'RGBA':
-                img = img.convert('RGBA')
-            
-            # Create a white background
-            background = Image.new('RGBA', img.size, (255, 255, 255, 255))
-            # Composite the image onto white background
-            img = Image.alpha_composite(background, img)
-            
-            # Convert to RGB for processing
-            img = img.convert('RGB')
-            
-            # Convert to grayscale
-            img = img.convert('L')
-            
-            # Apply threshold to make lines darker (lower threshold = darker lines)
-            # Pixels darker than 200 become black, others become white
-            threshold = 200
-            img = img.point(lambda p: 0 if p < threshold else 255, '1')
-            
-            # Convert back to grayscale for resizing
-            img = img.convert('L')
-            
-            # Invert if needed (make sure signature is dark on light background)
-            # Check if image is mostly dark (which would mean white signature on black)
-            avg_pixel = sum(img.getdata()) / (img.width * img.height)
-            if avg_pixel < 128:  # Image is mostly dark
-                img = ImageOps.invert(img)
-            
-            # Define target sizes based on signature type
-            target_sizes = {
-                "employee_i9": (300, 60),      # Larger for I-9
-                "employer_i9": (300, 60),      # Larger for I-9
-                "employee_w4": (200, 40),      # Standard for W-4
-                "direct_deposit": (200, 40)    # Standard for direct deposit
-            }
-            
-            target_size = target_sizes.get(signature_type, (300, 60))
-            
-            # Resize while maintaining aspect ratio
-            img.thumbnail(target_size, Image.Resampling.LANCZOS)
-            
-            # Create new image with target size and white background
-            final_img = Image.new('L', target_size, color=255)
-            
-            # Paste resized signature centered
-            x_offset = (target_size[0] - img.width) // 2
-            y_offset = (target_size[1] - img.height) // 2
-            final_img.paste(img, (x_offset, y_offset))
-            
-            # Enhance contrast for better visibility
-            enhancer = ImageEnhance.Contrast(final_img)
-            final_img = enhancer.enhance(2.0)  # Increase contrast
-            
-            # Make lines thicker by applying a slight blur and threshold again
-            final_img = final_img.filter(ImageFilter.MinFilter(3))  # Thicken lines
-            final_img = final_img.point(lambda p: 0 if p < 240 else 255, '1')
-            
-            # Convert back to RGB for PDF insertion
-            final_img = final_img.convert('RGB')
-            
-            # Save to bytes
-            output = io.BytesIO()
-            final_img.save(output, format='PNG', optimize=True)
-            output.seek(0)
-            
-            logger.info(f"Enhanced signature for {signature_type}: size={target_size}, contrast=2.0")
-            
-            return output.read()
-            
-        except Exception as e:
-            logger.error(f"Error enhancing signature image: {e}")
-            # Return original if enhancement fails
-            return signature_bytes
+            # Additional accounts if any
+            additional_accounts = employee_data.get('additionalAccounts', [])
+            for i, account in enumerate(additional_accounts[:2], start=2):  # Max 2 additional
+                c.setFont("Helvetica-Bold", 9)
+                c.drawString(50, y_pos, f"Account {i}:")
+                y_pos -= 15
+                
+                c.setFont("Helvetica", 9)
+                bank_name = account.get('bankName', '')
+                c.drawString(50, y_pos, f"Bank Name/City/State: {bank_name or '________________________________'}")
+                y_pos -= 15
+                
+                routing = account.get('routingNumber', '')
+                c.drawString(50, y_pos, f"Routing Number: {routing or '_________'}")
+                
+                acc_num = account.get('accountNumber', '')
+                if acc_num and len(acc_num) > 4:
+                    acc_masked = '*' * (len(acc_num) - 4) + acc_num[-4:]
+                else:
+                    acc_masked = acc_num or '______________'
+                c.drawString(200, y_pos, f"Account Number: {acc_masked}")
+                
+                acc_type = account.get('accountType', 'checking')
+                check_char = '☑' if acc_type == 'checking' else '☐'
+                save_char = '☑' if acc_type == 'savings' else '☐'
+                c.drawString(380, y_pos, f"{check_char} Checking  {save_char} Savings")
+                y_pos -= 15
+                
+                percentage = account.get('percentage', 0)
+                c.drawString(50, y_pos, f"Amount: $________ or Percentage: {percentage}%")
+                y_pos -= 20
+        
+        # === SIGNATURE SECTION ===
+        y_pos = 100  # Fixed position near bottom
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(50, y_pos, "Employee Authorization")
+        
+        y_pos -= 20
+        c.setFont("Helvetica", 9)
+        
+        # Add digital signature if provided
+        signature_added = False
+        if employee_data.get('signatureData'):
+            try:
+                signature_data = employee_data['signatureData']
+                if isinstance(signature_data, dict):
+                    signature_base64 = signature_data.get('signature', '')
+                else:
+                    signature_base64 = signature_data
+                    
+                if signature_base64 and signature_base64.startswith('data:image'):
+                    signature_base64 = signature_base64.split(',')[1]
+                
+                if signature_base64:
+                    import base64
+                    from PIL import Image as PILImage
+                    from reportlab.lib.utils import ImageReader
+                    
+                    signature_bytes = base64.b64decode(signature_base64)
+                    signature_img = PILImage.open(io.BytesIO(signature_bytes))
+                    
+                    if signature_img.mode != 'RGB':
+                        signature_img = signature_img.convert('RGB')
+                    
+                    signature_img.thumbnail((150, 40), PILImage.Resampling.LANCZOS)
+                    
+                    temp_buffer = io.BytesIO()
+                    signature_img.save(temp_buffer, format='PNG')
+                    temp_buffer.seek(0)
+                    
+                    signature_reader = ImageReader(temp_buffer)
+                    c.drawImage(signature_reader, 180, y_pos - 10, width=signature_img.width, height=signature_img.height)
+                    signature_added = True
+                    
+            except Exception as e:
+                print(f"Error adding signature: {e}")
+        
+        c.drawString(50, y_pos, "Employee Signature:")
+        if not signature_added:
+            c.line(180, y_pos - 5, 350, y_pos - 5)
+        
+        c.drawString(380, y_pos, f"Date: {datetime.now().strftime('%m/%d/%Y')}")
+        
+        # === FOOTER ===
+        c.setFont("Helvetica", 7)
+        c.setFillColorRGB(0.5, 0.5, 0.5)
+        c.drawString(50, 40, "Changes or cancellations will take effect 1-2 pay periods after receipt by your payroll office.")
+        c.drawString(50, 30, "For ADP Use Only: Processing Date __________ Processor Initials __________")
+        
+        c.save()
+        buffer.seek(0)
+        return buffer.read()
 
 # PDF Form Service Instance
 pdf_form_service = PDFFormFiller()

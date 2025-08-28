@@ -60,12 +60,19 @@ export default function JobDetailsStep({
   }
 
   // Get pay rate and other approval details from employee data
-  const payRate = employee?.payRate || 0
-  const payFrequency = employee?.payFrequency || 'hourly'
-  const startTime = employee?.startTime || 'Not specified'
-  const benefitsEligible = employee?.benefitsEligible || 'Not specified'
-  const supervisor = employee?.supervisor || 'Not specified'
-  const specialInstructions = employee?.specialInstructions || ''
+  // Check both direct fields and personal_info for job offer data
+  const personalInfo = employee?.personal_info || employee?.personalInfo || {}
+  
+  const payRate = employee?.payRate || employee?.pay_rate || 0
+  const payFrequency = employee?.payFrequency || employee?.pay_frequency || 'hourly'
+  const startTime = personalInfo.start_time || personalInfo.orientation_time || employee?.startTime || 'Not specified'
+  const benefitsEligible = personalInfo.benefits_eligible !== undefined 
+    ? (personalInfo.benefits_eligible ? 'yes' : 'no')
+    : (employee?.benefitsEligible || 'Not specified')
+  const supervisor = personalInfo.supervisor || employee?.supervisor || 'Not specified'
+  const specialInstructions = personalInfo.special_instructions || employee?.specialInstructions || ''
+  const orientationDate = personalInfo.orientation_date || null
+  const orientationLocation = personalInfo.orientation_location || null
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -234,6 +241,32 @@ export default function JobDetailsStep({
               </CardContent>
             </Card>
 
+            {/* Orientation Details if available */}
+            {(orientationDate || orientationLocation) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-purple-600" />
+                    <span>Orientation Details</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {orientationDate && (
+                    <div>
+                      <p className="text-sm text-gray-600">Orientation Date</p>
+                      <p className="font-semibold">{formatDate(orientationDate)}</p>
+                    </div>
+                  )}
+                  {orientationLocation && (
+                    <div>
+                      <p className="text-sm text-gray-600">Location</p>
+                      <p className="font-semibold">{orientationLocation}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+            
             {/* Special Instructions if any */}
             {specialInstructions && (
               <Card>
