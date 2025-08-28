@@ -413,7 +413,7 @@ export default function DirectDepositStep({
               onBack={handleBackFromReview}
               language={language}
               usePDFPreview={!!previewEmployeeId}
-              pdfEndpoint={previewEmployeeId ? `${import.meta.env.VITE_API_URL || '/api'}/onboarding/${previewEmployeeId}/direct-deposit/generate-pdf` : undefined}
+              pdfEndpoint={previewEmployeeId ? `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${previewEmployeeId}/direct-deposit/generate-pdf` : undefined}
               onPdfGenerated={(pdf: string) => setPdfUrl(pdf)}
               extraPdfData={extraPdfData}
             />
