@@ -138,10 +138,12 @@ const HumanTraffickingAwareness: React.FC<HumanTraffickingAwarenessProps> = ({
       video_watched: hasWatchedVideo,
       training_duration_minutes: 20, // Estimate including video
       ip_address: '', // Would be captured on backend
-      user_agent: navigator.userAgent
+      user_agent: navigator.userAgent,
+      trainingComplete: true
     };
     
     setHasCompletedTraining(true);
+    // Pass control back to parent component for review/sign flow
     onTrainingComplete(completionData);
   };
 

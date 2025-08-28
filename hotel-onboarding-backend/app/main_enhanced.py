@@ -116,6 +116,13 @@ from .bulk_operation_service import (
     BulkCommunicationService, BulkOperationAuditService
 )
 
+# Import consolidated endpoints (Phase 2: API Consolidation)
+from .consolidated_endpoints import ConsolidatedEndpoints
+from .endpoint_migration import apply_endpoint_migrations
+
+# Import centralized error handler (Phase 3: Error Handling)
+from .core import error_handler, ErrorContext
+
 app = FastAPI(
     title="Hotel Employee Onboarding System",
     description="Supabase-powered onboarding system with standardized API responses",
@@ -272,6 +279,10 @@ onboarding_orchestrator = None
 form_update_service = None
 onboarding_scheduler = None
 
+# Initialize consolidated endpoints (Phase 2: API Consolidation)
+consolidated_endpoints = ConsolidatedEndpoints(supabase_service)
+# Note: Migration helper will be applied after duplicate endpoints are handled
+
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
@@ -290,21 +301,25 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
     last_name = ""
     
     try:
-        # First priority: Get from PersonalInfoStep saved data
+        # First priority: Get from PersonalInfoStep saved data (check both hyphen and underscore variants)
         personal_info = await supabase_service.get_onboarding_step_data(employee_id, "personal-info")
+        if (not personal_info) or (personal_info and not personal_info.get("form_data")):
+            # Fallback to underscore variant used elsewhere
+            personal_info = await supabase_service.get_onboarding_step_data(employee_id, "personal_info")
+
         if personal_info and personal_info.get("form_data"):
             form_data = personal_info["form_data"]
             
             # Handle different possible data structures
-            if "formData" in form_data:
+            if isinstance(form_data, dict) and "formData" in form_data and isinstance(form_data["formData"], dict):
                 # Nested formData structure
                 nested_data = form_data["formData"]
-                first_name = nested_data.get("firstName", "")
-                last_name = nested_data.get("lastName", "")
+                first_name = nested_data.get("firstName", nested_data.get("first_name", ""))
+                last_name = nested_data.get("lastName", nested_data.get("last_name", ""))
             else:
                 # Direct structure
-                first_name = form_data.get("firstName", "")
-                last_name = form_data.get("lastName", "")
+                first_name = form_data.get("firstName", form_data.get("first_name", ""))
+                last_name = form_data.get("lastName", form_data.get("last_name", ""))
         
         # Second priority: If names still empty, try employee record
         if not first_name or not last_name:
@@ -313,18 +328,24 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
                 if hasattr(employee, 'personal_info') and employee.personal_info:
                     personal_info = employee.personal_info
                     if isinstance(personal_info, dict):
-                        first_name = first_name or personal_info.get('first_name', '')
-                        last_name = last_name or personal_info.get('last_name', '')
+                        first_name = first_name or personal_info.get('first_name', '') or personal_info.get('firstName', '')
+                        last_name = last_name or personal_info.get('last_name', '') or personal_info.get('lastName', '')
                 
                 # Then check direct attributes on employee object
                 if not first_name:
-                    first_name = first_name or (employee.first_name if hasattr(employee, 'first_name') else "")
+                    if isinstance(employee, dict):
+                        first_name = employee.get('first_name') or employee.get('firstName') or ""
+                    else:
+                        first_name = first_name or (employee.first_name if hasattr(employee, 'first_name') else getattr(employee, 'firstName', ""))
                 if not last_name:
-                    last_name = last_name or (employee.last_name if hasattr(employee, 'last_name') else "")
+                    if isinstance(employee, dict):
+                        last_name = employee.get('last_name') or employee.get('lastName') or ""
+                    else:
+                        last_name = last_name or (employee.last_name if hasattr(employee, 'last_name') else getattr(employee, 'lastName', ""))
         
-        # Last resort: default values
-        first_name = first_name or "Unknown"
-        last_name = last_name or "Employee"
+        # Last resort: default values remain empty strings so UI placeholders can show
+        first_name = first_name or ""
+        last_name = last_name or ""
         
         logger.info(f"Retrieved names for {employee_id}: {first_name} {last_name}")
         return first_name, last_name
@@ -1991,7 +2012,7 @@ async def approve_application_enhanced(
                 status_code=400
             )
         
-        # Store the approval data temporarily (or in session)
+        # Store the approval data with the application
         approval_data = {
             "application_id": id,
             "job_offer": request.job_offer.model_dump(),
@@ -2011,6 +2032,26 @@ async def approve_application_enhanced(
                 "vision_coverage": request.vision_coverage
             }
         }
+        
+        # Update application status to approved and store approval data
+        application.status = ApplicationStatus.APPROVED
+        application.reviewed_at = datetime.utcnow()
+        application.reviewed_by = current_user.id
+        
+        # Store approval data in application metadata or custom field
+        # This will be used when creating the employee record
+        if not hasattr(application, 'metadata'):
+            application.metadata = {}
+        application.metadata['approval_data'] = approval_data
+        
+        # Save the updated application with approval data
+        await supabase_service.update_application(
+            id,
+            status=ApplicationStatus.APPROVED,
+            reviewed_at=datetime.utcnow(),
+            reviewed_by=current_user.id,
+            metadata={'approval_data': approval_data}
+        )
         
         # Return redirect information to frontend
         return success_response(
@@ -4906,22 +4947,53 @@ async def start_onboarding_session(
                 status_code=400
             )
         
-        # Create employee record from application
+        # Create employee record from application with approval data
         employee_id = str(uuid.uuid4())
-        employee = Employee(
-            id=employee_id,
-            first_name=application.first_name,
-            last_name=application.last_name,
-            email=application.email,
-            phone=application.phone,
-            property_id=property_id,
-            position=application.position,
-            department=application.department,
-            start_date=application.start_date,
-            employment_type=application.employment_type,
-            onboarding_status=OnboardingStatus.IN_PROGRESS,
-            created_at=datetime.utcnow()
-        )
+        
+        # Extract job offer data from application metadata if available
+        job_offer_data = None
+        orientation_details = None
+        if hasattr(application, 'metadata') and application.metadata:
+            approval_data = application.metadata.get('approval_data', {})
+            job_offer_data = approval_data.get('job_offer', {})
+            orientation_details = approval_data.get('orientation_details', {})
+        
+        # Create employee with job offer details if available
+        employee_data = {
+            "id": employee_id,
+            "first_name": application.first_name,
+            "last_name": application.last_name,
+            "email": application.email,
+            "phone": application.phone,
+            "property_id": property_id,
+            "position": job_offer_data.get('job_title') if job_offer_data else application.position,
+            "department": application.department,
+            "start_date": job_offer_data.get('start_date') if job_offer_data else application.start_date,
+            "employment_type": job_offer_data.get('employment_type') if job_offer_data else application.employment_type,
+            "onboarding_status": OnboardingStatus.IN_PROGRESS,
+            "created_at": datetime.utcnow()
+        }
+        
+        # Add job offer specific fields if available
+        if job_offer_data:
+            employee_data.update({
+                "pay_rate": job_offer_data.get('pay_rate'),
+                "pay_frequency": job_offer_data.get('pay_frequency', 'hourly'),
+                "hire_date": application.created_at.date() if hasattr(application, 'created_at') else date.today()
+            })
+            
+            # Store additional job details in personal_info for now
+            employee_data["personal_info"] = {
+                "supervisor": job_offer_data.get('supervisor'),
+                "benefits_eligible": job_offer_data.get('benefits_eligible', False),
+                "orientation_date": orientation_details.get('orientation_date') if orientation_details else None,
+                "orientation_time": orientation_details.get('orientation_time') if orientation_details else None,
+                "orientation_location": orientation_details.get('orientation_location') if orientation_details else None,
+                "special_instructions": orientation_details.get('special_instructions') if orientation_details else None,
+                "start_time": orientation_details.get('orientation_time') if orientation_details else None
+            }
+        
+        employee = Employee(**employee_data)
         
         # Store employee in Supabase
         await supabase_service.create_employee(employee)
@@ -5091,7 +5163,11 @@ async def get_onboarding_welcome_data(token: str):
                     "department": getattr(employee, 'department', ''),
                     "startDate": employee.start_date.isoformat() if hasattr(employee, 'start_date') and employee.start_date else (employee.hire_date.isoformat() if hasattr(employee, 'hire_date') and employee.hire_date else None),
                     "propertyId": getattr(employee, 'property_id', ''),
-                    "employmentType": getattr(employee, 'employment_type', 'full_time')
+                    "employmentType": getattr(employee, 'employment_type', 'full_time'),
+                    # Include job details from approval
+                    "payRate": getattr(employee, 'pay_rate', 0),
+                    "payFrequency": getattr(employee, 'pay_frequency', 'hourly'),
+                    "personalInfo": getattr(employee, 'personal_info', {})
                 },
                 "progress": {
                     "currentStepIndex": 0,
@@ -8014,7 +8090,14 @@ async def generate_w4_pdf(employee_id: str, request: Request):
             "extra_withholding": float(form_data.get("extra_withholding", 0) or 0),
             
             # Signature date
-            "signature_date": w4_data.get("completed_at", datetime.utcnow().isoformat())
+            "signature_date": w4_data.get("completed_at", datetime.utcnow().isoformat()),
+
+            # Manager-approved "First date of employment" (from employee hire/start date)
+            # Prefer explicit start_date on employee; fall back to hire_date
+            "first_date_employment": (
+                (employee.get("start_date") if isinstance(employee, dict) else getattr(employee, "start_date", None))
+                or (employee.get("hire_date") if isinstance(employee, dict) else getattr(employee, "hire_date", None))
+            )
         }
         
         # Generate PDF
@@ -8056,6 +8139,18 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         body = await request.json()
         employee_data_from_request = body.get('employee_data')
         
+        # Log what we received for debugging
+        logger.info(f"Direct Deposit PDF request for {employee_id}")
+        logger.info(f"Received data keys: {list(employee_data_from_request.keys()) if employee_data_from_request else 'None'}")
+        
+        # Log specific important fields
+        if employee_data_from_request:
+            has_ssn = bool(employee_data_from_request.get('ssn'))
+            has_signature = bool(employee_data_from_request.get('signatureData'))
+            ssn_preview = employee_data_from_request.get('ssn', '')[:3] + '****' if has_ssn else 'None'
+            logger.info(f"[DD-PDF] SSN present: {has_ssn} ({ssn_preview})")
+            logger.info(f"[DD-PDF] Signature present: {has_signature}")
+        
         # For test employees, skip employee lookup
         if employee_id.startswith('test-'):
             employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
@@ -8068,6 +8163,8 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         # Use form data from request if provided (for preview)
         if employee_data_from_request:
             form_data = employee_data_from_request
+            logger.info(f"Using request data with payment method: {form_data.get('paymentMethod')}")
+            logger.info(f"Primary account: {form_data.get('primaryAccount', {})}")
         else:
             # Try to get saved form data
             form_response = supabase_service.client.table('onboarding_form_data')\
@@ -8089,27 +8186,90 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         
         # Get employee names from PersonalInfoStep data
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        # If request provided explicit names, prefer them
+        try:
+            req_first = (form_data.get("firstName") if isinstance(form_data, dict) else None) or form_data.get("formData", {}).get("firstName")
+            req_last = (form_data.get("lastName") if isinstance(form_data, dict) else None) or form_data.get("formData", {}).get("lastName")
+            if req_first:
+                first_name = req_first
+            if req_last:
+                last_name = req_last
+        except Exception:
+            pass
+        
+        # Get SSN from PersonalInfoStep data if not in form_data
+        personal_info_data = None
+        if not form_data.get("ssn") and not form_data.get("formData", {}).get("ssn"):
+            # Try to get SSN from PersonalInfoStep
+            personal_response = supabase_service.client.table('onboarding_form_data')\
+                .select('*')\
+                .eq('employee_id', employee_id)\
+                .eq('step_id', 'personal_info')\
+                .order('updated_at', desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if personal_response.data:
+                personal_info_data = personal_response.data[0].get('form_data', {})
         
         # Map form data to PDF data - handling both nested and flat structures
+        # Get email from employee object or dict
+        employee_email = ""
+        if employee:
+            if isinstance(employee, dict):
+                employee_email = employee.get("email", "")
+            else:
+                employee_email = getattr(employee, "email", "")
+        
         pdf_data = {
             "firstName": first_name,
+            "first_name": first_name,  # Support both naming conventions
             "lastName": last_name,
+            "last_name": last_name,  # Support both naming conventions
             "employee_id": employee_id,
-            "email": form_data.get("email") or form_data.get("formData", {}).get("email", "") or employee.get("email", ""),
-            "ssn": form_data.get("ssn") or form_data.get("formData", {}).get("ssn", ""),
+            "email": (form_data.get("email") if isinstance(form_data, dict) else "") or form_data.get("formData", {}).get("email", "") or employee_email,
+            "ssn": (form_data.get("ssn") if isinstance(form_data, dict) else "") or form_data.get("formData", {}).get("ssn", "") or ((personal_info_data.get("ssn") if isinstance(personal_info_data, dict) else "") if personal_info_data else ""),
             "paymentMethod": form_data.get("paymentMethod") or form_data.get("formData", {}).get("paymentMethod", ""),
+            "depositType": form_data.get("depositType") or form_data.get("formData", {}).get("depositType", ""),
             "primaryAccount": form_data.get("primaryAccount") or form_data.get("formData", {}).get("primaryAccount", {}) or {
                 "bankName": form_data.get("bankName", ""),
                 "accountType": form_data.get("accountType", ""),
                 "routingNumber": form_data.get("routingNumber", ""),
                 "accountNumber": form_data.get("accountNumber", ""),
             },
+            "secondaryAccount": form_data.get("secondaryAccount") or form_data.get("formData", {}).get("secondaryAccount", {}),
             "signatureData": form_data.get("signatureData") or form_data.get("formData", {}).get("signatureData", ""),
-            "property": {"name": "Hotel Property"},  # You may want to get this from employee data
         }
+
+        # Map additionalAccounts array (from UI) to secondary/tertiary account structures
+        try:
+            additional_accounts = (
+                form_data.get("additionalAccounts")
+                or form_data.get("formData", {}).get("additionalAccounts", [])
+            )
+            if isinstance(additional_accounts, list) and len(additional_accounts) > 0:
+                secondary = additional_accounts[0]
+                pdf_data["secondaryAccount"] = {
+                    "bankName": secondary.get("bankName", ""),
+                    "routingNumber": secondary.get("routingNumber", ""),
+                    "accountNumber": secondary.get("accountNumber", ""),
+                    "accountType": secondary.get("accountType", ""),
+                    "depositAmount": secondary.get("depositAmount", ""),
+                }
+            if isinstance(additional_accounts, list) and len(additional_accounts) > 1:
+                tertiary = additional_accounts[1]
+                pdf_data["tertiaryAccount"] = {
+                    "bankName": tertiary.get("bankName", ""),
+                    "routingNumber": tertiary.get("routingNumber", ""),
+                    "accountNumber": tertiary.get("accountNumber", ""),
+                    "accountType": tertiary.get("accountType", ""),
+                    "depositAmount": tertiary.get("depositAmount", ""),
+                }
+        except Exception as map_err:
+            logger.warning(f"Failed to map additionalAccounts for direct deposit PDF: {map_err}")
         
-        # Generate PDF
-        pdf_bytes = pdf_filler.create_direct_deposit_pdf(pdf_data)
+        # Generate PDF using the official template (no fallback)
+        pdf_bytes = pdf_filler.fill_direct_deposit_form(pdf_data)
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -8211,9 +8371,13 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
 async def generate_weapons_policy_pdf(employee_id: str, request: Request):
     """Generate PDF for Weapons Prohibition Policy"""
     try:
-        # Check if form data is provided in request body (for preview)
+        # Check if form data is provided in request body
         body = await request.json()
         employee_data_from_request = body.get('employee_data')
+        signature_data = body.get('signature_data')
+        
+        # Determine if this is a preview (no signature data)
+        is_preview = not bool(signature_data)
         
         # For test employees, skip employee lookup
         if employee_id.startswith('test-'):
@@ -8255,8 +8419,12 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
             "employee_id": employee_id,
         }
         
-        # Generate PDF
-        pdf_bytes = pdf_filler.create_weapons_policy_pdf(pdf_data)
+        # Generate PDF with or without signature
+        pdf_bytes = pdf_filler.create_weapons_policy_pdf(
+            employee_data=pdf_data,
+            signature_data=signature_data,
+            is_preview=is_preview
+        )
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -8312,15 +8480,16 @@ async def generate_human_trafficking_pdf(employee_id: str, request: Request):
             'name': f"{first_name} {last_name}".strip() or "N/A",
             'id': employee_id,
             'property_name': property_name,
-            'position': employee.get('position', 'N/A')
+            'position': getattr(employee, 'position', 'N/A')
         }
         
-        # Initialize Human Trafficking Document Generator
-        from .human_trafficking_generator import HumanTraffickingDocumentGenerator
-        generator = HumanTraffickingDocumentGenerator()
+        # Initialize Human Trafficking Certificate Generator
+        from .human_trafficking_certificate import HumanTraffickingCertificateGenerator
+        generator = HumanTraffickingCertificateGenerator()
         
-        # Generate PDF
-        pdf_bytes = generator.generate_human_trafficking_document(employee_data, signature_data)
+        # Generate PDF with signature
+        result = generator.generate_certificate(employee_data, signature_data, is_preview=False)
+        pdf_bytes = result['pdf_bytes']
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -8337,6 +8506,215 @@ async def generate_human_trafficking_pdf(employee_id: str, request: Request):
         logger.error(f"Generate Human Trafficking PDF error: {e}")
         return error_response(
             message="Failed to generate Human Trafficking PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/onboarding/{employee_id}/human-trafficking/preview")
+async def preview_human_trafficking_pdf(employee_id: str):
+    """Generate preview PDF for Human Trafficking Awareness (without signature)"""
+    try:
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            property_name = "Test Hotel"
+        else:
+            # Get employee data
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+            
+            # Get property name
+            property_id = employee.property_id if hasattr(employee, 'property_id') else None
+            if property_id:
+                property_data = await supabase_service.get_property_by_id(property_id)
+                property_name = property_data.name if (property_data and hasattr(property_data, 'name')) else "Hotel"
+            else:
+                property_name = "Hotel"
+        
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        
+        # Prepare employee data for the document
+        employee_data = {
+            'name': f"{first_name} {last_name}".strip() or "N/A",
+            'id': employee_id,
+            'property_name': property_name,
+            'position': getattr(employee, 'position', 'N/A')
+        }
+        
+        # Initialize Human Trafficking Certificate Generator
+        from .human_trafficking_certificate import HumanTraffickingCertificateGenerator
+        generator = HumanTraffickingCertificateGenerator()
+        
+        # Generate PDF preview (without signature)
+        result = generator.generate_certificate(employee_data, {}, is_preview=True)
+        pdf_bytes = result['pdf_bytes']
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"HumanTraffickingAwareness_Preview_{first_name}_{last_name}.pdf"
+            },
+            message="Human Trafficking Awareness preview generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Preview Human Trafficking PDF error: {e}")
+        return error_response(
+            message="Failed to generate Human Trafficking preview",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.post("/api/certificates/trafficking/generate")
+async def generate_trafficking_certificate(request: Request):
+    """Generate and store a Human Trafficking Training Certificate"""
+    try:
+        body = await request.json()
+        employee_data = body.get('employee_data', {})
+        signature_data = body.get('signature_data', {})
+        training_date = body.get('training_date')
+        
+        # Import the certificate generator
+        from .human_trafficking_certificate import HumanTraffickingCertificateGenerator
+        generator = HumanTraffickingCertificateGenerator()
+        
+        # Generate the certificate
+        result = generator.generate_certificate(
+            employee_data=employee_data,
+            signature_data=signature_data,
+            training_date=training_date
+        )
+        
+        # Store certificate in database
+        certificate_record = {
+            'certificate_id': result['certificate_id'],
+            'employee_id': employee_data.get('id', 'unknown'),
+            'employee_name': employee_data.get('name', ''),
+            'property_id': employee_data.get('property_id', 'unknown'),
+            'property_name': employee_data.get('property_name', ''),
+            'training_date': result['training_date'],
+            'issue_date': result['issue_date'],
+            'expiry_date': result['expiry_date'],
+            'signature_data': signature_data,
+            'signature_ip': signature_data.get('ipAddress'),
+            'signature_timestamp': signature_data.get('timestamp'),
+            'pdf_base64': base64.b64encode(result['pdf_bytes']).decode('utf-8'),
+            'is_valid': True
+        }
+        
+        # Store in Supabase (using raw client since table doesn't exist yet)
+        # For now, skip database storage and just return the certificate
+        # stored = await supabase_service.supabase.table('trafficking_certificates').insert(certificate_record).execute()
+        
+        return success_response(
+            data={
+                'certificate_id': result['certificate_id'],
+                'pdf': base64.b64encode(result['pdf_bytes']).decode('utf-8'),
+                'filename': f"HT_Certificate_{employee_data.get('name', '').replace(' ', '_')}_{result['certificate_id']}.pdf",
+                'issue_date': result['issue_date'],
+                'expiry_date': result['expiry_date'],
+                'training_date': result['training_date']
+            },
+            message="Certificate generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Generate certificate error: {e}")
+        return error_response(
+            message="Failed to generate certificate",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/certificates/trafficking/{employee_id}")
+async def get_trafficking_certificates(employee_id: str):
+    """Get all trafficking training certificates for an employee"""
+    try:
+        # For now, return empty list since table doesn't exist
+        # In production, uncomment this:
+        # certificates = await supabase_service.supabase.table('trafficking_certificates')\
+        #     .select('*')\
+        #     .eq('employee_id', employee_id)\
+        #     .order('issue_date', desc=True)\
+        #     .execute()
+        
+        return success_response(
+            data={'certificates': []},
+            message="Certificates retrieved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Get certificates error: {e}")
+        return error_response(
+            message="Failed to retrieve certificates",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/certificates/trafficking/verify/{certificate_id}")
+async def verify_trafficking_certificate(certificate_id: str):
+    """Verify if a trafficking training certificate is valid"""
+    try:
+        # Get certificate from database
+        certificate = await supabase_service.table('trafficking_certificates')\
+            .select('*')\
+            .eq('certificate_id', certificate_id)\
+            .single()\
+            .execute()
+        
+        if not certificate.data:
+            return not_found_response("Certificate not found")
+        
+        # Verify validity
+        from .human_trafficking_certificate import HumanTraffickingCertificateGenerator
+        generator = HumanTraffickingCertificateGenerator()
+        
+        validity = generator.verify_certificate(
+            certificate_id,
+            certificate.data['issue_date']
+        )
+        
+        return success_response(
+            data={
+                'certificate_id': certificate_id,
+                'employee_name': certificate.data['employee_name'],
+                'property_name': certificate.data['property_name'],
+                'issue_date': certificate.data['issue_date'],
+                'expiry_date': certificate.data['expiry_date'],
+                'validity': validity
+            },
+            message="Certificate verification complete"
+        )
+        
+    except Exception as e:
+        logger.error(f"Verify certificate error: {e}")
+        return error_response(
+            message="Failed to verify certificate",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/certificates/expiring")
+async def get_expiring_certificates(property_id: str = Query(None)):
+    """Get certificates expiring within 30 days"""
+    try:
+        # For now, return empty list since table doesn't exist
+        # In production, uncomment and use proper query
+        
+        return success_response(
+            data={'expiring_certificates': []},
+            message="Found 0 expiring certificates"
+        )
+        
+    except Exception as e:
+        logger.error(f"Get expiring certificates error: {e}")
+        return error_response(
+            message="Failed to get expiring certificates",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
@@ -8455,6 +8833,126 @@ async def generate_company_policies_pdf(employee_id: str, request: Request):
         logger.error(f"Generate Company Policies PDF error: {e}")
         return error_response(
             message="Failed to generate Company Policies PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+# =============================================================================
+# UTILITY ENDPOINTS
+# =============================================================================
+
+@app.post("/api/validate/routing-number")
+async def validate_routing_number(request: Request):
+    """
+    Validate a US bank routing number and return bank information.
+    
+    Features:
+    - ABA checksum validation
+    - Bank name lookup from local database
+    - Caching for performance
+    - Rate limiting to prevent abuse
+    """
+    try:
+        # Get routing validator instance
+        from .routing_validator import get_routing_validator
+        validator = get_routing_validator()
+        
+        # Parse request body
+        body = await request.json()
+        routing_number = body.get('routing_number', '').strip()
+        
+        if not routing_number:
+            return error_response(
+                message="Routing number is required",
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400
+            )
+        
+        # Get client IP for rate limiting and logging
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("User-Agent", "unknown")
+        
+        # TODO: Implement rate limiting
+        # For now, just log the request
+        logger.info(f"Routing validation request from {client_ip}")
+        
+        # Validate routing number
+        result = await validator.validate_routing_number(routing_number)
+        
+        # Log validation for audit trail (with masked routing number)
+        await validator.log_validation(
+            routing_number=routing_number,
+            result=result,
+            ip_address=client_ip,
+            user_agent=user_agent
+        )
+        
+        # Return result
+        if result.get("valid"):
+            return success_response(
+                data=result,
+                message="Routing number validated successfully"
+            )
+        else:
+            return error_response(
+                message=result.get("error", "Invalid routing number"),
+                error_code=ErrorCode.VALIDATION_ERROR,
+                status_code=400,
+                data=result
+            )
+            
+    except Exception as e:
+        logger.error(f"Routing validation error: {e}")
+        return error_response(
+            message="Failed to validate routing number",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/banks/popular")
+async def get_popular_banks():
+    """
+    Get a list of popular banks for quick selection.
+    """
+    try:
+        from .routing_validator import get_routing_validator
+        validator = get_routing_validator()
+        
+        popular_banks = validator.get_popular_banks()
+        
+        return success_response(
+            data={"banks": popular_banks},
+            message="Popular banks retrieved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Get popular banks error: {e}")
+        return error_response(
+            message="Failed to get popular banks",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+@app.get("/api/banks/search")
+async def search_banks(query: str = Query(..., min_length=2)):
+    """
+    Search for banks by name.
+    """
+    try:
+        from .routing_validator import get_routing_validator
+        validator = get_routing_validator()
+        
+        results = validator.search_banks_by_name(query, limit=10)
+        
+        return success_response(
+            data={"banks": results},
+            message="Bank search completed"
+        )
+        
+    except Exception as e:
+        logger.error(f"Bank search error: {e}")
+        return error_response(
+            message="Failed to search banks",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )

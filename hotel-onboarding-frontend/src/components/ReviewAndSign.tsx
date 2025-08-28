@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CheckCircle, FileText, Pen, AlertCircle, Eye, Loader2, Info } from 'lucide-react'
+import { CheckCircle, Pen, AlertCircle, Eye, Loader2, Info } from 'lucide-react'
 import SignatureCanvas from 'react-signature-canvas'
 import { format } from 'date-fns'
 import PDFViewer from './PDFViewer'
@@ -28,6 +28,7 @@ interface ReviewAndSignProps {
   usePDFPreview?: boolean // Whether to show PDF preview instead of HTML
   pdfUrl?: string | null // Direct PDF URL to display
   onPdfGenerated?: (pdfData: string) => void // Callback when PDF is generated
+  extraPdfData?: any // Optional extra data to merge into PDF generation payload
 }
 
 export interface SignatureData {
@@ -56,7 +57,8 @@ export default function ReviewAndSign({
   pdfEndpoint,
   usePDFPreview = false,
   pdfUrl,
-  onPdfGenerated
+  onPdfGenerated,
+  extraPdfData
 }: ReviewAndSignProps) {
   const [hasAgreed, setHasAgreed] = useState(false)
   const [signatureError, setSignatureError] = useState('')
@@ -65,6 +67,37 @@ export default function ReviewAndSign({
   const [loadingPDF, setLoadingPDF] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
   const signatureRef = useRef<SignatureCanvas>(null)
+
+  // Build a stable payload for PDF generation
+  const pdfPayload = React.useMemo(() => {
+    // Ensure SSN is at root level for backend
+    const payload = {
+      ...(formData || {}),
+      ...(extraPdfData || {})
+    }
+    
+    // Make sure SSN is available at root level
+    if (extraPdfData?.ssn && !payload.ssn) {
+      payload.ssn = extraPdfData.ssn
+    }
+    
+    // Log the payload for debugging
+    console.log('ReviewAndSign - PDF payload being sent:', {
+      hasSSN: !!payload.ssn,
+      ssn: payload.ssn ? `${payload.ssn.substring(0, 3)}****` : 'none',
+      hasSignature: !!payload.signatureData,
+      keys: Object.keys(payload)
+    })
+    
+    return payload
+  }, [formData, extraPdfData])
+  const payloadKey = React.useMemo(() => {
+    try {
+      return JSON.stringify(pdfPayload)
+    } catch {
+      return String(Date.now())
+    }
+  }, [pdfPayload])
 
   const translations = {
     en: {
@@ -124,11 +157,8 @@ export default function ReviewAndSign({
       loadPDF()
     }
     
-    // Cleanup function to free memory when component unmounts
-    return () => {
-      setPdfData(null)
-    }
-  }, [usePDFPreview, pdfEndpoint, pdfUrl])
+    // No cleanup that clears pdfData; avoid flicker on re-renders
+  }, [usePDFPreview, pdfEndpoint, pdfUrl, payloadKey])
   
   const loadPDF = async () => {
     if (!pdfEndpoint) return
@@ -137,15 +167,17 @@ export default function ReviewAndSign({
     setPdfError(null)
     
     try {
+      const controller = new AbortController()
       const response = await axios.post(
         pdfEndpoint,
         {
-          employee_data: formData
+          employee_data: pdfPayload
         },
         {
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          signal: controller.signal
         }
       )
       
@@ -172,7 +204,7 @@ export default function ReviewAndSign({
   }
 
   const handleSubmitSignature = () => {
-    if (!signatureRef.current?.isEmpty() && hasAgreed) {
+    if (signatureRef.current && !signatureRef.current.isEmpty() && hasAgreed) {
       const signatureData: SignatureData = {
         signature: signatureRef.current.toDataURL(),
         signedAt: new Date().toISOString(),
@@ -256,7 +288,7 @@ export default function ReviewAndSign({
             </Alert>
           ) : (pdfUrl || pdfData) ? (
             <PDFViewer
-              pdfData={pdfUrl || pdfData}
+              pdfData={(pdfUrl || pdfData) || undefined}
               title={`${title} Preview`}
               height="400px"
               showToolbar={true}

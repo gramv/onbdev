@@ -3,6 +3,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import ReviewAndSign from '@/components/ReviewAndSign'
+import PDFViewer from '@/components/PDFViewer'
 import { CheckCircle, Shield, AlertTriangle, FileText, Users, AlertCircle, Info } from 'lucide-react'
 import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
@@ -15,6 +16,8 @@ interface WeaponsPolicyData {
   acknowledgments: Record<string, boolean>
   isSigned: boolean
   signatureData?: any
+  pdfUrl?: string
+  pdfFilename?: string
 }
 
 interface PolicyContent {
@@ -251,32 +254,75 @@ export default function WeaponsPolicyStep({
     }
   }
 
-  const handleSign = async (signatureData: any) => {
-    const completeData = {
-      ...formData,
-      isSigned: true,
-      signatureData,
-      completedAt: new Date().toISOString()
+  const handleSign = async (signatureInfo: any) => {
+    try {
+      console.log('Generating signed Weapons Policy PDF...')
+      
+      // Generate final signed PDF
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id || 'test-employee'}/weapons-policy/generate-pdf`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_data: {
+              firstName: employee?.firstName || employee?.name?.split(' ')[0] || 'Employee',
+              lastName: employee?.lastName || employee?.name?.split(' ')[1] || '',
+              property_name: property?.name || 'Hotel Property'
+            },
+            signature_data: {
+              name: signatureInfo.formData?.name || `${employee?.firstName || ''} ${employee?.lastName || ''}`.trim() || employee?.name || 'Employee',
+              timestamp: signatureInfo.signedAt,
+              ipAddress: signatureInfo.ipAddress || window.location.hostname,
+              signatureImage: signatureInfo.signature,
+              signatureId: `WP-${Date.now()}`
+            }
+          })
+        }
+      )
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Weapons Policy PDF response:', result)
+        
+        if (result.data?.pdf) {
+          const completeData = {
+            ...formData,
+            isSigned: true,
+            signatureData: signatureInfo,
+            pdfUrl: result.data.pdf,
+            pdfFilename: result.data.filename,
+            completedAt: new Date().toISOString()
+          }
+          
+          setFormData(completeData)
+          
+          // Save to session storage
+          sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
+            formData: completeData,
+            showReview: false
+          }))
+          
+          await saveProgress(currentStep.id, completeData)
+          await markStepComplete(currentStep.id, completeData)
+          setShowReview(false)
+          console.log('Weapons Policy signed and saved successfully')
+        } else {
+          console.warn('Weapons Policy PDF response missing PDF data')
+        }
+      } else {
+        console.error('Weapons Policy PDF generation failed:', response.status, response.statusText)
+      }
+    } catch (error) {
+      console.error('Failed to generate Weapons Policy PDF:', error)
     }
-    
-    setFormData(completeData)
-    
-    // Save to session storage
-    sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
-      formData: completeData,
-      showReview: false
-    }))
-    
-    await saveProgress(currentStep.id, completeData)
-    await markStepComplete(currentStep.id, completeData)
-    setShowReview(false)
   }
 
   const handleBack = () => {
     setShowReview(false)
   }
 
-  // If already signed, show completion status
+  // If already signed, show completion status with PDF
   if (formData.isSigned && !showReview) {
     return (
       <StepContainer saveStatus={saveStatus}>
@@ -299,21 +345,45 @@ export default function WeaponsPolicyStep({
               </AlertDescription>
             </Alert>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-green-800 mb-2">
-                    {language === 'es' ? 'Reconocimiento Completo' : 'Acknowledgment Complete'}
-                  </h3>
-                  <p className="text-gray-600">
+            {/* Show signed PDF if available */}
+            {formData.pdfUrl ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-green-600" />
+                    <span>{language === 'es' ? 'Política Firmada' : 'Signed Policy'}</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">
                     {language === 'es' 
-                      ? 'Su reconocimiento ha sido registrado y guardado.'
-                      : 'Your acknowledgment has been recorded and saved.'}
+                      ? 'Su política de armas firmada'
+                      : 'Your signed weapons policy document'}
                   </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <PDFViewer 
+                    pdfData={formData.pdfUrl} 
+                    height="600px" 
+                    title={language === 'es' ? 'Política de Armas' : 'Weapons Policy'}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-green-800 mb-2">
+                      {language === 'es' ? 'Reconocimiento Completo' : 'Acknowledgment Complete'}
+                    </h3>
+                    <p className="text-gray-600">
+                      {language === 'es' 
+                        ? 'Su reconocimiento ha sido registrado y guardado.'
+                        : 'Your acknowledgment has been recorded and saved.'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </StepContentWrapper>
       </StepContainer>
