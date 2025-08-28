@@ -8108,8 +8108,8 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
             "property": {"name": "Hotel Property"},  # You may want to get this from employee data
         }
         
-        # Generate PDF
-        pdf_bytes = pdf_filler.create_direct_deposit_pdf(pdf_data)
+        # Generate PDF using template overlay
+        pdf_bytes = pdf_filler.fill_direct_deposit_form(pdf_data)
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')

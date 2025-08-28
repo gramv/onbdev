@@ -331,6 +331,166 @@ class PDFFormFiller:
             print(f"Error filling W-4 form: {e}")
             raise Exception(f"Failed to generate official W-4 form: {e} - No fallback allowed for IRS compliance")
     
+    def fill_direct_deposit_form(self, employee_data: Dict[str, Any]) -> bytes:
+        """Fill Direct Deposit form with employee data using official template"""
+        if not HAS_PYMUPDF:
+            raise Exception("PyMuPDF required for official Direct Deposit template")
+            
+        try:
+            import json
+            import os
+            
+            # Get the absolute path to the template
+            template_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "static",
+                "direct-deposit-template.pdf"
+            )
+            
+            # Get the field mappings
+            mappings_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "direct_deposit_field_mappings.json"
+            )
+            
+            # Load field mappings
+            with open(mappings_path, 'r') as f:
+                field_mappings = json.load(f)
+            
+            # Open the official Direct Deposit PDF
+            doc = fitz.open(template_path)
+            page = doc[0]  # Direct deposit is a single page form
+            
+            # Helper function to add text at specific coordinates
+            def add_text(x, y, text, fontsize=10):
+                if text:
+                    page.insert_text((x, y), str(text), fontsize=fontsize, color=(0, 0, 0))
+            
+            # Map the fields based on the JSON mappings
+            fields = field_mappings.get('fields', [])
+            
+            # Employee Information
+            full_name = f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}"
+            ssn = employee_data.get('ssn', '')
+            email = employee_data.get('email', '')
+            
+            # Get direct deposit data
+            direct_deposit = employee_data.get('direct_deposit', {})
+            bank_name = direct_deposit.get('bank_name', '')
+            routing_number = direct_deposit.get('routing_number', '')
+            account_number = direct_deposit.get('account_number', '')
+            account_type = direct_deposit.get('account_type', 'checking')
+            deposit_type = direct_deposit.get('deposit_type', 'full')
+            deposit_amount = direct_deposit.get('deposit_amount', '')
+            
+            # Fill the fields using the mappings
+            for field in fields:
+                field_name = field.get('name', '')
+                rect = field.get('rect', {})
+                x = rect.get('x', 0)
+                y = rect.get('y', 0)
+                
+                # Map field names to data
+                if field_name == 'employee_name':
+                    add_text(x, y, full_name)
+                elif field_name == 'social_security_number':
+                    add_text(x, y, ssn)
+                elif field_name == 'employee_email':
+                    add_text(x, y, email)
+                elif field_name == 'employee_date':
+                    from datetime import datetime
+                    add_text(x, y, datetime.now().strftime('%m/%d/%Y'))
+                elif field_name == 'bank1_name':
+                    add_text(x, y, bank_name)
+                elif field_name == 'bank1_routing_number':
+                    add_text(x, y, routing_number)
+                elif field_name == 'bank1_account_number':
+                    add_text(x, y, account_number)
+                elif field_name == 'bank1_deposit_amount':
+                    if deposit_type != 'full':
+                        add_text(x, y, f"${deposit_amount}")
+                elif field_name == 'bank1_checking' and field.get('type') == 'CheckBox':
+                    if account_type == 'checking':
+                        # Draw a checkmark
+                        page.draw_rect(fitz.Rect(x, y-9, x+9, y), color=(0, 0, 0))
+                        page.insert_text((x+2, y-2), "✓", fontsize=10)
+                elif field_name == 'bank1_savings' and field.get('type') == 'CheckBox':
+                    if account_type == 'savings':
+                        # Draw a checkmark
+                        page.draw_rect(fitz.Rect(x, y-9, x+9, y), color=(0, 0, 0))
+                        page.insert_text((x+2, y-2), "✓", fontsize=10)
+                elif field_name == 'bank1_entire_net_amount' and field.get('type') == 'CheckBox':
+                    if deposit_type == 'full':
+                        # Draw a checkmark
+                        page.draw_rect(fitz.Rect(x, y-9, x+9, y), color=(0, 0, 0))
+                        page.insert_text((x+2, y-2), "✓", fontsize=10)
+                elif field_name == 'company_name':
+                    property_name = employee_data.get('property', {}).get('name', 'Hotel Property')
+                    add_text(x, y, property_name)
+                elif field_name == 'company_code':
+                    add_text(x, y, 'HC-001')  # Default company code
+            
+            # Add signature if provided
+            signature_data = employee_data.get('signatureData') or employee_data.get('signature_data')
+            if signature_data:
+                try:
+                    import base64
+                    from PIL import Image
+                    
+                    # Find the employee_signature field coordinates
+                    sig_field = next((f for f in fields if f['name'] == 'employee_signature'), None)
+                    if sig_field:
+                        sig_rect = sig_field['rect']
+                        
+                        # Process signature
+                        if ',' in signature_data:
+                            signature_data = signature_data.split(',')[1]
+                        
+                        img_data = base64.b64decode(signature_data)
+                        img = Image.open(io.BytesIO(img_data))
+                        
+                        # Convert to RGB if needed
+                        if img.mode == 'RGBA':
+                            bg = Image.new('RGB', img.size, (255, 255, 255))
+                            bg.paste(img, mask=img.split()[3])
+                            img = bg
+                        
+                        # Scale signature to fit
+                        max_width = 120
+                        max_height = 30
+                        img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+                        
+                        # Save to buffer
+                        img_buffer = io.BytesIO()
+                        img.save(img_buffer, format='PNG')
+                        img_buffer.seek(0)
+                        
+                        # Insert signature image
+                        from reportlab.lib.utils import ImageReader
+                        img_reader = ImageReader(img_buffer)
+                        
+                        # Insert at signature location
+                        x = sig_rect['x']
+                        y = sig_rect['y'] - 20  # Adjust y position
+                        
+                        # Use PyMuPDF to insert image
+                        pix = fitz.Pixmap(img_buffer.getvalue())
+                        page.insert_image(fitz.Rect(x, y-30, x+120, y), pixmap=pix)
+                        
+                except Exception as e:
+                    print(f"Error adding signature to Direct Deposit form: {e}")
+            
+            # Save to bytes
+            pdf_bytes = doc.write()
+            doc.close()
+            
+            return pdf_bytes
+            
+        except Exception as e:
+            print(f"Error filling Direct Deposit form: {e}")
+            # Fall back to generated version if template overlay fails
+            return self.create_direct_deposit_pdf(employee_data)
+    
     def create_health_insurance_form(self, employee_data: Dict[str, Any]) -> bytes:
         """Create health insurance enrollment form based on packet template"""
         buffer = io.BytesIO()
