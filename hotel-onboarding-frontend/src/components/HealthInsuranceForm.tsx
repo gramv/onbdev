@@ -18,7 +18,12 @@ interface Dependent {
   relationship: string
   dateOfBirth: string
   ssn: string
-  gender: 'M' | 'F'
+  gender: 'M' | 'F' | ''
+  coverageType: {
+    medical: boolean
+    dental: boolean
+    vision: boolean
+  }
 }
 
 interface HealthInsuranceData {
@@ -55,6 +60,7 @@ interface HealthInsuranceData {
 
 interface HealthInsuranceFormProps {
   initialData?: Partial<HealthInsuranceData>
+  personalInfo?: any
   language: 'en' | 'es'
   onSave: (data: HealthInsuranceData) => void
   onNext?: () => void
@@ -147,6 +153,7 @@ const RELATIONSHIP_OPTIONS = [
 
 export default function HealthInsuranceForm({
   initialData = {},
+  personalInfo,
   language,
   onSave,
   onNext,
@@ -186,9 +193,23 @@ export default function HealthInsuranceForm({
   useEffect(() => {
     if (initialData && Object.keys(initialData).length > 0) {
       console.log('HealthInsuranceForm - Updating from initialData:', initialData)
+      
+      // Ensure dependents have proper coverage type structure
+      const processedData = {
+        ...initialData,
+        dependents: initialData.dependents?.map((dep: any) => ({
+          ...dep,
+          coverageType: dep.coverageType || {
+            medical: true,
+            dental: false,
+            vision: false
+          }
+        })) || []
+      }
+      
       setFormData(prevData => ({
         ...prevData,
-        ...initialData
+        ...processedData
       }))
     }
   }, [initialData])
@@ -218,6 +239,8 @@ export default function HealthInsuranceForm({
         'gender': 'Gender',
         'male': 'Male',
         'female': 'Female',
+        'select_gender': 'Select Gender',
+        'coverage_type': 'Coverage Type',
         'stepchildren_question': 'Have you included stepchildren as dependents?',
         'stepchildren_names': 'If yes, indicate names:',
         'support_question': 'Are they dependent on you for support and maintenance?',
@@ -261,10 +284,37 @@ export default function HealthInsuranceForm({
         'vision_coverage': 'Cobertura de Visión',
         'dependents_info': 'Información de Dependientes',
         'add_dependent': 'Agregar Dependiente',
+        'dependent_required': 'Esta sección debe completarse para todas las coberturas de dependientes',
+        'first_name': 'Primer Nombre',
+        'last_name': 'Apellido',
+        'middle_initial': 'Inicial del Segundo Nombre',
+        'relationship': 'Relación',
+        'date_of_birth': 'Fecha de Nacimiento',
+        'ssn': 'Número de Seguro Social',
+        'gender': 'Género',
+        'male': 'Masculino',
+        'female': 'Femenino',
+        'select_gender': 'Seleccionar Género',
+        'coverage_type': 'Tipo de Cobertura',
+        'medical': 'Médica',
+        'dental': 'Dental',
+        'vision': 'Visión',
+        'stepchildren_question': '¿Ha incluido hijastros como dependientes?',
+        'stepchildren_names': 'Si es así, indique los nombres:',
+        'support_question': '¿Dependen de usted para apoyo y mantenimiento?',
+        'irs_confirmation': 'Afirmo que todos los dependientes listados cumplen con la definición de "dependiente" de la Sección 152 del IRS para que las primas puedan pagarse con dólares antes de impuestos, si corresponde',
+        'cost_summary': 'Resumen de Costos',
+        'total_biweekly': 'Total Quincenal',
+        'waive_coverage': 'Renunciar a la Cobertura',
+        'waive_insurance': 'Renunciar al Seguro de Salud',
+        'waive_reason': 'Razón para Renunciar',
+        'other_coverage': 'Otra Cobertura',
+        'coverage_details': 'Detalles de la Cobertura',
         'save_continue': 'Guardar y Continuar',
         'back': 'Atrás',
         'yes': 'Sí',
-        'no': 'No'
+        'no': 'No',
+        'remove': 'Eliminar'
       }
     }
     return translations[language][key] || key
@@ -313,7 +363,12 @@ export default function HealthInsuranceForm({
       relationship: '',
       dateOfBirth: '',
       ssn: '',
-      gender: 'M'
+      gender: '',
+      coverageType: {
+        medical: true,
+        dental: false,
+        vision: false
+      }
     }
     setFormData(prev => ({
       ...prev,
@@ -328,7 +383,7 @@ export default function HealthInsuranceForm({
     }))
   }
 
-  const updateDependent = (index: number, field: keyof Dependent, value: string) => {
+  const updateDependent = (index: number, field: keyof Dependent, value: any) => {
     setFormData(prev => ({
       ...prev,
       dependents: prev.dependents.map((dep, i) => 
@@ -717,16 +772,59 @@ export default function HealthInsuranceForm({
                     <Label className="text-xs">{t('gender')}</Label>
                     <Select 
                       value={dependent.gender} 
-                      onValueChange={(value) => updateDependent(index, 'gender', value as 'M' | 'F')}
+                      onValueChange={(value) => updateDependent(index, 'gender', value as 'M' | 'F' | '')}
                     >
                       <SelectTrigger className="h-6">
-                        <SelectValue />
+                        <SelectValue placeholder={t('select_gender')} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="M">{t('male')}</SelectItem>
                         <SelectItem value="F">{t('female')}</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+                
+                {/* Coverage Type Selection */}
+                <div className="mt-2">
+                  <Label className="text-xs">{t('coverage_type')}</Label>
+                  <div className="flex space-x-4 mt-1">
+                    <label className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={dependent.coverageType?.medical ?? true}
+                        onChange={(e) => updateDependent(index, 'coverageType', {
+                          ...dependent.coverageType,
+                          medical: e.target.checked
+                        })}
+                        className="h-3 w-3"
+                      />
+                      <span className="text-xs">{t('medical')}</span>
+                    </label>
+                    <label className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={dependent.coverageType?.dental ?? false}
+                        onChange={(e) => updateDependent(index, 'coverageType', {
+                          ...dependent.coverageType,
+                          dental: e.target.checked
+                        })}
+                        className="h-3 w-3"
+                      />
+                      <span className="text-xs">{t('dental')}</span>
+                    </label>
+                    <label className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={dependent.coverageType?.vision ?? false}
+                        onChange={(e) => updateDependent(index, 'coverageType', {
+                          ...dependent.coverageType,
+                          vision: e.target.checked
+                        })}
+                        className="h-3 w-3"
+                      />
+                      <span className="text-xs">{t('vision')}</span>
+                    </label>
                   </div>
                 </div>
               </div>

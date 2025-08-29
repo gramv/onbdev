@@ -1,0 +1,680 @@
+{
+  "employee": {
+    "name_box": {
+      "pg": 1,
+      "rect": [
+        36,
+        36,
+        220,
+        50
+      ]
+    },
+    "date_box": {
+      "pg": 1,
+      "rect": [
+        300,
+        36,
+        420,
+        50
+      ]
+    },
+    "address": {
+      "name": "Employees Address",
+      "type": "Text",
+      "rect": [
+        24.72,
+        253.68,
+        363.48,
+        267.48
+      ],
+      "pg": 1
+    },
+    "city": {
+      "name": "City",
+      "type": "Text",
+      "rect": [
+        364.68,
+        253.68,
+        471.12,
+        267.48
+      ],
+      "pg": 1
+    },
+    "state": {
+      "name": "State",
+      "type": "Text",
+      "rect": [
+        472.68,
+        253.68,
+        507.12,
+        267.48
+      ],
+      "pg": 1
+    },
+    "zip": {
+      "name": "Zip",
+      "type": "Text",
+      "rect": [
+        508.92,
+        253.68,
+        587.28,
+        267.48
+      ],
+      "pg": 1
+    },
+    "phone": {
+      "name": "Phone Number",
+      "type": "Text",
+      "rect": [
+        24.72,
+        277.68,
+        301.32,
+        289.8
+      ],
+      "pg": 1
+    },
+    "email": {
+      "name": "Email Address",
+      "type": "Text",
+      "rect": [
+        302.88,
+        277.68,
+        587.28,
+        289.8
+      ],
+      "pg": 1
+    },
+    "gender_m": {
+      "name": "Gender",
+      "type": "RadioButton",
+      "rect": [
+        523.08,
+        233.28,
+        530.76,
+        240.96
+      ],
+      "pg": 1
+    },
+    "gender_f": {
+      "name": "Gender",
+      "type": "RadioButton",
+      "rect": [
+        557.28,
+        233.28,
+        564.96,
+        240.96
+      ],
+      "pg": 1
+    }
+  },
+  "medical": {
+    "decline": [
+      {
+        "name": "I Decline Medical Coverage",
+        "type": "CheckBox",
+        "rect": [
+          30.6,
+          387.84,
+          38.28,
+          395.52
+        ],
+        "pg": 1
+      },
+      {
+        "name": "I Decline Medical Coverage_2",
+        "type": "CheckBox",
+        "rect": [
+          31.2,
+          496.92,
+          38.88,
+          504.6
+        ],
+        "pg": 1
+      }
+    ],
+    "tiers": {
+      "employee": [
+        {
+          "name": "Employee Only  5991",
+          "type": "CheckBox",
+          "rect": [
+            50.16,
+            338.88,
+            57.84,
+            346.56
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee Only  13684",
+          "type": "CheckBox",
+          "rect": [
+            50.16,
+            357.24,
+            57.84,
+            364.92
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee Only",
+          "type": "CheckBox",
+          "rect": [
+            50.16,
+            377.64,
+            57.84,
+            385.32
+          ],
+          "pg": 1
+        }
+      ],
+      "employee_spouse": [
+        {
+          "name": "Employee  Spouse",
+          "type": "CheckBox",
+          "rect": [
+            166.92,
+            338.88,
+            174.6,
+            346.56
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Spouse 39621",
+          "type": "CheckBox",
+          "rect": [
+            171.36,
+            357.24,
+            179.04,
+            364.92
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Spouse_2",
+          "type": "CheckBox",
+          "rect": [
+            167.16,
+            377.64,
+            174.84,
+            385.32
+          ],
+          "pg": 1
+        }
+      ],
+      "employee_children": [
+        {
+          "name": "Employee  Children",
+          "type": "CheckBox",
+          "rect": [
+            306.6,
+            338.88,
+            314.28,
+            346.56
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Children_2",
+          "type": "CheckBox",
+          "rect": [
+            306.6,
+            357.24,
+            314.28,
+            364.92
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Children_3",
+          "type": "CheckBox",
+          "rect": [
+            306.6,
+            377.64,
+            314.28,
+            385.32
+          ],
+          "pg": 1
+        }
+      ],
+      "family": [
+        {
+          "name": "Employee  Family",
+          "type": "CheckBox",
+          "rect": [
+            455.16,
+            338.88,
+            462.84,
+            346.56
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Family_2",
+          "type": "CheckBox",
+          "rect": [
+            455.16,
+            357.24,
+            462.84,
+            364.92
+          ],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Family_3",
+          "type": "CheckBox",
+          "rect": [
+            455.16,
+            377.64,
+            462.84,
+            385.32
+          ],
+          "pg": 1
+        }
+      ]
+    }
+  },
+  "limited_medical": {
+    "tiers": {
+      "employee": [
+        {
+          "name": "Employee Only_2",
+          "type": "CheckBox",
+          "rect": [50.88, 441.0, 58.56, 448.68],
+          "pg": 1
+        },
+        {
+          "name": "Employee Only_3",
+          "type": "CheckBox",
+          "rect": [50.88, 461.4, 58.56, 469.08],
+          "pg": 1
+        },
+        {
+          "name": "Employee Only_4",
+          "type": "CheckBox",
+          "rect": [50.88, 481.8, 58.56, 489.48],
+          "pg": 1
+        }
+      ],
+      "employee_spouse": [
+        {
+          "name": "Employee  Spouse_3",
+          "type": "CheckBox",
+          "rect": [167.64, 441.0, 175.32, 448.68],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Spouse_4",
+          "type": "CheckBox",
+          "rect": [167.88, 461.4, 175.56, 469.08],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Spouse_5",
+          "type": "CheckBox",
+          "rect": [167.88, 481.8, 175.56, 489.48],
+          "pg": 1
+        }
+      ],
+      "employee_children": [
+        {
+          "name": "Employee  Children_4",
+          "type": "CheckBox",
+          "rect": [307.32, 441.0, 315.0, 448.68],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Children_5",
+          "type": "CheckBox",
+          "rect": [307.32, 461.4, 315.0, 469.08],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Children_6",
+          "type": "CheckBox",
+          "rect": [307.32, 481.8, 315.0, 489.48],
+          "pg": 1
+        }
+      ],
+      "family": [
+        {
+          "name": "Employee  Family_4",
+          "type": "CheckBox",
+          "rect": [455.88, 441.0, 463.56, 448.68],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Family_5",
+          "type": "CheckBox",
+          "rect": [455.88, 461.4, 463.56, 469.08],
+          "pg": 1
+        },
+        {
+          "name": "Employee  Family_6",
+          "type": "CheckBox",
+          "rect": [455.88, 481.8, 463.56, 489.48],
+          "pg": 1
+        }
+      ]
+    }
+  },
+  "dental": {
+    "decline": [
+      {
+        "name": "I Decline Dental Coverage",
+        "type": "CheckBox",
+        "rect": [
+          30.48,
+          562.44,
+          38.16,
+          570.12
+        ],
+        "pg": 1
+      }
+    ],
+    "tiers": {
+      "employee": [
+        {
+          "name": "Employee Only_6",
+          "type": "CheckBox",
+          "rect": [
+            30.48,
+            593.16,
+            38.16,
+            600.84
+          ],
+          "pg": 1
+        }
+      ],
+      "employee_spouse": [
+        {
+          "name": "Employee  Spouse_7",
+          "type": "CheckBox",
+          "rect": [
+            169.08,
+            593.16,
+            176.76,
+            600.84
+          ],
+          "pg": 1
+        }
+      ],
+      "employee_children": [
+        {
+          "name": "Employee  Children_8",
+          "type": "CheckBox",
+          "rect": [
+            301.32,
+            593.16,
+            309.0,
+            600.84
+          ],
+          "pg": 1
+        }
+      ],
+      "family": [
+        {
+          "name": "Employee  Family_8",
+          "type": "CheckBox",
+          "rect": [
+            450.24,
+            593.16,
+            457.92,
+            600.84
+          ],
+          "pg": 1
+        }
+      ]
+    }
+  },
+  "vision": {
+    "decline": [
+      {
+        "name": "I Decline Vision Coverage",
+        "type": "CheckBox",
+        "rect": [
+          30.48,
+          608.4,
+          38.16,
+          616.08
+        ],
+        "pg": 1
+      }
+    ],
+    "tiers": {
+      "employee": [
+        {
+          "name": "Employee Only_6",
+          "type": "CheckBox",
+          "rect": [30.48, 593.16, 38.16, 600.84],
+          "pg": 1
+        }
+      ],
+      "employee_spouse": [
+        {
+          "name": "Employee  Spouse_7",
+          "type": "CheckBox",
+          "rect": [169.08, 593.16, 176.76, 600.84],
+          "pg": 1
+        }
+      ],
+      "employee_children": [
+        {
+          "name": "Employee  Children_8",
+          "type": "CheckBox",
+          "rect": [301.32, 593.16, 309.0, 600.84],
+          "pg": 1
+        }
+      ],
+      "family": [
+        {
+          "name": "Employee  Family_8",
+          "type": "CheckBox",
+          "rect": [450.24, 593.16, 457.92, 600.84],
+          "pg": 1
+        }
+      ]
+    }
+  },
+  "affirmations": {
+    "irs_yes_no": [
+      {
+        "name": "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable",
+        "type": "RadioButton",
+        "rect": [
+          519.12,
+          314.28,
+          526.32,
+          321.48
+        ],
+        "pg": 2
+      },
+      {
+        "name": "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable",
+        "type": "RadioButton",
+        "rect": [
+          551.16,
+          314.28,
+          558.24,
+          321.48
+        ],
+        "pg": 2
+      }
+    ],
+    "support_yes_no": [
+      {
+        "name": "Are they dependent on you for support and maintenance",
+        "type": "RadioButton",
+        "rect": [
+          222.96,
+          295.08,
+          230.16,
+          302.28
+        ],
+        "pg": 2
+      },
+      {
+        "name": "Are they dependent on you for support and maintenance",
+        "type": "RadioButton",
+        "rect": [
+          223.2,
+          305.76,
+          230.28,
+          312.84
+        ],
+        "pg": 2
+      }
+    ],
+    "step_yes": [
+      {
+        "name": "Yes",
+        "type": "CheckBox",
+        "rect": [
+          191.04,
+          295.08,
+          198.12,
+          302.28
+        ],
+        "pg": 2
+      }
+    ],
+    "step_no": [
+      {
+        "name": "No_2",
+        "type": "CheckBox",
+        "rect": [
+          255.12,
+          305.76,
+          262.32,
+          312.84
+        ],
+        "pg": 2
+      }
+    ],
+    "step_names": [
+      {
+        "name": "If yes indicate names",
+        "type": "Text",
+        "rect": [
+          332.64,
+          292.44,
+          537.0,
+          302.28
+        ],
+        "pg": 2
+      }
+    ]
+  },
+  "dependents": {
+    "rows": [
+      {
+        "name": [
+          196.8,
+          104.52,
+          427.44,
+          149.88
+        ],
+        "dob": [
+          471.24,
+          104.52,
+          529.2,
+          149.88
+        ],
+        "ssn": [
+          532.56,
+          104.52,
+          573.12,
+          149.88
+        ],
+        "pg": 2
+      },
+      {
+        "name": [
+          196.8,
+          151.8,
+          427.44,
+          197.04
+        ],
+        "dob": [
+          471.24,
+          151.8,
+          529.2,
+          197.04
+        ],
+        "ssn": [
+          532.56,
+          151.8,
+          573.12,
+          197.04
+        ],
+        "pg": 2
+      },
+      {
+        "name": [
+          196.8,
+          199.08,
+          427.44,
+          244.32
+        ],
+        "dob": [
+          471.24,
+          199.08,
+          529.2,
+          244.32
+        ],
+        "ssn": [
+          532.56,
+          199.08,
+          573.12,
+          244.32
+        ],
+        "pg": 2
+      },
+      {
+        "name": [
+          196.8,
+          246.36,
+          427.44,
+          291.6
+        ],
+        "dob": [
+          471.24,
+          246.36,
+          529.2,
+          291.6
+        ],
+        "ssn": [
+          532.56,
+          246.36,
+          573.12,
+          291.6
+        ],
+        "pg": 2
+      }
+    ],
+    "overflow_page": {
+      "enabled": true
+    }
+  },
+  "signature": {
+    "rect": {
+      "pg": 2,
+      "rect": [
+        188.28,
+        615.6,
+        486.0,
+        652.92
+      ]
+    },
+    "date": {
+      "pg": 2,
+      "rect": [
+        509.76,
+        615.6,
+        581.76,
+        652.92
+      ]
+    }
+  }
+}

@@ -66,6 +66,8 @@ export default function ReviewAndSign({
   const [pdfData, setPdfData] = useState<string | null>(null)
   const [loadingPDF, setLoadingPDF] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
+  const [pdfGenerationInProgress, setPdfGenerationInProgress] = useState(false)
+  const [pdfGeneratedFor, setPdfGeneratedFor] = useState<string | null>(null)
   const signatureRef = useRef<SignatureCanvas>(null)
 
   // Build a stable payload for PDF generation
@@ -73,26 +75,28 @@ export default function ReviewAndSign({
     // Debug logging for data received
     console.log('ReviewAndSign - Received data:')
     console.log('  - formData keys:', formData ? Object.keys(formData) : 'null')
+    console.log('  - formData.personalInfo:', formData?.personalInfo ? Object.keys(formData.personalInfo) : 'none')
     console.log('  - extraPdfData keys:', extraPdfData ? Object.keys(extraPdfData) : 'null')
-    console.log('  - extraPdfData.ssn:', extraPdfData?.ssn ? `${extraPdfData.ssn.substring(0, 3)}****` : 'none')
-    console.log('  - formData.ssn:', (formData as any)?.ssn || 'none')
+    
+    // Extract SSN from nested personalInfo object first, then fallbacks
+    const ssn = formData?.personalInfo?.ssn || formData?.ssn || extraPdfData?.ssn || 'none';
+    console.log('  - Extracted SSN:', ssn !== 'none' ? `${ssn.substring(0, 3)}****` : 'none')
 
-    // Ensure SSN is at root level for backend
+    // Build payload with personalInfo fields extracted to root level
     const payload = {
       ...(formData || {}),
-      ...(extraPdfData || {})
-    }
-
-    // Make sure SSN is available at root level
-    if (extraPdfData?.ssn && !payload.ssn) {
-      payload.ssn = extraPdfData.ssn
+      ...(formData?.personalInfo || {}), // Extract nested personalInfo to root
+      ...(extraPdfData || {}),
+      ssn: ssn // Ensure SSN is at root level
     }
 
     // Log the payload for debugging
     console.log('ReviewAndSign - PDF payload being sent:', {
-      hasSSN: !!payload.ssn,
-      ssn: payload.ssn ? `${payload.ssn.substring(0, 3)}****` : 'none',
-      hasSignature: !!payload.signatureData,
+      hasSSN: !!payload.ssn && payload.ssn !== 'none',
+      ssn: payload.ssn && payload.ssn !== 'none' ? `${payload.ssn.substring(0, 3)}****` : 'none',
+      hasPersonalInfo: !!(payload.firstName || payload.lastName),
+      firstName: payload.firstName || 'none',
+      lastName: payload.lastName || 'none',
       keys: Object.keys(payload)
     })
     
@@ -147,29 +151,18 @@ export default function ReviewAndSign({
 
   const t = translations[language]
 
-  useEffect(() => {
-    // Get IP address and user agent for federal compliance
-    if (window.navigator) {
-      // In production, you'd make an API call to get the real IP
-      // For now, we'll use placeholder data
-    }
-    
-    // If pdfUrl is already provided, use it directly
-    if (pdfUrl) {
-      setPdfData(pdfUrl)
-      // Don't call onPdfGenerated here as it's already saved
-    }
-    // Load PDF if endpoint is provided and PDF preview is enabled (skip if pdfUrl already provided)
-    else if (usePDFPreview && pdfEndpoint) {
-      loadPDF()
-    }
-    
-    // No cleanup that clears pdfData; avoid flicker on re-renders
-  }, [usePDFPreview, pdfEndpoint, pdfUrl, payloadKey])
-  
-  const loadPDF = async () => {
+  // Use useCallback to ensure loadPDF has access to current payloadKey
+  const loadPDF = React.useCallback(async () => {
     if (!pdfEndpoint) return
     
+    // Prevent concurrent PDF generation
+    if (pdfGenerationInProgress) {
+      console.log('ReviewAndSign - PDF generation already in progress, aborting new request')
+      return
+    }
+    
+    console.log('ReviewAndSign - Starting PDF generation...')
+    setPdfGenerationInProgress(true)
     setLoadingPDF(true)
     setPdfError(null)
     
@@ -227,6 +220,10 @@ export default function ReviewAndSign({
       }
 
       setPdfData(pdfBase64)
+      
+      // Mark this payload as generated
+      setPdfGeneratedFor(payloadKey)
+      console.log('ReviewAndSign - PDF generation complete, marked payload as generated')
 
       // Call the callback if provided
       if (onPdfGenerated && pdfBase64) {
@@ -234,12 +231,46 @@ export default function ReviewAndSign({
       }
     } catch (error) {
       console.error('Error loading PDF:', error)
-      console.error('PDF generation request data:', { employee_data: formData })
+      console.error('PDF generation request data:', { employee_data: pdfPayload })
       setPdfError('Failed to load PDF preview')
     } finally {
       setLoadingPDF(false)
+      setPdfGenerationInProgress(false)
+      console.log('ReviewAndSign - PDF generation process ended')
     }
-  }
+  }, [pdfEndpoint, pdfPayload, payloadKey, pdfGenerationInProgress, onPdfGenerated])
+
+  useEffect(() => {
+    // Get IP address and user agent for federal compliance
+    if (window.navigator) {
+      // In production, you'd make an API call to get the real IP
+      // For now, we'll use placeholder data
+    }
+    
+    // If pdfUrl is already provided, use it directly
+    if (pdfUrl) {
+      console.log('ReviewAndSign - Using provided pdfUrl, skipping generation')
+      setPdfData(pdfUrl)
+      // Don't call onPdfGenerated here as it's already saved
+      return; // Exit early, no need to generate
+    }
+    
+    // Only generate PDF if:
+    // 1. PDF preview is enabled
+    // 2. We have an endpoint
+    // 3. We haven't already generated for this payload
+    // 4. Generation is not currently in progress
+    if (usePDFPreview && pdfEndpoint && payloadKey !== pdfGeneratedFor && !pdfGenerationInProgress) {
+      console.log('ReviewAndSign - Triggering PDF generation (only once per payload)')
+      loadPDF()
+    } else if (pdfGenerationInProgress) {
+      console.log('ReviewAndSign - PDF generation already in progress, skipping')
+    } else if (payloadKey === pdfGeneratedFor) {
+      console.log('ReviewAndSign - PDF already generated for this payload, skipping')
+    }
+    
+    // No cleanup that clears pdfData; avoid flicker on re-renders
+  }, [usePDFPreview, pdfEndpoint, pdfUrl, payloadKey, pdfGeneratedFor, pdfGenerationInProgress, loadPDF])
 
   const handleClearSignature = () => {
     signatureRef.current?.clear()

@@ -27,6 +27,8 @@ export default function HealthInsuranceStep({
   const [isValid, setIsValid] = useState(false)
   const [showReview, setShowReview] = useState(false)
   const [isSigned, setIsSigned] = useState(false)
+  const [personalInfo, setPersonalInfo] = useState<any>(null)
+  const [section125Acknowledged, setSection125Acknowledged] = useState(false)
 
   // Validation hook
   const { errors, fieldErrors, validate } = useStepValidation(healthInsuranceValidator)
@@ -50,7 +52,44 @@ export default function HealthInsuranceStep({
   useEffect(() => {
     console.log('HealthInsuranceStep - Loading data for step:', currentStep.id)
     
-    // Try to load saved data from session storage
+    // Load personal information from PersonalInfoStep
+    const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
+    if (personalInfoData) {
+      try {
+        const parsed = JSON.parse(personalInfoData)
+        console.log('HealthInsuranceStep - Found personal info data:', parsed)
+        
+        // Extract personal info from the nested structure
+        if (parsed.personalInfo) {
+          setPersonalInfo(parsed.personalInfo)
+        } else if (parsed.firstName || parsed.lastName) {
+          // Direct structure fallback
+          setPersonalInfo(parsed)
+        }
+      } catch (e) {
+        console.error('Failed to parse personal info data:', e)
+      }
+    }
+    
+    // Also check employee prop for personal info
+    if (!personalInfo && employee) {
+      setPersonalInfo({
+        firstName: employee.firstName || '',
+        lastName: employee.lastName || '',
+        middleInitial: employee.middleInitial || '',
+        ssn: employee.ssn || '',
+        dateOfBirth: employee.dateOfBirth || '',
+        address: employee.address || '',
+        city: employee.city || '',
+        state: employee.state || '',
+        zipCode: employee.zipCode || '',
+        phone: employee.phone || '',
+        email: employee.email || '',
+        gender: employee.gender || ''
+      })
+    }
+    
+    // Try to load saved health insurance data from session storage
     const savedData = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
     if (savedData) {
       try {
@@ -65,6 +104,10 @@ export default function HealthInsuranceStep({
           // Direct data structure
           console.log('HealthInsuranceStep - Setting formData from direct structure')
           setFormData(parsed)
+        }
+        
+        if (parsed.section125Acknowledged) {
+          setSection125Acknowledged(true)
         }
         
         if (parsed.isSigned || parsed.signed) {
@@ -82,7 +125,7 @@ export default function HealthInsuranceStep({
       setIsSigned(true)
       setIsValid(true)
     }
-  }, [currentStep.id, progress.completedSteps])
+  }, [currentStep.id, progress.completedSteps, employee])
 
   const handleFormSave = async (data: any) => {
     console.log('HealthInsuranceStep - handleFormSave called with data:', data)
@@ -101,7 +144,8 @@ export default function HealthInsuranceStep({
         formData: data,
         isValid: true,
         isSigned: false,
-        showReview: true
+        showReview: true,
+        section125Acknowledged
       }))
     } else {
       console.log('Validation failed:', validation.errors)
@@ -113,6 +157,14 @@ export default function HealthInsuranceStep({
   }
 
   const handleDigitalSignature = async (signatureData: any) => {
+    // Check if Section 125 is acknowledged
+    if (!section125Acknowledged) {
+      alert(language === 'en' 
+        ? 'Please acknowledge the Section 125 terms before signing.' 
+        : 'Por favor, acepte los términos de la Sección 125 antes de firmar.')
+      return
+    }
+    
     setIsSigned(true)
     
     // Create complete data with both nested and flat structure for compatibility
@@ -121,8 +173,11 @@ export default function HealthInsuranceStep({
       ...formData,
       // Also include nested structure for consistency
       formData,
+      // Include personal info for backend PDF generation
+      personalInfo,
       signed: true,
       isSigned: true, // Include both for compatibility
+      section125Acknowledged,
       signatureData,
       completedAt: new Date().toISOString()
     }
@@ -143,10 +198,12 @@ export default function HealthInsuranceStep({
     sessionStorage.setItem(`onboarding_${currentStep.id}_data`, JSON.stringify({
       ...formData, // Include flat structure in session storage too
       formData,
+      personalInfo,
       isValid: true,
       isSigned: true,
       showReview: false,
       signed: true,
+      section125Acknowledged,
       signatureData,
       completedAt: completeData.completedAt
     }))
@@ -171,6 +228,16 @@ export default function HealthInsuranceStep({
       planSelectionTitle: 'Health Insurance Plan Selection',
       estimatedTime: 'Estimated time: 6-8 minutes',
       reviewDescription: 'Please review your health insurance selections and dependent information',
+      section125Title: 'Premium Only IRS Code Section 125',
+      section125Text: `By enrolling in the Section 125 plan, I understand that:
+        • My premiums will be deducted from my paycheck on a pre-tax basis
+        • This will reduce my taxable income and may result in lower taxes
+        • My Social Security benefits may be slightly reduced due to lower reported wages
+        • I cannot change or cancel my coverage during the plan year unless I experience a qualifying life event
+        • Qualifying events include marriage, divorce, birth/adoption, death of dependent, or change in spouse's employment
+        • I must notify HR within 30 days of any qualifying life event
+        • Pre-tax deductions cannot be refunded once taken from my paycheck`,
+      section125Checkbox: 'I understand and agree to the Section 125 terms above',
       acknowledgments: {
         planSelection: 'I have reviewed and selected the appropriate health insurance plan',
         dependentInfo: 'All dependent information provided is accurate and complete',
@@ -188,6 +255,16 @@ export default function HealthInsuranceStep({
       planSelectionTitle: 'Selección de Plan de Seguro de Salud',
       estimatedTime: 'Tiempo estimado: 6-8 minutos',
       reviewDescription: 'Por favor revise sus selecciones de seguro de salud e información de dependientes',
+      section125Title: 'Sección 125 del Código IRS Solo Prima',
+      section125Text: `Al inscribirme en el plan de la Sección 125, entiendo que:
+        • Mis primas se deducirán de mi cheque de pago antes de impuestos
+        • Esto reducirá mis ingresos gravables y puede resultar en impuestos más bajos
+        • Mis beneficios del Seguro Social pueden reducirse ligeramente debido a salarios reportados más bajos
+        • No puedo cambiar o cancelar mi cobertura durante el año del plan a menos que experimente un evento de vida calificado
+        • Los eventos calificados incluyen matrimonio, divorcio, nacimiento/adopción, muerte de dependiente o cambio en el empleo del cónyuge
+        • Debo notificar a RRHH dentro de 30 días de cualquier evento de vida calificado
+        • Las deducciones antes de impuestos no pueden ser reembolsadas una vez tomadas de mi cheque de pago`,
+      section125Checkbox: 'Entiendo y acepto los términos de la Sección 125 anteriores',
       acknowledgments: {
         planSelection: 'He revisado y seleccionado el plan de seguro de salud apropiado',
         dependentInfo: 'Toda la información de dependientes proporcionada es precisa y completa',
@@ -212,12 +289,36 @@ export default function HealthInsuranceStep({
             </div>
           </div>
           
+          {/* Section 125 Acknowledgment */}
+          <Card className="bg-yellow-50 border-yellow-200">
+            <CardHeader>
+              <CardTitle className="text-lg">{t.section125Title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm whitespace-pre-line">{t.section125Text}</p>
+                <div className="flex items-start space-x-2">
+                  <input
+                    type="checkbox"
+                    id="section125"
+                    checked={section125Acknowledged}
+                    onChange={(e) => setSection125Acknowledged(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="section125" className="text-sm font-medium">
+                    {t.section125Checkbox}
+                  </label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           <ReviewAndSign
             formType="health_insurance"
             formTitle="Health Insurance Enrollment Form"
-            formData={formData}
+            formData={{...formData, personalInfo, section125Acknowledged}}
             documentName="Health Insurance Enrollment"
-            signerName={employee?.firstName + ' ' + employee?.lastName || 'Employee'}
+            signerName={personalInfo ? `${personalInfo.firstName} ${personalInfo.lastName}` : (employee?.firstName + ' ' + employee?.lastName || 'Employee')}
             signerTitle={employee?.position}
             onSign={handleDigitalSignature}
             onEdit={handleBackFromReview}
@@ -280,6 +381,7 @@ export default function HealthInsuranceStep({
           <CardContent>
             <HealthInsuranceForm
               initialData={formData}
+              personalInfo={personalInfo}
               language={language}
               onSave={handleFormSave}
               onValidationChange={(valid: boolean, errors?: Record<string, string>) => {
