@@ -158,7 +158,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       }
 
       // Fetch all employees without any filters - we'll filter on the client side
-      const response = await apiClient.get('/api/employees', {
+      const response = await apiClient.get('/employees', {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -180,7 +180,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       // Only fetch properties for HR users
       let properties = []
       if (userRole === 'hr') {
-        const response = await apiClient.get('/api/hr/properties', {
+        const response = await apiClient.get('/hr/properties', {
           headers: { Authorization: `Bearer ${token}` }
         })
         properties = response.data || []
@@ -203,7 +203,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
   const fetchEmployeeDetails = async (employeeId: string) => {
     try {
       setDetailsLoading(true)
-      const response = await apiClient.get(`/api/employees/${employeeId}`, {
+      const response = await apiClient.get(`/employees/${employeeId}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       // Handle wrapped response format
@@ -225,7 +225,7 @@ export function EmployeesTab({ userRole: propUserRole, propertyId: propPropertyI
       const formData = new FormData()
       formData.append('employment_status', newEmployeeStatus)
 
-      await apiClient.put(`/api/employees/${selectedEmployee.id}`, formData, {
+      await apiClient.put(`/employees/${selectedEmployee.id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

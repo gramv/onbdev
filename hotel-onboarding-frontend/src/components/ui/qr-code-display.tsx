@@ -45,7 +45,7 @@ export function QRCodeDisplay({
     setLoading(true)
     try {
       const response = await apiClient.post(
-        `/api/hr/properties/${property.id}/qr-code`,
+        `/hr/properties/${property.id}/qr-code`,
         {}
       )
       // Backend uses standardized response wrapper { success, data, ... }

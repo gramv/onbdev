@@ -203,7 +203,7 @@ interface NotificationProviderProps {
 
 export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   children,
-  apiEndpoint = '/api/notifications',
+  apiEndpoint = '/notifications',
   enableRealTime = true,
   enablePersistence = true,
   storageKey = 'hotel-notifications'

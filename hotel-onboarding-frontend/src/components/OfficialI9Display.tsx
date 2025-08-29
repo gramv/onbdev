@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, FileText, Download, Eye } from 'lucide-react';
 import DigitalSignatureCapture from './DigitalSignatureCapture';
+import { getApiUrl } from '@/config/api';
 
 interface OfficialI9DisplayProps {
   employeeData: any;
@@ -85,7 +86,7 @@ export default function OfficialI9Display({
         throw new Error(`Federal compliance violation: Missing required I-9 fields: ${missingFields.join(', ')}`);
       }
       
-      const response = await fetch('/api/forms/i9/generate', {
+      const response = await fetch(`${getApiUrl()}/forms/i9/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ export default function OfficialI9Display({
       const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfArrayBuffer)));
 
       // Add signature to PDF
-      const signatureResponse = await fetch('/api/forms/i9/add-signature', {
+      const signatureResponse = await fetch(`${getApiUrl()}/forms/i9/add-signature`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

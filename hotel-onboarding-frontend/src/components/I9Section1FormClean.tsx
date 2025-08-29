@@ -12,6 +12,7 @@ import PDFViewerWithControls from './PDFViewerWithControls'
 import DigitalSignatureCapture from './DigitalSignatureCapture'
 import axios from 'axios'
 import { generateMappedI9Pdf } from '@/utils/i9PdfGeneratorMapped'
+import { getApiUrl } from '@/config/api'
 
 interface I9Section1FormCleanProps {
   onComplete: (data: any) => void
@@ -420,7 +421,7 @@ export default function I9Section1FormClean({
       // Save to backend only if real employee ID (not demo or test)
       if (employeeId) {
         try {
-          await axios.post(`/api/onboarding/${employeeId}/i9-section1`, {
+          await axios.post(`${getApiUrl()}/onboarding/${employeeId}/i9-section1`, {
             formData,
             signed: false
           })
@@ -468,7 +469,7 @@ export default function I9Section1FormClean({
     try {
       if (employeeId) {
         // Only save to backend for real employee IDs (not demo or test)
-        await axios.post(`/api/onboarding/${employeeId}/i9-section1`, {
+        await axios.post(`${getApiUrl()}/onboarding/${employeeId}/i9-section1`, {
           formData,
           signed: true,
           signatureData: signatureData.signature,

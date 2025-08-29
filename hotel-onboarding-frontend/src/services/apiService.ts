@@ -4,6 +4,7 @@
  */
 
 import axios, { AxiosResponse } from 'axios'
+import { getApiUrl } from '../config/api'
 
 interface CacheEntry<T = any> {
   data: T
@@ -15,7 +16,7 @@ class APIService {
   private cache = new Map<string, CacheEntry>()
   private pendingRequests = new Map<string, Promise<any>>()
   private readonly CACHE_DURATION = 5000 // 5 seconds - reduced for better real-time updates
-  private readonly BASE_URL = '/api'
+  private readonly BASE_URL = getApiUrl()
 
   private getAuthConfig() {
     const token = localStorage.getItem('token')
@@ -119,7 +120,7 @@ class APIService {
 
   async getManagers(): Promise<any[]> {
     try {
-      const data = await this.makeRequest<any>('/api/hr/managers')
+      const data = await this.makeRequest<any>('/hr/managers')
       const managersList = Array.isArray(data) ? data : []
 
       // Normalize to first assigned property for legacy consumers; preserve list via properties
@@ -146,7 +147,7 @@ class APIService {
 
   async getApplications(): Promise<any[]> {
     try {
-      const data = await this.makeRequest<any>('/api/manager/applications')
+      const data = await this.makeRequest<any>('/manager/applications')
       return Array.isArray(data) ? data : []
     } catch (error) {
       console.error('Error fetching applications:', error)
@@ -183,12 +184,12 @@ class APIService {
   }
 
   async refreshManagers(): Promise<any[]> {
-    this.clearCache('/api/hr/managers')
+    this.clearCache('/hr/managers')
     return this.getManagers()
   }
 
   async refreshApplications(): Promise<any[]> {
-    this.clearCache('/api/manager/applications')
+    this.clearCache('/manager/applications')
     return this.getApplications()
   }
 

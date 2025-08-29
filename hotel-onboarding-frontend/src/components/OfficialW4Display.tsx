@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, FileText, Download, Eye, Calculator, AlertTriangle } from 'lucide-react';
 import DigitalSignatureCapture from './DigitalSignatureCapture';
+import { getApiUrl } from '@/config/api';
 
 interface OfficialW4DisplayProps {
   employeeData: any;
@@ -80,7 +81,7 @@ export default function OfficialW4Display({
         throw new Error(`IRS compliance violation: Missing required W-4 fields: ${missingFields.join(', ')}`);
       }
       
-      const response = await fetch('/api/forms/w4/generate', {
+      const response = await fetch(`${getApiUrl()}/forms/w4/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +173,7 @@ export default function OfficialW4Display({
       const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfArrayBuffer)));
 
       // Add signature to official PDF
-      const signatureResponse = await fetch('/api/forms/w4/add-signature', {
+      const signatureResponse = await fetch(`${getApiUrl()}/forms/w4/add-signature`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

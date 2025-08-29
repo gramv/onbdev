@@ -16,10 +16,11 @@
 export function getApiUrl(): string {
   const envApiUrl = import.meta.env.VITE_API_URL
 
-  // Production: Use the full backend URL from environment variable
+  // Production: Use the full backend URL from environment variable with /api suffix
   if (envApiUrl && envApiUrl.trim() !== '') {
-    // Ensure the URL ends without a trailing slash for consistency
-    return envApiUrl.replace(/\/$/, '')
+    // Ensure the URL ends without a trailing slash, then add /api
+    const baseUrl = envApiUrl.replace(/\/$/, '')
+    return `${baseUrl}/api`
   }
 
   // Development: Use '/api' prefix to work with Vite proxy

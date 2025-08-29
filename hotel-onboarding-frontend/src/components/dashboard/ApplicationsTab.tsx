@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Users, Mail, RotateCcw, RefreshCw, AlertCircle } from 'lucide-react'
 import { QRCodeDisplay } from '@/components/ui/qr-code-display'
 import { apiClient } from '@/services/api'
+import { getApiUrl } from '@/config/api'
 import axios from 'axios'
 
 interface JobApplication {
@@ -138,8 +139,8 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       setLoading(true)
       // Use different endpoints based on user role
       const endpoint = userRole === 'hr' 
-        ? '/api/hr/applications'
-        : '/api/manager/applications'
+        ? '/hr/applications'
+        : '/manager/applications'
       
       console.log('🔍 Fetching applications:', {
         userRole,
@@ -196,7 +197,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const fetchTalentPoolCandidates = async () => {
     try {
       setTalentPoolLoading(true)
-      const endpoint = '/api/hr/applications/talent-pool'
+      const endpoint = '/hr/applications/talent-pool'
       const response = await apiClient.get(endpoint, {
         params: {
           property_id: userRole === 'hr' && talentPoolPropertyFilter !== 'all' ? talentPoolPropertyFilter : undefined,
@@ -230,7 +231,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
   const fetchProperties = async () => {
     try {
-      const response = await apiClient.get('/api/hr/properties')
+      const response = await apiClient.get('/hr/properties')
       // Handle wrapped response format
       const propertiesData = response.data.data || response.data
       setProperties(Array.isArray(propertiesData) ? propertiesData : [])
@@ -337,7 +338,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
 
       console.log('🚀 Making approval request to:', `/applications/${selectedApplication.id}/approve`)
       
-      const response = await apiClient.post(`/api/applications/${selectedApplication.id}/approve`, formData, {
+      const response = await apiClient.post(`/applications/${selectedApplication.id}/approve`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -424,7 +425,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       const formData = new FormData()
       formData.append('rejection_reason', rejectionReason.trim())
 
-      const response = await axios.post(`/api/applications/${selectedApplication.id}/reject`, formData, {
+      const response = await axios.post(`${getApiUrl()}/applications/${selectedApplication.id}/reject`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -487,7 +488,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       
       if (bulkActionType === 'email') {
         // Send bulk email notifications to talent pool candidates
-        const response = await axios.post('/api/hr/applications/bulk-talent-pool-notify', {
+        const response = await axios.post(`${getApiUrl()}/hr/applications/bulk-talent-pool-notify`, {
           application_ids: selectedTalentPoolIds
         }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -496,7 +497,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
         alert(`Email notifications sent to ${selectedTalentPoolIds.length} candidates`)
       } else if (bulkActionType === 'reactivate') {
         // Reactivate talent pool candidates (move back to pending)
-        const response = await axios.post('/api/hr/applications/bulk-reactivate', {
+        const response = await axios.post(`${getApiUrl()}/hr/applications/bulk-reactivate`, {
           application_ids: selectedTalentPoolIds
         }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -542,7 +543,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       formData.append('new_status', newStatus)
       formData.append('reason', reason)
 
-      await axios.post('/api/hr/applications/bulk-status-update', formData, {
+      await axios.post(`${getApiUrl()}/hr/applications/bulk-status-update`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 
@@ -566,7 +567,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
   const fetchApplicationHistory = async (applicationId: string) => {
     try {
       setHistoryLoading(true)
-      const response = await axios.get(`/api/hr/applications/${applicationId}/history`, {
+      const response = await axios.get(`${getApiUrl()}/hr/applications/${applicationId}/history`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setApplicationHistory(response.data.history || [])
@@ -611,7 +612,7 @@ export function ApplicationsTab({ userRole: propUserRole, propertyId: propProper
       if (bulkStatusData.reason) formData.append('reason', bulkStatusData.reason)
       if (bulkStatusData.notes) formData.append('notes', bulkStatusData.notes)
 
-      await axios.post('/api/hr/applications/bulk-status-update', formData, {
+      await axios.post(`${getApiUrl()}/hr/applications/bulk-status-update`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

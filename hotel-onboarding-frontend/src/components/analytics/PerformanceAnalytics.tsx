@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import axios from 'axios'
+import { getApiUrl } from '@/config/api'
 
 interface ManagerPerformance {
   manager_id: string
@@ -140,11 +141,11 @@ export default function PerformanceAnalytics() {
     setLoading(true)
     try {
       const [managersRes, propertiesRes] = await Promise.all([
-        axios.get('/api/analytics/manager-performance', {
+        axios.get(`${getApiUrl()}/analytics/manager-performance`, {
           params: { time_range: timeRange },
           headers: { Authorization: `Bearer ${user?.token}` }
         }),
-        axios.get('/api/analytics/property-performance', {
+        axios.get(`${getApiUrl()}/analytics/property-performance`, {
           params: { time_range: timeRange },
           headers: { Authorization: `Bearer ${user?.token}` }
         })

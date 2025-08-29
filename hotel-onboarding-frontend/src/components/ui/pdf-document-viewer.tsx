@@ -52,7 +52,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   i9: {
     title: 'Form I-9',
     subtitle: 'Employment Eligibility Verification',
-    apiEndpoint: '/api/forms/i9/generate',
+    apiEndpoint: '/forms/i9/generate',
     requiresSignature: true,
     complianceLevel: 'federal',
     description: 'Official USCIS Form I-9 with your employment eligibility information.',
@@ -61,7 +61,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   w4: {
     title: 'Form W-4',
     subtitle: 'Employee\'s Withholding Certificate',
-    apiEndpoint: '/api/forms/w4/generate',
+    apiEndpoint: '/forms/w4/generate',
     requiresSignature: true,
     complianceLevel: 'federal',
     description: 'Official IRS Form W-4 with your tax withholding preferences.',
@@ -70,7 +70,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   direct_deposit: {
     title: 'Direct Deposit Authorization',
     subtitle: 'Electronic Payroll Authorization',
-    apiEndpoint: '/api/forms/direct-deposit/generate',
+    apiEndpoint: '/forms/direct-deposit/generate',
     requiresSignature: true,
     complianceLevel: 'company',
     description: 'Authorization form for electronic deposit of your payroll.',
@@ -79,7 +79,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   health_insurance: {
     title: 'Health Insurance Enrollment',
     subtitle: 'Employee Benefits Election',
-    apiEndpoint: '/api/forms/health-insurance/generate',
+    apiEndpoint: '/forms/health-insurance/generate',
     requiresSignature: true,
     complianceLevel: 'company',
     description: 'Health insurance plan selection and beneficiary information.',
@@ -88,7 +88,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   emergency_contacts: {
     title: 'Emergency Contact Information',
     subtitle: 'Emergency Notification Form',
-    apiEndpoint: '/api/forms/emergency-contacts/generate',
+    apiEndpoint: '/forms/emergency-contacts/generate',
     requiresSignature: false,
     complianceLevel: 'company',
     description: 'Emergency contact and medical information for workplace safety.',
@@ -97,7 +97,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   background_check: {
     title: 'Background Check Authorization',
     subtitle: 'Employment Screening Consent',
-    apiEndpoint: '/api/forms/background-check/generate',
+    apiEndpoint: '/forms/background-check/generate',
     requiresSignature: true,
     complianceLevel: 'federal',
     description: 'Authorization for pre-employment background verification.',
@@ -106,7 +106,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   employee_handbook: {
     title: 'Employee Handbook',
     subtitle: 'Company Policies and Procedures',
-    apiEndpoint: '/api/forms/employee-handbook/generate',
+    apiEndpoint: '/forms/employee-handbook/generate',
     requiresSignature: false,
     complianceLevel: 'company',
     description: 'Complete guide to company policies, procedures, and expectations.',
@@ -115,7 +115,7 @@ const DOCUMENT_CONFIGS: Record<string, DocumentConfig> = {
   policy_acknowledgment: {
     title: 'Policy Acknowledgments',
     subtitle: 'Company Policy Receipt Confirmation',
-    apiEndpoint: '/api/forms/policy-acknowledgment/generate',
+    apiEndpoint: '/forms/policy-acknowledgment/generate',
     requiresSignature: true,
     complianceLevel: 'company',
     description: 'Acknowledgment of receipt and understanding of company policies.',

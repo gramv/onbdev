@@ -4,12 +4,13 @@
  */
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { getApiUrl } from '../config/api'
 
 // =====================================
 // API CLIENT CONFIGURATION
 // =====================================
 
-const API_BASE_URL = '/api'
+const API_BASE_URL = getApiUrl()
 
 // Create axios instance with default configuration
 const axiosInstance: AxiosInstance = axios.create({

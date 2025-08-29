@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import axios from 'axios'
+import { getApiUrl } from '@/config/api'
 
 // Types for analytics data
 interface DashboardMetrics {
@@ -122,7 +123,7 @@ export default function AnalyticsDashboard() {
   const fetchAnalytics = async () => {
     try {
       setRefreshing(true)
-      const response = await axios.get('/api/analytics/dashboard', {
+      const response = await axios.get(`${getApiUrl()}/analytics/dashboard`, {
         params: {
           time_range: timeRange,
           property_id: selectedProperty === 'all' ? null : selectedProperty
@@ -150,7 +151,7 @@ export default function AnalyticsDashboard() {
   const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
     try {
       const response = await axios.post(
-        '/api/analytics/export',
+        `${getApiUrl()}/analytics/export`,
         {
           report_type: 'dashboard_summary',
           format,

@@ -355,7 +355,7 @@ export default function JobApplicationFormV2() {
 
   const fetchProperty = async () => {
     try {
-      const response = await apiClient.get(`/api/properties/${propertyId}/info`)
+      const response = await apiClient.get(`/properties/${propertyId}/info`)
       setPropertyInfo(response.data)
       setFormData(prev => ({
         ...prev,
@@ -688,7 +688,7 @@ export default function JobApplicationFormV2() {
       console.log('Submitting application data:', compiledData)
       
       // Submit to backend - note the endpoint expects property ID in URL
-      const response = await apiClient.post(`/api/apply/${propertyId}`, compiledData)
+      const response = await apiClient.post(`/apply/${propertyId}`, compiledData)
 
       if (response.data.success || response.data.application_id) {
         setApplicationSubmitted(true)

@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useWebSocket } from '../../hooks/useWebSocket'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
+import { getApiUrl } from '@/config/api'
 
 // Notification types
 interface Notification {
@@ -92,7 +93,7 @@ export default function NotificationCenter() {
   const fetchNotifications = async () => {
     setLoading(true)
     try {
-      const response = await axios.get('/api/notifications', {
+      const response = await axios.get(`${getApiUrl()}/notifications`, {
         headers: { Authorization: `Bearer ${user?.token}` }
       })
       setNotifications(response.data.notifications || [])
@@ -105,7 +106,7 @@ export default function NotificationCenter() {
 
   const fetchPreferences = async () => {
     try {
-      const response = await axios.get('/api/notifications/preferences', {
+      const response = await axios.get(`${getApiUrl()}/notifications/preferences`, {
         headers: { Authorization: `Bearer ${user?.token}` }
       })
       setPreferences(response.data.preferences)
@@ -141,7 +142,7 @@ export default function NotificationCenter() {
   const markAsRead = async (notificationIds: string[]) => {
     try {
       await axios.post(
-        '/api/notifications/mark-read',
+        `${getApiUrl()}/notifications/mark-read`,
         { notification_ids: notificationIds },
         { headers: { Authorization: `Bearer ${user?.token}` } }
       )
@@ -161,7 +162,7 @@ export default function NotificationCenter() {
   const archiveNotifications = async (notificationIds: string[]) => {
     try {
       await axios.post(
-        '/api/notifications/archive',
+        `${getApiUrl()}/notifications/archive`,
         { notification_ids: notificationIds },
         { headers: { Authorization: `Bearer ${user?.token}` } }
       )
@@ -177,7 +178,7 @@ export default function NotificationCenter() {
 
   const deleteNotifications = async (notificationIds: string[]) => {
     try {
-      await axios.delete('/api/notifications', {
+      await axios.delete(`${getApiUrl()}/notifications`, {
         data: { notification_ids: notificationIds },
         headers: { Authorization: `Bearer ${user?.token}` }
       })
@@ -194,7 +195,7 @@ export default function NotificationCenter() {
   const updatePreferences = async (newPreferences: NotificationPreferences) => {
     try {
       await axios.put(
-        '/api/notifications/preferences',
+        `${getApiUrl()}/notifications/preferences`,
         newPreferences,
         { headers: { Authorization: `Bearer ${user?.token}` } }
       )

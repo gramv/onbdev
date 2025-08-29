@@ -113,9 +113,9 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
       
       if (userRole === 'hr') {
         const [overviewRes, propertyRes, employeeRes] = await Promise.all([
-          apiClient.get('/api/hr/analytics/overview'),
-          apiClient.get('/api/hr/analytics/property-performance'),
-          apiClient.get('/api/hr/analytics/employee-trends')
+          apiClient.get('/hr/analytics/overview'),
+          apiClient.get('/hr/analytics/property-performance'),
+          apiClient.get('/hr/analytics/employee-trends')
         ])
         
         // Handle wrapped response format
@@ -129,8 +129,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
       } else {
         // Manager-specific analytics
         const [overviewRes, employeeRes] = await Promise.all([
-          apiClient.get('/api/manager/analytics/overview'),
-          apiClient.get('/api/manager/analytics/employee-trends')
+          apiClient.get('/manager/analytics/overview'),
+          apiClient.get('/manager/analytics/employee-trends')
         ])
         
         // Handle wrapped response format
@@ -151,8 +151,8 @@ export function AnalyticsTab({ userRole: propUserRole, propertyId: propPropertyI
     try {
       setExporting(true)
       const endpoint = userRole === 'hr' 
-        ? '/api/hr/analytics/export?format=json'
-        : '/api/manager/analytics/export?format=json'
+        ? '/hr/analytics/export?format=json'
+        : '/manager/analytics/export?format=json'
       const response = await apiClient.get(endpoint)
       
       // Create and download JSON file

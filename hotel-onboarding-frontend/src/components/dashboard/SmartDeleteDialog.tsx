@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertTriangle, CheckCircle, Users, FileText, UserCheck, Building } from 'lucide-react'
 import axios from 'axios'
+import { getApiUrl } from '@/config/api'
 
 interface DeletionCheckResult {
   canDelete: boolean
@@ -77,7 +78,7 @@ export function SmartDeleteDialog({
     try {
       const token = localStorage.getItem('token')
       const response = await axios.get(
-        `/api/hr/properties/${propertyId}/can-delete`,
+        `${getApiUrl()}/hr/properties/${propertyId}/can-delete`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

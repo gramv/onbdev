@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useWebSocket } from '@/hooks/use-websocket'
 import { AlertTriangle, RefreshCw, Activity } from 'lucide-react'
 import axios from 'axios'
+import { getApiUrl } from '@/config/api'
 
 interface DashboardStats {
   totalProperties: number
@@ -200,7 +201,7 @@ export function HRDashboardLayout() {
         headers: { Authorization: `Bearer ${token}` }
       }
       
-      const response = await axios.get('/api/hr/dashboard-stats', axiosConfig)
+      const response = await axios.get(`${getApiUrl()}/hr/dashboard-stats`, axiosConfig)
       // Handle wrapped response from backend (success_response format)
       const statsData = response.data.data || response.data
       setStats(statsData)

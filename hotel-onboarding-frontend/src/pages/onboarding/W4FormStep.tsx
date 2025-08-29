@@ -325,7 +325,7 @@ export default function W4FormStep({
       // Also try to save to backend for persistence
       const apiUrl = getApiUrl()
       axios.post(
-        `${apiUrl}/onboarding/${employee?.id}/w4-form`,
+        `${apiUrl}/api/onboarding/${employee?.id}/w4-form`,
         {
           form_data: formData,
           signed: true,
@@ -344,7 +344,7 @@ export default function W4FormStep({
       try {
         const apiUrl = getApiUrl()
         const response = await axios.post(
-          `${apiUrl}/onboarding/${employee?.id}/w4-form/generate-pdf`,
+          `${apiUrl}/api/onboarding/${employee?.id}/w4-form/generate-pdf`,
           {
             employee_data: {
               ...formData,

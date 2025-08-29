@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Search, Eye, CheckCircle, XCircle, Clock, Filter, Building2, RefreshCw, Users, MapPin } from 'lucide-react'
 import axios from 'axios'
 import { format, parseISO } from 'date-fns'
+import { getApiUrl } from '@/config/api'
 
 interface SystemApplication {
   id: string
@@ -69,7 +70,7 @@ export function SystemApplicationsTab({ onStatsUpdate }: SystemApplicationsTabPr
   // Fetch all properties for filtering
   const fetchProperties = async () => {
     try {
-      const response = await axios.get('/api/hr/properties', {
+      const response = await axios.get(`${getApiUrl()}/hr/properties`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const propertiesData = response.data.data || response.data
@@ -95,7 +96,7 @@ export function SystemApplicationsTab({ onStatsUpdate }: SystemApplicationsTabPr
       params.append('limit', pageSize.toString())
       params.append('offset', ((currentPage - 1) * pageSize).toString())
 
-      const response = await axios.get(`/api/hr/applications/all?${params.toString()}`, {
+      const response = await axios.get(`${getApiUrl()}/hr/applications/all?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
 

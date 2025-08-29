@@ -290,7 +290,7 @@ interface SettingsProviderProps {
 
 export const SettingsProvider: React.FC<SettingsProviderProps> = ({
   children,
-  apiEndpoint = '/api/user/settings',
+  apiEndpoint = '/user/settings',
   enableCloudSync = true,
   enableAutoSave = true,
   autoSaveDelay = 2000,

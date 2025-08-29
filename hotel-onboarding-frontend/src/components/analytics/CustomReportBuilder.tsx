@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../../contexts/AuthContext'
+import { getApiUrl } from '@/config/api'
 
 interface ReportParameter {
   name: string
@@ -240,7 +241,7 @@ export default function CustomReportBuilder() {
     setGenerating(true)
     try {
       const response = await axios.post(
-        '/api/analytics/custom-report',
+        `${getApiUrl()}/analytics/custom-report`,
         {
           report_type: selectedTemplate.id,
           parameters,

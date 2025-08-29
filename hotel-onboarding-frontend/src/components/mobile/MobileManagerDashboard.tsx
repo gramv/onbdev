@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { getApiUrl } from '@/config/api'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -588,8 +589,8 @@ export const MobileManagerDashboard: React.FC = () => {
       if (isOnline) {
         // Load from API
         const [applicationsData, propertyInfo] = await Promise.all([
-          fetch('/api/manager/applications').then(r => r.json()),
-          fetch(`/api/properties/${user?.property_id}`).then(r => r.json())
+          fetch(`${getApiUrl()}/manager/applications`).then(r => r.json()),
+          fetch(`${getApiUrl()}/properties/${user?.property_id}`).then(r => r.json())
         ])
         
         setApplications(applicationsData)
@@ -669,7 +670,7 @@ export const MobileManagerDashboard: React.FC = () => {
 
   const handleApplicationAction = async (applicationId: string, action: 'approve' | 'reject') => {
     const actionData = {
-      endpoint: `/api/applications/${applicationId}/${action}`,
+      endpoint: `${getApiUrl()}/applications/${applicationId}/${action}`,
       method: 'POST',
       data: { action, timestamp: new Date().toISOString() }
     }

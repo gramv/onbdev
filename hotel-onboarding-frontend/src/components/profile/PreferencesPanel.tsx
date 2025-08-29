@@ -224,7 +224,7 @@ export const PreferencesPanel: React.FC<PreferencesPanelProps> = ({
       }
       
       // TODO: Load from API
-      // const response = await fetch('/api/user/preferences')
+      // const response = await fetch('/user/preferences')
       // const apiPreferences = await response.json()
       // setPreferences(apiPreferences)
       
@@ -279,7 +279,7 @@ export const PreferencesPanel: React.FC<PreferencesPanelProps> = ({
       localStorage.setItem('user-preferences', JSON.stringify(preferences))
       
       // TODO: Save to API
-      // await fetch('/api/user/preferences', {
+      // await fetch('/user/preferences', {
       //   method: 'PUT',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(preferences)

@@ -272,7 +272,7 @@ export default function JobApplicationFormV2() {
 
   const fetchProperty = async () => {
     try {
-      const response = await apiClient.get(`/api/properties/${propertyId}/info`)
+      const response = await apiClient.get(`/properties/${propertyId}/info`)
       setPropertyInfo(response.data)
       // Set property name in form data for use in other components
       setFormData(prev => ({
@@ -615,7 +615,7 @@ export default function JobApplicationFormV2() {
         additional_comments: formData.additional_comments || ''
       }
 
-      await apiClient.post(`/api/apply/${propertyId}`, payload)
+      await apiClient.post(`/apply/${propertyId}`, payload)
       
       // Clear draft on successful submission
       localStorage.removeItem(`job-application-draft-${propertyId}`)
