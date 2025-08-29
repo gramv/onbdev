@@ -4983,6 +4983,61 @@ async def get_onboarding_welcome_data(token: str):
     Supports both JWT tokens and legacy database session tokens
     """
     try:
+        # Handle demo-token for testing
+        if token == "demo-token":
+            # Return mock data for testing
+            from datetime import datetime, timezone, timedelta
+            return success_response(
+                data={
+                    "session": {
+                        "id": "demo-session-001",
+                        "status": "in_progress",
+                        "phase": "employee",
+                        "current_step": "welcome",
+                        "completed_steps": [],
+                        "total_steps": 11,
+                        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=72)).isoformat()
+                    },
+                    "employee": {
+                        "id": "demo-employee-001",
+                        "firstName": "John",
+                        "lastName": "Doe",
+                        "email": "john.doe@demo.com",
+                        "position": "Front Desk Associate",
+                        "department": "Front Office",
+                        "startDate": "2025-09-06",
+                        "propertyId": "demo-property-001",
+                        "employmentType": "full_time",
+                        # Add demo approval details
+                        "payRate": 18.50,
+                        "payFrequency": "hourly",
+                        "startTime": "9:00 AM",
+                        "benefitsEligible": "yes",
+                        "supervisor": "Jane Manager",
+                        "specialInstructions": "Please report to the front desk on your first day."
+                    },
+                    "progress": {
+                        "currentStepIndex": 0,
+                        "completedSteps": [],
+                        "canProceed": True
+                    },
+                    "property": {
+                        "id": "demo-property-001",
+                        "name": "Demo Hotel & Suites",
+                        "address": "123 Demo Street",
+                        "city": "Demo City",
+                        "state": "DC",
+                        "zip_code": "12345"
+                    },
+                    "manager": {
+                        "id": "demo-manager-001",
+                        "name": "Jane Manager",
+                        "email": "jane.manager@demo.com"
+                    }
+                },
+                message="Welcome data retrieved successfully"
+            )
+        
         session = None
         employee_id = None
         property_id = None
@@ -5091,7 +5146,14 @@ async def get_onboarding_welcome_data(token: str):
                     "department": getattr(employee, 'department', ''),
                     "startDate": employee.start_date.isoformat() if hasattr(employee, 'start_date') and employee.start_date else (employee.hire_date.isoformat() if hasattr(employee, 'hire_date') and employee.hire_date else None),
                     "propertyId": getattr(employee, 'property_id', ''),
-                    "employmentType": getattr(employee, 'employment_type', 'full_time')
+                    "employmentType": getattr(employee, 'employment_type', 'full_time'),
+                    # Add job approval details
+                    "payRate": employee.pay_rate or 0,
+                    "payFrequency": employee.pay_frequency or 'hourly',
+                    "startTime": employee.personal_info.get('start_time', '') if employee.personal_info else '',
+                    "benefitsEligible": employee.personal_info.get('benefits_eligible', '') if employee.personal_info else '',
+                    "supervisor": employee.personal_info.get('supervisor', '') if employee.personal_info else '',
+                    "specialInstructions": employee.personal_info.get('special_instructions', '') if employee.personal_info else ''
                 },
                 "progress": {
                     "currentStepIndex": 0,
