@@ -395,10 +395,16 @@ class PDFFormFiller:
                     return
                 rect = widget.rect
                 # Choose font size to fit inside the rect height
-                fontsize = min(10, rect.height * 0.8)
+                # For small widgets (height < 12), use fixed font size
+                if rect.height < 12:
+                    fontsize = 9  # Fixed size for small widgets
+                    # Center vertically in small widget
+                    y = rect.y0 + rect.height * 0.65
+                else:
+                    fontsize = min(10, rect.height * 0.8)
+                    y = rect.y0 + rect.height * 0.75
                 # Left padding and baseline inside rect
                 x = rect.x0 + 2
-                y = rect.y0 + rect.height * 0.75
                 page.insert_text((x, y), str(value), fontsize=fontsize, color=(0, 0, 0), fontname="helv")
 
             def draw_check(field_name: str):
@@ -471,26 +477,38 @@ class PDFFormFiller:
                     import base64
                     from PIL import Image
 
+                    # Debug logging
+                    print(f"Direct Deposit: Signature data received: True")
+                    print(f"Direct Deposit: Signature data type: {type(signature_data)}")
+
                     # Extract data URL or raw base64 string from possible dict/string formats
                     data_url = None
                     if isinstance(signature_data, dict):
-                        # Common keys used by frontend
+                        # The ReviewAndSign component sends: { signature: dataURL, signedAt: ..., ... }
+                        # Priority: check 'signature' key first (most common from ReviewAndSign)
                         for key in ['signature', 'dataUrl', 'imageData', 'data_url']:
                             val = signature_data.get(key)
-                            if isinstance(val, str) and val.startswith('data:image'):
+                            if isinstance(val, str) and (val.startswith('data:image') or len(val) > 100):
                                 data_url = val
+                                print(f"Direct Deposit: Found signature data in key '{key}'")
                                 break
                         # If not found, pick first string value that looks like data URL
                         if not data_url:
-                            for val in signature_data.values():
-                                if isinstance(val, str) and val.startswith('data:image'):
+                            for key, val in signature_data.items():
+                                if isinstance(val, str) and (val.startswith('data:image') or len(val) > 100):
                                     data_url = val
+                                    print(f"Direct Deposit: Found signature data in key '{key}' (fallback)")
                                     break
                     elif isinstance(signature_data, str):
-                        data_url = signature_data
+                        if signature_data.startswith('data:image') or len(signature_data) > 100:
+                            data_url = signature_data
+                            print(f"Direct Deposit: Signature data is a direct string")
 
                     if not data_url:
+                        print(f"Direct Deposit: No valid signature data URL found in: {signature_data}")
                         raise ValueError('Unsupported signature data format')
+
+                    print(f"Direct Deposit: Processing signature image...")
 
                     # Split data URL
                     b64_part = data_url.split(',', 1)[1] if ',' in data_url else data_url
@@ -516,15 +534,23 @@ class PDFFormFiller:
                             signature_widget = widget
                             break
 
-                    # Compute target rectangle (expand if widget rect is too small)
+                    # Compute target rectangle based on actual widget coordinates
+                    # From direct-deposit-template_fields.json: x=134.28, y=400.66, width=120, height=10
                     if signature_widget:
                         rect = signature_widget.rect
-                        # Expand to a larger, visible region similar to I-9/W-4 when widget box is tiny
-                        if rect.height < 25 or rect.width < 150:
-                            rect = fitz.Rect(135, 370, 485, 430)
+                        print(f"Direct Deposit: Found signature widget at: {rect}")
+                        # For Direct Deposit, use a reasonable signature box around the widget location
+                        # The widget is at y=400.66 with height=10, so expand it sensibly
+                        if rect.height < 20:  # Widget is too small for signature
+                            # Create a signature box centered on the widget location
+                            # Widget center is approximately at y=405.66
+                            rect = fitz.Rect(rect.x0, rect.y0 - 15, rect.x0 + 200, rect.y0 + 15)
+                            print(f"Direct Deposit: Expanded signature rect to: {rect}")
                     else:
-                        # Fallback rectangle (employee signature line area)
-                        rect = fitz.Rect(135, 370, 485, 430)
+                        # Use the exact coordinates from the JSON file
+                        # x=134.28, y=400.66, expand to reasonable signature size
+                        rect = fitz.Rect(134.28, 385.66, 334.28, 415.66)  # 200x30 box centered on field
+                        print(f"Direct Deposit: Using fallback signature rect: {rect}")
 
                     # Maintain aspect ratio within target rect with minimal padding
                     padding = 1
@@ -548,9 +574,14 @@ class PDFFormFiller:
 
                     # Insert image stream (supports transparency)
                     page.insert_image(draw_rect, stream=out_buf.getvalue(), keep_proportion=False)
+                    print(f"Direct Deposit: Signature successfully inserted at rect: {draw_rect}")
 
                 except Exception as e:
                     print(f"Error adding signature to Direct Deposit form: {e}")
+                    import traceback
+                    traceback.print_exc()
+            else:
+                print("Direct Deposit: No signature data provided")
             
             # Save to bytes
             pdf_bytes = doc.write()
