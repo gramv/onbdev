@@ -8217,107 +8217,39 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
             else:
                 form_data = {}
         
-        # Initialize official form overlay generator
-        from .health_insurance_overlay import HealthInsuranceFormOverlay
-        hi_overlay = HealthInsuranceFormOverlay()
+        # Initialize certificate-style generator
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
-        # Normalize data for overlay
-        overlay_data = form_data.get("formData", form_data) or {}
+        # Get employee names from PersonalInfoStep data
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
-        # Extract personal info from form_data if provided (new structure)
-        personal_info = overlay_data.get('personalInfo', {})
+        # Map form data to PDF data
+        pdf_data = {
+            "firstName": first_name,
+            "lastName": last_name,
+            "employee_id": employee_id,
+            "medicalPlan": form_data.get("medicalPlan") or form_data.get("formData", {}).get("medicalPlan", ""),
+            "dentalPlan": form_data.get("dentalPlan") or form_data.get("formData", {}).get("dentalPlan", ""),
+            "visionPlan": form_data.get("visionPlan") or form_data.get("formData", {}).get("visionPlan", ""),
+            "isWaived": form_data.get("isWaived") or form_data.get("formData", {}).get("isWaived", False),
+            "waiverReason": form_data.get("waiverReason") or form_data.get("formData", {}).get("waiverReason", ""),
+            "dependents": form_data.get("dependents") or form_data.get("formData", {}).get("dependents", []),
+        }
         
-        # Extract names from personal info first
-        first_name = personal_info.get('firstName', '')
-        last_name = personal_info.get('lastName', '')
-        # Fallback to root-level fields if provided by FE payload
-        if not first_name:
-            first_name = overlay_data.get('firstName') or overlay_data.get('first_name') or ''
-        if not last_name:
-            last_name = overlay_data.get('lastName') or overlay_data.get('last_name') or ''
-        
-        # If names not in personal info, try to get from saved PersonalInfoStep data
-        if not first_name or not last_name:
-            saved_first, saved_last = await get_employee_names_from_personal_info(employee_id, employee)
-            first_name = first_name or saved_first
-            last_name = last_name or saved_last
-        
-        # Map camelCase personal info fields to expected format
-        if personal_info:
-            # Update overlay_data with personal info fields (converting camelCase to snake_case where needed)
-            overlay_data['firstName'] = personal_info.get('firstName', '')
-            overlay_data['lastName'] = personal_info.get('lastName', '')
-            overlay_data['middleInitial'] = personal_info.get('middleInitial', '')
-            overlay_data['ssn'] = personal_info.get('ssn', '')
-            overlay_data['dateOfBirth'] = personal_info.get('dateOfBirth', '')
-            overlay_data['address'] = personal_info.get('address', '')
-            overlay_data['city'] = personal_info.get('city', '')
-            overlay_data['state'] = personal_info.get('state', '')
-            overlay_data['zip'] = personal_info.get('zipCode', '')  # Map zipCode to zip
-            overlay_data['phone'] = personal_info.get('phone', '')
-            overlay_data['email'] = personal_info.get('email', '')
-            overlay_data['gender'] = (personal_info.get('gender', '') or '').upper()
-        else:
-            # Fallback: Try to get personal info from saved PersonalInfoStep data
-            try:
-                pi_resp = supabase_service.client.table('onboarding_form_data')\
-                    .select('form_data')\
-                    .eq('employee_id', employee_id)\
-                    .eq('step_id', 'personal-info')\
-                    .order('updated_at', desc=True)\
-                    .limit(1)\
-                    .execute()
-                if pi_resp.data:
-                    personal = pi_resp.data[0].get('form_data', {}) or {}
-                    # Common keys from PersonalInfoStep
-                    overlay_data.setdefault('email', personal.get('email'))
-                    overlay_data.setdefault('phone', personal.get('phone') or personal.get('phone_number'))
-                    overlay_data.setdefault('address', personal.get('address'))
-                    overlay_data.setdefault('city', personal.get('city'))
-                    overlay_data.setdefault('state', personal.get('state'))
-                    overlay_data.setdefault('zip', personal.get('zip') or personal.get('zip_code'))
-                    overlay_data.setdefault('gender', (personal.get('gender') or '').upper())
-                    # Include SSN and DOB so overlay can place them on the HI form top row
-                    overlay_data.setdefault('ssn', personal.get('ssn'))
-                    overlay_data.setdefault('dateOfBirth', personal.get('dateOfBirth') or personal.get('date_of_birth'))
-            except Exception as e:
-                logger.warning(f"Failed to load personal info from saved data: {e}")
-        # Ensure ZIP is set from any common key (supports root-level zipCode)
-        overlay_data.setdefault('zip', overlay_data.get('zip') or overlay_data.get('zip_code') or overlay_data.get('zipCode'))
-        # Handle section125Acknowledgment field if present
-        if 'section125Acknowledgment' in overlay_data:
-            overlay_data['irsDependentConfirmation'] = overlay_data.get('section125Acknowledgment', False)
-        # Also accept section125Acknowledged flag from FE and map to IRS confirmation if provided
-        if 'section125Acknowledged' in overlay_data and 'irsDependentConfirmation' not in overlay_data:
-            overlay_data['irsDependentConfirmation'] = bool(overlay_data.get('section125Acknowledged'))
-        
-        signature_data = (body or {}).get("signature_data", {})
-        signature_b64 = signature_data.get("signatureImage") or signature_data.get("image") or signature_data.get("data")
-        signed_date = signature_data.get("timestamp") or signature_data.get("date") or overlay_data.get("completed_at")
-
-        result = hi_overlay.generate(
-            form_data=overlay_data,
-            employee_first=first_name or "",
-            employee_last=last_name or "",
-            signature_b64=signature_b64,
-            signed_date=signed_date,
-            preview=False,
-            return_details=True,
-        )
-        pdf_bytes, warnings, actions = result
+        # Generate PDF
+        pdf_bytes = pdf_filler.create_health_insurance_form(pdf_data)
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
         
-        response_data = {
-            "pdf": pdf_base64,
-            "filename": f"HealthInsurance_{first_name or 'Employee'}_{last_name or ''}_{datetime.now().strftime('%Y%m%d')}.pdf",
-            "warnings": warnings,
-        }
-        # Optional debug flag
-        if (body or {}).get("debug"):
-            response_data["debug_actions"] = actions
-        return success_response(data=response_data, message="Health Insurance PDF generated successfully")
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"HealthInsurance_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Health Insurance PDF generated successfully"
+        )
         
     except Exception as e:
         logger.error(f"Generate Health Insurance PDF error: {e}")
@@ -8402,129 +8334,6 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
             status_code=500
         )
 
-
-@app.post("/api/onboarding/{employee_id}/health-insurance/preview")
-async def preview_health_insurance_pdf(employee_id: str, request: Request):
-    """Preview Health Insurance PDF (official template) without signature."""
-    try:
-        try:
-            body = await request.json()
-        except Exception:
-            body = {}
-
-        # For test employees, skip employee lookup
-        if employee_id.startswith('test-'):
-            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
-        else:
-            employee = await supabase_service.get_employee_by_id(employee_id)
-            if not employee:
-                return not_found_response("Employee not found")
-
-        # Prefer request form data; else load saved form_data
-        employee_data_from_request = body.get('employee_data')
-        if employee_data_from_request:
-            form_data = employee_data_from_request
-        else:
-            form_response = supabase_service.client.table('onboarding_form_data')\
-                .select('*')\
-                .eq('employee_id', employee_id)\
-                .eq('step_id', 'health-insurance')\
-                .order('updated_at', desc=True)\
-                .limit(1)\
-                .execute()
-            if form_response.data:
-                form_data = form_response.data[0].get('form_data', {})
-            else:
-                form_data = {}
-
-        from .health_insurance_overlay import HealthInsuranceFormOverlay
-        hi_overlay = HealthInsuranceFormOverlay()
-
-        overlay_data = form_data.get("formData", form_data) or {}
-        
-        # Extract personal info from form_data if provided (new structure)
-        personal_info = overlay_data.get('personalInfo', {})
-        
-        # Extract names from personal info first, then fallback to saved data
-        first_name = personal_info.get('firstName', '')
-        last_name = personal_info.get('lastName', '')
-        
-        # If names not in personal info, try to get from saved PersonalInfoStep data
-        if not first_name or not last_name:
-            saved_first, saved_last = await get_employee_names_from_personal_info(employee_id, employee)
-            first_name = first_name or saved_first
-            last_name = last_name or saved_last
-        
-        # Map camelCase personal info fields to expected format
-        if personal_info:
-            # Update overlay_data with personal info fields (converting camelCase to snake_case where needed)
-            overlay_data['firstName'] = personal_info.get('firstName', '')
-            overlay_data['lastName'] = personal_info.get('lastName', '')
-            overlay_data['middleInitial'] = personal_info.get('middleInitial', '')
-            overlay_data['ssn'] = personal_info.get('ssn', '')
-            overlay_data['dateOfBirth'] = personal_info.get('dateOfBirth', '')
-            overlay_data['address'] = personal_info.get('address', '')
-            overlay_data['city'] = personal_info.get('city', '')
-            overlay_data['state'] = personal_info.get('state', '')
-            overlay_data['zip'] = personal_info.get('zipCode', '')  # Map zipCode to zip
-            overlay_data['phone'] = personal_info.get('phone', '')
-            overlay_data['email'] = personal_info.get('email', '')
-            overlay_data['gender'] = (personal_info.get('gender', '') or '').upper()
-        else:
-            # Fallback: Try to get personal info from saved PersonalInfoStep data
-            try:
-                pi_resp = supabase_service.client.table('onboarding_form_data')\
-                    .select('form_data')\
-                    .eq('employee_id', employee_id)\
-                    .eq('step_id', 'personal-info')\
-                    .order('updated_at', desc=True)\
-                    .limit(1)\
-                    .execute()
-                if pi_resp.data:
-                    personal = pi_resp.data[0].get('form_data', {}) or {}
-                    overlay_data.setdefault('email', personal.get('email'))
-                    overlay_data.setdefault('phone', personal.get('phone') or personal.get('phone_number'))
-                    overlay_data.setdefault('address', personal.get('address'))
-                    overlay_data.setdefault('city', personal.get('city'))
-                    overlay_data.setdefault('state', personal.get('state'))
-                    overlay_data.setdefault('zip', personal.get('zip') or personal.get('zip_code'))
-                    overlay_data.setdefault('gender', (personal.get('gender') or '').upper())
-                    # Include SSN and DOB for top-row personal fields on HI form
-                    overlay_data.setdefault('ssn', personal.get('ssn'))
-                    overlay_data.setdefault('dateOfBirth', personal.get('dateOfBirth') or personal.get('date_of_birth'))
-            except Exception as e:
-                logger.warning(f"Failed to load personal info from saved data: {e}")
-        # Handle section125Acknowledgment field if present
-        if 'section125Acknowledgment' in overlay_data:
-            overlay_data['irsDependentConfirmation'] = overlay_data.get('section125Acknowledgment', False)
-        
-        result = hi_overlay.generate(
-            form_data=overlay_data,
-            employee_first=first_name or "",
-            employee_last=last_name or "",
-            signature_b64=None,
-            signed_date=None,
-            preview=True,
-            return_details=True,
-        )
-        pdf_bytes, warnings, actions = result
-
-        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
-        response_data = {
-            "pdf": pdf_base64,
-            "filename": f"HealthInsurancePreview_{first_name or 'Employee'}_{last_name or ''}_{datetime.now().strftime('%Y%m%d')}.pdf",
-            "warnings": warnings,
-        }
-        if (body or {}).get("debug"):
-            response_data["debug_actions"] = actions
-        return success_response(data=response_data, message="Health Insurance PDF preview generated successfully")
-    except Exception as e:
-        logger.error(f"Preview Health Insurance PDF error: {e}")
-        return error_response(
-            message="Failed to generate Health Insurance preview",
-            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
-            status_code=500
-        )
 
 @app.post("/api/onboarding/{employee_id}/weapons-policy/preview")
 async def preview_weapons_policy_certificate(employee_id: str, request: Request):
