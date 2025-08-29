@@ -4,6 +4,7 @@
  */
 
 import { DocumentType } from '@/types/documents'
+import { getApiUrl } from '@/config/api'
 
 export interface DocumentMetadata {
   document_id: string
@@ -61,7 +62,7 @@ class DocumentService {
     }
 
     // Temporarily use test endpoint that doesn't require auth
-    const response = await fetch(`${this.baseUrl}/api/test/documents/upload`, {
+    const response = await fetch(`${this.baseUrl}/test/documents/upload`, {
       method: 'POST',
       body: formData
       // headers: this.getAuthHeaders() // Disabled for testing
@@ -81,7 +82,7 @@ class DocumentService {
    */
   async downloadDocument(params: DocumentDownloadParams): Promise<Blob> {
     const response = await fetch(
-      `${this.baseUrl}/api/documents/${params.documentId}/download`,
+      `${this.baseUrl}/documents/${params.documentId}/download`,
       {
         method: 'POST',
         headers: {
@@ -111,7 +112,7 @@ class DocumentService {
     metadata: DocumentMetadata
   }> {
     const response = await fetch(
-      `${this.baseUrl}/api/documents/${documentId}`,
+      `${this.baseUrl}/documents/${documentId}`,
       {
         method: 'GET',
         headers: this.getAuthHeaders()
@@ -140,7 +141,7 @@ class DocumentService {
     }
 
     const response = await fetch(
-      `${this.baseUrl}/api/documents/employee/${employeeId}?${params}`,
+      `${this.baseUrl}/documents/employee/${employeeId}?${params}`,
       {
         method: 'GET',
         headers: this.getAuthHeaders()
@@ -282,10 +283,8 @@ class DocumentService {
   }
 }
 
-// Export singleton instance
-export const documentService = new DocumentService(
-  import.meta.env.VITE_API_URL || '/api'
-)
+// Export singleton instance with centralized API configuration
+export const documentService = new DocumentService(getApiUrl())
 
 // Export types
 export type { DocumentService }

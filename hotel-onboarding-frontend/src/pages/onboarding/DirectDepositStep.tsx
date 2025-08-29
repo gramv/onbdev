@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import DirectDepositFormEnhanced from '@/components/DirectDepositFormEnhanced'
@@ -32,31 +33,51 @@ export default function DirectDepositStep({
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [ssnFromI9, setSsnFromI9] = useState<string>('')
 
-  // Try to retrieve SSN from PersonalInfoStep or I9 form data stored in session
+    // Try to retrieve SSN from PersonalInfoStep or I9 form data stored in session
   React.useEffect(() => {
+    console.log('DirectDepositStep - Starting SSN retrieval...')
     try {
       // First try PersonalInfoStep data (where SSN is initially entered)
       const personalData = sessionStorage.getItem('onboarding_personal-info_data')
+      console.log('DirectDepositStep - Personal info data exists:', !!personalData)
       if (personalData) {
         const parsed = JSON.parse(personalData)
         const ssn = parsed?.personalInfo?.ssn || parsed?.ssn || ''
+        console.log('DirectDepositStep - Personal info parsed SSN:', ssn ? ssn.replace(/./g, '*').slice(-4) : 'NOT FOUND')
         if (ssn) {
           console.log('DirectDepositStep - Retrieved SSN from PersonalInfo data')
           setSsnFromI9(ssn)
           return
         }
       }
-      
+
       // Fallback to I9 form data if not in PersonalInfo
       const i9Data = sessionStorage.getItem('onboarding_i9-form_data')
+      console.log('DirectDepositStep - I9 form data exists:', !!i9Data)
       if (i9Data) {
         const parsed = JSON.parse(i9Data)
         const ssn = parsed?.personalInfo?.ssn || parsed?.ssn || ''
+        console.log('DirectDepositStep - I9 form parsed SSN:', ssn ? ssn.replace(/./g, '*').slice(-4) : 'NOT FOUND')
         if (ssn) {
           console.log('DirectDepositStep - Retrieved SSN from I9 form data')
           setSsnFromI9(ssn)
         }
       }
+
+      // Additional fallback: check I9 complete step data
+      const i9CompleteData = sessionStorage.getItem('onboarding_i9-complete_data')
+      console.log('DirectDepositStep - I9 complete data exists:', !!i9CompleteData)
+      if (i9CompleteData) {
+        const parsed = JSON.parse(i9CompleteData)
+        const ssn = parsed?.formData?.ssn || parsed?.ssn || ''
+        console.log('DirectDepositStep - I9 complete parsed SSN:', ssn ? ssn.replace(/./g, '*').slice(-4) : 'NOT FOUND')
+        if (ssn) {
+          console.log('DirectDepositStep - Retrieved SSN from I9 Complete data')
+          setSsnFromI9(ssn)
+        }
+      }
+
+      console.log('DirectDepositStep - SSN retrieval complete. Final SSN:', ssnFromI9 ? ssnFromI9.replace(/./g, '*').slice(-4) : 'NOT FOUND')
     } catch (e) {
       console.error('Failed to retrieve SSN from session data:', e)
     }
@@ -173,7 +194,11 @@ export default function DirectDepositStep({
       confirmAccountNumber: data.primaryAccount?.accountNumberConfirm,
       voidedCheckUploaded: data.voidedCheckUploaded,
       bankLetterUploaded: data.bankLetterUploaded,
-      accountVerified: data.accountVerified || data.voidedCheckUploaded || data.bankLetterUploaded
+      accountVerified: data.accountVerified || data.voidedCheckUploaded || data.bankLetterUploaded,
+      // Include deposit type and amount for partial deposits
+      depositType: data.depositType,
+      depositAmount:
+        data.depositType === 'partial' ? (data.primaryAccount?.depositAmount ?? '') : ''
     }
     
     // Validate the transformed data
@@ -218,19 +243,33 @@ export default function DirectDepositStep({
     if (employee?.id && signatureData) {
       try {
         console.log('DirectDepositStep - Regenerating PDF with signature...')
-        const apiUrl = import.meta.env.VITE_API_URL || ''
-        
-        // Create payload with signature included
+        const apiUrl = getApiUrl()
+
+        // Create payload with signature included - ensure SSN is properly included
         const pdfPayload = {
           ...formData,
           ...extraPdfData,
           signatureData: signatureData,
-          ssn: ssnFromI9 || extraPdfData?.ssn || ''
+          // Ensure SSN is always included - try multiple sources
+          ssn: ssnFromI9 || extraPdfData?.ssn || (formData as any)?.ssn || ''
         }
+
+        // Debug logging to identify SSN sources
+        console.log('DirectDepositStep - SSN Debug:')
+        console.log('  - ssnFromI9:', ssnFromI9)
+        console.log('  - extraPdfData.ssn:', extraPdfData?.ssn)
+        console.log('  - formData.ssn:', (formData as any)?.ssn)
+        console.log('  - Final SSN in payload:', pdfPayload.ssn)
+
+        console.log('DirectDepositStep - PDF Payload being sent to backend:', JSON.stringify(pdfPayload, null, 2))
+
+        // TEMPORARY: Save payload to localStorage for debugging
+        localStorage.setItem('DEBUG_LAST_PDF_PAYLOAD', JSON.stringify(pdfPayload))
+        console.log('💾 DEBUG: Payload saved to localStorage as DEBUG_LAST_PDF_PAYLOAD')
         
         // Regenerate PDF with signature
         const response = await axios.post(
-          `${apiUrl}/api/onboarding/${employee.id}/direct-deposit/generate-pdf`,
+          `${apiUrl}/onboarding/${employee.id}/direct-deposit/generate-pdf`,
           { employee_data: pdfPayload },
           { headers: { 'Content-Type': 'application/json' } }
         )
@@ -266,8 +305,8 @@ export default function DirectDepositStep({
     // Save to backend if we have an employee ID
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || ''
-        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/direct-deposit`, completeData)
+        const apiUrl = getApiUrl()
+        await axios.post(`${apiUrl}/onboarding/${employee.id}/direct-deposit`, completeData)
         console.log('Direct deposit data saved to backend')
       } catch (error) {
         console.error('Failed to save direct deposit data to backend:', error)
@@ -413,7 +452,7 @@ export default function DirectDepositStep({
               onBack={handleBackFromReview}
               language={language}
               usePDFPreview={!!previewEmployeeId}
-              pdfEndpoint={previewEmployeeId ? `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${previewEmployeeId}/direct-deposit/generate-pdf` : undefined}
+              pdfEndpoint={previewEmployeeId ? `${getApiUrl()}/onboarding/${previewEmployeeId}/direct-deposit/generate-pdf` : undefined}
               onPdfGenerated={(pdf: string) => setPdfUrl(pdf)}
               extraPdfData={extraPdfData}
             />

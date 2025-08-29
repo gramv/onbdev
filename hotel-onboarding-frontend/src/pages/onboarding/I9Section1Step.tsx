@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import I9Section1FormClean from '@/components/I9Section1FormClean'
 import ReviewAndSign from '@/components/ReviewAndSign'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -102,11 +103,6 @@ export default function I9Section1Step({
             console.log('I9Section1Step - Restored saved PDF preview')
           }
           
-          // If we have saved I9 data, don't load personal info at all
-          if (dataToLoad && Object.keys(dataToLoad).length > 0) {
-            console.log('I9Section1Step - Using saved I9 data, skipping personal info auto-fill')
-            return
-          }
         }
         
         // Check if this step is already completed
@@ -114,49 +110,89 @@ export default function I9Section1Step({
           setIsSigned(true)
           setFormValid(true)
           setActiveTab('review')
-          return
         }
         
-        // Only auto-fill from personal info if no I9 data exists
-        if (!savedI9Data) {
-      const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
-      console.log('Personal info data from storage:', personalInfoData)
-      
-      if (personalInfoData) {
-        try {
-          const parsedData = JSON.parse(personalInfoData)
-          console.log('Parsed personal info:', parsedData)
-          const personalInfo = parsedData.personalInfo || parsedData || {}
-          
-          // Map personal info fields to I-9 fields, preserving any existing citizenship_status
-          const mappedData = {
-            last_name: personalInfo.lastName || '',
-            first_name: personalInfo.firstName || '',
-            middle_initial: personalInfo.middleInitial || '',
-            date_of_birth: personalInfo.dateOfBirth || '',
-            ssn: personalInfo.ssn || '',
-            email: personalInfo.email || '',
-            phone: personalInfo.phone || '',
-            address: personalInfo.address || '',
-            apt_number: personalInfo.aptNumber || personalInfo.apartment || '',
-            city: personalInfo.city || '',
-            state: personalInfo.state || '',
-            zip_code: personalInfo.zipCode || '',
-            // Initialize I9-specific fields as empty
-            citizenship_status: '',
-            alien_registration_number: '',
-            foreign_passport_number: '',
-            country_of_issuance: '',
-            expiration_date: ''
+        // Always check personal info for missing fields
+        const personalInfoData = sessionStorage.getItem('onboarding_personal-info_data')
+        console.log('Personal info data from storage:', personalInfoData)
+        
+        if (personalInfoData) {
+          try {
+            const parsedData = JSON.parse(personalInfoData)
+            console.log('Parsed personal info:', parsedData)
+            const personalInfo = parsedData.personalInfo || parsedData || {}
+            
+            // Start with existing data or empty object
+            const finalData = dataToLoad || {}
+            
+            // Map personal info fields to I-9 fields, but only fill if empty
+            if (!finalData.last_name && personalInfo.lastName) {
+              finalData.last_name = personalInfo.lastName
+            }
+            if (!finalData.first_name && personalInfo.firstName) {
+              finalData.first_name = personalInfo.firstName
+            }
+            if (!finalData.middle_initial && personalInfo.middleInitial) {
+              finalData.middle_initial = personalInfo.middleInitial
+            }
+            if (!finalData.date_of_birth && personalInfo.dateOfBirth) {
+              finalData.date_of_birth = personalInfo.dateOfBirth
+            }
+            if (!finalData.ssn && personalInfo.ssn) {
+              finalData.ssn = personalInfo.ssn
+            }
+            if (!finalData.email && personalInfo.email) {
+              finalData.email = personalInfo.email
+            }
+            if (!finalData.phone && personalInfo.phone) {
+              finalData.phone = personalInfo.phone
+            }
+            if (!finalData.address && personalInfo.address) {
+              finalData.address = personalInfo.address
+            }
+            if (!finalData.apt_number && (personalInfo.aptNumber || personalInfo.apartment)) {
+              finalData.apt_number = personalInfo.aptNumber || personalInfo.apartment
+            }
+            if (!finalData.city && personalInfo.city) {
+              finalData.city = personalInfo.city
+            }
+            if (!finalData.state && personalInfo.state) {
+              finalData.state = personalInfo.state
+            }
+            if (!finalData.zip_code && personalInfo.zipCode) {
+              finalData.zip_code = personalInfo.zipCode
+            }
+            
+            // Initialize I9-specific fields as empty if not present
+            if (!finalData.citizenship_status) {
+              finalData.citizenship_status = ''
+            }
+            if (!finalData.alien_registration_number) {
+              finalData.alien_registration_number = ''
+            }
+            if (!finalData.foreign_passport_number) {
+              finalData.foreign_passport_number = ''
+            }
+            if (!finalData.country_of_issuance) {
+              finalData.country_of_issuance = ''
+            }
+            if (!finalData.expiration_date) {
+              finalData.expiration_date = ''
+            }
+            
+            console.log('Final I9 data after auto-fill:', finalData)
+            setFormData(finalData)
+          } catch (e) {
+            console.error('Failed to parse personal info data:', e)
+            // Still set whatever data we have
+            if (dataToLoad) {
+              setFormData(dataToLoad)
+            }
           }
-          
-          console.log('Mapped I9 data from personal info (citizenship_status initialized as empty):', mappedData)
-          setFormData(mappedData)
-        } catch (e) {
-          console.error('Failed to parse personal info data:', e)
+        } else if (dataToLoad) {
+          // No personal info but we have saved I9 data
+          setFormData(dataToLoad)
         }
-      }
-    }
       } catch (error) {
         console.error('Failed to load existing data:', error)
       }
@@ -198,7 +234,7 @@ export default function I9Section1Step({
     if (employee?.id) {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section1`,
+          `${getApiUrl()}/onboarding/${employee.id}/i9-section1`,
           {
             method: 'POST',
             headers: {
@@ -267,7 +303,7 @@ export default function I9Section1Step({
     if (employee?.id) {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section1`,
+          `${getApiUrl()}/onboarding/${employee.id}/i9-section1`,
           {
             method: 'POST',
             headers: {
@@ -429,7 +465,7 @@ export default function I9Section1Step({
                   onBack={() => setActiveTab('form')}
                   renderPreview={renderFormPreview}
                   usePDFPreview={true}
-                  pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id}/i9-section1/generate-pdf`}
+                  pdfEndpoint={`${getApiUrl()}/onboarding/${employee?.id}/i9-section1/generate-pdf`}
                   pdfUrl={savedPdfUrl}
                   onPdfGenerated={handlePdfGenerated}
                   federalCompliance={{

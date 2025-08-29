@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Deposit PDF Test</title>
+</head>
+<body>
+    <h1>Direct Deposit PDF Test</h1>
+    <p>Open browser console and paste the code below to test PDF generation:</p>
+
+    <textarea id="testCode" rows="20" cols="100">
+// Quick PDF Test - Copy and paste this into browser console
+
+// 1. Check if we have the required data
+console.log('=== QUICK PDF TEST ===');
+
+const personalInfo = sessionStorage.getItem('onboarding_personal-info_data');
+const directDeposit = sessionStorage.getItem('onboarding_direct-deposit_data');
+
+console.log('Personal Info exists:', !!personalInfo);
+console.log('Direct Deposit exists:', !!directDeposit);
+
+// 2. Parse the data
+let personalData, ddData;
+try {
+    personalData = personalInfo ? JSON.parse(personalInfo) : null;
+    ddData = directDeposit ? JSON.parse(directDeposit) : null;
+} catch (e) {
+    console.error('Parse error:', e);
+}
+
+// 3. Check SSN
+const ssn = personalData?.personalInfo?.ssn || ddData?.formData?.ssn;
+console.log('SSN found:', ssn ? ssn.replace(/./g, '*').slice(-4) : 'NOT FOUND');
+
+// 4. Check bank data
+const primaryAccount = ddData?.formData?.primaryAccount;
+console.log('Primary Account:', primaryAccount ? 'EXISTS' : 'NOT FOUND');
+console.log('Bank Name:', primaryAccount?.bankName || 'MISSING');
+
+// 5. Test PDF generation
+async function testPdfGen() {
+    const payload = {
+        employee_data: {
+            firstName: personalData?.personalInfo?.firstName || 'Test',
+            lastName: personalData?.personalInfo?.lastName || 'User',
+            email: personalData?.personalInfo?.email || 'test@example.com',
+            ssn: ssn || '123-45-6789',
+            ...ddData?.formData
+        }
+    };
+
+    console.log('Testing payload:', payload);
+
+    try {
+        const response = await fetch('/api/onboarding/test-employee/direct-deposit/generate-pdf', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('✅ PDF Generated Successfully!');
+            console.log('PDF Size:', result.data?.pdf?.length || 0, 'characters');
+
+            // Validate PDF content
+            if (result.data?.pdf) {
+                const pdfBytes = Uint8Array.from(atob(result.data.pdf), c => c.charCodeAt(0));
+                const pdfText = new TextDecoder().decode(pdfBytes);
+
+                const hasName = pdfText.includes(payload.employee_data.firstName) ||
+                               pdfText.includes(payload.employee_data.lastName);
+                const hasSSN = pdfText.includes('social_security_number') ||
+                              pdfText.includes(payload.employee_data.ssn.slice(-4));
+                const hasBank = pdfText.includes(payload.employee_data.primaryAccount?.bankName || '');
+
+                console.log('PDF Content Check:');
+                console.log('  - Name present:', hasName);
+                console.log('  - SSN present:', hasSSN);
+                console.log('  - Bank present:', hasBank);
+
+                if (hasName && hasSSN && hasBank) {
+                    console.log('🎉 PDF CONTAINS ALL DATA!');
+                    return result.data.pdf;
+                } else {
+                    console.log('❌ PDF MISSING DATA');
+                }
+            }
+        } else {
+            console.error('❌ PDF Generation Failed:', response.status);
+        }
+    } catch (e) {
+        console.error('❌ Error:', e);
+    }
+}
+
+// Run the test
+testPdfGen();
+    </textarea>
+
+    <br><br>
+    <button onclick="copyCode()">Copy Code to Clipboard</button>
+
+    <script>
+        function copyCode() {
+            const code = document.getElementById('testCode').value;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Code copied! Paste into browser console.');
+            });
+        }
+    </script>
+</body>
+</html>

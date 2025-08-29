@@ -337,8 +337,8 @@ class PDFFormFiller:
             raise Exception("PyMuPDF required for official Direct Deposit template")
             
         try:
-            import json
             import os
+            from datetime import datetime
             
             # Get the absolute path to the template
             template_path = os.path.join(
@@ -347,36 +347,36 @@ class PDFFormFiller:
                 "direct-deposit-template.pdf"
             )
             
-            # Get the field mappings
-            mappings_path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "direct_deposit_field_mappings.json"
-            )
-            
-            # Load field mappings
-            with open(mappings_path, 'r') as f:
-                field_mappings = json.load(f)
-            
             # Open the official Direct Deposit PDF
             doc = fitz.open(template_path)
             page = doc[0]  # Direct deposit is a single page form
             
-            # Helper function to add text at specific coordinates
-            # Shift down by 2mm (5.67 points)
-            def add_text(x, y, text, fontsize=10):
-                if text:
-                    page.insert_text((x, y - 5.67), str(text), fontsize=fontsize, color=(0, 0, 0))
-            
-            # Map the fields based on the JSON mappings
-            fields = field_mappings.get('fields', [])
-            
-            # Employee Information
-            full_name = f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}"
+            # Employee Information - handle both backend and frontend formats
+            # Backend format: first_name, last_name
+            # Frontend format: firstName, lastName
+            first_name = employee_data.get('first_name') or employee_data.get('firstName', '')
+            last_name = employee_data.get('last_name') or employee_data.get('lastName', '')
+            full_name = f"{first_name} {last_name}".strip()
+
             ssn = employee_data.get('ssn', '')
             email = employee_data.get('email', '')
-            
-            # Get direct deposit data
+
+            # Get direct deposit data - handle both formats
             direct_deposit = employee_data.get('direct_deposit', {})
+
+            # If no direct_deposit, try primaryAccount (frontend format)
+            if not direct_deposit or not any(direct_deposit.values()):
+                primary_account = employee_data.get('primaryAccount', {})
+                if primary_account:
+                    direct_deposit = {
+                        'bank_name': primary_account.get('bankName', ''),
+                        'routing_number': primary_account.get('routingNumber', ''),
+                        'account_number': primary_account.get('accountNumber', ''),
+                        'account_type': primary_account.get('accountType', 'checking'),
+                        'deposit_type': employee_data.get('depositType', 'full'),
+                        'deposit_amount': primary_account.get('depositAmount', '')
+                    }
+
             bank_name = direct_deposit.get('bank_name', '')
             routing_number = direct_deposit.get('routing_number', '')
             account_number = direct_deposit.get('account_number', '')
@@ -384,96 +384,171 @@ class PDFFormFiller:
             deposit_type = direct_deposit.get('deposit_type', 'full')
             deposit_amount = direct_deposit.get('deposit_amount', '')
             
-            # Fill the fields using the mappings
-            for field in fields:
-                field_name = field.get('name', '')
-                rect = field.get('rect', {})
-                x = rect.get('x', 0)
-                y = rect.get('y', 0)
-                
-                # Skip company and payroll manager fields - we don't need them
-                if field_name in ['company_name', 'company_code', 'payroll_mgr_name', 'payroll_mgr_signature', 'employee_file_number']:
-                    continue
-                
-                # Map field names to data
-                if field_name == 'employee_name':
-                    add_text(x, y, full_name)
-                elif field_name == 'social_security_number':
-                    add_text(x, y, ssn)
-                elif field_name == 'employee_email':
-                    add_text(x, y, email)
-                elif field_name == 'employee_date':
-                    from datetime import datetime
-                    add_text(x, y, datetime.now().strftime('%m/%d/%Y'))
-                elif field_name == 'bank1_name':
-                    add_text(x, y, bank_name)
-                elif field_name == 'bank1_routing_number':
-                    add_text(x, y, routing_number)
-                elif field_name == 'bank1_account_number':
-                    add_text(x, y, account_number)
-                elif field_name == 'bank1_deposit_amount':
-                    if deposit_type != 'full':
-                        add_text(x, y, f"${deposit_amount}")
-                elif field_name == 'bank1_checking' and field.get('type') == 'CheckBox':
-                    if account_type == 'checking':
-                        # Draw a filled checkbox with checkmark - shift down by 5.67
-                        page.draw_rect(fitz.Rect(x, y-9-5.67, x+9, y-5.67), fill=(0, 0, 0), width=0.5)
-                        page.insert_text((x+1, y-2-5.67), "✓", fontsize=12, color=(1, 1, 1))
-                elif field_name == 'bank1_savings' and field.get('type') == 'CheckBox':
-                    if account_type == 'savings':
-                        # Draw a filled checkbox with checkmark - shift down by 5.67
-                        page.draw_rect(fitz.Rect(x, y-9-5.67, x+9, y-5.67), fill=(0, 0, 0), width=0.5)
-                        page.insert_text((x+1, y-2-5.67), "✓", fontsize=12, color=(1, 1, 1))
-                elif field_name == 'bank1_entire_net_amount' and field.get('type') == 'CheckBox':
-                    if deposit_type == 'full':
-                        # Draw a filled checkbox with checkmark - shift down by 5.67
-                        page.draw_rect(fitz.Rect(x, y-9-5.67, x+9, y-5.67), fill=(0, 0, 0), width=0.5)
-                        page.insert_text((x+1, y-2-5.67), "✓", fontsize=12, color=(1, 1, 1))
-                # Skip company_name and company_code - we don't need them
+            # Overlay text using widget rectangles for precise placement
+            widgets_by_name = {w.field_name: w for w in page.widgets() if w.field_name}
+
+            def draw_text(field_name: str, value: str):
+                if not value:
+                    return
+                widget = widgets_by_name.get(field_name)
+                if not widget:
+                    return
+                rect = widget.rect
+                # Choose font size to fit inside the rect height
+                fontsize = min(10, rect.height * 0.8)
+                # Left padding and baseline inside rect
+                x = rect.x0 + 2
+                y = rect.y0 + rect.height * 0.75
+                page.insert_text((x, y), str(value), fontsize=fontsize, color=(0, 0, 0), fontname="helv")
+
+            def draw_check(field_name: str):
+                widget = widgets_by_name.get(field_name)
+                if not widget:
+                    return
+                rect = widget.rect
+                # Draw an "X" mark centered within the checkbox to ensure visibility in all viewers
+                margin = max(1.0, min(rect.width, rect.height) * 0.2)
+                # Diagonal from top-left to bottom-right
+                page.draw_line(
+                    p1=(rect.x0 + margin, rect.y0 + margin),
+                    p2=(rect.x1 - margin, rect.y1 - margin),
+                    color=(0, 0, 0),
+                    width=1.2,
+                )
+                # Diagonal from top-right to bottom-left
+                page.draw_line(
+                    p1=(rect.x1 - margin, rect.y0 + margin),
+                    p2=(rect.x0 + margin, rect.y1 - margin),
+                    color=(0, 0, 0),
+                    width=1.2,
+                )
+
+            # Current date
+            current_date = datetime.now().strftime('%m/%d/%Y')
+
+            # Employee info
+            draw_text('employee_name', full_name)
+            draw_text('social_security_number', ssn)
+            draw_text('employee_email', email)
+            draw_text('employee_date', current_date)
+
+            # Bank info
+            draw_text('bank1_name', bank_name)
+            draw_text('bank1_routing_number', routing_number)
+            draw_text('bank1_account_number', account_number)
+
+            # Deposit amount only for partial deposits
+            if deposit_type == 'partial' and deposit_amount:
+                # Normalize currency value (strip $ , spaces)
+                try:
+                    import re
+                    amt_str = str(deposit_amount).strip()
+                    # If percent provided (e.g., 50%), just write as-is
+                    if amt_str.endswith('%'):
+                        formatted_amount = amt_str
+                    else:
+                        cleaned = re.sub(r"[^0-9.]+", "", amt_str)
+                        formatted_amount = f"${float(cleaned):.2f}"
+                except Exception:
+                    formatted_amount = f"${deposit_amount}"
+                draw_text('bank1_deposit_amount', formatted_amount)
+
+            # Checkboxes
+            if account_type == 'checking':
+                draw_check('bank1_checking')
+            elif account_type == 'savings':
+                draw_check('bank1_savings')
+            else:
+                draw_check('bank1_other')
+
+            if deposit_type == 'full':
+                draw_check('bank1_entire_net_amount')
             
-            # Add signature if provided
+            # Add signature if provided (robust handling + precise placement)
             signature_data = employee_data.get('signatureData') or employee_data.get('signature_data')
             if signature_data:
                 try:
                     import base64
                     from PIL import Image
-                    
-                    # Process signature
-                    if ',' in signature_data:
-                        signature_data = signature_data.split(',')[1]
-                    
-                    img_data = base64.b64decode(signature_data)
-                    img = Image.open(io.BytesIO(img_data))
-                    
-                    # Convert to RGB if needed
-                    if img.mode == 'RGBA':
-                        bg = Image.new('RGB', img.size, (255, 255, 255))
-                        bg.paste(img, mask=img.split()[3])
-                        img = bg
-                    
-                    # Scale signature to fit
-                    max_width = 120
-                    max_height = 30
-                    img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
-                    
-                    # Save to buffer
-                    img_buffer = io.BytesIO()
-                    img.save(img_buffer, format='PNG')
-                    img_buffer.seek(0)
-                    
-                    # Use the exact coordinates provided by user, adjusted for 2mm shift
-                    # Original coordinates: x: 212, y: 386.88
-                    # Shift down by 5.67 points (2mm)
-                    x = 212
-                    y = 386.88 - 5.67  # Apply 2mm shift
-                    
-                    # Use PyMuPDF to insert image at exact position
-                    pix = fitz.Pixmap(img_buffer.getvalue())
-                    # PyMuPDF uses bottom-left origin, so adjust y coordinate
-                    page_height = page.rect.height
-                    y_from_bottom = page_height - y - 30  # 30 is approximate signature height
-                    page.insert_image(fitz.Rect(x, y_from_bottom, x+120, y_from_bottom+30), pixmap=pix)
-                    
+
+                    # Extract data URL or raw base64 string from possible dict/string formats
+                    data_url = None
+                    if isinstance(signature_data, dict):
+                        # Common keys used by frontend
+                        for key in ['signature', 'dataUrl', 'imageData', 'data_url']:
+                            val = signature_data.get(key)
+                            if isinstance(val, str) and val.startswith('data:image'):
+                                data_url = val
+                                break
+                        # If not found, pick first string value that looks like data URL
+                        if not data_url:
+                            for val in signature_data.values():
+                                if isinstance(val, str) and val.startswith('data:image'):
+                                    data_url = val
+                                    break
+                    elif isinstance(signature_data, str):
+                        data_url = signature_data
+
+                    if not data_url:
+                        raise ValueError('Unsupported signature data format')
+
+                    # Split data URL
+                    b64_part = data_url.split(',', 1)[1] if ',' in data_url else data_url
+                    signature_bytes = base64.b64decode(b64_part)
+
+                    # Process signature: make near-white transparent, keep RGBA
+                    img = Image.open(io.BytesIO(signature_bytes))
+                    if img.mode != 'RGBA':
+                        img = img.convert('RGBA')
+                    datas = img.getdata()
+                    new_data = []
+                    for r, g, b, a in datas:
+                        if r > 240 and g > 240 and b > 240:
+                            new_data.append((255, 255, 255, 0))
+                        else:
+                            new_data.append((r, g, b, 255))
+                    img.putdata(new_data)
+
+                    # Find the employee_signature widget rect for precise placement
+                    signature_widget = None
+                    for widget in page.widgets():
+                        if widget.field_name == 'employee_signature':
+                            signature_widget = widget
+                            break
+
+                    # Compute target rectangle (expand if widget rect is too small)
+                    if signature_widget:
+                        rect = signature_widget.rect
+                        # Expand to a larger, visible region similar to I-9/W-4 when widget box is tiny
+                        if rect.height < 25 or rect.width < 150:
+                            rect = fitz.Rect(135, 370, 485, 430)
+                    else:
+                        # Fallback rectangle (employee signature line area)
+                        rect = fitz.Rect(135, 370, 485, 430)
+
+                    # Maintain aspect ratio within target rect with minimal padding
+                    padding = 1
+                    target = fitz.Rect(rect.x0 + padding, rect.y0 + padding, rect.x1 - padding, rect.y1 - padding)
+                    # Compute scaled rect preserving aspect
+                    img_w, img_h = img.size
+                    rect_w = target.width
+                    rect_h = target.height
+                    scale = min(rect_w / img_w, rect_h / img_h)
+                    draw_w = img_w * scale
+                    draw_h = img_h * scale
+                    # Center within target
+                    draw_x0 = target.x0 + (rect_w - draw_w) / 2
+                    draw_y0 = target.y0 + (rect_h - draw_h) / 2
+                    draw_rect = fitz.Rect(draw_x0, draw_y0, draw_x0 + draw_w, draw_y0 + draw_h)
+
+                    # Save processed PNG to bytes
+                    out_buf = io.BytesIO()
+                    img.save(out_buf, format='PNG')
+                    out_buf.seek(0)
+
+                    # Insert image stream (supports transparency)
+                    page.insert_image(draw_rect, stream=out_buf.getvalue(), keep_proportion=False)
+
                 except Exception as e:
                     print(f"Error adding signature to Direct Deposit form: {e}")
             
@@ -1096,8 +1171,8 @@ class PDFFormFiller:
                     
                     # CRITICAL: Skip employer section fields - these should only be filled by manager
                     if field_name and ("EmployerSection" in field_name or field_name.endswith("f1_15[0]")):
-                        print(f"⚠ SKIPPING EMPLOYER FIELD: '{field_name}' - Reserved for manager approval")
-                        continue
+                            print(f"⚠ SKIPPING EMPLOYER FIELD: '{field_name}' - Reserved for manager approval")
+                            continue
                     
                     # Also skip if this is the employer's date field that might be confused with employee date
                     if field_name == "topmostSubform[0].Page1[0].EmployerSection[0].f1_14[0]":

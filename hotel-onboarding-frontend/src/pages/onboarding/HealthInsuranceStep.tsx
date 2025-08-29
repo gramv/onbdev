@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import HealthInsuranceForm from '@/components/HealthInsuranceForm'
@@ -129,8 +130,8 @@ export default function HealthInsuranceStep({
     // Save to backend if we have an employee ID
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || ''
-        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/health-insurance`, completeData)
+        const apiUrl = getApiUrl()
+        await axios.post(`${apiUrl}/onboarding/${employee.id}/health-insurance`, completeData)
         console.log('Health insurance data saved to backend')
       } catch (error) {
         console.error('Failed to save health insurance data to backend:', error)
@@ -229,7 +230,7 @@ export default function HealthInsuranceStep({
             language={language}
             description={t.reviewDescription}
             usePDFPreview={true}
-            pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id || 'test-employee'}/health-insurance/generate-pdf`}
+            pdfEndpoint={`${getApiUrl()}/onboarding/${employee?.id || 'test-employee'}/health-insurance/generate-pdf`}
           />
           </div>
         </StepContentWrapper>

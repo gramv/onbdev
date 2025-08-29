@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, FileText, Upload, Camera, Globe, AlertTriangle } from 'lucide-react'
@@ -134,8 +135,8 @@ export default function I9CompleteStep({
       // ALWAYS check cloud data if we have an employee ID
       if (employee?.id) {
         try {
-          const apiUrl = import.meta.env.VITE_API_URL || ''
-          const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/i9-complete`)
+          const apiUrl = getApiUrl()
+          const response = await fetch(`${apiUrl}/onboarding/${employee.id}/i9-complete`)
           if (response.ok) {
             const result = await response.json()
             if (result.success && result.data && Object.keys(result.data).length > 0) {
@@ -441,8 +442,8 @@ export default function I9CompleteStep({
     // Also save to I-9 Section 1 endpoint for cloud storage
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || ''
-        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {
+        const apiUrl = getApiUrl()
+        await axios.post(`${apiUrl}/onboarding/${employee.id}/i9-section1`, {
           formData: updatedFormData,
           signed: false,
           formValid: true
@@ -656,10 +657,10 @@ export default function I9CompleteStep({
     // Save to backend if we have an employee ID
     if (employee?.id) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || ''
+        const apiUrl = getApiUrl()
         
         // Save I-9 Section 1 with signature
-        await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section1`, {
+        await axios.post(`${apiUrl}/onboarding/${employee.id}/i9-section1`, {
           formData,
           signed: true,
           signatureData: signature.signature,
@@ -680,7 +681,7 @@ export default function I9CompleteStep({
             ocrData: doc.ocrData
           }))
           
-          await axios.post(`${apiUrl}/api/onboarding/${employee.id}/i9-section2`, {
+          await axios.post(`${apiUrl}/onboarding/${employee.id}/i9-section2`, {
             documentSelection: documentsData.documentSelection || '',
             uploadedDocuments: documentMetadata,
             verificationComplete: true,

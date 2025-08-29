@@ -70,17 +70,24 @@ export default function ReviewAndSign({
 
   // Build a stable payload for PDF generation
   const pdfPayload = React.useMemo(() => {
+    // Debug logging for data received
+    console.log('ReviewAndSign - Received data:')
+    console.log('  - formData keys:', formData ? Object.keys(formData) : 'null')
+    console.log('  - extraPdfData keys:', extraPdfData ? Object.keys(extraPdfData) : 'null')
+    console.log('  - extraPdfData.ssn:', extraPdfData?.ssn ? `${extraPdfData.ssn.substring(0, 3)}****` : 'none')
+    console.log('  - formData.ssn:', (formData as any)?.ssn || 'none')
+
     // Ensure SSN is at root level for backend
     const payload = {
       ...(formData || {}),
       ...(extraPdfData || {})
     }
-    
+
     // Make sure SSN is available at root level
     if (extraPdfData?.ssn && !payload.ssn) {
       payload.ssn = extraPdfData.ssn
     }
-    
+
     // Log the payload for debugging
     console.log('ReviewAndSign - PDF payload being sent:', {
       hasSSN: !!payload.ssn,
@@ -183,8 +190,44 @@ export default function ReviewAndSign({
       
       // Extract base64 string directly from JSON response
       const pdfBase64 = response.data.data.pdf
+
+      // DEBUG: Validate PDF content
+      console.log('ReviewAndSign - PDF received, length:', pdfBase64.length)
+
+      try {
+        const pdfBytes = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0))
+        const header = String.fromCharCode(...pdfBytes.slice(0, 4))
+        console.log('ReviewAndSign - PDF header validation:', header === '%PDF' ? '✅ VALID PDF' : '❌ INVALID PDF')
+
+        // Check for actual form field content
+        const pdfText = new TextDecoder().decode(pdfBytes)
+        const hasEmployeeName = pdfText.includes('employee_name') || pdfText.includes(formData?.firstName || '') || pdfText.includes(formData?.lastName || '')
+        const hasSSN = pdfText.includes('social_security_number') || pdfText.includes(extraPdfData?.ssn?.slice(-4) || '')
+        const hasBankName = pdfText.includes('bank1_name') || pdfText.includes(formData?.primaryAccount?.bankName || '')
+
+        console.log('ReviewAndSign - PDF Content Validation:')
+        console.log('  - Has employee name references:', hasEmployeeName)
+        console.log('  - Has SSN references:', hasSSN)
+        console.log('  - Has bank name references:', hasBankName)
+
+        if (hasEmployeeName && hasSSN && hasBankName) {
+          console.log('🎉 PDF contains all expected form data!')
+        } else {
+          console.log('⚠️  PDF might be missing form data - check backend logs')
+        }
+
+        // Keep preview-only; no auto-download
+        // If needed for manual testing, uncomment below to log a downloadable URL
+        // const pdfBlob = new Blob([pdfBytes], {type: 'application/pdf'})
+        // const downloadUrl = URL.createObjectURL(pdfBlob)
+        // console.log('ReviewAndSign - PDF download URL for inspection:', downloadUrl)
+
+      } catch (decodeError) {
+        console.error('ReviewAndSign - PDF decode error:', decodeError)
+      }
+
       setPdfData(pdfBase64)
-      
+
       // Call the callback if provided
       if (onPdfGenerated && pdfBase64) {
         onPdfGenerated(pdfBase64)

@@ -7441,9 +7441,9 @@ async def generate_i9_complete_pdf(employee_id: str, request: Request):
             except:
                 pass
         
-        # Initialize PDF form filler
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
+        # Initialize certificate-style generator (to support signature like Human Trafficking)
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
         # Debug log the form_data to see what we're working with
         logger.info(f"Form data fields available: {list(form_data.keys()) if isinstance(form_data, dict) else 'not a dict'}")
@@ -7782,9 +7782,9 @@ async def generate_i9_section1_pdf(employee_id: str, request: Request):
                 else:
                     form_data = {}
         
-        # Initialize PDF form filler
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
+        # Initialize certificate-style generator
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
         # Map form data to PDF fields
         pdf_data = {
@@ -7975,14 +7975,17 @@ async def generate_w4_pdf(employee_id: str, request: Request):
                         w4_data = {}
                         form_data = {}
         
-        # Initialize PDF form filler
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
+        # Initialize certificate-style generator
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
         # Calculate dependents amount with safe type conversion
         qualifying_children = int(form_data.get("qualifying_children", 0) or 0)
         other_dependents = int(form_data.get("other_dependents", 0) or 0)
         dependents_amount = (qualifying_children * 2000) + (other_dependents * 500)
+        
+        # Debug logging for W-4 calculations
+        logger.info(f"W-4 Calculations - Children: {qualifying_children} (${ qualifying_children * 2000}), Dependents: {other_dependents} (${other_dependents * 500}), Total: ${dependents_amount}")
 
         # Map form data to PDF fields
         pdf_data = {
@@ -8017,6 +8020,10 @@ async def generate_w4_pdf(employee_id: str, request: Request):
             "signature_date": w4_data.get("completed_at", datetime.utcnow().isoformat())
         }
         
+        # Initialize PDF filler for W-4
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+
         # Generate PDF
         pdf_bytes = pdf_filler.fill_w4_form(pdf_data)
         
@@ -8083,17 +8090,47 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
             else:
                 form_data = {}
         
-        # Initialize PDF form filler
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
+        # Initialize certificate-style generator
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
-        # Get employee names from PersonalInfoStep data
-        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+        # Get employee names - prefer from form data, then from PersonalInfoStep data
+        if form_data.get("firstName") or form_data.get("lastName"):
+            # Use names from form data if provided (for testing/preview)
+            first_name = form_data.get("firstName", "")
+            last_name = form_data.get("lastName", "")
+        else:
+            # Otherwise get from PersonalInfoStep data
+            first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
-        # Map form data to PDF data - handling both nested and flat structures
-        primary_account = form_data.get("primaryAccount") or form_data.get("formData", {}).get("primaryAccount", {}) or {}
+        # Debug logging to see what data we received
+        logger.info(f"Direct Deposit - Raw form_data keys: {list(form_data.keys())}")
+        logger.info(f"Direct Deposit - Raw form_data: {json.dumps(form_data, indent=2)}")
+        
+        # Map form data to PDF data - handling multiple nested structures
+        # Try different paths to find the primaryAccount data
+        primary_account = None
+        
+        # Path 1: Direct primaryAccount
+        if "primaryAccount" in form_data:
+            primary_account = form_data["primaryAccount"]
+            logger.info("Direct Deposit - Found primaryAccount at root level")
+        # Path 2: Nested in formData
+        elif "formData" in form_data and "primaryAccount" in form_data["formData"]:
+            primary_account = form_data["formData"]["primaryAccount"]
+            logger.info("Direct Deposit - Found primaryAccount nested in formData")
+        # Path 3: The form_data itself might be the account data
+        elif "bankName" in form_data or "routingNumber" in form_data:
+            primary_account = form_data
+            logger.info("Direct Deposit - Using form_data as primaryAccount directly")
+        else:
+            primary_account = {}
+            logger.warning(f"Direct Deposit - Could not find primaryAccount data. Available keys: {list(form_data.keys())}")
         
         # Build the data structure expected by fill_direct_deposit_form
+        # Fix: Extract depositType from primaryAccount, not from paymentMethod
+        deposit_type = primary_account.get("depositType") or form_data.get("depositType") or "full"
+        
         pdf_data = {
             "first_name": first_name,
             "last_name": last_name,
@@ -8105,13 +8142,24 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
                 "account_type": primary_account.get("accountType", "checking"),
                 "routing_number": primary_account.get("routingNumber", ""),
                 "account_number": primary_account.get("accountNumber", ""),
-                "deposit_type": "full" if form_data.get("paymentMethod") == "directDeposit" else "partial",
-                "deposit_amount": primary_account.get("depositAmount", ""),
+                "deposit_type": deposit_type,  # Fixed: Use depositType from primaryAccount
+                "deposit_amount": primary_account.get("depositAmount") or form_data.get("depositAmount", ""),
             },
             "signatureData": form_data.get("signatureData") or form_data.get("formData", {}).get("signatureData", ""),
             "property": {"name": ""},  # Remove company info as requested
         }
         
+        # Debug logging to see what we're sending to PDF filler
+        logger.info(f"Direct Deposit PDF Data - Name: {first_name} {last_name}")
+        routing_display = pdf_data['direct_deposit']['routing_number'][:3] + '***' if pdf_data['direct_deposit']['routing_number'] else 'EMPTY'
+        logger.info(f"Direct Deposit PDF Data - Bank: {pdf_data['direct_deposit']['bank_name']}, Routing: {routing_display}")
+        logger.info(f"Direct Deposit PDF Data - Account Type: {pdf_data['direct_deposit']['account_type']}, Deposit Type: {pdf_data['direct_deposit']['deposit_type']}")
+        logger.info(f"Direct Deposit PDF Data - Deposit Amount: {pdf_data['direct_deposit'].get('deposit_amount', '')}")
+        
+        # Initialize PDF filler for Direct Deposit
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+
         # Generate PDF using template overlay
         pdf_bytes = pdf_filler.fill_direct_deposit_form(pdf_data)
         
@@ -8121,7 +8169,7 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         return success_response(
             data={
                 "pdf": pdf_base64,
-                "filename": f"DirectDeposit_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                "filename": f"DirectDeposit_{pdf_data.get('first_name', 'Employee')}_{pdf_data.get('last_name', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
             },
             message="Direct Deposit PDF generated successfully"
         )
@@ -8169,9 +8217,9 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
             else:
                 form_data = {}
         
-        # Initialize PDF form filler
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
+        # Initialize certificate-style generator
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
         # Get employee names from PersonalInfoStep data
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
@@ -8244,23 +8292,28 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
             # For weapons policy, we don't have specific form data
             form_data = {}
         
-        # Initialize PDF form filler
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
+        # Initialize certificate-style generator
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
         
         # Get employee names from PersonalInfoStep data
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
-        # Map form data to PDF data
-        pdf_data = {
-            "firstName": first_name,
-            "lastName": last_name,
-            "property_name": property_name,
-            "employee_id": employee_id,
+        # Prepare employee data for the certificate
+        employee_data = {
+            'name': f"{first_name} {last_name}".strip() or "N/A",
+            'firstName': first_name,
+            'lastName': last_name,
+            'id': employee_id,
+            'property_name': property_name,
         }
         
-        # Generate PDF
-        pdf_bytes = pdf_filler.create_weapons_policy_pdf(pdf_data)
+        # Signature data if provided
+        signature_data = body.get('signature_data', {})
+        signed_date = (body.get('employee_data') or {}).get('signedDate') if isinstance(body.get('employee_data'), dict) else None
+        
+        cert = generator.generate_certificate(employee_data, signature_data, signed_date=signed_date, is_preview=False)
+        pdf_bytes = cert.get('pdf_bytes')
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -8268,7 +8321,7 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
         return success_response(
             data={
                 "pdf": pdf_base64,
-                "filename": f"WeaponsPolicy_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                "filename": f"WeaponsPolicy_{first_name}_{last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
             },
             message="Weapons Policy PDF generated successfully"
         )
@@ -8277,6 +8330,62 @@ async def generate_weapons_policy_pdf(employee_id: str, request: Request):
         logger.error(f"Generate Weapons Policy PDF error: {e}")
         return error_response(
             message="Failed to generate Weapons Policy PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+
+@app.post("/api/onboarding/{employee_id}/weapons-policy/preview")
+async def preview_weapons_policy_certificate(employee_id: str, request: Request):
+    """Generate preview PDF for Weapons Policy certificate (no signature)."""
+    try:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+
+        # For test employees, skip employee lookup
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            property_name = "Test Hotel"
+        else:
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+            property_id = employee.property_id if hasattr(employee, 'property_id') else None
+            if property_id:
+                property_data = await supabase_service.get_property_by_id(property_id)
+                property_name = property_data.name if (property_data and hasattr(property_data, 'name')) else "Hotel"
+            else:
+                property_name = "Hotel"
+
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+
+        employee_data = {
+            'name': f"{first_name} {last_name}".strip() or "N/A",
+            'firstName': first_name,
+            'lastName': last_name,
+            'id': employee_id,
+            'property_name': property_name,
+        }
+
+        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
+        generator = WeaponsPolicyCertificateGenerator()
+        cert = generator.generate_certificate(employee_data, signature_data={}, signed_date=None, is_preview=True)
+        pdf_bytes = cert.get('pdf_bytes')
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8') if pdf_bytes else None
+
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"WeaponsPolicy_{first_name}_{last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Weapons Policy certificate preview generated successfully"
+        )
+    except Exception as e:
+        logger.error(f"Preview Weapons Policy certificate error: {e}")
+        return error_response(
+            message="Failed to generate Weapons Policy certificate preview",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )
@@ -8311,20 +8420,32 @@ async def generate_human_trafficking_pdf(employee_id: str, request: Request):
         # Get employee names from PersonalInfoStep data
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
-        # Prepare employee data for the document
+        # Prepare employee data for the document (support dict or object)
         employee_data = {
             'name': f"{first_name} {last_name}".strip() or "N/A",
             'id': employee_id,
             'property_name': property_name,
-            'position': employee.get('position', 'N/A')
+            'position': employee.get('position', 'N/A') if isinstance(employee, dict) else getattr(employee, 'position', 'N/A')
         }
         
-        # Initialize Human Trafficking Document Generator
-        from .human_trafficking_generator import HumanTraffickingDocumentGenerator
-        generator = HumanTraffickingDocumentGenerator()
+        # Use the same Certificate generator as preview so layout matches pre/post sign
+        from .human_trafficking_certificate import HumanTraffickingCertificateGenerator
+        generator = HumanTraffickingCertificateGenerator()
         
-        # Generate PDF
-        pdf_bytes = generator.generate_human_trafficking_document(employee_data, signature_data)
+        # Derive training date if provided by frontend, else use today (MM/DD/YYYY)
+        training_date = None
+        if isinstance(employee_data_from_request, dict):
+            td = employee_data_from_request.get('completionDate') or employee_data_from_request.get('trainingDate')
+            if isinstance(td, str) and td:
+                training_date = td[:10].replace('-', '/') if '-' in td else td
+        
+        cert = generator.generate_certificate(
+            employee_data=employee_data,
+            signature_data=signature_data,
+            training_date=training_date,
+            is_preview=False
+        )
+        pdf_bytes = cert.get('pdf_bytes')
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
@@ -8341,6 +8462,60 @@ async def generate_human_trafficking_pdf(employee_id: str, request: Request):
         logger.error(f"Generate Human Trafficking PDF error: {e}")
         return error_response(
             message="Failed to generate Human Trafficking PDF",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500
+        )
+
+
+@app.post("/api/onboarding/{employee_id}/human-trafficking/preview")
+async def preview_human_trafficking_certificate(employee_id: str, request: Request):
+    """Generate preview PDF for Human Trafficking certificate (no signature)."""
+    try:
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+
+        if employee_id.startswith('test-'):
+            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
+            property_name = "Test Hotel"
+        else:
+            employee = await supabase_service.get_employee_by_id(employee_id)
+            if not employee:
+                return not_found_response("Employee not found")
+            property_id = employee.property_id if hasattr(employee, 'property_id') else None
+            if property_id:
+                property_data = await supabase_service.get_property_by_id(property_id)
+                property_name = property_data.name if (property_data and hasattr(property_data, 'name')) else "Hotel"
+            else:
+                property_name = "Hotel"
+
+        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
+
+        employee_data = {
+            'name': f"{first_name} {last_name}".strip() or "N/A",
+            'id': employee_id,
+            'property_name': property_name,
+            'position': employee.get('position', 'N/A') if isinstance(employee, dict) else getattr(employee, 'position', 'N/A')
+        }
+
+        from .human_trafficking_certificate import HumanTraffickingCertificateGenerator
+        generator = HumanTraffickingCertificateGenerator()
+        cert = generator.generate_certificate(employee_data=employee_data, signature_data={}, is_preview=True)
+        pdf_bytes = cert.get('pdf_bytes')
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8') if pdf_bytes else None
+
+        return success_response(
+            data={
+                "pdf": pdf_base64,
+                "filename": f"HumanTraffickingCertificate_{first_name}_{last_name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+            },
+            message="Human Trafficking certificate preview generated successfully"
+        )
+    except Exception as e:
+        logger.error(f"Preview Human Trafficking certificate error: {e}")
+        return error_response(
+            message="Failed to generate Human Trafficking certificate preview",
             error_code=ErrorCode.INTERNAL_SERVER_ERROR,
             status_code=500
         )

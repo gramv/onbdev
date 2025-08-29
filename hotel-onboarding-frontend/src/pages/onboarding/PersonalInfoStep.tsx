@@ -10,6 +10,7 @@ import { StepProps } from '../../controllers/OnboardingFlowController'
 import { StepContainer } from '@/components/onboarding/StepContainer'
 import { useAutoSave } from '@/hooks/useAutoSave'
 import { scrollToTop } from '@/utils/scrollHelpers'
+import { getApiUrl } from '@/config/api'
 
 export default function PersonalInfoStep({
   currentStep,
@@ -71,8 +72,8 @@ export default function PersonalInfoStep({
         // ALWAYS check cloud data if we have an employee ID
         if (employee?.id) {
           try {
-            const apiUrl = import.meta.env.VITE_API_URL || ''
-            const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/personal-info`)
+            const apiUrl = getApiUrl()
+            const response = await fetch(`${apiUrl}/onboarding/${employee.id}/personal-info`)
             if (response.ok) {
               const result = await response.json()
               if (result.success && result.data && Object.keys(result.data).length > 0) {

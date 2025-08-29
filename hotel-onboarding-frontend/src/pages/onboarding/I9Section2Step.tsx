@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -186,7 +187,7 @@ export default function I9Section2Step({
           formData.append('employee_id', employee.id)
 
           const response = await axios.post(
-            `${import.meta.env.VITE_API_URL || '/api'}/documents/process`,
+            `${getApiUrl()}/documents/process`,
             formData,
             {
               headers: {
@@ -312,7 +313,7 @@ export default function I9Section2Step({
         }))
         
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || '/api'}/api/onboarding/${employee.id}/i9-section2`,
+          `${getApiUrl()}/onboarding/${employee.id}/i9-section2`,
           {
             method: 'POST',
             headers: {

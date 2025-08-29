@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -322,9 +323,9 @@ export default function DocumentUploadEnhanced({
       ))
       
       // Call backend API
-      const apiUrl = import.meta.env.VITE_API_URL || '/api'
+      const apiUrl = getApiUrl()
       const response = await axios.post(
-        `${apiUrl}/api/documents/process`,
+        `${apiUrl}/documents/process`,
         formData,
         {
           headers: {

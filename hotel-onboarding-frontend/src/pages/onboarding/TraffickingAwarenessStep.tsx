@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import HumanTraffickingAwareness from '@/components/HumanTraffickingAwareness'
@@ -85,7 +86,7 @@ export default function TraffickingAwarenessStep({
     // Load preview PDF before showing review
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id}/human-trafficking/preview`,
+        `${getApiUrl()}/onboarding/${employee?.id}/human-trafficking/preview`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
@@ -121,7 +122,7 @@ export default function TraffickingAwarenessStep({
       
       // Generate final signed PDF
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id}/human-trafficking/generate-pdf`,
+        `${getApiUrl()}/onboarding/${employee?.id}/human-trafficking/generate-pdf`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

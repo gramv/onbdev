@@ -1,5 +1,6 @@
 import axios from 'axios'
 import bankDatabase from '@/data/us-banks-routing.json'
+import { getApiUrl } from '@/config/api'
 
 export interface BankInfo {
   routing: string
@@ -35,8 +36,8 @@ class RoutingValidationService {
     this.validationCache = new Map()
     this.pendingValidations = new Map()
     
-    // API URL from environment or default
-    this.apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    // Use centralized API configuration
+    this.apiUrl = getApiUrl()
 
     // Load cached validations from localStorage
     this.loadCachedValidations()
@@ -129,7 +130,7 @@ class RoutingValidationService {
   private async validateWithAPI(routingNumber: string): Promise<ValidationResult> {
     try {
       const response = await axios.post(
-        `${this.apiUrl}/api/validate/routing-number`,
+        `${this.apiUrl}/validate/routing-number`,
         { routing_number: routingNumber },
         { timeout: 5000 }
       )

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -52,6 +53,7 @@ export default function WeaponsPolicyStep({
     isSigned: false
   })
   const [showReview, setShowReview] = useState(false)
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null)
 
   // Auto-save data
   const autoSaveData = {
@@ -248,10 +250,24 @@ export default function WeaponsPolicyStep({
 
   const canProceedToReview = formData.hasReadPolicy && allAcknowledgmentsChecked
 
-  const handleProceedToReview = () => {
-    if (canProceedToReview) {
-      setShowReview(true)
+  const handleProceedToReview = async () => {
+    if (!canProceedToReview) return
+    try {
+      const resp = await fetch(`${getApiUrl()}/onboarding/${employee?.id || 'test-employee'}/weapons-policy/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+      if (resp.ok) {
+        const result = await resp.json()
+        if (result?.data?.pdf) {
+          setPreviewPdfUrl(result.data.pdf)
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load weapons policy preview:', e)
     }
+    setShowReview(true)
   }
 
   const handleSign = async (signatureInfo: any) => {
@@ -260,7 +276,7 @@ export default function WeaponsPolicyStep({
       
       // Generate final signed PDF
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id || 'test-employee'}/weapons-policy/generate-pdf`,
+        `${getApiUrl()}/onboarding/${employee?.id || 'test-employee'}/weapons-policy/generate-pdf`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -424,7 +440,7 @@ export default function WeaponsPolicyStep({
                 requiresWitness: false
               }}
               usePDFPreview={true}
-              pdfEndpoint={`${import.meta.env.VITE_API_URL || '/api'}/onboarding/${employee?.id || 'test-employee'}/weapons-policy/generate-pdf`}
+              pdfUrl={previewPdfUrl || undefined}
             />
           </FormSection>
         </StepContentWrapper>

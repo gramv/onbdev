@@ -58,7 +58,7 @@ export default function ComplianceAuditTrail({
   const fetchAuditTrail = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${apiBaseUrl}/api/compliance/audit-trail`)
+      const response = await fetch(`${apiBaseUrl}/compliance/audit-trail`)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

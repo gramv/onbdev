@@ -61,11 +61,12 @@ export async function generateCleanW4Pdf(formData: W4FormData): Promise<Uint8Arr
       // Step 3 - Dependents (if any)
       'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_06[0]': formData.qualifying_children > 0 ? String(formData.qualifying_children * 2000) : '',
       'topmostSubform[0].Page1[0].Step3_ReadOrder[0].f1_07[0]': formData.other_dependents > 0 ? String(formData.other_dependents * 500) : '',
+      'topmostSubform[0].Page1[0].f1_09[0]': (formData.qualifying_children > 0 || formData.other_dependents > 0) ? String((formData.qualifying_children || 0) * 2000 + (formData.other_dependents || 0) * 500) : '',
       
       // Step 4 - Other Adjustments
-      'topmostSubform[0].Page1[0].f1_09[0]': formData.other_income || '',
-      'topmostSubform[0].Page1[0].f1_10[0]': formData.deductions || '',
-      'topmostSubform[0].Page1[0].f1_11[0]': formData.extra_withholding || '',
+      'topmostSubform[0].Page1[0].f1_10[0]': formData.other_income || '',
+      'topmostSubform[0].Page1[0].f1_11[0]': formData.deductions || '',
+      'topmostSubform[0].Page1[0].f1_12[0]': formData.extra_withholding || '',
     }
     
     // Fill text fields

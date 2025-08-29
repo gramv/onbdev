@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -508,7 +509,7 @@ export default function CompanyPoliciesStep({
       
       // Generate signed PDF
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`, {
+        const response = await fetch(`${getApiUrl()}/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1049,7 +1050,7 @@ export default function CompanyPoliciesStep({
                   ]}
                   language={language}
                   usePDFPreview={true}
-                  pdfEndpoint={`${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`}
+                  pdfEndpoint={`${getApiUrl()}/onboarding/${employee?.id || 'test-employee'}/company-policies/generate-pdf`}
                 />
               )}
 

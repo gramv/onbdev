@@ -7,6 +7,7 @@ import { OnboardingStep, OnboardingSession, OnboardingProgress } from '../types/
 import { AutoSaveManager } from '../utils/AutoSaveManager'
 import { stepValidators } from '../utils/stepValidators'
 import { ValidationResult } from '../hooks/useStepValidation'
+import { getApiUrl } from '../config/api'
 
 export interface Employee {
   id: string
@@ -101,7 +102,8 @@ export class OnboardingFlowController {
   
   constructor() {
     this.autoSaveManager = new AutoSaveManager()
-    this.apiUrl = import.meta.env.VITE_API_URL || ''
+    // Use API URL with /api prefix for all endpoints
+    this.apiUrl = getApiUrl()
   }
 
   /**
@@ -153,7 +155,7 @@ export class OnboardingFlowController {
 
       // Try to validate token and load session data from API
       try {
-        const response = await fetch(`${this.apiUrl}/api/onboarding/welcome/${token}`)
+        const response = await fetch(`${this.apiUrl}/onboarding/welcome/${token}`)
         
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`)
@@ -246,7 +248,7 @@ export class OnboardingFlowController {
       }
 
       // Make API call to mark complete in cloud
-      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/complete/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/complete/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -296,7 +298,7 @@ export class OnboardingFlowController {
       }
 
       // Make API call to save to cloud
-      const response = await fetch(`${this.apiUrl}/api/onboarding/${this.session.employee.id}/progress/${stepId}`, {
+      const response = await fetch(`${this.apiUrl}/onboarding/${this.session.employee.id}/progress/${stepId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

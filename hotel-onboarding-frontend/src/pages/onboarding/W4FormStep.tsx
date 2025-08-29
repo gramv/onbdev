@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { getApiUrl, getLegacyBaseUrl } from '@/config/api'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import W4FormClean from '@/components/W4FormClean'
@@ -66,6 +67,11 @@ export default function W4FormStep({
   useEffect(() => {
     const loadFormData = async () => {
       try {
+        // Initialize data from multiple sources
+        let initialData: any = {}
+        let isAlreadySigned = false
+        let savedPdfUrl = null
+        
         // First, check session storage (may have cloud data already loaded by portal)
         const savedW4Data = sessionStorage.getItem(`onboarding_${currentStep.id}_data`)
         console.log('W4FormStep - Loading saved data:', savedW4Data)
@@ -76,38 +82,30 @@ export default function W4FormStep({
             console.log('W4FormStep - Parsed data:', parsed)
             
             // Handle both nested structure (expected) and flat structure (from cloud)
-            let dataToLoad = {}
             if (parsed.formData) {
               // Nested structure - expected format
-              dataToLoad = parsed.formData
+              initialData = parsed.formData
             } else if (parsed.form_data) {
               // Cloud structure with form_data field
-              dataToLoad = parsed.form_data
+              initialData = parsed.form_data
               // Also restore signature state
               if (parsed.signed) {
-                setIsSigned(true)
-                setShowReview(false)
+                isAlreadySigned = true
               }
               if (parsed.pdf_url) {
-                setPdfUrl(parsed.pdf_url)
+                savedPdfUrl = parsed.pdf_url
               }
             } else {
               // Flat structure - data directly in parsed object
-              dataToLoad = parsed
+              initialData = parsed
             }
             
-            if (dataToLoad && Object.keys(dataToLoad).length > 0) {
-              setFormData(dataToLoad)
-            }
-            
-            // If already signed, show PDF preview instead of review
+            // Check if already signed
             if (parsed.isSigned || parsed.signed) {
-              setIsSigned(true)
-              setShowReview(false) // Don't show review, go straight to signed state
+              isAlreadySigned = true
               if (parsed.pdfUrl || parsed.pdf_url) {
-                setPdfUrl(parsed.pdfUrl || parsed.pdf_url)
+                savedPdfUrl = parsed.pdfUrl || parsed.pdf_url
               }
-              return // Exit early, no need to process further
             }
           } catch (e) {
             console.error('Failed to parse saved W-4 data:', e)
@@ -116,29 +114,26 @@ export default function W4FormStep({
         
         // Check if this step is already completed in progress
         if (progress.completedSteps.includes(currentStep.id)) {
-          setIsSigned(true)
-          setShowReview(false) // Don't show review for completed steps
-          return
+          isAlreadySigned = true
         }
         
-        // Load existing W-4 data
+        // Load existing W-4 data (backward compatibility check)
         const existingW4Data = sessionStorage.getItem('onboarding_w4-form_data')
-        let initialData: any = {}
         
-        if (existingW4Data) {
+        if (existingW4Data && !savedW4Data) {
           const parsed = JSON.parse(existingW4Data)
-          initialData = parsed.formData || parsed
-          setFormData(initialData)
+          const tempData = parsed.formData || parsed
+          // Merge with existing initialData
+          initialData = { ...initialData, ...tempData }
           
           // If we already have data, check if it was signed
           if (parsed.isSigned) {
-            setIsSigned(true)
-            setShowReview(true)
+            isAlreadySigned = true
           }
           
           // Restore PDF URL if available
           if (parsed.pdfUrl) {
-            setPdfUrl(parsed.pdfUrl)
+            savedPdfUrl = parsed.pdfUrl
           }
         }
         
@@ -224,7 +219,27 @@ export default function W4FormStep({
               
               // Clear notification after 5 seconds
               setTimeout(() => setAutoFillNotification(null), 5000)
+            } else {
+              // No fields were updated, just set the initial data
+              setFormData(initialData)
             }
+          } else {
+            // No personal info, just set the initial data
+            setFormData(initialData)
+          }
+        } else {
+          // No personal info data, just set initial data if any
+          if (initialData && Object.keys(initialData).length > 0) {
+            setFormData(initialData)
+          }
+        }
+        
+        // Finally, set the signed state and PDF URL if applicable
+        if (isAlreadySigned) {
+          setIsSigned(true)
+          setShowReview(false)
+          if (savedPdfUrl) {
+            setPdfUrl(savedPdfUrl)
           }
         }
       } catch (error) {
@@ -308,9 +323,9 @@ export default function W4FormStep({
       sessionStorage.setItem('onboarding_w4-form_data', JSON.stringify(updatedData))
       
       // Also try to save to backend for persistence
-      const apiUrl = import.meta.env.VITE_API_URL || ''
+      const apiUrl = getApiUrl()
       axios.post(
-        `${apiUrl}/api/onboarding/${employee?.id}/w4-form`,
+        `${apiUrl}/onboarding/${employee?.id}/w4-form`,
         {
           form_data: formData,
           signed: true,
@@ -327,9 +342,9 @@ export default function W4FormStep({
       
       // Fallback to backend generation
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || ''
+        const apiUrl = getApiUrl()
         const response = await axios.post(
-          `${apiUrl}/api/onboarding/${employee?.id}/w4-form/generate-pdf`,
+          `${apiUrl}/onboarding/${employee?.id}/w4-form/generate-pdf`,
           {
             employee_data: {
               ...formData,
@@ -512,7 +527,7 @@ export default function W4FormStep({
             onSign={handleSign}
             onBack={() => setShowReview(false)}
             usePDFPreview={true}
-            pdfEndpoint={`${import.meta.env.VITE_API_URL || ''}/api/onboarding/${employee?.id}/w4-form/generate-pdf`}
+            pdfEndpoint={`${getApiUrl()}/onboarding/${employee?.id}/w4-form/generate-pdf`}
             pdfUrl={pdfUrl}
             federalCompliance={{
               formName: 'Form W-4, Employee\'s Withholding Certificate',
