@@ -60,19 +60,22 @@ export default function JobDetailsStep({
   }
 
   // Get pay rate and other approval details from employee data
-  // Check both direct fields and personal_info for job offer data
+  // The backend sends these fields directly on the employee object from the session endpoint
+  // Also check personal_info for backward compatibility
   const personalInfo = employee?.personal_info || employee?.personalInfo || {}
   
-  const payRate = employee?.payRate || employee?.pay_rate || 0
-  const payFrequency = employee?.payFrequency || employee?.pay_frequency || 'hourly'
-  const startTime = personalInfo.start_time || personalInfo.orientation_time || employee?.startTime || 'Not specified'
-  const benefitsEligible = personalInfo.benefits_eligible !== undefined 
-    ? (personalInfo.benefits_eligible ? 'yes' : 'no')
-    : (employee?.benefitsEligible || 'Not specified')
-  const supervisor = personalInfo.supervisor || employee?.supervisor || 'Not specified'
-  const specialInstructions = personalInfo.special_instructions || employee?.specialInstructions || ''
-  const orientationDate = personalInfo.orientation_date || null
-  const orientationLocation = personalInfo.orientation_location || null
+  // Check employee object first (from session), then fallback to personal_info, then defaults
+  const payRate = employee?.payRate || personalInfo?.pay_rate || employee?.pay_rate || 0
+  const payFrequency = employee?.payFrequency || personalInfo?.pay_frequency || employee?.pay_frequency || 'hourly'
+  const startTime = employee?.startTime || personalInfo?.start_time || personalInfo?.orientation_time || 'Not specified'
+  const benefitsEligible = employee?.benefitsEligible || 
+    (personalInfo?.benefits_eligible !== undefined 
+      ? (personalInfo.benefits_eligible ? 'yes' : 'no')
+      : 'Not specified')
+  const supervisor = employee?.supervisor || personalInfo?.supervisor || 'Not specified'
+  const specialInstructions = employee?.specialInstructions || personalInfo?.special_instructions || ''
+  const orientationDate = personalInfo?.orientation_date || null
+  const orientationLocation = personalInfo?.orientation_location || null
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
