@@ -73,7 +73,7 @@ export default function PersonalInfoStep({
         if (employee?.id) {
           try {
             const apiUrl = getApiUrl()
-            const response = await fetch(`${apiUrl}/api/onboarding/${employee.id}/personal-info`)
+            const response = await fetch(`${apiUrl}/onboarding/${employee.id}/personal-info`)
             if (response.ok) {
               const result = await response.json()
               if (result.success && result.data && Object.keys(result.data).length > 0) {

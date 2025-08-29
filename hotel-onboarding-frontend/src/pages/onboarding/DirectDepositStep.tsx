@@ -269,7 +269,7 @@ export default function DirectDepositStep({
         
         // Regenerate PDF with signature
         const response = await axios.post(
-          `${apiUrl}/api/onboarding/${employee.id}/direct-deposit/generate-pdf`,
+          `${apiUrl}/onboarding/${employee.id}/direct-deposit/generate-pdf`,
           { employee_data: pdfPayload },
           { headers: { 'Content-Type': 'application/json' } }
         )
