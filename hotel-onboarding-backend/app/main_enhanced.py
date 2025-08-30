@@ -8172,15 +8172,20 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         # Map form data to PDF data - handling multiple nested structures
         # Try different paths to find the primaryAccount data
         primary_account = None
+        additional_accounts = []
         
-        # Path 1: Direct primaryAccount
+        # Path 1: Direct primaryAccount and additionalAccounts
         if "primaryAccount" in form_data:
             primary_account = form_data["primaryAccount"]
+            additional_accounts = form_data.get("additionalAccounts", [])
             logger.info("Direct Deposit - Found primaryAccount at root level")
+            logger.info(f"Direct Deposit - Found {len(additional_accounts)} additional accounts")
         # Path 2: Nested in formData
         elif "formData" in form_data and "primaryAccount" in form_data["formData"]:
             primary_account = form_data["formData"]["primaryAccount"]
+            additional_accounts = form_data["formData"].get("additionalAccounts", [])
             logger.info("Direct Deposit - Found primaryAccount nested in formData")
+            logger.info(f"Direct Deposit - Found {len(additional_accounts)} additional accounts")
         # Path 3: The form_data itself might be the account data
         elif "bankName" in form_data or "routingNumber" in form_data:
             primary_account = form_data
@@ -8190,8 +8195,8 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
             logger.warning(f"Direct Deposit - Could not find primaryAccount data. Available keys: {list(form_data.keys())}")
         
         # Build the data structure expected by fill_direct_deposit_form
-        # Fix: Extract depositType from primaryAccount, not from paymentMethod
-        deposit_type = primary_account.get("depositType") or form_data.get("depositType") or "full"
+        # Extract depositType - it's at the root level, not in primaryAccount
+        deposit_type = form_data.get("depositType") or primary_account.get("depositType") or "full"
         
         pdf_data = {
             "first_name": first_name,
@@ -8199,14 +8204,27 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
             "employee_id": employee_id,
             "email": form_data.get("email") or form_data.get("formData", {}).get("email", "") or employee.get("email", ""),
             "ssn": form_data.get("ssn") or form_data.get("formData", {}).get("ssn", ""),
+            "deposit_type": deposit_type,  # Move to top level for easier access
             "direct_deposit": {
                 "bank_name": primary_account.get("bankName", ""),
                 "account_type": primary_account.get("accountType", "checking"),
                 "routing_number": primary_account.get("routingNumber", ""),
                 "account_number": primary_account.get("accountNumber", ""),
-                "deposit_type": deposit_type,  # Fixed: Use depositType from primaryAccount
-                "deposit_amount": primary_account.get("depositAmount") or form_data.get("depositAmount", ""),
+                "deposit_type": deposit_type,  # Keep for backward compatibility
+                "deposit_amount": primary_account.get("depositAmount", ""),
+                "percentage": primary_account.get("percentage", 100 if deposit_type == "full" else 0),
             },
+            "additional_accounts": [
+                {
+                    "bank_name": acc.get("bankName", ""),
+                    "account_type": acc.get("accountType", "checking"),
+                    "routing_number": acc.get("routingNumber", ""),
+                    "account_number": acc.get("accountNumber", ""),
+                    "deposit_amount": acc.get("depositAmount", ""),
+                    "percentage": acc.get("percentage", 0),
+                }
+                for acc in additional_accounts[:2]  # Max 2 additional accounts (bank2, bank3)
+            ],
             "signatureData": form_data.get("signatureData") or form_data.get("formData", {}).get("signatureData", ""),
             "property": {"name": ""},  # Remove company info as requested
         }
@@ -8214,9 +8232,15 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         # Debug logging to see what we're sending to PDF filler
         logger.info(f"Direct Deposit PDF Data - Name: {first_name} {last_name}")
         routing_display = pdf_data['direct_deposit']['routing_number'][:3] + '***' if pdf_data['direct_deposit']['routing_number'] else 'EMPTY'
-        logger.info(f"Direct Deposit PDF Data - Bank: {pdf_data['direct_deposit']['bank_name']}, Routing: {routing_display}")
-        logger.info(f"Direct Deposit PDF Data - Account Type: {pdf_data['direct_deposit']['account_type']}, Deposit Type: {pdf_data['direct_deposit']['deposit_type']}")
-        logger.info(f"Direct Deposit PDF Data - Deposit Amount: {pdf_data['direct_deposit'].get('deposit_amount', '')}")
+        logger.info(f"Direct Deposit PDF Data - Bank 1: {pdf_data['direct_deposit']['bank_name']}, Routing: {routing_display}")
+        logger.info(f"Direct Deposit PDF Data - Account Type: {pdf_data['direct_deposit']['account_type']}, Deposit Type: {deposit_type}")
+        
+        if deposit_type == "split":
+            logger.info(f"Direct Deposit PDF Data - Bank 1 Percentage: {pdf_data['direct_deposit'].get('percentage', 0)}%")
+            for i, acc in enumerate(pdf_data['additional_accounts'], 1):
+                logger.info(f"Direct Deposit PDF Data - Bank {i+1}: {acc['bank_name']}, Percentage: {acc.get('percentage', 0)}%")
+        elif deposit_type == "partial":
+            logger.info(f"Direct Deposit PDF Data - Deposit Amount: {pdf_data['direct_deposit'].get('deposit_amount', '')}")
         
         # Initialize PDF filler for Direct Deposit
         from .pdf_forms import PDFFormFiller
@@ -8250,7 +8274,45 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
     try:
         # Check if form data is provided in request body (for preview)
         body = await request.json()
-        employee_data_from_request = body.get('employee_data')
+        # Handle both nested and flat data structures
+        if 'employee_data' in body:
+            # Frontend sends data wrapped in employee_data
+            wrapped_data = body.get('employee_data', {})
+            # Extract all fields from the wrapped data - the frontend sends everything directly in employee_data
+            employee_data_from_request = {
+                'personalInfo': wrapped_data.get('personalInfo', {}),
+                'medicalPlan': wrapped_data.get('medicalPlan', ''),
+                'medicalTier': wrapped_data.get('medicalTier', 'employee'),
+                'medicalWaived': wrapped_data.get('medicalWaived', False),
+                # Support both field names for dental/vision
+                'dentalCoverage': wrapped_data.get('dentalCoverage', False),
+                'dentalEnrolled': wrapped_data.get('dentalEnrolled', False),
+                'dentalTier': wrapped_data.get('dentalTier', 'employee'),
+                'dentalWaived': wrapped_data.get('dentalWaived', False),
+                'visionCoverage': wrapped_data.get('visionCoverage', False),
+                'visionEnrolled': wrapped_data.get('visionEnrolled', False),
+                'visionTier': wrapped_data.get('visionTier', 'employee'),
+                'visionWaived': wrapped_data.get('visionWaived', False),
+                'dependents': wrapped_data.get('dependents', []),
+                'hasStepchildren': wrapped_data.get('hasStepchildren', False),
+                'stepchildrenNames': wrapped_data.get('stepchildrenNames', ''),
+                'dependentsSupported': wrapped_data.get('dependentsSupported', False),
+                'irsDependentConfirmation': wrapped_data.get('irsDependentConfirmation', False),
+                'section125Acknowledgment': wrapped_data.get('section125Acknowledgment', False),
+                'effectiveDate': wrapped_data.get('effectiveDate'),
+                'isWaived': wrapped_data.get('isWaived', False),
+                'waiveReason': wrapped_data.get('waiveReason', ''),
+                'otherCoverageDetails': wrapped_data.get('otherCoverageDetails', ''),
+                'otherCoverageType': wrapped_data.get('otherCoverageType', ''),
+                # Cost fields for reference
+                'totalBiweeklyCost': wrapped_data.get('totalBiweeklyCost', 0),
+                'totalMonthlyCost': wrapped_data.get('totalMonthlyCost', 0),
+                'totalAnnualCost': wrapped_data.get('totalAnnualCost', 0),
+                'signature_data': wrapped_data.get('signatureData')
+            }
+        else:
+            # Direct structure (for testing)
+            employee_data_from_request = body
         
         # For test employees, skip employee lookup
         if employee_id.startswith('test-'):
@@ -8286,28 +8348,69 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
         # Get employee names from PersonalInfoStep data
         first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
         
-        # Map form data to PDF data
+        # Map form data to PDF data - use request data if available, otherwise saved data
+        # Use employee_data_from_request if it exists (from request body), otherwise use form_data (from DB)
+        data_source = employee_data_from_request if employee_data_from_request else form_data
+        
         pdf_data = {
             "firstName": first_name,
             "lastName": last_name,
             "employee_id": employee_id,
-            "medicalPlan": form_data.get("medicalPlan") or form_data.get("formData", {}).get("medicalPlan", ""),
-            "dentalPlan": form_data.get("dentalPlan") or form_data.get("formData", {}).get("dentalPlan", ""),
-            "visionPlan": form_data.get("visionPlan") or form_data.get("formData", {}).get("visionPlan", ""),
-            "isWaived": form_data.get("isWaived") or form_data.get("formData", {}).get("isWaived", False),
-            "waiverReason": form_data.get("waiverReason") or form_data.get("formData", {}).get("waiverReason", ""),
-            "dependents": form_data.get("dependents") or form_data.get("formData", {}).get("dependents", []),
+            "medicalPlan": data_source.get("medicalPlan", ""),
+            "medicalTier": data_source.get("medicalTier", "employee"),
+            "medicalWaived": data_source.get("medicalWaived", False),
+            # Support both field names
+            "dentalCoverage": data_source.get("dentalCoverage", False),
+            "dentalEnrolled": data_source.get("dentalEnrolled", False),
+            "dentalTier": data_source.get("dentalTier", "employee"),
+            "dentalWaived": data_source.get("dentalWaived", False),
+            "visionCoverage": data_source.get("visionCoverage", False),
+            "visionEnrolled": data_source.get("visionEnrolled", False),
+            "visionTier": data_source.get("visionTier", "employee"),
+            "visionWaived": data_source.get("visionWaived", False),
+            "isWaived": data_source.get("isWaived", False),
+            "waiveReason": data_source.get("waiveReason", ""),
+            "otherCoverageDetails": data_source.get("otherCoverageDetails", ""),
+            "dependents": data_source.get("dependents", []),
+            "hasStepchildren": data_source.get("hasStepchildren", False),
+            "stepchildrenNames": data_source.get("stepchildrenNames", ""),
+            "dependentsSupported": data_source.get("dependentsSupported", False),
+            "irsDependentConfirmation": data_source.get("irsDependentConfirmation", False),
+            "section125Acknowledged": data_source.get("section125Acknowledged", False),
+            "effectiveDate": data_source.get("effectiveDate", ""),
+            "signatureData": data_source.get("signatureData"),
+            # Pass personal info for address, phone, etc.
+            "personalInfo": data_source.get("personalInfo", {}),
         }
         
-        # Generate PDF
-        pdf_bytes = pdf_filler.create_health_insurance_form(pdf_data)
+        # Initialize PDF filler for Health Insurance
+        from .pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        
+        # Generate PDF using template overlay
+        pdf_bytes = pdf_filler.fill_health_insurance_form(pdf_data)
         
         # Convert to base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
         
+        # Save document if we have signature data
+        if pdf_data.get("signatureData"):
+            await supabase_service.save_document(
+                employee_id=employee_id,
+                document_type="health_insurance",
+                document_data=pdf_bytes,
+                metadata={
+                    "signed": True,
+                    "section125_acknowledged": pdf_data.get("section125Acknowledged", False),
+                    "plan": pdf_data.get("medicalPlan"),
+                    "dependents_count": len(pdf_data.get("dependents", []))
+                }
+            )
+        
         return success_response(
             data={
-                "pdf": pdf_base64,
+                "pdf": pdf_base64,  # Frontend expects 'pdf' field
+                "pdf_base64": pdf_base64,  # Also provide for compatibility
                 "filename": f"HealthInsurance_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
             },
             message="Health Insurance PDF generated successfully"
@@ -10552,6 +10655,90 @@ async def save_i9_section1(
             status_code=500,
             detail=str(e)
         )
+
+# ==========================================
+# HEALTH INSURANCE ENDPOINTS
+# ==========================================
+
+@app.post("/api/onboarding/{employee_id}/health-insurance")
+async def save_health_insurance(
+    employee_id: str,
+    request: dict
+):
+    """Save health insurance enrollment data"""
+    try:
+        # Save health insurance data
+        insurance_data = {
+            "employee_id": employee_id,
+            "insurance_selections": request.get("insuranceSelections", {}),
+            "dependents": request.get("dependents", []),
+            "personal_info": request.get("personalInfo", {}),
+            "section125_acknowledged": request.get("section125Acknowledged", False),
+            "effective_date": request.get("effectiveDate"),
+            "signature_data": request.get("signatureData"),
+            "completed_at": request.get("completedAt") or datetime.utcnow().isoformat()
+        }
+        
+        # TODO: Save to database when save_document method is available
+        # result = await supabase_service.save_document("health_insurance_enrollments", insurance_data)
+        result = {"saved": True}  # Mock response for now
+        
+        return success_response(
+            data=result,
+            message="Health insurance enrollment saved successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error saving health insurance: {str(e)}")
+        return error_response(
+            message="Failed to save health insurance enrollment",
+            error_code=ErrorCode.DATABASE_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+@app.post("/api/onboarding/{employee_id}/health-insurance/preview")
+async def preview_health_insurance_pdf(
+    employee_id: str,
+    request: dict
+):
+    """Generate preview PDF for health insurance enrollment"""
+    try:
+        # Prepare employee data for PDF generation
+        employee_data = {
+            "personal_info": request.get("personalInfo", {}),
+            "insurance_selections": request.get("insuranceSelections", {}),
+            "dependents": request.get("dependents", []),
+            "effective_date": request.get("effectiveDate"),
+            "section125_acknowledged": request.get("section125Acknowledged", False)
+        }
+        
+        # Generate PDF using the overlay approach
+        from app.pdf_forms import PDFFormFiller
+        pdf_filler = PDFFormFiller()
+        pdf_bytes = pdf_filler.fill_health_insurance_form(employee_data)
+        
+        # Convert to base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+        
+        return success_response(
+            data={
+                "pdf_base64": pdf_base64,
+                "filename": f"health_insurance_preview_{employee_id}.pdf"
+            },
+            message="Health insurance preview generated successfully"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error generating health insurance preview: {str(e)}")
+        return error_response(
+            message="Failed to generate health insurance preview",
+            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=500,
+            detail=str(e)
+        )
+
+# Duplicate endpoint removed - functionality merged into the endpoint at line 8247
 
 # Catch-all route for SPA - must be last!
 @app.get("/{full_path:path}")

@@ -5,6 +5,7 @@ import io
 import os
 import json
 from typing import Any, Dict, List, Optional, Tuple, Union
+from datetime import datetime
 
 import fitz  # PyMuPDF
 from PIL import Image, ImageOps
@@ -21,25 +22,6 @@ def _normalize_bool(value: Any) -> bool:
     if isinstance(value, str):
         return value.lower() in {"true", "1", "yes", "y"}
     return bool(value)
-
-
-def _center_text_in_rect(page: fitz.Page, rect: fitz.Rect, text: str, font_size: float = 10.5) -> None:
-    # Use PyMuPDF utility to measure text width
-    text_width = fitz.get_text_length(text, fontsize=font_size, fontname="helv")
-    x = rect.x0 + (rect.width - text_width) / 2
-    y = rect.y0 + (rect.height - font_size) / 2 + font_size
-    page.insert_text((x, y), text, fontsize=font_size, color=(0, 0, 0))
-
-
-def _draw_x_in_checkbox(page: fitz.Page, rect: fitz.Rect, font_size: float = 10.5) -> None:
-    _center_text_in_rect(page, rect, "X", font_size=font_size)
-
-
-def _draw_text_left(page: fitz.Page, rect: fitz.Rect, text: str, font_size: float = 9.0, pad: float = 1.0) -> None:
-    # Left aligned with small padding, vertically near baseline
-    x = rect.x0 + pad
-    y = rect.y1 - pad
-    page.insert_text((x, y), text, fontsize=font_size, color=(0, 0, 0))
 
 
 def _load_signature_image(signature_b64: str) -> Optional[Image.Image]:
@@ -65,38 +47,10 @@ def _load_signature_image(signature_b64: str) -> Optional[Image.Image]:
         return None
 
 
-def _pick_checkboxes_for_section(widgets: List[Dict[str, Any]], name_contains: str, y_min: float, y_max: float) -> List[Tuple[str, fitz.Rect, int]]:
-    picks: List[Tuple[str, fitz.Rect, int]] = []
-    for w in widgets:
-        nm = (w.get("name") or "").strip()
-        if name_contains.lower() in nm.lower():
-            y0 = float(w["rect"][1])
-            if y_min <= y0 <= y_max:
-                rect = fitz.Rect(*w["rect"])
-                picks.append((nm, rect, int(w["pg"])) )
-    return picks
-
-
-def _extract_widgets(doc: fitz.Document) -> List[Dict[str, Any]]:
-    widgets: List[Dict[str, Any]] = []
-    for page in doc:
-        for w in page.widgets() or []:
-            widgets.append({
-                "name": w.field_name,
-                "type": getattr(w, 'field_type_string', str(getattr(w, 'field_type', ''))),
-                "rect": [round(w.rect.x0, 2), round(w.rect.y0, 2), round(w.rect.x1, 2), round(w.rect.y1, 2)],
-                "pg": page.number + 1,
-            })
-    return widgets
-
-
 class HealthInsuranceFormOverlay:
     """Overlay selections onto the official HI Form_final3.pdf template.
-
-    Strategy:
-      - Always draw visible overlays (text/X) instead of setting field values, so all viewers show them.
-      - Use coarse y-bands to associate tier checkboxes with sections (medical vs dental). Vision appears to only have decline.
-      - Support preview (no signature) and final (with signature/date text if provided).
+    
+    This version properly sets widget field values instead of just drawing text.
     """
 
     def _mask_ssn(self, ssn: str, mask_all: bool) -> str:
@@ -112,15 +66,60 @@ class HealthInsuranceFormOverlay:
 
     def _fmt_date(self, date_str: Optional[str]) -> str:
         if not date_str:
-            from datetime import datetime
             return datetime.now().strftime('%m/%d/%Y')
         try:
-            from datetime import datetime
-            # Try ISO
-            return datetime.fromisoformat(date_str.replace('Z','+00:00')).strftime('%m/%d/%Y')
+            # Try ISO format
+            dt = datetime.fromisoformat(date_str.replace('Z','+00:00'))
+            return dt.strftime('%m/%d/%Y')
         except Exception:
-            # fallback pass-through
+            # Try other common formats
+            for fmt in ['%Y-%m-%d', '%m/%d/%Y', '%m-%d-%Y']:
+                try:
+                    dt = datetime.strptime(date_str, fmt)
+                    return dt.strftime('%m/%d/%Y')
+                except:
+                    continue
+            # Fallback to original
             return date_str
+
+    def _set_text_field(self, page: fitz.Page, field_name: str, value: str) -> bool:
+        """Set a text field value by name."""
+        if not value:
+            return False
+        
+        for widget in page.widgets():
+            if widget.field_name == field_name:
+                try:
+                    widget.field_value = str(value)
+                    widget.update()
+                    return True
+                except Exception as e:
+                    print(f"Error setting field {field_name}: {e}")
+        return False
+
+    def _set_checkbox(self, page: fitz.Page, field_name: str, checked: bool = True) -> bool:
+        """Set a checkbox field value by name."""
+        for widget in page.widgets():
+            if widget.field_name == field_name:
+                try:
+                    widget.field_value = bool(checked)
+                    widget.update()
+                    return True
+                except Exception as e:
+                    print(f"Error setting checkbox {field_name}: {e}")
+        return False
+
+    def _set_radio_button(self, page: fitz.Page, field_name: str, checked: bool = True) -> bool:
+        """Set a radio button field value by name."""
+        for widget in page.widgets():
+            if widget.field_name == field_name and widget.field_type_string == "RadioButton":
+                try:
+                    widget.field_value = bool(checked)
+                    widget.update()
+                    return True
+                except Exception as e:
+                    print(f"Error setting radio {field_name}: {e}")
+        return False
 
     def generate(self, form_data: Dict[str, Any], employee_first: str, employee_last: str,
                  signature_b64: Optional[str] = None, signed_date: Optional[str] = None,
@@ -129,296 +128,350 @@ class HealthInsuranceFormOverlay:
         doc = fitz.open(HI_TEMPLATE_PATH)
         try:
             page1 = doc[0]
-            widgets = _extract_widgets(doc)
-            # Load authoritative mapping (no heuristics)
-            with open(HI_MAPPING_PATH, 'r') as f:
-                mapping: Dict[str, Any] = json.load(f)
-
-            # Header/boxes: use mapped rects for employee name/date boxes
+            page2 = doc[1] if doc.page_count >= 2 else None
+            
             actions: List[Dict[str, Any]] = []
             warnings: List[str] = []
-            emp_map = mapping.get("employee", {})
-            if emp_map.get("name_box"):
-                nb = emp_map["name_box"]
-                rect = fitz.Rect(*nb["rect"]) if isinstance(nb.get("rect"), list) else fitz.Rect(*nb)
-                _draw_text_left(page1, rect, f"{employee_first} {employee_last}", font_size=10)
-                actions.append({"field": "employee_name", "action": "text", "pg": nb.get("pg", 1)})
-            if emp_map.get("date_box"):
-                db = emp_map["date_box"]
-                rect = fitz.Rect(*db["rect"]) if isinstance(db.get("rect"), list) else fitz.Rect(*db)
-                _draw_text_left(page1, rect, self._fmt_date(signed_date), font_size=10)
-                actions.append({"field": "employee_date", "action": "text", "pg": db.get("pg", 1)})
-
-            # Read FE data
-            is_waived = _normalize_bool(form_data.get("isWaived", False))
-            medical_tier = (form_data.get("medicalTier") or form_data.get("medical_tier") or "employee").lower()
-            dental_on = _normalize_bool(form_data.get("dentalCoverage", False))
-            dental_tier = (form_data.get("dentalTier") or form_data.get("dental_tier") or "employee").lower()
-            vision_on = _normalize_bool(form_data.get("visionCoverage", False))
-            # Personal info - check nested structure first, then flat structure
+            
+            # Read form data
             personal_info = form_data.get("personalInfo", {})
-            address = (personal_info.get("address") or form_data.get("address") or "").strip()
-            city = (personal_info.get("city") or form_data.get("city") or "").strip()
-            state = (personal_info.get("state") or form_data.get("state") or "").strip()
-            zip_code = (
-                personal_info.get("zip")
-                or personal_info.get("zip_code")
-                or personal_info.get("zipCode")
-                or form_data.get("zip")
-                or form_data.get("zip_code")
-                or form_data.get("zipCode")
-                or ""
-            ).strip()
-            phone = (personal_info.get("phone") or personal_info.get("phone_number") or form_data.get("phone") or form_data.get("phone_number") or "").strip()
-            email = (personal_info.get("email") or form_data.get("email") or "").strip()
-            gender = (personal_info.get("gender") or form_data.get("gender") or "").strip().upper()
-            dependents = form_data.get("dependents") or []
+            is_waived = _normalize_bool(form_data.get("isWaived", False))
+            
+            # Extract personal information
+            first_name = personal_info.get("firstName") or employee_first or ""
+            last_name = personal_info.get("lastName") or employee_last or ""
+            middle_initial = personal_info.get("middleInitial", "")
+            ssn = personal_info.get("ssn", "")
+            date_of_birth = personal_info.get("dateOfBirth", "")
+            address = personal_info.get("address", "")
+            city = personal_info.get("city", "")
+            state = personal_info.get("state", "")
+            zip_code = personal_info.get("zip") or personal_info.get("zipCode", "")
+            phone = personal_info.get("phone", "")
+            email = personal_info.get("email", "")
+            gender = personal_info.get("gender", "").upper()
+            
+            # Extract coverage information
+            medical_plan = form_data.get("medicalPlan", "")
+            medical_tier = form_data.get("medicalTier", "employee").lower()
+            medical_waived = _normalize_bool(form_data.get("medicalWaived", False))
+            
+            # Frontend sends dentalEnrolled/visionEnrolled for UI integration
+            # But also dentalCoverage/visionCoverage for backwards compatibility
+            dental_coverage = _normalize_bool(form_data.get("dentalEnrolled", form_data.get("dentalCoverage", False)))
+            dental_tier = form_data.get("dentalTier", "employee").lower()
+            dental_waived = _normalize_bool(form_data.get("dentalWaived", False))
+            
+            vision_coverage = _normalize_bool(form_data.get("visionEnrolled", form_data.get("visionCoverage", False)))
+            vision_tier = form_data.get("visionTier", "employee").lower()
+            vision_waived = _normalize_bool(form_data.get("visionWaived", False))
+            
+            # Extract other data
+            dependents = form_data.get("dependents", [])
+            effective_date = form_data.get("effectiveDate", "")
+            section125_ack = _normalize_bool(form_data.get("section125Acknowledgment", False))
             irs_affirm = _normalize_bool(form_data.get("irsDependentConfirmation", False))
             has_stepchildren = _normalize_bool(form_data.get("hasStepchildren", False))
+            stepchildren_names = form_data.get("stepchildrenNames", "")
             dependents_supported = _normalize_bool(form_data.get("dependentsSupported", False))
-            stepchildren_names = (form_data.get("stepchildrenNames") or "").strip()
-
-            # Personal info mapped placements
-            def _from_field(fdef: Dict[str, Any]) -> Tuple[fitz.Rect, int]:
-                if 'rect' in fdef:
-                    return fitz.Rect(*fdef['rect']), int(fdef.get('pg', 1))
-                # direct widget entry
-                return fitz.Rect(*fdef['rect']), int(fdef['pg'])
-
-            # Removed duplicate field population - handled by fill_text_by_exact() calls below
-
-            # Decline checkboxes from mapping
-            def _check_first(entries: List[Dict[str, Any]], label: str):
-                if entries:
-                    fdef = entries[0]
-                    rect, pg = fitz.Rect(*fdef['rect']), int(fdef['pg'])
-                    _draw_x_in_checkbox(doc[pg - 1], rect)
-                    actions.append({"field": label, "action": "check", "pg": pg})
-
-            if is_waived:
-                _check_first(mapping.get("medical", {}).get("decline", []), "medical_decline")
-            if not dental_on:
-                _check_first(mapping.get("dental", {}).get("decline", []), "dental_decline")
-            if not vision_on:
-                _check_first(mapping.get("vision", {}).get("decline", []), "vision_decline")
-
-            # Tier selection heuristics by Y bands
-            # Medical/Dental tiers from mapping
-            def _check_tier(section: str, tier: str, row_index: int = 0):
-                sec = mapping.get(section, {})
-                tlist = (sec.get("tiers", {}) or {}).get(tier, [])
-                if tlist:
-                    idx = min(max(int(row_index), 0), len(tlist) - 1)
-                    fdef = tlist[idx]
-                    rect, pg = fitz.Rect(*fdef['rect']), int(fdef['pg'])
-                    _draw_x_in_checkbox(doc[pg - 1], rect)
-                    actions.append({"field": f"{section}:{tier}", "action": "check", "pg": pg})
-            if not is_waived:
-                # Determine if UHC or ACI plan
-                medical_plan = (form_data.get("medicalPlan") or form_data.get("medical_plan") or "").lower()
-                is_aci_plan = medical_plan in ['minimum_essential', 'indemnity', 'minimum_indemnity', 
-                                                'aci_minimum', 'aci_indemnity', 'aci_minimum_indemnity',
-                                                'minimum_essential_indemnity']
-                
-                if is_aci_plan:
-                    # Use limited_medical section for ACI plans
-                    aci_row = {
-                        'minimum_essential': 0, 
-                        'aci_minimum': 0,
-                        'indemnity': 1,
-                        'aci_indemnity': 1, 
-                        'minimum_indemnity': 2,
-                        'aci_minimum_indemnity': 2,
-                        'minimum_essential_indemnity': 2
-                    }.get(medical_plan, 0)
-                    _check_tier("limited_medical", medical_tier, row_index=aci_row)
-                else:
-                    # Use existing medical section for UHC HRA plans
-                    hra_row = {"hra_6k": 0, "hra_4k": 1, "hra_2k": 2}.get(medical_plan, 0)
-                    _check_tier("medical", medical_tier, row_index=hra_row)
-            if dental_on:
-                _check_tier("dental", dental_tier)
-
-            # Vision tier selection
-            if vision_on:
-                vision_tier = (form_data.get("visionTier") or form_data.get("vision_tier") or "employee").lower()
-                _check_tier("vision", vision_tier)
-
-            # Place personal info fields on page 1 using exact rectangles from widget map
-            def fill_text_by_exact(name_contains: str, value: str):
-                if not value:
-                    return
-                matches = [(fitz.Rect(*w["rect"]), w["pg"]) for w in widgets if (w.get("name") or "").strip() == name_contains]
-                if matches:
-                    rect, pg = matches[0]
-                    doc[pg - 1].insert_text((rect.x0 + 1, rect.y1 - 2), value, fontsize=9, color=(0, 0, 0))
-                    actions.append({"field": name_contains, "action": "text", "pg": pg})
-
-            def fill_text_with_fallback(map_key: str, widget_name: str, value: str):
-                if not value:
-                    return
-                # Try widget match first
-                matches = [(fitz.Rect(*w["rect"]), w["pg"]) for w in widgets if (w.get("name") or "").strip() == widget_name]
-                if matches:
-                    rect, pg = matches[0]
-                    doc[pg - 1].insert_text((rect.x0 + 1, rect.y1 - 2), value, fontsize=9, color=(0, 0, 0))
-                    actions.append({"field": widget_name, "action": "text", "pg": pg})
-                    return
-                # Fallback to mapping rectangle if provided
-                emp_map = mapping.get("employee", {})
-                fdef = emp_map.get(map_key)
-                if fdef and fdef.get("rect"):
-                    rect = fitz.Rect(*fdef["rect"]) if isinstance(fdef.get("rect"), list) else fitz.Rect(*fdef)
-                    pg = int(fdef.get("pg", 1))
-                    doc[pg - 1].insert_text((rect.x0 + 1, rect.y1 - 2), value, fontsize=9, color=(0, 0, 0))
-                    actions.append({"field": map_key, "action": "text_map", "pg": pg})
-
-            fill_text_with_fallback("address", "Employees Address", address)
-            fill_text_with_fallback("city", "City", city)
-            fill_text_with_fallback("state", "State", state)
-            fill_text_with_fallback("zip", "Zip", zip_code)
-            fill_text_with_fallback("phone", "Phone Number", phone)
-            fill_text_with_fallback("email", "Email Address", email)
-
-            # Additional personal fields on Page 1 top row: Name, SSN, Birth Date
-            try:
-                # Name formatted as "Last, First MI" if possible - check nested structure first
-                personal_info = form_data.get("personalInfo", {})
-                mi = (personal_info.get("middleInitial") or personal_info.get("middle_initial") or form_data.get("middleInitial") or form_data.get("middle_initial") or "").strip()
-                name_line = f"{employee_last or ''}, {employee_first or ''}{(' ' + mi) if mi else ''}"
-                name_line = name_line.strip().strip(',')
-                if name_line:
-                    fill_text_by_exact("Employees Name Last First MI", name_line)
-            except Exception:
-                pass
-            try:
-                # SSN - check nested structure first
-                personal_info = form_data.get("personalInfo", {})
-                ssn_value = personal_info.get("ssn") or form_data.get("ssn") or ""
-                if ssn_value:
-                    fill_text_by_exact("Social Security", self._mask_ssn(ssn_value, mask_all=True if preview else False))
-            except Exception:
-                pass
-            try:
-                # Date of Birth - check nested structure first
-                personal_info = form_data.get("personalInfo", {})
-                dob_raw = personal_info.get("dateOfBirth") or personal_info.get("date_of_birth") or form_data.get("dateOfBirth") or form_data.get("date_of_birth")
-                if dob_raw:
-                    fill_text_by_exact("Birth Date", self._fmt_date(dob_raw))
-            except Exception:
-                pass
-
-            # Gender radios: two widgets for Gender band (M/F). Place X in appropriate position (centered).
-            gender_M = [(fitz.Rect(*w["rect"]), w["pg"]) for w in widgets if (w.get("name") or "").strip() == "Gender" and abs(float(w["rect"][0]) - 523.08) < 1.0]
-            gender_F = [(fitz.Rect(*w["rect"]), w["pg"]) for w in widgets if (w.get("name") or "").strip() == "Gender" and abs(float(w["rect"][0]) - 557.28) < 1.5]
-            if gender in {"M", "MALE"} and gender_M:
-                r, pg = gender_M[0]
-                _draw_x_in_checkbox(doc[pg - 1], r, font_size=9)
-                actions.append({"field": "gender", "action": "radio_M", "pg": pg})
-            elif gender in {"F", "FEMALE"} and gender_F:
-                r, pg = gender_F[0]
-                _draw_x_in_checkbox(doc[pg - 1], r, font_size=9)
-                actions.append({"field": "gender", "action": "radio_F", "pg": pg})
-
-            # Affirmations from mapping
-            def _radio_pair(entries: List[Dict[str, Any]], yes: bool, label: str):
-                if len(entries) >= 2:
-                    yes_def, no_def = entries[0], entries[1]
-                    target = yes_def if yes else no_def
-                    rect, pg = fitz.Rect(*target['rect']), int(target['pg'])
-                    _draw_x_in_checkbox(doc[pg - 1], rect, font_size=9)
-                    actions.append({"field": label, "action": "radio_yes" if yes else "radio_no", "pg": pg})
-            aff = mapping.get("affirmations", {})
-            _radio_pair(aff.get("irs_yes_no", []), irs_affirm, "irs_affirmation")
-            _radio_pair(aff.get("support_yes_no", []), dependents_supported, "dependent_support")
-            # Stepchildren yes/no
-            if has_stepchildren:
-                step_entries = aff.get("step_yes", [])
+            
+            # Fill Page 1 Fields
+            # Personal Information
+            if self._set_text_field(page1, "Employees Name Last First MI", 
+                                   f"{last_name}, {first_name} {middle_initial}".strip()):
+                actions.append({"field": "Employees Name", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "Social Security", self._mask_ssn(ssn, mask_all=preview)):
+                actions.append({"field": "SSN", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "Birth Date", self._fmt_date(date_of_birth)):
+                actions.append({"field": "Birth Date", "action": "text", "pg": 1})
+            
+            # Address fields
+            if self._set_text_field(page1, "Employees Address", address):
+                actions.append({"field": "Address", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "City", city):
+                actions.append({"field": "City", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "State", state):
+                actions.append({"field": "State", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "Zip", zip_code):
+                actions.append({"field": "Zip", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "Phone Number", phone):
+                actions.append({"field": "Phone", "action": "text", "pg": 1})
+            
+            if self._set_text_field(page1, "Email Address", email):
+                actions.append({"field": "Email", "action": "text", "pg": 1})
+            
+            # Set effective date
+            if self._set_text_field(page1, "Effective Date", self._fmt_date(effective_date)):
+                actions.append({"field": "Effective Date", "action": "text", "pg": 1})
+            
+            # Set gender radio buttons
+            if gender == "M":
+                # First gender radio is Male
+                for widget in page1.widgets():
+                    if widget.field_name == "Gender" and abs(widget.rect.x0 - 523.08) < 1.0:
+                        widget.field_value = True
+                        widget.update()
+                        actions.append({"field": "Gender", "action": "radio_M", "pg": 1})
+                        break
+            elif gender == "F":
+                # Second gender radio is Female
+                for widget in page1.widgets():
+                    if widget.field_name == "Gender" and abs(widget.rect.x0 - 557.28) < 1.0:
+                        widget.field_value = True
+                        widget.update()
+                        actions.append({"field": "Gender", "action": "radio_F", "pg": 1})
+                        break
+            
+            # Handle Medical Coverage
+            if is_waived or medical_waived:
+                # Check decline boxes
+                self._set_checkbox(page1, "I Decline Medical Coverage", True)
+                actions.append({"field": "Medical Decline", "action": "check", "pg": 1})
             else:
-                step_entries = aff.get("step_no", [])
-            if step_entries:
-                fdef = step_entries[0]
-                rect, pg = fitz.Rect(*fdef['rect']), int(fdef['pg'])
-                _draw_x_in_checkbox(doc[pg - 1], rect, font_size=9)
-                actions.append({"field": "stepchildren", "action": "radio", "pg": pg})
-
-            # Stepchildren names text if provided
-            if stepchildren_names and aff.get("step_names"):
-                fdef = aff["step_names"][0]
-                rect, pg = fitz.Rect(*fdef['rect']), int(fdef['pg'])
-                _draw_text_left(doc[pg - 1], rect, stepchildren_names[:40])
-                actions.append({"field": "stepchildren_names", "action": "text", "pg": pg})
-
-            # Dependents (first three lines if present)
-            if dependents:
-                rows = mapping.get("dependents", {}).get("rows", [])
-                for idx, dep in enumerate(dependents[:len(rows) ]):
-                    row_map = rows[idx]
-                    full_name = f"{(dep.get('lastName') or dep.get('last_name') or '').strip()} {(dep.get('firstName') or dep.get('first_name') or '').strip()} {(dep.get('middleInitial') or dep.get('middle_initial') or '').strip()}".strip()
-                    dep_dob = dep.get("dateOfBirth") or dep.get("dob") or ""
-                    dep_ssn = self._mask_ssn(dep.get("ssn") or "", mask_all=True if preview else False)
-                    # Name
-                    nrect, pg = fitz.Rect(*row_map['name']), int(row_map['pg'])
-                    _draw_text_left(doc[pg - 1], nrect, full_name[:40])
-                    actions.append({"field": "dependent_name", "row": idx + 1, "pg": pg})
-                    # DOB
-                    drect = fitz.Rect(*row_map['dob'])
-                    _draw_text_left(doc[pg - 1], drect, self._fmt_date(dep_dob))
-                    actions.append({"field": "dependent_dob", "row": idx + 1, "pg": pg})
-                    # SSN
-                    srect = fitz.Rect(*row_map['ssn'])
-                    _draw_text_left(doc[pg - 1], srect, dep_ssn)
-                    actions.append({"field": "dependent_ssn", "row": idx + 1, "pg": pg})
-                if len(dependents) > len(rows):
-                    warnings.append("More dependents than available lines; overflow page not yet rendered")
-
-            # Signature on page 2 if provided and not preview
-            if not preview and signature_b64:
-                try:
-                    sig_img = _load_signature_image(signature_b64)
-                    if sig_img is not None:
-                        page2 = doc[1] if doc.page_count >= 2 else page1
-                        sig_map = mapping.get("signature", {})
-                        sig_rect = fitz.Rect(*sig_map.get("rect", {}).get("rect", [188.28, 615.6, 486.0, 652.92]))
-                        # Fit into rect while keeping aspect
-                        img_w, img_h = sig_img.size
-                        rect_w, rect_h = sig_rect.width, sig_rect.height
-                        scale = min(rect_w / img_w, rect_h / img_h)
-                        draw_w, draw_h = img_w * scale, img_h * scale
-                        draw_x0 = sig_rect.x0 + (rect_w - draw_w) / 2
-                        draw_y0 = sig_rect.y0 + (rect_h - draw_h) / 2
-                        draw_rect = fitz.Rect(draw_x0, draw_y0, draw_x0 + draw_w, draw_y0 + draw_h)
-                        out_buf = io.BytesIO()
-                        sig_img.save(out_buf, format='PNG')
-                        out_buf.seek(0)
-                        page2.insert_image(draw_rect, stream=out_buf.getvalue(), keep_proportion=False)
-                        if signed_date:
-                            date_rect_def = sig_map.get("date")
-                            if date_rect_def:
-                                drect = fitz.Rect(*date_rect_def['rect'])
-                                _draw_text_left(page2, drect, self._fmt_date(signed_date), font_size=10)
-                            actions.append({"field": "signature_date", "action": "text", "pg": (2 if doc.page_count>=2 else 1)})
-                except Exception:
-                    pass
-
-            # Warnings based on completeness
-            if not (employee_first and employee_last):
-                warnings.append("Employee name missing")
-            if is_waived is False and medical_tier == "":
-                warnings.append("Medical tier missing")
-            if dependents and not irs_affirm:
-                warnings.append("IRS affirmation not checked with dependents present")
-
-            # Export PDF bytes
-            try:
-                pdf_bytes = doc.tobytes()
-            except Exception:
-                # Fallback for older PyMuPDF versions
-                pdf_bytes = doc.write()
+                # Select medical plan tier
+                medical_checkboxes = self._get_medical_tier_checkbox_name(medical_plan, medical_tier)
+                for checkbox_name in medical_checkboxes:
+                    if self._set_checkbox(page1, checkbox_name, True):
+                        actions.append({"field": f"Medical {medical_plan} {medical_tier}", "action": "check", "pg": 1})
+                        break
+            
+            # Handle Dental Coverage
+            if dental_waived or (not dental_coverage):
+                self._set_checkbox(page1, "I Decline Dental Coverage", True)
+                actions.append({"field": "Dental Decline", "action": "check", "pg": 1})
+            else:
+                dental_checkbox = self._get_dental_tier_checkbox_name(dental_tier)
+                if self._set_checkbox(page1, dental_checkbox, True):
+                    actions.append({"field": f"Dental {dental_tier}", "action": "check", "pg": 1})
+            
+            # Handle Vision Coverage
+            if vision_waived or (not vision_coverage):
+                self._set_checkbox(page1, "I Decline Vision Coverage", True)
+                actions.append({"field": "Vision Decline", "action": "check", "pg": 1})
+            else:
+                # Vision uses the same checkbox field names as dental on the PDF
+                # Since we can't select both (they share field names), we prioritize dental
+                # and add a text annotation for vision selection
+                if not dental_coverage or dental_waived:
+                    # If dental is not selected, we can use the checkboxes for vision
+                    vision_checkbox = self._get_vision_tier_checkbox_name(vision_tier)
+                    if self._set_checkbox(page1, vision_checkbox, True):
+                        actions.append({"field": f"Vision {vision_tier}", "action": "check", "pg": 1})
+                else:
+                    # Both dental and vision are selected - add text note for vision
+                    # This is a limitation of the PDF form structure
+                    actions.append({"field": f"Vision {vision_tier}", "action": "text_note", "pg": 1})
+                    warnings.append(f"Vision tier '{vision_tier}' noted but checkbox not set (conflicts with dental)")
+            
+            # Page 2 - Dependents
+            if page2 and dependents:
+                dependent_fields = [
+                    ("Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage license", 0),
+                    ("Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseChild", 1),
+                    ("Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseMedical Dental Vision", 2),
+                    ("Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseMedical Dental Vision_2", 3)
+                ]
+                
+                for idx, dep in enumerate(dependents[:4]):  # Max 4 dependents on form
+                    if idx < len(dependent_fields):
+                        field_name, _ = dependent_fields[idx]
+                        dep_name = f"{dep.get('lastName', '')}, {dep.get('firstName', '')} {dep.get('middleInitial', '')}".strip()
+                        if dep.get('relationship'):
+                            dep_name += f" ({dep['relationship']})"
+                        
+                        if self._set_text_field(page2, field_name, dep_name):
+                            actions.append({"field": f"Dependent{idx+1} Name", "action": "text", "pg": 2})
+                        
+                        # Set DOB
+                        dob_field = f"Date of Birth" if idx == 0 else f"Date of Birth_{idx}"
+                        if self._set_text_field(page2, dob_field, self._fmt_date(dep.get('dateOfBirth', ''))):
+                            actions.append({"field": f"Dependent{idx+1} DOB", "action": "text", "pg": 2})
+                        
+                        # Set SSN
+                        ssn_field = f"SSN required" if idx == 0 else f"SSN required_{idx}"
+                        if self._set_text_field(page2, ssn_field, self._mask_ssn(dep.get('ssn', ''), mask_all=preview)):
+                            actions.append({"field": f"Dependent{idx+1} SSN", "action": "text", "pg": 2})
+                        
+                        # Set coverage checkboxes for this dependent
+                        coverage_type = dep.get('coverageType', {})
+                        base_idx = idx * 3  # Each dependent has 3 checkboxes (Medical, Dental, Vision)
+                        
+                        medical_cb = f"Medical" if idx == 0 else f"Medical_{idx}"
+                        if coverage_type.get('medical', False):
+                            self._set_checkbox(page2, medical_cb, True)
+                            
+                        dental_cb = f"Dental" if idx == 0 else f"Dental_{idx}"
+                        if coverage_type.get('dental', False):
+                            self._set_checkbox(page2, dental_cb, True)
+                            
+                        vision_cb = f"Vision" if idx == 0 else f"Vision_{idx}"
+                        if coverage_type.get('vision', False):
+                            self._set_checkbox(page2, vision_cb, True)
+                
+                if len(dependents) > 4:
+                    warnings.append(f"Form supports max 4 dependents. {len(dependents) - 4} additional dependents not shown.")
+            
+            # IRS Affirmations on Page 2
+            if page2:
+                # IRS Section 152 affirmation
+                if irs_affirm:
+                    # First radio button is YES
+                    for widget in page2.widgets():
+                        if widget.field_name == "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable":
+                            if abs(widget.rect.x0 - 519.12) < 1.0:  # YES button
+                                widget.field_value = True
+                                widget.update()
+                                actions.append({"field": "IRS Affirmation", "action": "radio_yes", "pg": 2})
+                                break
+                
+                # Dependent support question
+                if dependents_supported:
+                    # First radio is YES
+                    for widget in page2.widgets():
+                        if widget.field_name == "Are they dependent on you for support and maintenance":
+                            if abs(widget.rect.x0 - 222.96) < 1.0:  # YES button
+                                widget.field_value = True
+                                widget.update()
+                                actions.append({"field": "Dependent Support", "action": "radio_yes", "pg": 2})
+                                break
+                
+                # Stepchildren
+                if has_stepchildren:
+                    self._set_checkbox(page2, "Yes", True)
+                    self._set_text_field(page2, "If yes indicate names", stepchildren_names[:100])
+                    actions.append({"field": "Stepchildren", "action": "yes", "pg": 2})
+                else:
+                    self._set_checkbox(page2, "No_2", True)
+                    actions.append({"field": "Stepchildren", "action": "no", "pg": 2})
+                
+                # Signature date
+                if signed_date:
+                    self._set_text_field(page2, "Date", self._fmt_date(signed_date))
+                    actions.append({"field": "Signature Date", "action": "text", "pg": 2})
+                
+                # Handle signature image if provided
+                if not preview and signature_b64:
+                    try:
+                        sig_img = _load_signature_image(signature_b64)
+                        if sig_img is not None:
+                            # The signature field location
+                            sig_rect = fitz.Rect(188.28, 615.6, 486.0, 652.92)
+                            
+                            # Convert image to bytes
+                            img_buffer = io.BytesIO()
+                            sig_img.save(img_buffer, format='PNG')
+                            img_buffer.seek(0)
+                            
+                            # Insert the image
+                            page2.insert_image(sig_rect, stream=img_buffer.read())
+                            actions.append({"field": "Signature", "action": "image", "pg": 2})
+                    except Exception as e:
+                        warnings.append(f"Could not add signature: {str(e)}")
+            
+            # Save the modified PDF
+            pdf_buffer = io.BytesIO()
+            doc.save(pdf_buffer)
+            pdf_bytes = pdf_buffer.getvalue()
+            
             if return_details:
                 return pdf_bytes, warnings, actions
             return pdf_bytes
+            
+        except Exception as e:
+            raise Exception(f"PDF generation failed: {str(e)}")
         finally:
             doc.close()
-
-
+    
+    def _get_medical_tier_checkbox_name(self, medical_plan: str, tier: str) -> List[str]:
+        """Get the checkbox field names for medical plan and tier."""
+        # Normalize tier
+        tier_map = {
+            'employee': 'Employee Only',
+            'employee_spouse': 'Employee  Spouse',
+            'employee_children': 'Employee  Children',
+            'family': 'Employee  Family'
+        }
+        
+        tier_name = tier_map.get(tier, 'Employee Only')
+        
+        # Determine which row based on plan (frontend sends hra6k, hra4k, hra2k)
+        if medical_plan in ['hra6k', 'hra_6k']:
+            # First row - HRA $6K
+            if tier == 'employee':
+                return ["Employee Only  5991"]
+            elif tier == 'employee_spouse':
+                return ["Employee  Spouse"]
+            elif tier == 'employee_children':
+                return ["Employee  Children"]
+            elif tier == 'family':
+                return ["Employee  Family"]
+        elif medical_plan in ['hra4k', 'hra_4k']:
+            # Second row - HRA $4K
+            if tier == 'employee':
+                return ["Employee Only  13684"]
+            elif tier == 'employee_spouse':
+                return ["Employee  Spouse 39621"]
+            elif tier == 'employee_children':
+                return ["Employee  Children_2"]
+            elif tier == 'family':
+                return ["Employee  Family_2"]
+        elif medical_plan in ['hra2k', 'hra_2k']:
+            # Third row - HRA $2K
+            if tier == 'employee':
+                return ["Employee Only"]
+            elif tier == 'employee_spouse':
+                return ["Employee  Spouse_2"]
+            elif tier == 'employee_children':
+                return ["Employee  Children_3"]
+            elif tier == 'family':
+                return ["Employee  Family_3"]
+        elif medical_plan in ['minimum_essential', 'mec']:
+            # Limited Medical - MEC (first row)
+            if tier == 'employee':
+                return ["Employee Only_2"]
+            elif tier == 'employee_spouse':
+                return ["Employee  Spouse_3"]
+            elif tier == 'employee_children':
+                return ["Employee  Children_4"]
+            elif tier == 'family':
+                return ["Employee  Family_4"]
+        elif medical_plan in ['indemnity']:
+            # Limited Medical - Indemnity (second row)
+            if tier == 'employee':
+                return ["Employee Only_3"]
+            elif tier == 'employee_spouse':
+                return ["Employee  Spouse_4"]
+            elif tier == 'employee_children':
+                return ["Employee  Children_5"]
+            elif tier == 'family':
+                return ["Employee  Family_5"]
+        
+        # Default fallback
+        return [tier_name]
+    
+    def _get_dental_tier_checkbox_name(self, tier: str) -> str:
+        """Get the checkbox field name for dental tier."""
+        tier_map = {
+            'employee': 'Employee Only_6',
+            'employee_spouse': 'Employee  Spouse_7',
+            'employee_children': 'Employee  Children_8',
+            'family': 'Employee  Family_8'
+        }
+        return tier_map.get(tier, 'Employee Only_6')
+    
+    def _get_vision_tier_checkbox_name(self, tier: str) -> str:
+        """Get the checkbox field name for vision tier.
+        Note: These are the same as dental checkboxes in the PDF."""
+        tier_map = {
+            'employee': 'Employee Only_6',
+            'employee_spouse': 'Employee  Spouse_7',
+            'employee_children': 'Employee  Children_8',
+            'family': 'Employee  Family_8'
+        }
+        return tier_map.get(tier, 'Employee Only_6')
