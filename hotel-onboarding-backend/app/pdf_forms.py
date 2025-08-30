@@ -438,18 +438,20 @@ class PDFFormFiller:
             draw_text('employee_email', email)
             draw_text('employee_date', current_date)
 
-            # Bank info
+            # Get deposit type from top level
+            actual_deposit_type = employee_data.get('deposit_type', deposit_type)
+            
+            # Bank 1 info (primary account)
             draw_text('bank1_name', bank_name)
             draw_text('bank1_routing_number', routing_number)
             draw_text('bank1_account_number', account_number)
 
-            # Deposit amount only for partial deposits
-            if deposit_type == 'partial' and deposit_amount:
-                # Normalize currency value (strip $ , spaces)
+            # Handle deposit amounts/percentages based on type
+            if actual_deposit_type == 'partial' and deposit_amount:
+                # Partial deposit - specific amount to bank1
                 try:
                     import re
                     amt_str = str(deposit_amount).strip()
-                    # If percent provided (e.g., 50%), just write as-is
                     if amt_str.endswith('%'):
                         formatted_amount = amt_str
                     else:
@@ -458,8 +460,15 @@ class PDFFormFiller:
                 except Exception:
                     formatted_amount = f"${deposit_amount}"
                 draw_text('bank1_deposit_amount', formatted_amount)
+            elif actual_deposit_type == 'split':
+                # Split deposit - use percentage or amount
+                percentage = direct_deposit.get('percentage', 0)
+                if percentage:
+                    draw_text('bank1_deposit_amount', f"{percentage}%")
+                elif deposit_amount:
+                    draw_text('bank1_deposit_amount', f"${deposit_amount}")
 
-            # Checkboxes
+            # Bank 1 checkboxes
             if account_type == 'checking':
                 draw_check('bank1_checking')
             elif account_type == 'savings':
@@ -467,8 +476,65 @@ class PDFFormFiller:
             else:
                 draw_check('bank1_other')
 
-            if deposit_type == 'full':
+            # Only mark "entire net amount" for full deposits
+            if actual_deposit_type == 'full':
                 draw_check('bank1_entire_net_amount')
+            
+            # Process additional accounts for split deposits
+            additional_accounts = employee_data.get('additional_accounts', [])
+            
+            # Bank 2 (first additional account)
+            if len(additional_accounts) > 0 and actual_deposit_type == 'split':
+                acc2 = additional_accounts[0]
+                draw_text('bank2_name', acc2.get('bank_name', ''))
+                draw_text('bank2_routing_number', acc2.get('routing_number', ''))
+                draw_text('bank2_account_number', acc2.get('account_number', ''))
+                
+                # Deposit amount/percentage for bank 2
+                percentage2 = acc2.get('percentage', 0)
+                amount2 = acc2.get('deposit_amount', '')
+                if percentage2:
+                    draw_text('bank2_deposit_amount', f"{percentage2}%")
+                elif amount2:
+                    draw_text('bank2_deposit_amount', f"${amount2}")
+                
+                # Account type checkboxes for bank 2
+                acc2_type = acc2.get('account_type', 'checking')
+                if acc2_type == 'checking':
+                    draw_check('bank2_checking')
+                elif acc2_type == 'savings':
+                    draw_check('bank2_savings')
+                else:
+                    draw_check('bank2_other')
+            
+            # Bank 3 (second additional account)
+            if len(additional_accounts) > 1 and actual_deposit_type == 'split':
+                acc3 = additional_accounts[1]
+                draw_text('bank3_name', acc3.get('bank_name', ''))
+                draw_text('bank3_routing_number', acc3.get('routing_number', ''))
+                draw_text('bank3_account_number', acc3.get('account_number', ''))
+                
+                # Deposit amount/percentage for bank 3
+                percentage3 = acc3.get('percentage', 0)
+                amount3 = acc3.get('deposit_amount', '')
+                if percentage3:
+                    draw_text('bank3_deposit_amount', f"{percentage3}%")
+                elif amount3:
+                    draw_text('bank3_deposit_amount', f"${amount3}")
+                
+                # Account type checkboxes for bank 3
+                acc3_type = acc3.get('account_type', 'checking')
+                if acc3_type == 'checking':
+                    draw_check('bank3_checking')
+                elif acc3_type == 'savings':
+                    draw_check('bank3_savings')
+                else:
+                    draw_check('bank3_other')
+                
+                # If bank 3 has the remainder, mark it
+                if percentage3 == 0 and amount3 == '':
+                    # This account gets the remainder
+                    draw_check('bank3_entire_net_amount')
             
             # Add signature if provided (robust handling + precise placement)
             signature_data = employee_data.get('signatureData') or employee_data.get('signature_data')
@@ -539,17 +605,16 @@ class PDFFormFiller:
                     if signature_widget:
                         rect = signature_widget.rect
                         print(f"Direct Deposit: Found signature widget at: {rect}")
-                        # For Direct Deposit, use a reasonable signature box around the widget location
-                        # The widget is at y=400.66 with height=10, so expand it sensibly
-                        if rect.height < 20:  # Widget is too small for signature
-                            # Create a signature box centered on the widget location
-                            # Widget center is approximately at y=405.66
-                            rect = fitz.Rect(rect.x0, rect.y0 - 15, rect.x0 + 200, rect.y0 + 15)
-                            print(f"Direct Deposit: Expanded signature rect to: {rect}")
+                        # For Direct Deposit, expand the widget area for signature
+                        # The widget is typically too small for a signature, so we expand it
+                        # Keep the left edge, expand width to 180 and height to 35
+                        rect = fitz.Rect(rect.x0, rect.y0 - 10, rect.x0 + 180, rect.y0 + 25)
+                        print(f"Direct Deposit: Expanded signature rect to: {rect}")
                     else:
                         # Use the exact coordinates from the JSON file
-                        # x=134.28, y=400.66, expand to reasonable signature size
-                        rect = fitz.Rect(134.28, 385.66, 334.28, 415.66)  # 200x30 box centered on field
+                        # x=134.28, y=400.66, but expand for proper signature display
+                        # Signature should be placed above the line, so adjust y position
+                        rect = fitz.Rect(134.28, 390.66, 314.28, 425.66)  # 180x35 box for signature
                         print(f"Direct Deposit: Using fallback signature rect: {rect}")
 
                     # Maintain aspect ratio within target rect with minimal padding
@@ -591,96 +656,58 @@ class PDFFormFiller:
             
         except Exception as e:
             print(f"Error filling Direct Deposit form: {e}")
-            # Fall back to generated version if template overlay fails
-            return self.create_direct_deposit_pdf(employee_data)
+            # Re-raise the exception to handle it properly
+            raise
     
-    def create_health_insurance_form(self, employee_data: Dict[str, Any]) -> bytes:
-        """Create health insurance enrollment form based on packet template"""
-        buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
-        styles = getSampleStyleSheet()
-        story = []
-        
-        # Title
-        title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
-            fontSize=16,
-            spaceAfter=30,
-            alignment=1  # Center alignment
-        )
-        story.append(Paragraph("Health Insurance Enrollment Form", title_style))
-        story.append(Paragraph("Plan Year: January 1, 2025 – December 31, 2025", styles['Normal']))
-        story.append(Spacer(1, 20))
-        
-        # Employee Information
-        story.append(Paragraph("<b>Employee Information</b>", styles['Heading2']))
-        
-        emp_info = [
-            ['Employee Name:', f"{employee_data.get('first_name', '')} {employee_data.get('last_name', '')}"],
-            ['Social Security #:', employee_data.get('ssn', '')],
-            ['Birth Date:', employee_data.get('date_of_birth', '')],
-            ['Gender:', employee_data.get('gender', '')],
-            ['Address:', employee_data.get('address', '')],
-            ['Phone Number:', employee_data.get('phone', '')],
-            ['Email Address:', employee_data.get('email', '')]
-        ]
-        
-        emp_table = Table(emp_info, colWidths=[2*inch, 4*inch])
-        emp_table.setStyle(TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-        ]))
-        story.append(emp_table)
-        story.append(Spacer(1, 20))
-        
-        # Coverage Elections
-        story.append(Paragraph("<b>Coverage Elections (deductions are bi-weekly)</b>", styles['Heading2']))
-        
-        # Medical Coverage
-        medical_plan = employee_data.get('health_insurance', {}).get('medical_plan', '')
-        medical_tier = employee_data.get('health_insurance', {}).get('medical_tier', 'employee')
-        
-        if medical_plan and medical_plan in HEALTH_INSURANCE_PLANS['medical_plans']:
-            plan_info = HEALTH_INSURANCE_PLANS['medical_plans'][medical_plan]
-            cost = plan_info['costs'].get(medical_tier, 0)
+    def fill_health_insurance_form(self, employee_data: Dict[str, Any]) -> bytes:
+        """Fill Health Insurance form using official template overlay"""
+        try:
+            from .health_insurance_overlay import HealthInsuranceFormOverlay
             
-            story.append(Paragraph(f"<b>Medical: {plan_info['name']}</b>", styles['Normal']))
-            story.append(Paragraph(f"Coverage Tier: {medical_tier.replace('_', ' ').title()}", styles['Normal']))
-            story.append(Paragraph(f"Bi-weekly Cost: ${cost:.2f}", styles['Normal']))
-            story.append(Spacer(1, 10))
-        
-        # Dental Coverage
-        if employee_data.get('health_insurance', {}).get('dental_coverage'):
-            dental_tier = employee_data.get('health_insurance', {}).get('dental_tier', 'employee')
-            dental_cost = HEALTH_INSURANCE_PLANS['dental_costs'].get(dental_tier, 0)
+            # Initialize the overlay generator
+            overlay = HealthInsuranceFormOverlay()
             
-            story.append(Paragraph("<b>Dental: United Healthcare Dental PPO</b>", styles['Normal']))
-            story.append(Paragraph(f"Coverage Tier: {dental_tier.replace('_', ' ').title()}", styles['Normal']))
-            story.append(Paragraph(f"Bi-weekly Cost: ${dental_cost:.2f}", styles['Normal']))
-            story.append(Spacer(1, 10))
-        
-        # Vision Coverage
-        if employee_data.get('health_insurance', {}).get('vision_coverage'):
-            vision_tier = employee_data.get('health_insurance', {}).get('vision_tier', 'employee')
-            vision_cost = HEALTH_INSURANCE_PLANS['vision_costs'].get(vision_tier, 0)
+            # Extract form data
+            form_data = employee_data.get('health_insurance', {})
+            if not form_data and 'medicalPlan' in employee_data:
+                # Direct structure (from frontend)
+                form_data = employee_data
             
-            story.append(Paragraph("<b>Vision: United Healthcare Vision</b>", styles['Normal']))
-            story.append(Paragraph(f"Coverage Tier: {vision_tier.replace('_', ' ').title()}", styles['Normal']))
-            story.append(Paragraph(f"Bi-weekly Cost: ${vision_cost:.2f}", styles['Normal']))
-            story.append(Spacer(1, 10))
-        
-        # Total Cost
-        total_cost = employee_data.get('health_insurance', {}).get('total_biweekly_cost', 0)
-        story.append(Paragraph(f"<b>Total Bi-weekly Cost: ${total_cost:.2f}</b>", styles['Heading3']))
-        
-        # Build PDF
-        doc.build(story)
-        buffer.seek(0)
-        return buffer.read()
+            # Get employee names
+            first_name = employee_data.get('firstName', '') or employee_data.get('first_name', '')
+            last_name = employee_data.get('lastName', '') or employee_data.get('last_name', '')
+            
+            # Get signature data if provided
+            signature_data = employee_data.get('signatureData')
+            signature_b64 = None
+            signed_date = None
+            
+            if signature_data:
+                if isinstance(signature_data, dict):
+                    signature_b64 = signature_data.get('signature', '')
+                    signed_date = signature_data.get('signedAt')
+                elif isinstance(signature_data, str):
+                    signature_b64 = signature_data
+            
+            # Generate PDF with overlay
+            preview = not bool(signature_b64)  # Preview mode if no signature
+            pdf_bytes = overlay.generate(
+                form_data=form_data,
+                employee_first=first_name,
+                employee_last=last_name,
+                signature_b64=signature_b64,
+                signed_date=signed_date,
+                preview=preview,
+                return_details=False
+            )
+            
+            return pdf_bytes
+            
+        except Exception as e:
+            print(f"Error filling Health Insurance form: {e}")
+            # Re-raise the exception to handle it properly
+            raise
+    
     
     def create_direct_deposit_form(self, employee_data: Dict[str, Any]) -> bytes:
         """Create direct deposit authorization form"""
@@ -2139,314 +2166,6 @@ class PDFFormFiller:
         ))
         
         doc.build(story)
-        buffer.seek(0)
-        return buffer.read()
-    
-    def create_direct_deposit_pdf(self, employee_data: Dict[str, Any]) -> bytes:
-        """Create complete ADP-style direct deposit enrollment form PDF"""
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=letter)
-        width, height = letter
-        
-        # === HEADER SECTION ===
-        # ADP Logo placeholder (would be actual logo in production)
-        c.setFont("Helvetica-Bold", 24)
-        c.setFillColorRGB(0, 0.2, 0.4)
-        c.drawString(50, height - 40, "ADP")
-        c.setFillColorRGB(0, 0, 0)
-        
-        # Title
-        c.setFont("Helvetica-Bold", 18)
-        c.drawString(150, height - 40, "Employee Direct Deposit Enrollment Form")
-        
-        # === PAYROLL MANAGER SECTION ===
-        c.setStrokeColorRGB(0.8, 0.8, 0.8)
-        c.setFillColorRGB(0.95, 0.95, 0.95)
-        c.rect(40, height - 140, width - 80, 70, fill=1, stroke=1)
-        
-        c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(50, height - 60, "Payroll Manager – Please complete this section and send a copy to ADP for enrollment. (Please print.)")
-        
-        c.setFont("Helvetica", 9)
-        y_pos = height - 85
-        
-        # Row 1: Company info
-        c.setStrokeColorRGB(0.5, 0.5, 0.5)
-        c.rect(50, y_pos - 20, 120, 18, stroke=1, fill=0)
-        c.drawString(52, y_pos - 15, "Company Code:")
-        c.drawString(130, y_pos - 15, "_________")
-        
-        property_name = employee_data.get('property_name', '') or employee_data.get('property', {}).get('name', '') if isinstance(employee_data.get('property'), dict) else ''
-        c.rect(180, y_pos - 20, 250, 18, stroke=1, fill=0)
-        c.drawString(182, y_pos - 15, f"Company Name: {property_name or '________________________'}")
-        
-        c.rect(440, y_pos - 20, 120, 18, stroke=1, fill=0)
-        c.drawString(442, y_pos - 15, "Employee File #: _______")
-        
-        # Row 2: Manager info
-        y_pos -= 30
-        c.drawString(50, y_pos, "Payroll Mgr. Name: _________________________")
-        c.drawString(270, y_pos, "Payroll Mgr. Signature: _________________________")
-        
-        # === INSTRUCTIONS SECTION ===
-        y_pos = height - 170
-        c.setFont("Helvetica", 9)
-        c.setFillColorRGB(0, 0, 0.4)
-        instructions = [
-            "To enroll in Full Service Direct Deposit, simply fill out this form and give to your payroll manager. Attach a voided check for each checking",
-            "account - not a deposit slip. If depositing to a savings account, ask your bank to give you the Routing/Transit Number for your account.",
-            "It isn't always the same as the number on a savings deposit slip. This will help ensure that you are paid correctly."
-        ]
-        
-        for line in instructions:
-            c.drawString(50, y_pos, line)
-            y_pos -= 11
-            
-        # === SAMPLE CHECK SECTION ===
-        y_pos -= 15
-        c.setFillColorRGB(0, 0, 0)
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(50, y_pos, "Below is a sample check MICR line, detailing where the information necessary to complete this form can be found.")
-        
-        # Draw sample check box
-        y_pos -= 15
-        c.setStrokeColorRGB(0.3, 0.3, 0.3)
-        c.setFillColorRGB(0.98, 0.98, 0.98)
-        c.rect(50, y_pos - 70, width - 100, 70, fill=1, stroke=1)
-        
-        # Sample MICR line
-        c.setFont("Courier", 11)
-        c.setFillColorRGB(0, 0, 0)
-        c.drawString(70, y_pos - 45, "⑆012345678⑆  123456789⑈  0101")
-        
-        # Labels with arrows
-        c.setFont("Helvetica", 8)
-        c.drawString(70, y_pos - 60, "Routing/Transit #")
-        c.drawString(180, y_pos - 60, "Checking Account #")
-        c.drawString(300, y_pos - 60, "Check #")
-        
-        # Draw arrows pointing up
-        c.setStrokeColorRGB(0.5, 0.5, 0.5)
-        c.line(110, y_pos - 55, 110, y_pos - 48)
-        c.line(230, y_pos - 55, 230, y_pos - 48)
-        c.line(330, y_pos - 55, 330, y_pos - 48)
-        
-        # Check memo line
-        c.setFont("Helvetica", 9)
-        c.drawString(70, y_pos - 25, "Memo ________________________________")
-        c.drawString(350, y_pos - 25, "$ __________")
-        
-        # === IMPORTANT NOTICE / AUTHORIZATION ===
-        y_pos -= 90
-        c.setFont("Helvetica-Bold", 9)
-        c.setFillColorRGB(0.8, 0, 0)
-        c.drawString(50, y_pos, "IMPORTANT! Please read and sign before completing and submitting.")
-        
-        y_pos -= 15
-        c.setFont("Helvetica", 8)
-        c.setFillColorRGB(0, 0, 0)
-        auth_text = [
-            "I hereby authorize ADP to deposit any amounts owed me, as instructed by my employer, by initiating credit entries to my account at the",
-            "financial institution (hereinafter \"Bank\") indicated on this form. Further, I authorize Bank to accept and to credit any credit entries indicated",
-            "by ADP to my account. In the event that ADP deposits funds erroneously into my account, I authorize ADP to debit my account for an",
-            "amount not to exceed the original amount of the erroneous credit."
-        ]
-        
-        for line in auth_text:
-            c.drawString(50, y_pos, line)
-            y_pos -= 10
-            
-        y_pos -= 5
-        more_text = [
-            "This authorization is to remain in full force and effect until ADP and Bank have received written notice from me of its termination in such",
-            "time and in such manner as to afford ADP and Bank reasonable opportunity to act on it."
-        ]
-        
-        for line in more_text:
-            c.drawString(50, y_pos, line)
-            y_pos -= 10
-            
-        # === EMPLOYEE INFORMATION SECTION ===
-        y_pos -= 20
-        c.setFont("Helvetica-Bold", 11)
-        c.setFillColorRGB(0, 0.2, 0.4)
-        c.drawString(50, y_pos, "Employee Information")
-        c.setFillColorRGB(0, 0, 0)
-        
-        y_pos -= 20
-        c.setFont("Helvetica", 10)
-        
-        # Employee details
-        full_name = f"{employee_data.get('firstName', '')} {employee_data.get('lastName', '')}".strip()
-        c.drawString(50, y_pos, f"Employee Name: {full_name or '________________________________'}")
-        
-        ssn = employee_data.get('ssn', '')
-        if ssn and len(ssn) >= 4:
-            ssn_masked = f"XXX-XX-{ssn[-4:]}"
-        else:
-            ssn_masked = "XXX-XX-____"
-        c.drawString(280, y_pos, f"Social Security #: {ssn_masked}")
-        c.drawString(450, y_pos, f"Date: {datetime.now().strftime('%m/%d/%Y')}")
-        
-        y_pos -= 20
-        email = employee_data.get('email', '')
-        c.drawString(50, y_pos, f"Employee Email: {email or '________________________________'}")
-        
-        # === ACCOUNT INFORMATION SECTION ===
-        y_pos -= 30
-        c.setFont("Helvetica-Bold", 11)
-        c.setFillColorRGB(0, 0.2, 0.4)
-        c.drawString(50, y_pos, "Account Information")
-        c.setFillColorRGB(0, 0, 0)
-        
-        y_pos -= 15
-        c.setFont("Helvetica", 8)
-        c.drawString(50, y_pos, "Please include a voided check or bank letter for each account. The last item must be for the remaining amount owed to you.")
-        
-        y_pos -= 20
-        
-        # Get payment method and account info
-        payment_method = employee_data.get('paymentMethod', 'direct_deposit')
-        
-        if payment_method == 'paper_check':
-            # Paper check option
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(50, y_pos, "☑ Paper Check")
-            y_pos -= 15
-            c.setFont("Helvetica", 9)
-            c.drawString(70, y_pos, "I elect to receive a paper check. I understand checks must be picked up on payday at the hotel.")
-            
-        else:
-            # Direct deposit accounts
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(50, y_pos, "☑ Direct Deposit")
-            y_pos -= 20
-            
-            # Primary account
-            primary_account = employee_data.get('primaryAccount', {})
-            if primary_account:
-                c.setFont("Helvetica-Bold", 9)
-                c.drawString(50, y_pos, "Account 1 (Primary):")
-                y_pos -= 15
-                
-                c.setFont("Helvetica", 9)
-                bank_name = primary_account.get('bankName', '')
-                c.drawString(50, y_pos, f"Bank Name/City/State: {bank_name or '________________________________'}")
-                y_pos -= 15
-                
-                routing = primary_account.get('routingNumber', '')
-                c.drawString(50, y_pos, f"Routing Number: {routing or '_________'}")
-                
-                account = primary_account.get('accountNumber', '')
-                if account and len(account) > 4:
-                    # Mask account number except last 4
-                    account_masked = '*' * (len(account) - 4) + account[-4:]
-                else:
-                    account_masked = account or '______________'
-                c.drawString(200, y_pos, f"Account Number: {account_masked}")
-                
-                account_type = primary_account.get('accountType', 'checking')
-                check_char = '☑' if account_type == 'checking' else '☐'
-                save_char = '☑' if account_type == 'savings' else '☐'
-                c.drawString(380, y_pos, f"{check_char} Checking  {save_char} Savings")
-                y_pos -= 15
-                
-                # Amount/percentage
-                percentage = primary_account.get('percentage', 100)
-                c.drawString(50, y_pos, f"Amount: $________ or Percentage: {percentage}%")
-                y_pos -= 20
-            
-            # Additional accounts if any
-            additional_accounts = employee_data.get('additionalAccounts', [])
-            for i, account in enumerate(additional_accounts[:2], start=2):  # Max 2 additional
-                c.setFont("Helvetica-Bold", 9)
-                c.drawString(50, y_pos, f"Account {i}:")
-                y_pos -= 15
-                
-                c.setFont("Helvetica", 9)
-                bank_name = account.get('bankName', '')
-                c.drawString(50, y_pos, f"Bank Name/City/State: {bank_name or '________________________________'}")
-                y_pos -= 15
-                
-                routing = account.get('routingNumber', '')
-                c.drawString(50, y_pos, f"Routing Number: {routing or '_________'}")
-                
-                acc_num = account.get('accountNumber', '')
-                if acc_num and len(acc_num) > 4:
-                    acc_masked = '*' * (len(acc_num) - 4) + acc_num[-4:]
-                else:
-                    acc_masked = acc_num or '______________'
-                c.drawString(200, y_pos, f"Account Number: {acc_masked}")
-                
-                acc_type = account.get('accountType', 'checking')
-                check_char = '☑' if acc_type == 'checking' else '☐'
-                save_char = '☑' if acc_type == 'savings' else '☐'
-                c.drawString(380, y_pos, f"{check_char} Checking  {save_char} Savings")
-                y_pos -= 15
-                
-                percentage = account.get('percentage', 0)
-                c.drawString(50, y_pos, f"Amount: $________ or Percentage: {percentage}%")
-                y_pos -= 20
-        
-        # === SIGNATURE SECTION ===
-        y_pos = 100  # Fixed position near bottom
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(50, y_pos, "Employee Authorization")
-        
-        y_pos -= 20
-        c.setFont("Helvetica", 9)
-        
-        # Add digital signature if provided
-        signature_added = False
-        if employee_data.get('signatureData'):
-            try:
-                signature_data = employee_data['signatureData']
-                if isinstance(signature_data, dict):
-                    signature_base64 = signature_data.get('signature', '')
-                else:
-                    signature_base64 = signature_data
-                    
-                if signature_base64 and signature_base64.startswith('data:image'):
-                    signature_base64 = signature_base64.split(',')[1]
-                
-                if signature_base64:
-                    import base64
-                    from PIL import Image as PILImage
-                    from reportlab.lib.utils import ImageReader
-                    
-                    signature_bytes = base64.b64decode(signature_base64)
-                    signature_img = PILImage.open(io.BytesIO(signature_bytes))
-                    
-                    if signature_img.mode != 'RGB':
-                        signature_img = signature_img.convert('RGB')
-                    
-                    signature_img.thumbnail((150, 40), PILImage.Resampling.LANCZOS)
-                    
-                    temp_buffer = io.BytesIO()
-                    signature_img.save(temp_buffer, format='PNG')
-                    temp_buffer.seek(0)
-                    
-                    signature_reader = ImageReader(temp_buffer)
-                    c.drawImage(signature_reader, 180, y_pos - 10, width=signature_img.width, height=signature_img.height)
-                    signature_added = True
-                    
-            except Exception as e:
-                print(f"Error adding signature: {e}")
-        
-        c.drawString(50, y_pos, "Employee Signature:")
-        if not signature_added:
-            c.line(180, y_pos - 5, 350, y_pos - 5)
-        
-        c.drawString(380, y_pos, f"Date: {datetime.now().strftime('%m/%d/%Y')}")
-        
-        # === FOOTER ===
-        c.setFont("Helvetica", 7)
-        c.setFillColorRGB(0.5, 0.5, 0.5)
-        c.drawString(50, 40, "Changes or cancellations will take effect 1-2 pay periods after receipt by your payroll office.")
-        c.drawString(50, 30, "For ADP Use Only: Processing Date __________ Processor Initials __________")
-        
-        c.save()
         buffer.seek(0)
         return buffer.read()
 
