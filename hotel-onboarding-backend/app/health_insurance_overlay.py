@@ -85,16 +85,32 @@ class HealthInsuranceFormOverlay:
     def _set_text_field(self, page: fitz.Page, field_name: str, value: str) -> bool:
         """Set a text field value by name."""
         if not value:
+            print(f"_set_text_field: No value provided for field {field_name}")
             return False
         
+        print(f"\nAttempting to set text field: {field_name}")
+        print(f"Value to set: {value}")
+        
+        found_field = False
         for widget in page.widgets():
+            print(f"Found widget: {widget.field_name} (type: {widget.field_type_string})")
             if widget.field_name == field_name:
+                found_field = True
                 try:
                     widget.field_value = str(value)
                     widget.update()
+                    print(f"Successfully set field {field_name} to: {value}")
                     return True
                 except Exception as e:
                     print(f"Error setting field {field_name}: {e}")
+                    print(f"Widget details: type={widget.field_type_string}, rect={widget.rect}")
+        
+        if not found_field:
+            print(f"No widget found with name: {field_name}")
+            print("Available widgets:")
+            for widget in page.widgets():
+                print(f"  - {widget.field_name} ({widget.field_type_string})")
+        
         return False
 
     def _set_checkbox(self, page: fitz.Page, field_name: str, checked: bool = True) -> bool:
@@ -120,35 +136,221 @@ class HealthInsuranceFormOverlay:
                 except Exception as e:
                     print(f"Error setting radio {field_name}: {e}")
         return False
+    
+    def _draw_text(self, page: fitz.Page, rect: fitz.Rect, text: str, fontsize: float = 9.0):
+        """Draw simple text inside rect with small padding."""
+        if not text:
+            return
+        pad_x = 2
+        pad_y = rect.height * 0.2
+        x = rect.x0 + pad_x
+        y = rect.y0 + rect.height - pad_y
+        try:
+            page.insert_text((x, y), text, fontsize=fontsize, color=(0, 0, 0))
+        except Exception as e:
+            print(f"Error drawing text note: {e}")
+    
+    def _draw_note_near_widget(self, page: fitz.Page, widget_name: str, text: str, dx: float = 6.0, dy: float = 0.0):
+        """Place a small text note to the right of a given widget, if found."""
+        try:
+            for w in page.widgets():
+                if w.field_name == widget_name:
+                    # Place a small rect to the right of the widget
+                    base = w.rect
+                    note_rect = fitz.Rect(base.x1 + dx, base.y0 + dy, base.x1 + dx + 180, base.y0 + dy + 12)
+                    self._draw_text(page, note_rect, text, fontsize=8.5)
+                    return True
+        except Exception as e:
+            print(f"Error placing note near widget {widget_name}: {e}")
+        return False
+    
+    def _load_mapping(self) -> Dict[str, Any]:
+        try:
+            if os.path.exists(HI_MAPPING_PATH):
+                with open(HI_MAPPING_PATH, 'r') as f:
+                    return json.load(f) or {}
+        except Exception as e:
+            print(f"Failed to load HI mapping JSON: {e}")
+        return {}
+
+    def _search_first(self, page: fitz.Page, text: str) -> Optional[fitz.Rect]:
+        try:
+            hits = page.search_for(text, hit_max=1)
+            if hits:
+                return hits[0]
+        except Exception:
+            pass
+        return None
+
+    def _set_text_by_label_fallback(self, page: fitz.Page, label_text: str, value: str, dx: float = 100.0, width: float = 220.0) -> bool:
+        """When no AcroForm field exists, write text relative to a label on the page."""
+        if not value:
+            return False
+        label_rect = self._search_first(page, label_text)
+        if not label_rect:
+            return False
+        rect = fitz.Rect(label_rect.x1 + dx, label_rect.y0 - 2, label_rect.x1 + dx + width, label_rect.y0 + 12)
+        self._draw_text(page, rect, str(value), fontsize=9)
+        return True
+
+    def _set_text_by_mapping(self, page: fitz.Page, mapping: Dict[str, Any], key: str, value: str, fontsize: float = 9.0) -> bool:
+        """Set text using coordinate mapping from JSON file."""
+        print(f"\nAttempting to set text by mapping: {key}")
+        print(f"Value to set: {value}")
+        
+        if not value:
+            print("No value provided")
+            return False
+            
+        fields = mapping.get('fields') if isinstance(mapping, dict) else None
+        if not isinstance(fields, dict):
+            print("Invalid mapping structure - no fields dictionary")
+            print(f"Mapping type: {type(mapping)}")
+            return False
+            
+        print(f"Available mapping fields: {list(fields.keys())}")
+        rect_arr = fields.get(key)
+        print(f"Found coordinates for {key}: {rect_arr}")
+        
+        if isinstance(rect_arr, list) and len(rect_arr) == 4:
+            try:
+                rect = fitz.Rect(*rect_arr)
+                print(f"Created rectangle at coordinates: {rect}")
+                self._draw_text(page, rect, str(value), fontsize=fontsize)
+                print(f"Successfully drew text at coordinates")
+                return True
+            except Exception as e:
+                print(f"Error drawing text: {e}")
+                return False
+        else:
+            print(f"Invalid coordinates for {key}: {rect_arr}")
+            print("Expected list of 4 numbers [x0, y0, x1, y1]")
+        return False
+
+    def _try_set_text(self, page: fitz.Page, mapping: Dict[str, Any], field_key: str, value: str,
+                      label_variants: List[str], fontsize: float = 9.0) -> bool:
+        """Robust setter: try AcroForm, then mapping coords, then label-relative fallback(s)."""
+        if not value:
+            return False
+        # 1) Try AcroForm field
+        if self._set_text_field(page, field_key, value):
+            return True
+        # 2) Try mapping coordinates
+        if self._set_text_by_mapping(page, mapping, field_key, value, fontsize=fontsize):
+            return True
+        # 3) Try label-relative fallback with multiple variants
+        for label in label_variants:
+            if self._set_text_by_label_fallback(page, label, value):
+                return True
+        return False
+
+    def _checkboxes_in_row_near_label(self, page: fitz.Page, label_text: str) -> List[fitz.Widget]:
+        """Find checkboxes in the same horizontal band to the right of a given label."""
+        label_rect = self._search_first(page, label_text)
+        if not label_rect:
+            return []
+        y0 = label_rect.y0 - 20
+        y1 = label_rect.y0 + 40
+        cbs: List[fitz.Widget] = []
+        for w in page.widgets():
+            if w.field_type_string == "CheckBox":
+                r = w.rect
+                if r.y0 >= y0 and r.y1 <= y1 and r.x0 > label_rect.x1:
+                    cbs.append(w)
+        cbs.sort(key=lambda w: (w.rect.x0, w.rect.y0))
+        return cbs
 
     def generate(self, form_data: Dict[str, Any], employee_first: str, employee_last: str,
                  signature_b64: Optional[str] = None, signed_date: Optional[str] = None,
                  preview: bool = True, return_details: bool = False) -> Union[bytes, Tuple[bytes, List[str], List[Dict[str, Any]]]]:
-
+        
+        # Debug logging
+        print("Generating health insurance form with data:")
+        print(f"form_data: {json.dumps(form_data, indent=2)}")
+        print(f"employee_first: {employee_first}")
+        print(f"employee_last: {employee_last}")
+        print(f"preview: {preview}")
+        
         doc = fitz.open(HI_TEMPLATE_PATH)
         try:
             page1 = doc[0]
             page2 = doc[1] if doc.page_count >= 2 else None
+            mapping = self._load_mapping()
             
             actions: List[Dict[str, Any]] = []
             warnings: List[str] = []
+            
+            # Debug logging for incoming data
+            print("\nProcessing health insurance form data:")
+            print(f"form_data keys: {list(form_data.keys())}")
+            print(f"employee_first: {employee_first}")
+            print(f"employee_last: {employee_last}")
+            
+            # Debug logging for incoming data
+            print("\nProcessing health insurance form data:")
+            print(f"form_data keys: {list(form_data.keys())}")
+            print(f"employee_first: {employee_first}")
+            print(f"employee_last: {employee_last}")
             
             # Read form data
             personal_info = form_data.get("personalInfo", {})
             is_waived = _normalize_bool(form_data.get("isWaived", False))
             
             # Extract personal information
-            first_name = personal_info.get("firstName") or employee_first or ""
-            last_name = personal_info.get("lastName") or employee_last or ""
-            middle_initial = personal_info.get("middleInitial", "")
-            ssn = personal_info.get("ssn", "")
-            date_of_birth = personal_info.get("dateOfBirth", "")
-            address = personal_info.get("address", "")
-            city = personal_info.get("city", "")
-            state = personal_info.get("state", "")
-            zip_code = personal_info.get("zip") or personal_info.get("zipCode", "")
-            phone = personal_info.get("phone", "")
-            email = personal_info.get("email", "")
+            # Handle both camelCase and snake_case
+            personal_info = form_data.get("personalInfo") or {}  # Try camelCase first
+            if not personal_info:
+                personal_info = form_data.get("personal_info") or {}  # Try snake_case
+            
+            print("\nPersonal info data:")
+            print(f"personal_info type: {type(personal_info)}")
+            print(f"personal_info keys: {list(personal_info.keys()) if isinstance(personal_info, dict) else 'not a dict'}")
+            print(f"personal_info values: {personal_info if isinstance(personal_info, dict) else 'not a dict'}")
+            
+            print("\nPersonal info data:")
+            print(f"personal_info keys: {list(personal_info.keys()) if isinstance(personal_info, dict) else 'not a dict'}")
+            print(f"personal_info type: {type(personal_info)}")
+            
+            first_name = personal_info.get("firstName") or personal_info.get("first_name") or employee_first or ""
+            last_name = personal_info.get("lastName") or personal_info.get("last_name") or employee_last or ""
+            middle_initial = personal_info.get("middleInitial") or personal_info.get("middle_initial", "")
+            ssn = personal_info.get("ssn") or form_data.get("ssn") or ""
+            date_of_birth = personal_info.get("dateOfBirth") or personal_info.get("date_of_birth", "")
+
+            # Address can arrive as a string, a dict, or split fields
+            address_obj = personal_info.get("address") if isinstance(personal_info.get("address"), dict) else None
+            address = personal_info.get("address") if isinstance(personal_info.get("address"), str) else ""
+            if address_obj:
+                line1 = address_obj.get("line1") or address_obj.get("street") or address_obj.get("street1") or ""
+                line2 = address_obj.get("line2") or address_obj.get("apt") or ""
+                address = (f"{line1} {line2}" if line2 else line1).strip()
+            if not address:
+                line1 = personal_info.get("addressLine1") or personal_info.get("street") or ""
+                line2 = personal_info.get("addressLine2") or personal_info.get("apt") or ""
+                address = (f"{line1} {line2}" if line2 else line1).strip()
+
+            city = (
+                personal_info.get("city") or
+                (address_obj.get("city") if address_obj else None) or
+                personal_info.get("cityName") or
+                ""
+            )
+            state = (
+                personal_info.get("state") or
+                (address_obj.get("state") if address_obj else None) or
+                personal_info.get("stateCode") or
+                personal_info.get("state_initials") or
+                ""
+            )
+            zip_code = (
+                personal_info.get("zip") or personal_info.get("zipCode") or personal_info.get("zip_code") or
+                (address_obj.get("zip") if address_obj else None) or (address_obj.get("postalCode") if address_obj else None) or
+                ""
+            )
+
+            # Phone/email variants
+            phone = personal_info.get("phone") or personal_info.get("phoneNumber") or personal_info.get("primaryPhone") or ""
+            email = personal_info.get("email") or personal_info.get("emailAddress") or ""
             gender = personal_info.get("gender", "").upper()
             
             # Extract coverage information
@@ -175,58 +377,89 @@ class HealthInsuranceFormOverlay:
             stepchildren_names = form_data.get("stepchildrenNames", "")
             dependents_supported = _normalize_bool(form_data.get("dependentsSupported", False))
             
-            # Fill Page 1 Fields
-            # Personal Information
-            if self._set_text_field(page1, "Employees Name Last First MI", 
-                                   f"{last_name}, {first_name} {middle_initial}".strip()):
+            # Debug logging for field mapping
+            print("\nMapping personal info to PDF fields:")
+            print(f"Name to map: {last_name}, {first_name} {middle_initial}")
+            print(f"Available mapping fields: {list(mapping.get('fields', {}).keys())}")
+            
+            # Fill Page 1 Fields (Personal Information) with robust fallback
+            name_field = f"{last_name}, {first_name} {middle_initial}".strip()
+            print(f"\nAttempting to set name field: {name_field}")
+            if self._try_set_text(
+                page1, mapping, "Employees Name Last First MI", name_field,
+                [
+                    "Employees Name Last First MI",
+                    "Employee Name",
+                    "Employee Name (Last, First, MI)",
+                    "Employee’s Name (Last, First, MI)",
+                    "Employee’s Name",
+                    "Employee"
+                ]
+            ):
                 actions.append({"field": "Employees Name", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "Social Security", self._mask_ssn(ssn, mask_all=preview)):
+
+            ssn_str = self._mask_ssn(ssn, mask_all=preview)
+            if self._try_set_text(
+                page1, mapping, "Social Security", ssn_str,
+                ["Social Security", "Social Security #", "SSN", "SSN required"]
+            ):
                 actions.append({"field": "SSN", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "Birth Date", self._fmt_date(date_of_birth)):
+
+            dob_str = self._fmt_date(date_of_birth)
+            if self._try_set_text(
+                page1, mapping, "Birth Date", dob_str,
+                ["Birth Date", "Date of Birth"]
+            ):
                 actions.append({"field": "Birth Date", "action": "text", "pg": 1})
-            
-            # Address fields
-            if self._set_text_field(page1, "Employees Address", address):
+
+            if self._try_set_text(
+                page1, mapping, "Employees Address", address,
+                ["Employees Address", "Employee’s Address", "Address"]
+            ):
                 actions.append({"field": "Address", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "City", city):
+
+            if self._try_set_text(page1, mapping, "City", city, ["City"]):
                 actions.append({"field": "City", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "State", state):
+
+            if self._try_set_text(page1, mapping, "State", state, ["State"]):
                 actions.append({"field": "State", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "Zip", zip_code):
+
+            if self._try_set_text(
+                page1, mapping, "Zip", zip_code,
+                ["Zip", "Zip Code", "ZipCode"]
+            ):
                 actions.append({"field": "Zip", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "Phone Number", phone):
+
+            if self._try_set_text(
+                page1, mapping, "Phone Number", phone,
+                ["Phone Number", "Phone"]
+            ):
                 actions.append({"field": "Phone", "action": "text", "pg": 1})
-            
-            if self._set_text_field(page1, "Email Address", email):
+
+            if self._try_set_text(
+                page1, mapping, "Email Address", email,
+                ["Email Address", "Email"]
+            ):
                 actions.append({"field": "Email", "action": "text", "pg": 1})
             
             # Set effective date
-            if self._set_text_field(page1, "Effective Date", self._fmt_date(effective_date)):
+            if self._set_text_field(page1, "Effective Date", self._fmt_date(effective_date)) or 
+               self._set_text_by_mapping(page1, mapping, "Effective Date", self._fmt_date(effective_date)):
                 actions.append({"field": "Effective Date", "action": "text", "pg": 1})
             
-            # Set gender radio buttons
-            if gender == "M":
-                # First gender radio is Male
-                for widget in page1.widgets():
-                    if widget.field_name == "Gender" and abs(widget.rect.x0 - 523.08) < 1.0:
-                        widget.field_value = True
-                        widget.update()
-                        actions.append({"field": "Gender", "action": "radio_M", "pg": 1})
-                        break
-            elif gender == "F":
-                # Second gender radio is Female
-                for widget in page1.widgets():
-                    if widget.field_name == "Gender" and abs(widget.rect.x0 - 557.28) < 1.0:
-                        widget.field_value = True
-                        widget.update()
-                        actions.append({"field": "Gender", "action": "radio_F", "pg": 1})
-                        break
+            # Set gender radio buttons (robust: select by index among Gender radios)
+            if gender in {"M", "F"}:
+                gender_widgets = [w for w in page1.widgets() if w.field_name == "Gender" and w.field_type_string == "RadioButton"]
+                if gender_widgets:
+                    # Sort left-to-right to keep consistency
+                    gender_widgets.sort(key=lambda w: (w.rect.x0, w.rect.y0))
+                    try:
+                        target = gender_widgets[0] if gender == "M" else gender_widgets[-1]
+                        target.field_value = True
+                        target.update()
+                        actions.append({"field": "Gender", "action": f"radio_{gender}", "pg": 1})
+                    except Exception as e:
+                        warnings.append(f"Could not set Gender radio: {str(e)}")
             
             # Handle Medical Coverage
             if is_waived or medical_waived:
@@ -256,18 +489,43 @@ class HealthInsuranceFormOverlay:
                 actions.append({"field": "Vision Decline", "action": "check", "pg": 1})
             else:
                 # Vision uses the same checkbox field names as dental on the PDF
-                # Since we can't select both (they share field names), we prioritize dental
-                # and add a text annotation for vision selection
+                # If dental is not selected, use the checkboxes for vision. Otherwise draw a visible note.
                 if not dental_coverage or dental_waived:
-                    # If dental is not selected, we can use the checkboxes for vision
                     vision_checkbox = self._get_vision_tier_checkbox_name(vision_tier)
                     if self._set_checkbox(page1, vision_checkbox, True):
                         actions.append({"field": f"Vision {vision_tier}", "action": "check", "pg": 1})
                 else:
-                    # Both dental and vision are selected - add text note for vision
-                    # This is a limitation of the PDF form structure
+                    # Both dental and vision are selected - draw a clear note near the Vision section
+                    tier_label_map = {
+                        'employee': 'Employee Only',
+                        'employee_spouse': 'Employee + Spouse',
+                        'employee_children': 'Employee + Children',
+                        'family': 'Employee + Family'
+                    }
+                    note_text = f"Vision: {tier_label_map.get(vision_tier, vision_tier.title())}"
+                    placed = False
+                    # If mapping provides a rect, use it
+                    vision_note_rect = mapping.get('vision_note_rect')
+                    if isinstance(vision_note_rect, list) and len(vision_note_rect) == 4:
+                        try:
+                            rect = fitz.Rect(*vision_note_rect)
+                            self._draw_text(page1, rect, note_text, fontsize=8.5)
+                            placed = True
+                        except Exception:
+                            placed = False
+                    if not placed:
+                        # Fallback: place near the "Vision Coverage" label to avoid covering decline text
+                        vr = self._search_first(page1, "Vision Coverage")
+                        if vr is not None:
+                            safe_rect = fitz.Rect(vr.x1 + 12, vr.y0 - 2, vr.x1 + 220, vr.y0 + 12)
+                            self._draw_text(page1, safe_rect, note_text, fontsize=8.5)
+                            placed = True
+                        else:
+                            # As last resort, place in a safe margin area
+                            fallback_rect = fitz.Rect(page1.rect.x1 - 240, 120, page1.rect.x1 - 20, 135)
+                            self._draw_text(page1, fallback_rect, note_text, fontsize=8.5)
                     actions.append({"field": f"Vision {vision_tier}", "action": "text_note", "pg": 1})
-                    warnings.append(f"Vision tier '{vision_tier}' noted but checkbox not set (conflicts with dental)")
+                    warnings.append(f"Vision tier '{vision_tier}' indicated via note due to dental/vision checkbox conflict")
             
             # Page 2 - Dependents
             if page2 and dependents:
@@ -400,7 +658,7 @@ class HealthInsuranceFormOverlay:
         
         tier_name = tier_map.get(tier, 'Employee Only')
         
-        # Determine which row based on plan (frontend sends hra6k, hra4k, hra2k)
+        # Determine which row based on plan (frontend sends hra6k, hra4k, hra2k, minimum_essential, indemnity, etc.)
         if medical_plan in ['hra6k', 'hra_6k']:
             # First row - HRA $6K
             if tier == 'employee':
@@ -441,7 +699,7 @@ class HealthInsuranceFormOverlay:
                 return ["Employee  Children_4"]
             elif tier == 'family':
                 return ["Employee  Family_4"]
-        elif medical_plan in ['indemnity']:
+        elif medical_plan in ['indemnity', 'minimum_indemnity']:
             # Limited Medical - Indemnity (second row)
             if tier == 'employee':
                 return ["Employee Only_3"]
@@ -451,6 +709,16 @@ class HealthInsuranceFormOverlay:
                 return ["Employee  Children_5"]
             elif tier == 'family':
                 return ["Employee  Family_5"]
+        elif medical_plan in ['minimum_plus_indemnity', 'mec_plus_indemnity']:
+            # Bundle: map to MEC row by default (UI shows bundle; PDF can only select one row)
+            if tier == 'employee':
+                return ["Employee Only_2"]
+            elif tier == 'employee_spouse':
+                return ["Employee  Spouse_3"]
+            elif tier == 'employee_children':
+                return ["Employee  Children_4"]
+            elif tier == 'family':
+                return ["Employee  Family_4"]
         
         # Default fallback
         return [tier_name]

@@ -82,13 +82,38 @@ export default function ReviewAndSign({
     const ssn = formData?.personalInfo?.ssn || formData?.ssn || extraPdfData?.ssn || 'none';
     console.log('  - Extracted SSN:', ssn !== 'none' ? `${ssn.substring(0, 3)}****` : 'none')
 
-    // Build payload with personalInfo fields extracted to root level
+    // Build payload with proper structure
     const payload = {
-      ...(formData || {}),
-      ...(formData?.personalInfo || {}), // Extract nested personalInfo to root
-      ...(extraPdfData || {}),
-      ssn: ssn // Ensure SSN is at root level
+      ...formData,
+      personalInfo: {
+        ...(typeof formData?.personalInfo === 'object' && !Array.isArray(formData.personalInfo) ? formData.personalInfo : {}),
+        firstName: (formData?.personalInfo?.firstName ?? formData?.firstName ?? ''),
+        lastName: (formData?.personalInfo?.lastName ?? formData?.lastName ?? ''),
+        middleInitial: (formData?.personalInfo?.middleInitial ?? formData?.middleInitial ?? ''),
+        ssn: ssn !== 'none' ? ssn : (formData?.personalInfo?.ssn ?? formData?.ssn ?? ''),
+        dateOfBirth: (formData?.personalInfo?.dateOfBirth ?? formData?.dateOfBirth ?? ''),
+        address: (formData?.personalInfo?.address ?? formData?.address ?? ''),
+        city: (formData?.personalInfo?.city ?? formData?.city ?? ''),
+        state: (formData?.personalInfo?.state ?? formData?.state ?? ''),
+        zipCode: (formData?.personalInfo?.zipCode ?? formData?.zipCode ?? formData?.zip ?? ''),
+        phone: (formData?.personalInfo?.phone ?? formData?.phone ?? ''),
+        email: (formData?.personalInfo?.email ?? formData?.email ?? ''),
+        gender: (formData?.personalInfo?.gender ?? formData?.gender ?? '')
+      },
+      ...(extraPdfData || {})
     }
+    
+    // Debug log the actual values
+    console.log('Personal Info Values:', {
+      firstName: payload.personalInfo.firstName,
+      lastName: payload.personalInfo.lastName,
+      ssn: payload.personalInfo.ssn ? '***-**-' + String(payload.personalInfo.ssn).slice(-4) : 'none',
+      dateOfBirth: payload.personalInfo.dateOfBirth,
+      address: payload.personalInfo.address,
+      city: payload.personalInfo.city,
+      state: payload.personalInfo.state,
+      zipCode: payload.personalInfo.zipCode
+    })
 
     // Log the payload for debugging
     console.log('ReviewAndSign - PDF payload being sent:', {

@@ -61,10 +61,40 @@ export default function HealthInsuranceStep({
         
         // Extract personal info from the nested structure
         if (parsed.personalInfo) {
-          setPersonalInfo(parsed.personalInfo)
+          // Ensure we have an object with values, not just keys
+          const personalInfoObj = typeof parsed.personalInfo === 'object' && !Array.isArray(parsed.personalInfo) 
+            ? parsed.personalInfo 
+            : {
+                firstName: parsed.firstName || '',
+                lastName: parsed.lastName || '',
+                middleInitial: parsed.middleInitial || '',
+                ssn: parsed.ssn || '',
+                dateOfBirth: parsed.dateOfBirth || '',
+                address: parsed.address || '',
+                city: parsed.city || '',
+                state: parsed.state || '',
+                zipCode: parsed.zipCode || parsed.zip || '',
+                phone: parsed.phone || '',
+                email: parsed.email || '',
+                gender: parsed.gender || ''
+              }
+          setPersonalInfo(personalInfoObj)
         } else if (parsed.firstName || parsed.lastName) {
           // Direct structure fallback
-          setPersonalInfo(parsed)
+          setPersonalInfo({
+            firstName: parsed.firstName || '',
+            lastName: parsed.lastName || '',
+            middleInitial: parsed.middleInitial || '',
+            ssn: parsed.ssn || '',
+            dateOfBirth: parsed.dateOfBirth || '',
+            address: parsed.address || '',
+            city: parsed.city || '',
+            state: parsed.state || '',
+            zipCode: parsed.zipCode || parsed.zip || '',
+            phone: parsed.phone || '',
+            email: parsed.email || '',
+            gender: parsed.gender || ''
+          })
         }
       } catch (e) {
         console.error('Failed to parse personal info data:', e)
@@ -167,16 +197,30 @@ export default function HealthInsuranceStep({
     
     setIsSigned(true)
     
-    // Create complete data with both nested and flat structure for compatibility
+    // Create complete data with proper structure for backend
     const completeData = {
-      // Include flat structure for validator
-      ...formData,
-      // Also include nested structure for consistency
-      formData,
-      // Include personal info for backend PDF generation
-      personalInfo,
+      employee_data: {
+        ...formData,
+        personalInfo,  // Keep personalInfo at top level of employee_data
+        medicalPlan: formData.medicalPlan,
+        medicalTier: formData.medicalTier,
+        medicalWaived: formData.medicalWaived,
+        dentalCoverage: formData.dentalCoverage,
+        dentalEnrolled: formData.dentalEnrolled,
+        dentalTier: formData.dentalTier,
+        dentalWaived: formData.dentalWaived,
+        visionCoverage: formData.visionCoverage,
+        visionEnrolled: formData.visionEnrolled,
+        visionTier: formData.visionTier,
+        visionWaived: formData.visionWaived,
+        dependents: formData.dependents || [],
+        hasStepchildren: formData.hasStepchildren,
+        stepchildrenNames: formData.stepchildrenNames,
+        dependentsSupported: formData.dependentsSupported,
+        irsDependentConfirmation: formData.irsDependentConfirmation
+      },
       signed: true,
-      isSigned: true, // Include both for compatibility
+      isSigned: true,
       section125Acknowledged,
       signatureData,
       completedAt: new Date().toISOString()
