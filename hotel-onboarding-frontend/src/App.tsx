@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { HealthInsuranceErrorBoundary } from './components/HealthInsuranceErrorBoundary'
 import './App.css'
 
 // Loading component
@@ -36,13 +37,17 @@ const OnboardingComplete = lazy(() => import('./pages/OnboardingComplete'))
 const OnboardingFlowTest = lazy(() => import('./pages/OnboardingFlowTest'))
 const ExtractI9Fields = lazy(() => import('./pages/ExtractI9Fields'))
 const TestEnhancedUI = lazy(() => import('./pages/TestEnhancedUI'))
+const TestOnboardingSteps = lazy(() => import('./pages/TestOnboardingSteps'))
+const TestHealthInsurancePDF = lazy(() => import('./pages/TestHealthInsurancePDF'))
+const HealthInsuranceTest = lazy(() => import('./pages/HealthInsuranceTest'))
 
 function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
+        <HealthInsuranceErrorBoundary language="en">
+          <Router>
+            <div className="min-h-screen bg-gray-50">
             <Suspense fallback={<PageLoader />}>
               <Routes>
               <Route path="/" element={<HomePage />} />
@@ -98,11 +103,17 @@ function App() {
               
               {/* Enhanced UI Test Page */}
               <Route path="/test-enhanced-ui" element={<TestEnhancedUI />} />
+
+              {/* Test Pages */}
+              <Route path="/test-steps" element={<TestOnboardingSteps />} />
+              <Route path="/test-health-insurance-pdf" element={<TestHealthInsurancePDF />} />
+              <Route path="/test-health-insurance" element={<HealthInsuranceTest />} />
               </Routes>
             </Suspense>
             <Toaster />
-          </div>
-        </Router>
+            </div>
+          </Router>
+        </HealthInsuranceErrorBoundary>
       </LanguageProvider>
     </AuthProvider>
   )

@@ -34,9 +34,17 @@ export default function PDFViewer({
     setLoading(true)
     setError(null)
 
+    console.log('PDFViewer - useEffect triggered:', {
+      hasPdfData: !!pdfData,
+      hasPdfUrl: !!pdfUrl,
+      pdfDataLength: pdfData?.length,
+      pdfUrlPrefix: pdfUrl?.substring(0, 50)
+    })
+
     if (pdfData) {
       // Convert base64 to blob URL
       try {
+        console.log('PDFViewer - Processing pdfData as base64')
         const byteCharacters = atob(pdfData)
         const byteNumbers = new Array(byteCharacters.length)
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -45,17 +53,22 @@ export default function PDFViewer({
         const byteArray = new Uint8Array(byteNumbers)
         const blob = new Blob([byteArray], { type: 'application/pdf' })
         const url = URL.createObjectURL(blob)
+        console.log('PDFViewer - Created blob URL:', url)
         setPdfSrc(url)
-        
+
         return () => {
           URL.revokeObjectURL(url)
         }
       } catch (err) {
+        console.error('PDFViewer - Error processing pdfData:', err)
         setError('Failed to load PDF data')
         if (onError) onError(err as Error)
       }
     } else if (pdfUrl) {
+      console.log('PDFViewer - Using pdfUrl directly:', pdfUrl.substring(0, 100))
       setPdfSrc(pdfUrl)
+    } else {
+      console.log('PDFViewer - No PDF data or URL provided')
     }
   }, [pdfData, pdfUrl, onError])
 

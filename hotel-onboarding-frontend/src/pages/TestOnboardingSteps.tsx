@@ -4,6 +4,7 @@ import I9Section1Step from './onboarding/I9Section1Step'
 import W4FormStep from './onboarding/W4FormStep'
 import PersonalInfoStep from './onboarding/PersonalInfoStep'
 import CompanyPoliciesStep from './onboarding/CompanyPoliciesStep'
+import HealthInsuranceStep from './onboarding/HealthInsuranceStep'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -13,6 +14,7 @@ import { addW4FieldTestButton } from '@/utils/testW4Fields'
 // Define available test steps
 const TEST_STEPS = [
   { id: 'personal-info', name: 'Personal Info', component: PersonalInfoStep },
+  { id: 'health-insurance', name: 'Health Insurance', component: HealthInsuranceStep },
   { id: 'company-policies', name: 'Company Policies', component: CompanyPoliciesStep },
   { id: 'i9-section1', name: 'I-9 Section 1', component: I9Section1Step },
   { id: 'w4-form', name: 'W-4 Form', component: W4FormStep }

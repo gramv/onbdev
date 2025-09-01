@@ -75,54 +75,96 @@ export default function ReviewAndSign({
     // Debug logging for data received
     console.log('ReviewAndSign - Received data:')
     console.log('  - formData keys:', formData ? Object.keys(formData) : 'null')
-    console.log('  - formData.personalInfo:', formData?.personalInfo ? Object.keys(formData.personalInfo) : 'none')
+    console.log('  - formData.personalInfo type:', typeof formData?.personalInfo)
+    console.log('  - formData.personalInfo isArray:', Array.isArray(formData?.personalInfo))
+    console.log('  - formData.personalInfo:', formData?.personalInfo)
     console.log('  - extraPdfData keys:', extraPdfData ? Object.keys(extraPdfData) : 'null')
     
     // Extract SSN from nested personalInfo object first, then fallbacks
-    const ssn = formData?.personalInfo?.ssn || formData?.ssn || extraPdfData?.ssn || 'none';
-    console.log('  - Extracted SSN:', ssn !== 'none' ? `${ssn.substring(0, 3)}****` : 'none')
+    const ssn = formData?.personalInfo?.ssn || formData?.ssn || extraPdfData?.ssn || '';
+    console.log('  - Extracted SSN:', ssn ? `${ssn.substring(0, 3)}****` : 'none')
 
-    // Build payload with proper structure
+    // Build payload with proper structure - use the personal info that was passed in
+    const personalInfoToUse = formData?.personalInfo && typeof formData.personalInfo === 'object' && !Array.isArray(formData.personalInfo)
+      ? formData.personalInfo
+      : {}
+
+    console.log('  - Personal info to use:', personalInfoToUse)
+    console.log('  - Personal info fields check:', {
+      firstName: personalInfoToUse?.firstName || 'MISSING',
+      lastName: personalInfoToUse?.lastName || 'MISSING',
+      ssn: personalInfoToUse?.ssn || 'MISSING',
+      address: personalInfoToUse?.address || 'MISSING',
+      city: personalInfoToUse?.city || 'MISSING',
+      state: personalInfoToUse?.state || 'MISSING',
+      zipCode: personalInfoToUse?.zipCode || 'MISSING',
+      phone: personalInfoToUse?.phone || 'MISSING',
+      email: personalInfoToUse?.email || 'MISSING',
+      gender: personalInfoToUse?.gender || 'MISSING'
+    })
+
     const payload = {
       ...formData,
       personalInfo: {
-        ...(typeof formData?.personalInfo === 'object' && !Array.isArray(formData.personalInfo) ? formData.personalInfo : {}),
-        firstName: (formData?.personalInfo?.firstName ?? formData?.firstName ?? ''),
-        lastName: (formData?.personalInfo?.lastName ?? formData?.lastName ?? ''),
-        middleInitial: (formData?.personalInfo?.middleInitial ?? formData?.middleInitial ?? ''),
-        ssn: ssn !== 'none' ? ssn : (formData?.personalInfo?.ssn ?? formData?.ssn ?? ''),
-        dateOfBirth: (formData?.personalInfo?.dateOfBirth ?? formData?.dateOfBirth ?? ''),
-        address: (formData?.personalInfo?.address ?? formData?.address ?? ''),
-        city: (formData?.personalInfo?.city ?? formData?.city ?? ''),
-        state: (formData?.personalInfo?.state ?? formData?.state ?? ''),
-        zipCode: (formData?.personalInfo?.zipCode ?? formData?.zipCode ?? formData?.zip ?? ''),
-        phone: (formData?.personalInfo?.phone ?? formData?.phone ?? ''),
-        email: (formData?.personalInfo?.email ?? formData?.email ?? ''),
-        gender: (formData?.personalInfo?.gender ?? formData?.gender ?? '')
+        // Use the personal info object directly if it has values, otherwise fallback
+        firstName: personalInfoToUse?.firstName || formData?.firstName || '',
+        lastName: personalInfoToUse?.lastName || formData?.lastName || '',
+        middleInitial: personalInfoToUse?.middleInitial || formData?.middleInitial || '',
+        ssn: personalInfoToUse?.ssn || formData?.ssn || ssn || '',
+        dateOfBirth: personalInfoToUse?.dateOfBirth || formData?.dateOfBirth || '',
+        address: personalInfoToUse?.address || formData?.address || '',
+        city: personalInfoToUse?.city || formData?.city || '',
+        state: personalInfoToUse?.state || formData?.state || '',
+        zipCode: personalInfoToUse?.zipCode || personalInfoToUse?.zip || formData?.zipCode || formData?.zip || '',
+        phone: personalInfoToUse?.phone || formData?.phone || '',
+        email: personalInfoToUse?.email || formData?.email || '',
+        gender: personalInfoToUse?.gender || formData?.gender || '',
+        maritalStatus: personalInfoToUse?.maritalStatus || formData?.maritalStatus || '',
+        aptNumber: personalInfoToUse?.aptNumber || formData?.aptNumber || '',
+        ...personalInfoToUse // Include any additional fields from personal info
       },
       ...(extraPdfData || {})
     }
     
     // Debug log the actual values
     console.log('Personal Info Values:', {
-      firstName: payload.personalInfo.firstName,
-      lastName: payload.personalInfo.lastName,
-      ssn: payload.personalInfo.ssn ? '***-**-' + String(payload.personalInfo.ssn).slice(-4) : 'none',
-      dateOfBirth: payload.personalInfo.dateOfBirth,
-      address: payload.personalInfo.address,
-      city: payload.personalInfo.city,
-      state: payload.personalInfo.state,
-      zipCode: payload.personalInfo.zipCode
+      firstName: payload.personalInfo.firstName || 'empty',
+      lastName: payload.personalInfo.lastName || 'empty',
+      ssn: payload.personalInfo.ssn ? '***-**-' + String(payload.personalInfo.ssn).slice(-4) : 'empty',
+      dateOfBirth: payload.personalInfo.dateOfBirth || 'empty',
+      address: payload.personalInfo.address || 'empty',
+      city: payload.personalInfo.city || 'empty',
+      state: payload.personalInfo.state || 'empty',
+      zipCode: payload.personalInfo.zipCode || 'empty',
+      phone: payload.personalInfo.phone || 'empty',
+      email: payload.personalInfo.email || 'empty',
+      gender: payload.personalInfo.gender || 'empty'
     })
 
     // Log the payload for debugging
     console.log('ReviewAndSign - PDF payload being sent:', {
-      hasSSN: !!payload.ssn && payload.ssn !== 'none',
-      ssn: payload.ssn && payload.ssn !== 'none' ? `${payload.ssn.substring(0, 3)}****` : 'none',
-      hasPersonalInfo: !!(payload.firstName || payload.lastName),
-      firstName: payload.firstName || 'none',
-      lastName: payload.lastName || 'none',
+      hasSSN: !!(payload.personalInfo?.ssn),
+      ssn: payload.personalInfo?.ssn ? `${payload.personalInfo.ssn.substring(0, 3)}****` : 'empty',
+      hasPersonalInfo: !!(payload.personalInfo?.firstName && payload.personalInfo?.lastName),
+      firstName: payload.personalInfo?.firstName || 'empty',
+      lastName: payload.personalInfo?.lastName || 'empty',
+      address: payload.personalInfo?.address || 'empty',
+      city: payload.personalInfo?.city || 'empty',
+      gender: payload.personalInfo?.gender || 'empty',
+      dentalCoverage: payload.dentalCoverage || 'empty',
+      dentalEnrolled: payload.dentalEnrolled || 'empty',
+      dentalTier: payload.dentalTier || 'empty',
+      dentalWaived: payload.dentalWaived || 'empty',
       keys: Object.keys(payload)
+    })
+
+    console.log('ReviewAndSign - Complete payload structure:')
+    console.log('  personalInfo:', payload.personalInfo)
+    console.log('  dental fields:', {
+      dentalCoverage: payload.dentalCoverage,
+      dentalEnrolled: payload.dentalEnrolled,
+      dentalTier: payload.dentalTier,
+      dentalWaived: payload.dentalWaived
     })
     
     return payload
@@ -206,7 +248,34 @@ export default function ReviewAndSign({
         }
       )
       
+      // DEBUG: Log response structure
+      console.log('ReviewAndSign - Full response structure:', {
+        responseType: typeof response,
+        responseDataType: typeof response.data,
+        responseDataKeys: response.data ? Object.keys(response.data) : 'no response.data',
+        success: response.data?.success,
+        hasData: !!response.data?.data,
+        dataKeys: response.data?.data ? Object.keys(response.data.data) : 'no data',
+        hasPdf: response.data?.data?.pdf ? 'yes' : 'no',
+        pdfType: response.data?.data?.pdf ? typeof response.data.data.pdf : 'no pdf'
+      })
+
+      // DEBUG: Log raw response for troubleshooting
+      console.log('ReviewAndSign - Raw response.data:', response.data)
+
       // Extract base64 string directly from JSON response
+      if (!response || !response.data) {
+        throw new Error(`Invalid response: ${JSON.stringify(response, null, 2)}`)
+      }
+
+      if (!response.data.success) {
+        throw new Error(`API returned error: ${response.data.message || 'Unknown error'}`)
+      }
+
+      if (!response.data.data || !response.data.data.pdf) {
+        throw new Error(`PDF not found in response. Response structure: ${JSON.stringify(response.data, null, 2)}`)
+      }
+
       const pdfBase64 = response.data.data.pdf
 
       // DEBUG: Validate PDF content
@@ -245,8 +314,8 @@ export default function ReviewAndSign({
       }
 
       setPdfData(pdfBase64)
-      
-      // Mark this payload as generated
+
+      // Mark this payload as generated ONLY on success
       setPdfGeneratedFor(payloadKey)
       console.log('ReviewAndSign - PDF generation complete, marked payload as generated')
 
@@ -258,6 +327,10 @@ export default function ReviewAndSign({
       console.error('Error loading PDF:', error)
       console.error('PDF generation request data:', { employee_data: pdfPayload })
       setPdfError('Failed to load PDF preview')
+
+      // Clear the generated flag on error so it can be retried
+      setPdfGeneratedFor(null)
+      setPdfData(null)
     } finally {
       setLoadingPDF(false)
       setPdfGenerationInProgress(false)

@@ -1,0 +1,437 @@
+/**
+ * Health Insurance Mobile-Responsive Styles
+ * Comprehensive mobile-first CSS for the Health Insurance module
+ */
+
+/* Mobile-First Base Styles */
+.health-insurance-container {
+  width: 100%;
+  max-width: 100vw;
+  padding: 1rem;
+  margin: 0 auto;
+}
+
+/* PDF Viewer Responsive Styles */
+.pdf-viewer-container {
+  position: relative;
+  width: 100%;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.pdf-viewer-mobile {
+  height: 400px;
+  min-height: 300px;
+}
+
+.pdf-viewer-desktop {
+  height: 600px;
+  min-height: 500px;
+}
+
+.pdf-viewer-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  height: 100vh !important;
+  border-radius: 0;
+}
+
+/* PDF Controls */
+.pdf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 0.5rem;
+}
+
+.pdf-controls-mobile {
+  flex-wrap: wrap;
+  padding: 0.75rem;
+}
+
+.pdf-controls-desktop {
+  padding: 1rem;
+}
+
+.pdf-control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pdf-zoom-display {
+  min-width: 3rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+/* Signature Capture Styles */
+.signature-capture-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.signature-canvas-container {
+  position: relative;
+  width: 100%;
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.signature-canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.signature-canvas-mobile {
+  height: 150px;
+  min-height: 120px;
+}
+
+.signature-canvas-desktop {
+  height: 200px;
+  min-height: 180px;
+}
+
+.signature-canvas:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.signature-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+/* Error Display Styles */
+.health-insurance-error {
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.health-insurance-error-mobile {
+  margin: 0.5rem 0;
+}
+
+.health-insurance-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.health-insurance-error-actions-mobile {
+  flex-direction: column;
+}
+
+.health-insurance-error-actions-desktop {
+  flex-direction: row;
+}
+
+/* Form Layout Styles */
+.health-insurance-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.health-insurance-form-section {
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.health-insurance-form-section-mobile {
+  padding: 1rem;
+  margin: 0 -0.5rem;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+
+.health-insurance-form-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.health-insurance-form-grid-mobile {
+  grid-template-columns: 1fr;
+}
+
+.health-insurance-form-grid-desktop {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Navigation Styles */
+.health-insurance-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.health-insurance-navigation-mobile {
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+
+.health-insurance-navigation-desktop {
+  flex-direction: row;
+}
+
+.health-insurance-nav-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.health-insurance-nav-buttons-mobile {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Progress Indicator Styles */
+.health-insurance-progress {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.health-insurance-progress-mobile {
+  margin-bottom: 1rem;
+}
+
+.health-insurance-progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background: #f1f5f9;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.health-insurance-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  transition: width 0.3s ease;
+}
+
+.health-insurance-progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Loading States */
+.health-insurance-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.health-insurance-loading-mobile {
+  padding: 2rem 1rem;
+}
+
+.health-insurance-loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #f3f4f6;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Breakpoints */
+@media (min-width: 640px) {
+  .health-insurance-container {
+    padding: 1.5rem;
+  }
+  
+  .signature-canvas-container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .health-insurance-container {
+    max-width: 768px;
+    padding: 2rem;
+  }
+  
+  .pdf-viewer-mobile {
+    height: 500px;
+  }
+  
+  .health-insurance-form-section-mobile {
+    padding: 1.5rem;
+    margin: 0;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+  }
+}
+
+@media (min-width: 1024px) {
+  .health-insurance-container {
+    max-width: 1024px;
+  }
+  
+  .pdf-viewer-mobile {
+    height: 600px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .health-insurance-container {
+    max-width: 1280px;
+  }
+}
+
+/* Touch-Specific Styles */
+@media (hover: none) and (pointer: coarse) {
+  .pdf-controls button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .health-insurance-nav-buttons button {
+    min-height: 48px;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .signature-canvas {
+    cursor: none;
+  }
+}
+
+/* High DPI Display Support */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .signature-canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .pdf-viewer-container {
+    background: #1f2937;
+  }
+  
+  .pdf-controls {
+    background: #374151;
+    border-color: #4b5563;
+  }
+  
+  .signature-canvas-container {
+    border-color: #4b5563;
+    background: #ffffff;
+  }
+  
+  .health-insurance-form-section {
+    background: #1f2937;
+    border-color: #374151;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .health-insurance-progress-fill,
+  .health-insurance-loading-spinner {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .pdf-controls,
+  .health-insurance-navigation,
+  .health-insurance-error {
+    display: none !important;
+  }
+  
+  .pdf-viewer-container {
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+}
+
+/* Focus Styles for Accessibility */
+.health-insurance-container *:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Utility Classes */
+.health-insurance-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.health-insurance-mobile-only {
+  display: block;
+}
+
+.health-insurance-desktop-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .health-insurance-mobile-only {
+    display: none;
+  }
+  
+  .health-insurance-desktop-only {
+    display: block;
+  }
+}
