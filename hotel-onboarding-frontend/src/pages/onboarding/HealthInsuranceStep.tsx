@@ -337,10 +337,9 @@ export default function HealthInsuranceStep({
       }
 
       const signedPdfBase64 = btoa(binaryString)
-      const signedPdfDataUrl = `data:application/pdf;base64,${signedPdfBase64}`
 
-      // Store the signed PDF and update states
-      setPdfUrl(signedPdfDataUrl)
+      // Store the signed PDF and update states (matching W-4 pattern exactly)
+      setPdfUrl(signedPdfBase64) // Just base64 string, not data URL
       setIsSigned(true)
       setShowSignedPreview(true)
       setShowReview(false) // CRITICAL: Hide the review to show the signed preview
@@ -350,8 +349,9 @@ export default function HealthInsuranceStep({
         isSigned: true,
         showSignedPreview: true,
         showReview: false, // This should be false now
-        hasPdfUrl: !!signedPdfDataUrl,
-        pdfUrlLength: signedPdfDataUrl?.length
+        hasPdfUrl: !!signedPdfBase64,
+        pdfUrlLength: signedPdfBase64?.length,
+        pdfFormat: 'base64_string' // Matching W-4 pattern
       })
 
     } catch (error) {
@@ -552,7 +552,7 @@ export default function HealthInsuranceStep({
                 </h3>
               </div>
               <div style={{ height: '600px' }}>
-                <PDFViewer pdfUrl={pdfUrl} height="600px" />
+                <PDFViewer pdfData={pdfUrl} height="600px" />
               </div>
             </div>
 
