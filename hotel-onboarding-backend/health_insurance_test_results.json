@@ -1,0 +1,54 @@
+{
+  "summary": {
+    "total": 6,
+    "passed": 5,
+    "failed": 1,
+    "success_rate": 83.33333333333334,
+    "total_time": 0.6460590362548828,
+    "timestamp": "2025-09-01T01:13:03.616354"
+  },
+  "results": [
+    {
+      "test": "API Health Check",
+      "success": true,
+      "message": "API responded with status 200",
+      "duration": 0.019047260284423828,
+      "timestamp": "2025-09-01T01:13:02.989246"
+    },
+    {
+      "test": "Basic PDF Generation",
+      "success": true,
+      "message": "PDF generated successfully (410460 chars)",
+      "duration": 0.12991881370544434,
+      "timestamp": "2025-09-01T01:13:03.119216"
+    },
+    {
+      "test": "PDF Generation with Dependents",
+      "success": true,
+      "message": "PDF with 2 dependents generated successfully",
+      "duration": 0.14212417602539062,
+      "timestamp": "2025-09-01T01:13:03.261389"
+    },
+    {
+      "test": "PDF Generation Error Handling",
+      "success": true,
+      "message": "Error handled gracefully: HTTP 500",
+      "duration": 0.05904197692871094,
+      "timestamp": "2025-09-01T01:13:03.320480"
+    },
+    {
+      "test": "Performance Multiple Requests",
+      "success": true,
+      "message": "3/3 requests succeeded, avg time: 0.092s",
+      "duration": 0.2759873867034912,
+      "timestamp": "2025-09-01T01:13:03.596516"
+    },
+    {
+      "test": "Frontend Test Page Accessibility",
+      "success": false,
+      "message": "Frontend test page accessible (HTTP 200)",
+      "duration": 0.019673824310302734,
+      "timestamp": "2025-09-01T01:13:03.616209"
+    }
+  ]
+}

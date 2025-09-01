@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Radio Button Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .question {
+            margin-bottom: 20px;
+        }
+        
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1f2937;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 8px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            min-height: 44px; /* iOS minimum touch target */
+        }
+        
+        .radio-option:hover {
+            background-color: #f9fafb;
+        }
+        
+        .radio-button {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #6b7280;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .radio-button.checked {
+            border-color: #3b82f6;
+        }
+        
+        .radio-button.checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+        }
+        
+        .radio-label {
+            font-size: 16px;
+            color: #374151;
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .test-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .test-info h3 {
+            margin: 0 0 8px 0;
+            color: #1e40af;
+            font-size: 16px;
+        }
+        
+        .test-info p {
+            margin: 0;
+            color: #1e40af;
+            font-size: 14px;
+        }
+        
+        .device-info {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                margin: 10px;
+                padding: 16px;
+            }
+            
+            .radio-button {
+                width: 22px;
+                height: 22px;
+            }
+            
+            .radio-button.checked::after {
+                width: 12px;
+                height: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="test-info">
+            <h3>🔧 Mobile Radio Button Test</h3>
+            <p>Testing the improved radio buttons for the employment eligibility question</p>
+        </div>
+        
+        <div class="device-info">
+            <strong>Device Info:</strong> <span id="deviceInfo"></span><br>
+            <strong>Screen Size:</strong> <span id="screenSize"></span><br>
+            <strong>Touch Support:</strong> <span id="touchSupport"></span>
+        </div>
+        
+        <div class="question">
+            <div class="question-title">
+                Will you now, or in the future, require this hotel to assist in maintaining your employment eligibility? *
+            </div>
+            
+            <div class="radio-group">
+                <div class="radio-option" onclick="selectOption('yes')">
+                    <div class="radio-button" id="radio-yes"></div>
+                    <div class="radio-label">Yes</div>
+                </div>
+                
+                <div class="radio-option" onclick="selectOption('no')">
+                    <div class="radio-button" id="radio-no"></div>
+                    <div class="radio-label">No</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-title">
+                Are you legally eligible to be employed in the United States? *
+            </div>
+            
+            <div class="radio-group">
+                <div class="radio-option" onclick="selectOption2('yes')">
+                    <div class="radio-button" id="radio2-yes"></div>
+                    <div class="radio-label">Yes</div>
+                </div>
+                
+                <div class="radio-option" onclick="selectOption2('no')">
+                    <div class="radio-button" id="radio2-no"></div>
+                    <div class="radio-label">No</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="question-title">
+                Do you have a reliable means of transportation to get to and from work? *
+            </div>
+            
+            <div class="radio-group">
+                <div class="radio-option" onclick="selectOption3('yes')">
+                    <div class="radio-button" id="radio3-yes"></div>
+                    <div class="radio-label">Yes</div>
+                </div>
+                
+                <div class="radio-option" onclick="selectOption3('no')">
+                    <div class="radio-button" id="radio3-no"></div>
+                    <div class="radio-label">No</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 16px; background: #f0fdf4; border-radius: 6px; border: 1px solid #bbf7d0;">
+            <h4 style="margin: 0 0 8px 0; color: #166534;">✅ Test Results</h4>
+            <p style="margin: 0; color: #166534; font-size: 14px;">
+                If you can easily tap both "Yes" and "No" options on mobile, the fix is working!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Display device information
+        function updateDeviceInfo() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            document.getElementById('deviceInfo').textContent = isMobile ? 'Mobile Device' : 'Desktop/Tablet';
+            document.getElementById('screenSize').textContent = `${window.innerWidth} x ${window.innerHeight}`;
+            document.getElementById('touchSupport').textContent = hasTouch ? 'Yes' : 'No';
+        }
+        
+        // Radio button selection functions
+        function selectOption(value) {
+            document.getElementById('radio-yes').classList.remove('checked');
+            document.getElementById('radio-no').classList.remove('checked');
+            document.getElementById('radio-' + value).classList.add('checked');
+        }
+        
+        function selectOption2(value) {
+            document.getElementById('radio2-yes').classList.remove('checked');
+            document.getElementById('radio2-no').classList.remove('checked');
+            document.getElementById('radio2-' + value).classList.add('checked');
+        }
+        
+        function selectOption3(value) {
+            document.getElementById('radio3-yes').classList.remove('checked');
+            document.getElementById('radio3-no').classList.remove('checked');
+            document.getElementById('radio3-' + value).classList.add('checked');
+        }
+        
+        // Initialize
+        updateDeviceInfo();
+        
+        // Update on resize
+        window.addEventListener('resize', updateDeviceInfo);
+    </script>
+</body>
+</html>

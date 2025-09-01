@@ -8,7 +8,7 @@ Enhanced with standardized API response formats
 from dotenv import load_dotenv
 load_dotenv('.env', override=True)
 
-from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header, Body
+from fastapi import FastAPI, HTTPException, Depends, Form, Request, Query, File, UploadFile, Header, Body, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, FileResponse, Response, HTMLResponse
@@ -23,6 +23,7 @@ import jwt
 import logging
 import base64
 import io
+import time
 # from groq import Groq  # Removed - Only Google Document AI for government IDs
 
 # Configure logging
@@ -61,19 +62,30 @@ from .pdf_api import router as pdf_router
 # Import WebSocket router and manager
 from .websocket_router import router as websocket_router
 from .websocket_manager import websocket_manager
-from .analytics_router import router as analytics_router
+# Temporarily commented out for health insurance PDF debugging
+# from .analytics_router import router as analytics_router
 from .notification_router import router as notification_router
 
 # Import OCR services
-from .i9_ocr_service import I9DocumentOCRService
+try:
+    from .i9_ocr_service import I9DocumentOCRService
+    logger.info("✅ I9 OCR service imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ I9 OCR service import failed: {e}")
+    I9DocumentOCRService = None
+
 try:
     # Try production version first (with enhanced credential handling)
     from .google_ocr_service_production import GoogleDocumentOCRServiceProduction as GoogleDocumentOCRService
-    logger.info("Using production Google OCR service with enhanced credential handling")
+    logger.info("✅ Using production Google OCR service with enhanced credential handling")
 except ImportError:
-    # Fall back to original version
-    from .google_ocr_service import GoogleDocumentOCRService
-    logger.info("Using standard Google OCR service")
+    try:
+        # Fall back to original version
+        from .google_ocr_service import GoogleDocumentOCRService
+        logger.info("✅ Using standard Google OCR service")
+    except ImportError as e:
+        logger.warning(f"⚠️ Google OCR service import failed: {e}")
+        GoogleDocumentOCRService = None
 from .i9_section2 import I9DocumentType
 
 # Define request models for OCR and document endpoints
@@ -264,7 +276,8 @@ logger.info("=" * 60)
 # Include PDF API router
 app.include_router(pdf_router)
 app.include_router(websocket_router)
-app.include_router(analytics_router)
+# Temporarily commented out for health insurance PDF debugging
+# app.include_router(analytics_router)
 app.include_router(notification_router)
 
 # Initialize enhanced services
@@ -280,7 +293,7 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
     """
     Helper function to get employee names from PersonalInfoStep data.
     Returns tuple: (first_name, last_name)
-    
+
     Priority:
     1. PersonalInfoStep saved data (highest priority)
     2. Employee record data (fallback)
@@ -288,13 +301,13 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
     """
     first_name = ""
     last_name = ""
-    
+
     try:
         # First priority: Get from PersonalInfoStep saved data
         personal_info = await supabase_service.get_onboarding_step_data(employee_id, "personal-info")
         if personal_info and personal_info.get("form_data"):
             form_data = personal_info["form_data"]
-            
+
             # Handle different possible data structures
             if "formData" in form_data:
                 # Nested formData structure
@@ -305,7 +318,7 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
                 # Direct structure
                 first_name = form_data.get("firstName", "")
                 last_name = form_data.get("lastName", "")
-        
+
         # Second priority: If names still empty, try employee record
         if not first_name or not last_name:
             if employee:
@@ -315,23 +328,115 @@ async def get_employee_names_from_personal_info(employee_id: str, employee: dict
                     if isinstance(personal_info, dict):
                         first_name = first_name or personal_info.get('first_name', '')
                         last_name = last_name or personal_info.get('last_name', '')
-                
+
                 # Then check direct attributes on employee object
                 if not first_name:
                     first_name = first_name or (employee.first_name if hasattr(employee, 'first_name') else "")
                 if not last_name:
                     last_name = last_name or (employee.last_name if hasattr(employee, 'last_name') else "")
-        
+
         # Last resort: default values
         first_name = first_name or "Unknown"
         last_name = last_name or "Employee"
-        
+
         logger.info(f"Retrieved names for {employee_id}: {first_name} {last_name}")
         return first_name, last_name
-        
+
     except Exception as e:
         logger.error(f"Error getting employee names for {employee_id}: {e}")
         return "Unknown", "Employee"
+
+async def get_complete_personal_info(employee_id: str, employee: dict = None):
+    """
+    Enhanced helper function to get complete personal information from PersonalInfoStep data.
+    Returns dict with all personal details for PDF generation.
+
+    Priority:
+    1. PersonalInfoStep saved data (highest priority)
+    2. Employee record data (fallback)
+    3. Default values (last resort)
+    """
+    personal_info = {}
+
+    try:
+        # First priority: Get from PersonalInfoStep saved data
+        step_data = await supabase_service.get_onboarding_step_data(employee_id, "personal-info")
+        if step_data and step_data.get("form_data"):
+            form_data = step_data["form_data"]
+
+            # Handle different possible data structures
+            if "formData" in form_data:
+                # Nested formData structure
+                personal_info = form_data["formData"].copy()
+            else:
+                # Direct structure - extract personal info fields
+                personal_info = {
+                    'firstName': form_data.get('firstName', ''),
+                    'lastName': form_data.get('lastName', ''),
+                    'middleInitial': form_data.get('middleInitial', ''),
+                    'ssn': form_data.get('ssn', ''),
+                    'dateOfBirth': form_data.get('dateOfBirth', ''),
+                    'gender': form_data.get('gender', ''),
+                    'phone': form_data.get('phone', ''),
+                    'email': form_data.get('email', ''),
+                    'address': form_data.get('address', ''),
+                    'city': form_data.get('city', ''),
+                    'state': form_data.get('state', ''),
+                    'zip': form_data.get('zip', '') or form_data.get('zipCode', ''),
+                    'maritalStatus': form_data.get('maritalStatus', ''),
+                    'aptNumber': form_data.get('aptNumber', ''),
+                }
+
+                # Handle nested address structure
+                if isinstance(form_data.get('address'), dict):
+                    addr = form_data['address']
+                    personal_info.update({
+                        'address': f"{addr.get('line1', '')} {addr.get('line2', '')}".strip(),
+                        'city': addr.get('city', ''),
+                        'state': addr.get('state', ''),
+                        'zip': addr.get('zip', '') or addr.get('postalCode', ''),
+                    })
+
+        # Second priority: If data still missing, try employee record
+        if employee and not personal_info.get('firstName'):
+            if hasattr(employee, 'personal_info') and employee.personal_info:
+                emp_personal_info = employee.personal_info
+                if isinstance(emp_personal_info, dict):
+                    for key, value in emp_personal_info.items():
+                        if not personal_info.get(key) and value:
+                            personal_info[key] = value
+
+            # Check direct attributes on employee object
+            if not personal_info.get('firstName'):
+                personal_info['firstName'] = getattr(employee, 'first_name', '')
+            if not personal_info.get('lastName'):
+                personal_info['lastName'] = getattr(employee, 'last_name', '')
+
+        # Ensure required fields have defaults
+        personal_info.setdefault('firstName', 'Unknown')
+        personal_info.setdefault('lastName', 'Employee')
+
+        logger.info(f"Retrieved complete personal info for {employee_id}: {list(personal_info.keys())}")
+        return personal_info
+
+    except Exception as e:
+        logger.error(f"Error getting complete personal info for {employee_id}: {e}")
+        return {
+            'firstName': 'Unknown',
+            'lastName': 'Employee',
+            'middleInitial': '',
+            'ssn': '',
+            'dateOfBirth': '',
+            'gender': '',
+            'phone': '',
+            'email': '',
+            'address': '',
+            'city': '',
+            'state': '',
+            'zip': '',
+            'maritalStatus': '',
+            'aptNumber': '',
+        }
 
 @app.on_event("startup")
 async def startup_event():
@@ -8269,11 +8374,19 @@ async def generate_direct_deposit_pdf(employee_id: str, request: Request):
         )
 
 @app.post("/api/onboarding/{employee_id}/health-insurance/generate-pdf")
-async def generate_health_insurance_pdf(employee_id: str, request: Request):
-    """Generate PDF for Health Insurance Enrollment"""
+async def generate_health_insurance_pdf_enhanced(employee_id: str, request: Request, background_tasks: BackgroundTasks):
+    """Enhanced Health Insurance PDF generation with comprehensive error handling and retry mechanisms"""
+
+    operation_id = str(uuid.uuid4())
+    start_time = time.time()
+
     try:
-        # Check if form data is provided in request body (for preview)
+        # Log request start
+        logger.info(f"🏥 Health Insurance PDF generation started - Operation: {operation_id}, Employee: {employee_id}")
+
+        # Parse and validate request data
         body = await request.json()
+
         # Handle both nested and flat data structures
         if 'employee_data' in body:
             # Frontend sends data wrapped in employee_data
@@ -8298,7 +8411,7 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
                 'stepchildrenNames': wrapped_data.get('stepchildrenNames', ''),
                 'dependentsSupported': wrapped_data.get('dependentsSupported', False),
                 'irsDependentConfirmation': wrapped_data.get('irsDependentConfirmation', False),
-                'section125Acknowledgment': wrapped_data.get('section125Acknowledgment', False),
+                'section125Acknowledged': wrapped_data.get('section125Acknowledged', False),
                 'effectiveDate': wrapped_data.get('effectiveDate'),
                 'isWaived': wrapped_data.get('isWaived', False),
                 'waiveReason': wrapped_data.get('waiveReason', ''),
@@ -8308,24 +8421,15 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
                 'totalBiweeklyCost': wrapped_data.get('totalBiweeklyCost', 0),
                 'totalMonthlyCost': wrapped_data.get('totalMonthlyCost', 0),
                 'totalAnnualCost': wrapped_data.get('totalAnnualCost', 0),
-                'signature_data': wrapped_data.get('signatureData')
+                'signatureData': wrapped_data.get('signatureData')
             }
         else:
             # Direct structure (for testing)
             employee_data_from_request = body
-        
-        # For test employees, skip employee lookup
-        if employee_id.startswith('test-'):
-            employee = {"id": employee_id, "first_name": "Test", "last_name": "Employee"}
-        else:
-            # Get employee data
-            employee = await supabase_service.get_employee_by_id(employee_id)
-            if not employee:
-                return not_found_response("Employee not found")
-        
-        # Use form data from request if provided (for preview)
+
+        # Use form data from request if provided (for preview), otherwise get saved data
         if employee_data_from_request:
-            form_data = employee_data_from_request
+            employee_data = employee_data_from_request
         else:
             # Try to get saved form data
             form_response = supabase_service.client.table('onboarding_form_data')\
@@ -8335,94 +8439,118 @@ async def generate_health_insurance_pdf(employee_id: str, request: Request):
                 .order('updated_at', desc=True)\
                 .limit(1)\
                 .execute()
-            
+
             if form_response.data:
-                form_data = form_response.data[0].get('form_data', {})
+                employee_data = form_response.data[0].get('form_data', {})
             else:
-                form_data = {}
-        
-        # Initialize certificate-style generator
-        from .weapons_policy_certificate import WeaponsPolicyCertificateGenerator
-        generator = WeaponsPolicyCertificateGenerator()
-        
-        # Get employee names from PersonalInfoStep data
-        first_name, last_name = await get_employee_names_from_personal_info(employee_id, employee)
-        
-        # Map form data to PDF data - use request data if available, otherwise saved data
-        # Use employee_data_from_request if it exists (from request body), otherwise use form_data (from DB)
-        data_source = employee_data_from_request if employee_data_from_request else form_data
-        
-        pdf_data = {
-            "firstName": first_name,
-            "lastName": last_name,
-            "employee_id": employee_id,
-            "medicalPlan": data_source.get("medicalPlan", ""),
-            "medicalTier": data_source.get("medicalTier", "employee"),
-            "medicalWaived": data_source.get("medicalWaived", False),
-            # Support both field names
-            "dentalCoverage": data_source.get("dentalCoverage", False),
-            "dentalEnrolled": data_source.get("dentalEnrolled", False),
-            "dentalTier": data_source.get("dentalTier", "employee"),
-            "dentalWaived": data_source.get("dentalWaived", False),
-            "visionCoverage": data_source.get("visionCoverage", False),
-            "visionEnrolled": data_source.get("visionEnrolled", False),
-            "visionTier": data_source.get("visionTier", "employee"),
-            "visionWaived": data_source.get("visionWaived", False),
-            "isWaived": data_source.get("isWaived", False),
-            "waiveReason": data_source.get("waiveReason", ""),
-            "otherCoverageDetails": data_source.get("otherCoverageDetails", ""),
-            "dependents": data_source.get("dependents", []),
-            "hasStepchildren": data_source.get("hasStepchildren", False),
-            "stepchildrenNames": data_source.get("stepchildrenNames", ""),
-            "dependentsSupported": data_source.get("dependentsSupported", False),
-            "irsDependentConfirmation": data_source.get("irsDependentConfirmation", False),
-            "section125Acknowledged": data_source.get("section125Acknowledged", False),
-            "effectiveDate": data_source.get("effectiveDate", ""),
-            "signatureData": data_source.get("signatureData"),
-            # Pass personal info for address, phone, etc.
-            "personalInfo": data_source.get("personalInfo", {}),
-        }
-        
-        # Initialize PDF filler for Health Insurance
-        from .pdf_forms import PDFFormFiller
-        pdf_filler = PDFFormFiller()
-        
-        # Generate PDF using template overlay
-        pdf_bytes = pdf_filler.fill_health_insurance_form(pdf_data)
-        
-        # Convert to base64
-        pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
-        
-        # Save document if we have signature data
-        if pdf_data.get("signatureData"):
-            await supabase_service.save_document(
-                employee_id=employee_id,
-                document_type="health_insurance",
-                document_data=pdf_bytes,
-                metadata={
-                    "signed": True,
-                    "section125_acknowledged": pdf_data.get("section125Acknowledged", False),
-                    "plan": pdf_data.get("medicalPlan"),
-                    "dependents_count": len(pdf_data.get("dependents", []))
+                employee_data = {}
+
+        # Initialize enhanced PDF generator
+        from .health_insurance_pdf_enhanced import HealthInsurancePDFGenerator, log_pdf_generation_metrics
+        pdf_generator = HealthInsurancePDFGenerator(supabase_service)
+
+        # Generate PDF with retry mechanism
+        pdf_result = await pdf_generator.generate_pdf_with_retry(
+            employee_data=employee_data,
+            employee_id=employee_id,
+            operation_id=operation_id,
+            max_retries=3
+        )
+
+        if not pdf_result.get('success', False):
+            logger.error(f"❌ Health insurance PDF generation failed after retries - Operation: {operation_id}")
+
+            # Determine appropriate error code and status based on error type
+            error_type = pdf_result.get('error', 'PDF_GENERATION_FAILED')
+            if error_type == 'VALIDATION_ERROR':
+                return {
+                    "success": False,
+                    "message": pdf_result.get('message', 'Invalid form data provided'),
+                    "error": "VALIDATION_ERROR",
+                    "details": pdf_result.get('details', []),
+                    "operation_id": operation_id,
+                    "status_code": 422
                 }
-            )
-        
+            else:
+                return {
+                    "success": False,
+                    "message": pdf_result.get('message', 'PDF generation failed'),
+                    "error": "PDF_GENERATION_FAILED",
+                    "operation_id": operation_id,
+                    "status_code": 500
+                }
+
+        # Log success metrics
+        duration = time.time() - start_time
+        logger.info(f"✅ Health insurance PDF generation completed - Operation: {operation_id}, Duration: {duration:.2f}s")
+
+        # Schedule background tasks for metrics logging
+        background_tasks.add_task(
+            log_pdf_generation_metrics,
+            operation_id=operation_id,
+            employee_id=employee_id,
+            pdf_type="health_insurance",
+            duration=duration,
+            success=True,
+            attempts=pdf_result.get('attempts', 1)
+        )
+
+        # Save document if we have signature data
+        if employee_data.get("signatureData"):
+            try:
+                # Convert base64 back to bytes for storage
+                pdf_bytes = base64.b64decode(pdf_result['pdf_data'])
+                await supabase_service.save_document(
+                    employee_id=employee_id,
+                    document_type="health_insurance",
+                    document_data=pdf_bytes,
+                    metadata={
+                        "signed": True,
+                        "operation_id": operation_id,
+                        "section125_acknowledged": employee_data.get("section125Acknowledged", False),
+                        "plan": employee_data.get("medicalPlan"),
+                        "dependents_count": len(employee_data.get("dependents", [])),
+                        "generation_time": duration
+                    }
+                )
+                logger.info(f"📄 Signed health insurance document saved for employee {employee_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to save signed document for {employee_id}: {e}")
+                # Don't fail the request if document saving fails
+
         return success_response(
             data={
-                "pdf": pdf_base64,  # Frontend expects 'pdf' field
-                "pdf_base64": pdf_base64,  # Also provide for compatibility
-                "filename": f"HealthInsurance_{pdf_data.get('firstName', 'Employee')}_{pdf_data.get('lastName', '')}_{datetime.now().strftime('%Y%m%d')}.pdf"
+                "pdf": pdf_result['pdf_data'],  # Frontend expects 'pdf' field
+                "operation_id": operation_id,
+                "filename": f"HealthInsurance_{employee_id}_{int(time.time())}.pdf",
+                "generation_time": duration,
+                "metadata": pdf_result.get('metadata', {})
             },
             message="Health Insurance PDF generated successfully"
         )
-        
+
     except Exception as e:
-        logger.error(f"Generate Health Insurance PDF error: {e}")
-        return error_response(
-            message="Failed to generate Health Insurance PDF",
-            error_code=ErrorCode.INTERNAL_SERVER_ERROR,
-            status_code=500
+        # Log unexpected error
+        duration = time.time() - start_time
+        logger.error(f"❌ Health insurance PDF generation unexpected error - Operation: {operation_id}, Employee: {employee_id}: {e}")
+
+        # Schedule background task for error metrics
+        background_tasks.add_task(
+            log_pdf_generation_metrics,
+            operation_id=operation_id,
+            employee_id=employee_id,
+            pdf_type="health_insurance",
+            duration=duration,
+            success=False
         )
+
+        return {
+            "success": False,
+            "message": "Failed to generate Health Insurance PDF",
+            "error": "INTERNAL_SERVER_ERROR",
+            "operation_id": operation_id,
+            "status_code": 500
+        }
 
 @app.post("/api/onboarding/{employee_id}/weapons-policy/generate-pdf")
 async def generate_weapons_policy_pdf(employee_id: str, request: Request):

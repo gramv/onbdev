@@ -11,7 +11,7 @@ from reportlab.platypus import Paragraph
 from reportlab.lib.utils import simpleSplit, ImageReader
 from datetime import datetime
 from io import BytesIO
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import base64
 
 class WeaponsPolicyCertificateGenerator:
@@ -27,7 +27,7 @@ class WeaponsPolicyCertificateGenerator:
             y -= line_height
         return y
 
-    def generate_certificate(self, employee_data: Dict[str, Any], signature_data: Dict[str, Any], signed_date: str | None = None, is_preview: bool = False) -> Dict[str, Any]:
+    def generate_certificate(self, employee_data: Dict[str, Any], signature_data: Dict[str, Any], signed_date: Optional[str] = None, is_preview: bool = False) -> Dict[str, Any]:
         buf = BytesIO()
         c = canvas.Canvas(buf, pagesize=letter)
         width, height = letter

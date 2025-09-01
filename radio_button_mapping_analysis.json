@@ -1,0 +1,146 @@
+{
+  "gender_radio_buttons": [
+    {
+      "name": "Gender",
+      "current_value": "Off",
+      "position": [
+        523.0800170898438,
+        233.280029296875,
+        530.760009765625,
+        240.96002197265625
+      ],
+      "page": 1
+    },
+    {
+      "name": "Gender",
+      "current_value": "Off",
+      "position": [
+        557.280029296875,
+        233.280029296875,
+        564.9600219726562,
+        240.96002197265625
+      ],
+      "page": 1
+    }
+  ],
+  "irs_radio_buttons": [
+    {
+      "name": "Are they dependent on you for support and maintenance",
+      "current_value": "Off",
+      "position": [
+        222.9600067138672,
+        295.0799865722656,
+        230.16000366210938,
+        302.2799987792969
+      ],
+      "page": 2
+    },
+    {
+      "name": "Are they dependent on you for support and maintenance",
+      "current_value": "Off",
+      "position": [
+        223.1999969482422,
+        305.760009765625,
+        230.27999877929688,
+        312.8399963378906
+      ],
+      "page": 2
+    },
+    {
+      "name": "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable",
+      "current_value": "Off",
+      "position": [
+        519.1199951171875,
+        314.2799987792969,
+        526.3200073242188,
+        321.4800109863281
+      ],
+      "page": 2
+    },
+    {
+      "name": "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable",
+      "current_value": "Off",
+      "position": [
+        551.1599731445312,
+        314.2799987792969,
+        558.239990234375,
+        321.4800109863281
+      ],
+      "page": 2
+    }
+  ],
+  "support_radio_buttons": [],
+  "other_radio_buttons": [],
+  "all_radio_buttons": {
+    "page_1": [
+      {
+        "name": "Gender",
+        "current_value": "Off",
+        "position": [
+          523.0800170898438,
+          233.280029296875,
+          530.760009765625,
+          240.96002197265625
+        ],
+        "page": 1
+      },
+      {
+        "name": "Gender",
+        "current_value": "Off",
+        "position": [
+          557.280029296875,
+          233.280029296875,
+          564.9600219726562,
+          240.96002197265625
+        ],
+        "page": 1
+      }
+    ],
+    "page_2": [
+      {
+        "name": "Are they dependent on you for support and maintenance",
+        "current_value": "Off",
+        "position": [
+          222.9600067138672,
+          295.0799865722656,
+          230.16000366210938,
+          302.2799987792969
+        ],
+        "page": 2
+      },
+      {
+        "name": "Are they dependent on you for support and maintenance",
+        "current_value": "Off",
+        "position": [
+          223.1999969482422,
+          305.760009765625,
+          230.27999877929688,
+          312.8399963378906
+        ],
+        "page": 2
+      },
+      {
+        "name": "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable",
+        "current_value": "Off",
+        "position": [
+          519.1199951171875,
+          314.2799987792969,
+          526.3200073242188,
+          321.4800109863281
+        ],
+        "page": 2
+      },
+      {
+        "name": "I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable",
+        "current_value": "Off",
+        "position": [
+          551.1599731445312,
+          314.2799987792969,
+          558.239990234375,
+          321.4800109863281
+        ],
+        "page": 2
+      }
+    ]
+  }
+}

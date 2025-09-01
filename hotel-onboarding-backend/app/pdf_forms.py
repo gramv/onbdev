@@ -667,15 +667,34 @@ class PDFFormFiller:
             # Initialize the overlay generator
             overlay = HealthInsuranceFormOverlay()
             
-            # Extract form data
+            # Extract form data and personal info
             form_data = employee_data.get('health_insurance', {})
             if not form_data and 'medicalPlan' in employee_data:
                 # Direct structure (from frontend)
                 form_data = employee_data
             
-            # Get employee names
-            first_name = employee_data.get('firstName', '') or employee_data.get('first_name', '')
-            last_name = employee_data.get('lastName', '') or employee_data.get('last_name', '')
+            # Get personal info from nested structure or top level
+            personal_info = employee_data.get('personalInfo', {})
+            if not personal_info and isinstance(employee_data.get('personal_info'), dict):
+                personal_info = employee_data.get('personal_info', {})
+            
+            # Merge personal info into form data
+            if personal_info:
+                form_data['personalInfo'] = personal_info
+            
+            # Get employee names from personal info or top level
+            first_name = (
+                personal_info.get('firstName', '') or 
+                personal_info.get('first_name', '') or 
+                employee_data.get('firstName', '') or 
+                employee_data.get('first_name', '')
+            )
+            last_name = (
+                personal_info.get('lastName', '') or 
+                personal_info.get('last_name', '') or 
+                employee_data.get('lastName', '') or 
+                employee_data.get('last_name', '')
+            )
             
             # Get signature data if provided
             signature_data = employee_data.get('signatureData')
@@ -1294,7 +1313,7 @@ class PDFFormFiller:
         except:
             return str(date_input)
     
-    def add_signature_to_pdf(self, pdf_bytes: bytes, signature_data: str, signature_type: str, page_num: int = 0) -> bytes:
+    def add_signature_to_pdf(self, pdf_bytes: bytes, signature_data: str, signature_type: str, page_num: int = 0, signature_date: str = None) -> bytes:
         """Add digital signature to PDF"""
         if not HAS_PYMUPDF:
             print("PyMuPDF not available, cannot add signature to PDF")
@@ -1317,17 +1336,54 @@ class PDFFormFiller:
                 # I-9 employer signature position (approximate)
                 rect = fitz.Rect(350, 750, 500, 780)
             elif signature_type == "employee_w4":
-                # W-4 employee signature position 
+                # W-4 employee signature position
                 # The actual signature line is in Step 5, around y:690 from bottom-left origin
                 # Position signature properly on the "Employee's signature" line
                 rect = fitz.Rect(100, 690, 350, 720)
+            elif signature_type == "employee_health_insurance":
+                # Health insurance employee signature position (Page 2)
+                # Based on the current coordinates in health_insurance_overlay.py
+                rect = fitz.Rect(188.28, 615.6, 486.0, 652.92)
             else:
                 # Default position
                 rect = fitz.Rect(150, 650, 300, 680)
             
             # Insert signature image
             page.insert_image(rect, pixmap=fitz.Pixmap(signature_bytes))
-            
+
+            # Add signature date if provided
+            if signature_date and signature_type == "employee_health_insurance":
+                try:
+                    # Parse and format the date
+                    from datetime import datetime
+                    if isinstance(signature_date, str):
+                        # Try to parse ISO format date
+                        try:
+                            date_obj = datetime.fromisoformat(signature_date.replace('Z', '+00:00'))
+                            formatted_date = date_obj.strftime('%m/%d/%Y')
+                        except:
+                            # If parsing fails, try to extract just the date part
+                            formatted_date = signature_date.split('T')[0] if 'T' in signature_date else signature_date
+                    else:
+                        formatted_date = str(signature_date)
+
+                    # Position the date below the signature (health insurance specific)
+                    # Based on the signature coordinates: rect = fitz.Rect(188.28, 615.6, 486.0, 652.92)
+                    date_rect = fitz.Rect(500, 615.6, 600, 635)  # To the right of signature
+
+                    # Insert date text
+                    page.insert_text(
+                        (date_rect.x0, date_rect.y1 - 5),  # Position text
+                        formatted_date,
+                        fontsize=10,
+                        color=(0, 0, 0)  # Black color
+                    )
+
+                    print(f"Added signature date to health insurance PDF: {formatted_date}")
+
+                except Exception as e:
+                    print(f"Error adding signature date: {e}")
+
             # Save and return modified PDF
             result_bytes = doc.write()
             doc.close()

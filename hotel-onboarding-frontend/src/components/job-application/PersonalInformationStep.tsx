@@ -411,17 +411,18 @@ export default function PersonalInformationStep({
 
           <div className="space-y-2">
             <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.eligibility.workAuth')} *</Label>
-            <RadioGroup 
-              value={formData.work_authorized || ''} 
+            <RadioGroup
+              value={formData.work_authorized || ''}
               onValueChange={(value) => handleInputChange('work_authorized', value)}
+              className="space-y-3"
             >
-              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
-                <RadioGroupItem value="yes" id="work_auth_yes" />
-                <Label htmlFor="work_auth_yes" className="font-normal cursor-pointer">{t('common.yes')}</Label>
+              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="yes" id="work_auth_yes" className="flex-shrink-0" />
+                <Label htmlFor="work_auth_yes" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
-                <RadioGroupItem value="no" id="work_auth_no" />
-                <Label htmlFor="work_auth_no" className="font-normal cursor-pointer">{t('common.no')}</Label>
+              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="no" id="work_auth_no" className="flex-shrink-0" />
+                <Label htmlFor="work_auth_no" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.no')}</Label>
               </div>
             </RadioGroup>
             {getError('work_authorized') && (
@@ -431,17 +432,18 @@ export default function PersonalInformationStep({
 
           <div className="space-y-2">
             <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.eligibility.sponsorship', { propertyName: formData.property_name || 'this hotel' })} *</Label>
-            <RadioGroup 
-              value={formData.sponsorship_required || ''} 
+            <RadioGroup
+              value={formData.sponsorship_required || ''}
               onValueChange={(value) => handleInputChange('sponsorship_required', value)}
+              className="space-y-3"
             >
-              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
-                <RadioGroupItem value="yes" id="sponsor_yes" />
-                <Label htmlFor="sponsor_yes" className="font-normal cursor-pointer">{t('common.yes')}</Label>
+              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="yes" id="sponsor_yes" className="flex-shrink-0" />
+                <Label htmlFor="sponsor_yes" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
-                <RadioGroupItem value="no" id="sponsor_no" />
-                <Label htmlFor="sponsor_no" className="font-normal cursor-pointer">{t('common.no')}</Label>
+              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="no" id="sponsor_no" className="flex-shrink-0" />
+                <Label htmlFor="sponsor_no" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.no')}</Label>
               </div>
             </RadioGroup>
             {getError('sponsorship_required') && (
@@ -451,17 +453,18 @@ export default function PersonalInformationStep({
 
           <div className="space-y-2">
             <Label className="font-semibold text-gray-900">{t('jobApplication.steps.personalInfo.fields.eligibility.transportation')} *</Label>
-            <RadioGroup 
-              value={formData.reliable_transportation || ''} 
+            <RadioGroup
+              value={formData.reliable_transportation || ''}
               onValueChange={(value) => handleInputChange('reliable_transportation', value)}
+              className="space-y-3"
             >
-              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
-                <RadioGroupItem value="yes" id="transport_yes" />
-                <Label htmlFor="transport_yes" className="font-normal cursor-pointer">{t('common.yes')}</Label>
+              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="yes" id="transport_yes" className="flex-shrink-0" />
+                <Label htmlFor="transport_yes" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-2 py-0.5 sm:space-x-3 sm:py-1">
-                <RadioGroupItem value="no" id="transport_no" />
-                <Label htmlFor="transport_no" className="font-normal cursor-pointer">{t('common.no')}</Label>
+              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="no" id="transport_no" className="flex-shrink-0" />
+                <Label htmlFor="transport_no" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.no')}</Label>
               </div>
             </RadioGroup>
             {getError('reliable_transportation') && (

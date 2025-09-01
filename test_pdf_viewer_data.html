@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Viewer Data Test</title>
+</head>
+<body>
+    <h1>PDF Data Format Test</h1>
+    
+    <h2>Test 1: Data URL Format</h2>
+    <p>This tests if a data URL works in an iframe:</p>
+    <iframe id="dataUrlTest" width="400" height="300" style="border: 1px solid #ccc;"></iframe>
+    
+    <h2>Test 2: Blob URL Format</h2>
+    <p>This tests if a blob URL works in an iframe:</p>
+    <iframe id="blobUrlTest" width="400" height="300" style="border: 1px solid #ccc;"></iframe>
+    
+    <script>
+        // Create a simple PDF (minimal PDF structure)
+        const pdfContent = `%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+
+4 0 obj
+<<
+/Length 44
+>>
+stream
+BT
+/F1 12 Tf
+100 700 Td
+(Hello World!) Tj
+ET
+endstream
+endobj
+
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000206 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+299
+%%EOF`;
+
+        // Convert to base64
+        const base64Pdf = btoa(pdfContent);
+        
+        // Test 1: Data URL
+        const dataUrl = `data:application/pdf;base64,${base64Pdf}`;
+        document.getElementById('dataUrlTest').src = dataUrl;
+        
+        // Test 2: Blob URL
+        const binaryString = atob(base64Pdf);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        document.getElementById('blobUrlTest').src = blobUrl;
+        
+        console.log('Data URL length:', dataUrl.length);
+        console.log('Blob URL:', blobUrl);
+        console.log('Base64 PDF length:', base64Pdf.length);
+    </script>
+</body>
+</html>

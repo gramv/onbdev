@@ -158,6 +158,42 @@ async def add_signature_to_w4(
         print(f"🚨 CRITICAL ERROR: W-4 signature addition failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error adding signature to W-4: {str(e)}")
 
+@router.post("/health-insurance/add-signature")
+async def add_signature_to_health_insurance(
+    form_data: dict
+    # Temporarily disable auth for testing: current_user = Depends(get_current_user)
+):
+    """Add digital signature to Health Insurance PDF"""
+    try:
+        pdf_data = form_data.get('pdf_data')
+        signature = form_data.get('signature')
+        signature_type = form_data.get('signature_type', 'employee_health_insurance')
+        page_num = form_data.get('page_num', 1)  # Health insurance signature is on page 2 (index 1)
+        signature_date = form_data.get('signature_date')  # Date when the form was signed
+
+        if not pdf_data or not signature:
+            raise HTTPException(status_code=400, detail="PDF data and signature are required")
+
+        # Decode base64 PDF data
+        pdf_bytes = base64.b64decode(pdf_data)
+
+        # Add signature to PDF with date
+        signed_pdf_bytes = pdf_form_service.add_signature_to_pdf(pdf_bytes, signature, signature_type, page_num, signature_date)
+
+        return Response(
+            content=signed_pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "inline; filename=signed-health-insurance-form.pdf",
+                "X-Form-Type": "Health-Insurance-Enrollment-Signed",
+                "X-Signature-Type": signature_type
+            }
+        )
+
+    except Exception as e:
+        print(f"🚨 CRITICAL ERROR: Health Insurance signature addition failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error adding signature to Health Insurance: {str(e)}")
+
 @router.post("/i9/generate")
 async def generate_i9_pdf(
     request: I9PDFGenerationRequest

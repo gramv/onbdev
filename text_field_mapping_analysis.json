@@ -1,0 +1,581 @@
+{
+  "all_text_fields": {
+    "page_1": [
+      {
+        "name": "Effective Date",
+        "current_value": "",
+        "position": [
+          466.32000732421875,
+          64.55999755859375,
+          582.47998046875,
+          81.1199951171875
+        ],
+        "page": 1,
+        "width": 116.15997314453125,
+        "height": 16.55999755859375
+      },
+      {
+        "name": "Deadline to Submit",
+        "current_value": "",
+        "position": [
+          466.20001220703125,
+          89.760009765625,
+          582.47998046875,
+          106.32000732421875
+        ],
+        "page": 1,
+        "width": 116.27996826171875,
+        "height": 16.55999755859375
+      },
+      {
+        "name": "Property Name",
+        "current_value": "",
+        "position": [
+          102.5999984741211,
+          134.8800048828125,
+          289.44000244140625,
+          151.44000244140625
+        ],
+        "page": 1,
+        "width": 186.84000396728516,
+        "height": 16.55999755859375
+      },
+      {
+        "name": "Reason for Request check one of the following",
+        "current_value": "",
+        "position": [
+          195.72000122070312,
+          185.8800048828125,
+          201.72000122070312,
+          192.0
+        ],
+        "page": 1,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "New Hire  Date of Hire",
+        "current_value": "",
+        "position": [
+          130.9199981689453,
+          176.15997314453125,
+          188.63999938964844,
+          192.719970703125
+        ],
+        "page": 1,
+        "width": 57.720001220703125,
+        "height": 16.55999755859375
+      },
+      {
+        "name": "Open Enrollment",
+        "current_value": "",
+        "position": [
+          285.7200012207031,
+          185.8800048828125,
+          291.7200012207031,
+          192.0
+        ],
+        "page": 1,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "Qualifying Event  If so state event  date",
+        "current_value": "",
+        "position": [
+          455.6400146484375,
+          176.15997314453125,
+          575.760009765625,
+          192.719970703125
+        ],
+        "page": 1,
+        "width": 120.1199951171875,
+        "height": 16.55999755859375
+      },
+      {
+        "name": "Employees Name Last First MI",
+        "current_value": "",
+        "position": [
+          24.84000015258789,
+          226.79998779296875,
+          272.8800048828125,
+          243.5999755859375
+        ],
+        "page": 1,
+        "width": 248.0400047302246,
+        "height": 16.79998779296875
+      },
+      {
+        "name": "Social Security",
+        "current_value": "",
+        "position": [
+          274.67999267578125,
+          226.79998779296875,
+          430.79998779296875,
+          243.5999755859375
+        ],
+        "page": 1,
+        "width": 156.1199951171875,
+        "height": 16.79998779296875
+      },
+      {
+        "name": "Birth Date",
+        "current_value": "",
+        "position": [
+          432.6000061035156,
+          226.79998779296875,
+          507.0,
+          243.5999755859375
+        ],
+        "page": 1,
+        "width": 74.39999389648438,
+        "height": 16.79998779296875
+      },
+      {
+        "name": "Employees Address",
+        "current_value": "",
+        "position": [
+          24.719999313354492,
+          253.67999267578125,
+          363.4800109863281,
+          267.47998046875
+        ],
+        "page": 1,
+        "width": 338.76001167297363,
+        "height": 13.79998779296875
+      },
+      {
+        "name": "City",
+        "current_value": "",
+        "position": [
+          364.67999267578125,
+          253.67999267578125,
+          471.1199951171875,
+          267.47998046875
+        ],
+        "page": 1,
+        "width": 106.44000244140625,
+        "height": 13.79998779296875
+      },
+      {
+        "name": "State",
+        "current_value": "",
+        "position": [
+          472.67999267578125,
+          253.67999267578125,
+          507.1199951171875,
+          267.47998046875
+        ],
+        "page": 1,
+        "width": 34.44000244140625,
+        "height": 13.79998779296875
+      },
+      {
+        "name": "Zip",
+        "current_value": "",
+        "position": [
+          508.9200134277344,
+          253.67999267578125,
+          587.280029296875,
+          267.47998046875
+        ],
+        "page": 1,
+        "width": 78.36001586914062,
+        "height": 13.79998779296875
+      },
+      {
+        "name": "Phone Number",
+        "current_value": "",
+        "position": [
+          24.719999313354492,
+          277.67999267578125,
+          301.32000732421875,
+          289.79998779296875
+        ],
+        "page": 1,
+        "width": 276.60000801086426,
+        "height": 12.1199951171875
+      },
+      {
+        "name": "Email Address",
+        "current_value": "",
+        "position": [
+          302.8800048828125,
+          277.67999267578125,
+          587.280029296875,
+          289.79998779296875
+        ],
+        "page": 1,
+        "width": 284.4000244140625,
+        "height": 12.1199951171875
+      }
+    ],
+    "page_2": [
+      {
+        "name": "Coverage Selection",
+        "current_value": "",
+        "position": [
+          173.75999450683594,
+          63.96002197265625,
+          193.9199981689453,
+          102.5999755859375
+        ],
+        "page": 2,
+        "width": 20.160003662109375,
+        "height": 38.63995361328125
+      },
+      {
+        "name": "Medical Dental Vision",
+        "current_value": "",
+        "position": [
+          126.36000061035156,
+          104.52001953125,
+          171.0,
+          149.8800048828125
+        ],
+        "page": 2,
+        "width": 44.63999938964844,
+        "height": 45.3599853515625
+      },
+      {
+        "name": "Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage license",
+        "current_value": "",
+        "position": [
+          196.8000030517578,
+          104.52001953125,
+          427.44000244140625,
+          149.8800048828125
+        ],
+        "page": 2,
+        "width": 230.63999938964844,
+        "height": 45.3599853515625
+      },
+      {
+        "name": "undefined",
+        "current_value": "",
+        "position": [
+          436.20001220703125,
+          122.760009765625,
+          442.20001220703125,
+          128.8800048828125
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "undefined_2",
+        "current_value": "",
+        "position": [
+          453.239990234375,
+          122.760009765625,
+          459.239990234375,
+          128.8800048828125
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "Date of Birth",
+        "current_value": "",
+        "position": [
+          471.239990234375,
+          104.52001953125,
+          529.2000122070312,
+          149.8800048828125
+        ],
+        "page": 2,
+        "width": 57.96002197265625,
+        "height": 45.3599853515625
+      },
+      {
+        "name": "SSN required",
+        "current_value": "",
+        "position": [
+          532.5599975585938,
+          104.52001953125,
+          573.1199951171875,
+          149.8800048828125
+        ],
+        "page": 2,
+        "width": 40.55999755859375,
+        "height": 45.3599853515625
+      },
+      {
+        "name": "Medical Dental Vision_2",
+        "current_value": "",
+        "position": [
+          126.36000061035156,
+          151.79998779296875,
+          171.0,
+          197.03997802734375
+        ],
+        "page": 2,
+        "width": 44.63999938964844,
+        "height": 45.239990234375
+      },
+      {
+        "name": "undefined_3",
+        "current_value": "",
+        "position": [
+          436.20001220703125,
+          170.03997802734375,
+          442.20001220703125,
+          176.15997314453125
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "undefined_4",
+        "current_value": "",
+        "position": [
+          453.239990234375,
+          170.03997802734375,
+          459.239990234375,
+          176.15997314453125
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseChild",
+        "current_value": "",
+        "position": [
+          196.8000030517578,
+          151.79998779296875,
+          427.44000244140625,
+          197.03997802734375
+        ],
+        "page": 2,
+        "width": 230.63999938964844,
+        "height": 45.239990234375
+      },
+      {
+        "name": "Date of Birth_2",
+        "current_value": "",
+        "position": [
+          471.239990234375,
+          151.79998779296875,
+          529.2000122070312,
+          197.03997802734375
+        ],
+        "page": 2,
+        "width": 57.96002197265625,
+        "height": 45.239990234375
+      },
+      {
+        "name": "SSN required_2",
+        "current_value": "",
+        "position": [
+          532.5599975585938,
+          151.79998779296875,
+          573.1199951171875,
+          197.03997802734375
+        ],
+        "page": 2,
+        "width": 40.55999755859375,
+        "height": 45.239990234375
+      },
+      {
+        "name": "ChildMedical Dental Vision",
+        "current_value": "",
+        "position": [
+          173.75999450683594,
+          198.5999755859375,
+          193.9199981689453,
+          244.32000732421875
+        ],
+        "page": 2,
+        "width": 20.160003662109375,
+        "height": 45.72003173828125
+      },
+      {
+        "name": "Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseMedical Dental Vision",
+        "current_value": "",
+        "position": [
+          196.8000030517578,
+          199.08001708984375,
+          427.44000244140625,
+          244.32000732421875
+        ],
+        "page": 2,
+        "width": 230.63999938964844,
+        "height": 45.239990234375
+      },
+      {
+        "name": "undefined_5",
+        "current_value": "",
+        "position": [
+          436.20001220703125,
+          217.20001220703125,
+          442.20001220703125,
+          223.32000732421875
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "undefined_6",
+        "current_value": "",
+        "position": [
+          453.239990234375,
+          217.20001220703125,
+          459.239990234375,
+          223.32000732421875
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "Date of Birth_3",
+        "current_value": "",
+        "position": [
+          471.239990234375,
+          199.08001708984375,
+          529.2000122070312,
+          244.32000732421875
+        ],
+        "page": 2,
+        "width": 57.96002197265625,
+        "height": 45.239990234375
+      },
+      {
+        "name": "SSN required_3",
+        "current_value": "",
+        "position": [
+          532.5599975585938,
+          199.08001708984375,
+          573.1199951171875,
+          244.32000732421875
+        ],
+        "page": 2,
+        "width": 40.55999755859375,
+        "height": 45.239990234375
+      },
+      {
+        "name": "ChildMedical Dental Vision_2",
+        "current_value": "",
+        "position": [
+          173.75999450683594,
+          245.8800048828125,
+          193.9199981689453,
+          291.6000061035156
+        ],
+        "page": 2,
+        "width": 20.160003662109375,
+        "height": 45.720001220703125
+      },
+      {
+        "name": "Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseMedical Dental Vision_2",
+        "current_value": "",
+        "position": [
+          196.8000030517578,
+          246.3599853515625,
+          427.44000244140625,
+          291.6000061035156
+        ],
+        "page": 2,
+        "width": 230.63999938964844,
+        "height": 45.240020751953125
+      },
+      {
+        "name": "undefined_7",
+        "current_value": "",
+        "position": [
+          436.20001220703125,
+          264.47998046875,
+          442.20001220703125,
+          270.5999755859375
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "undefined_8",
+        "current_value": "",
+        "position": [
+          453.239990234375,
+          264.47998046875,
+          459.239990234375,
+          270.5999755859375
+        ],
+        "page": 2,
+        "width": 6.0,
+        "height": 6.1199951171875
+      },
+      {
+        "name": "Date of Birth_4",
+        "current_value": "",
+        "position": [
+          471.239990234375,
+          246.3599853515625,
+          529.2000122070312,
+          291.6000061035156
+        ],
+        "page": 2,
+        "width": 57.96002197265625,
+        "height": 45.240020751953125
+      },
+      {
+        "name": "SSN required_4",
+        "current_value": "",
+        "position": [
+          532.5599975585938,
+          246.3599853515625,
+          573.1199951171875,
+          291.6000061035156
+        ],
+        "page": 2,
+        "width": 40.55999755859375,
+        "height": 45.240020751953125
+      },
+      {
+        "name": "If yes indicate names",
+        "current_value": "",
+        "position": [
+          332.6400146484375,
+          292.44000244140625,
+          537.0,
+          302.2799987792969
+        ],
+        "page": 2,
+        "width": 204.3599853515625,
+        "height": 9.839996337890625
+      },
+      {
+        "name": "Enrollment Signature of Employee X",
+        "current_value": "",
+        "position": [
+          188.27999877929688,
+          615.5999755859375,
+          486.0,
+          652.9199829101562
+        ],
+        "page": 2,
+        "width": 297.7200012207031,
+        "height": 37.32000732421875
+      },
+      {
+        "name": "Date",
+        "current_value": "",
+        "position": [
+          509.760009765625,
+          615.5999755859375,
+          581.760009765625,
+          652.9199829101562
+        ],
+        "page": 2,
+        "width": 72.0,
+        "height": 37.32000732421875
+      }
+    ]
+  },
+  "analysis_timestamp": "2025-08-31"
+}

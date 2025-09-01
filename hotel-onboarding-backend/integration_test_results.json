@@ -1,0 +1,61 @@
+{
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "success_rate": 100.0,
+    "total_time": 0.26818299293518066,
+    "timestamp": "2025-09-01T10:11:25.711898"
+  },
+  "results": [
+    {
+      "test": "Main Onboarding Flow Access",
+      "success": true,
+      "message": "Main onboarding flow accessible (HTTP 200)",
+      "duration": 0.008179187774658203,
+      "timestamp": "2025-09-01T10:11:25.451783"
+    },
+    {
+      "test": "Enhanced Health Insurance Integration",
+      "success": true,
+      "message": "Enhanced health insurance components integrated successfully",
+      "duration": 0.0022058486938476562,
+      "timestamp": "2025-09-01T10:11:25.454039"
+    },
+    {
+      "test": "Global Error Boundary Integration",
+      "success": true,
+      "message": "Global error boundary integrated (no visible errors)",
+      "duration": 0.0018889904022216797,
+      "timestamp": "2025-09-01T10:11:25.455970"
+    },
+    {
+      "test": "Feature Flag Functionality",
+      "success": true,
+      "message": "Feature flag functionality working (enhanced components enabled)",
+      "duration": 0.0,
+      "timestamp": "2025-09-01T10:11:25.456007"
+    },
+    {
+      "test": "Backend API Compatibility",
+      "success": true,
+      "message": "Enhanced backend API compatible with main flow",
+      "duration": 0.2499830722808838,
+      "timestamp": "2025-09-01T10:11:25.705995"
+    },
+    {
+      "test": "Error Handling in Main Flow",
+      "success": true,
+      "message": "Error handling working in main flow (HTTP 200)",
+      "duration": 0.0030450820922851562,
+      "timestamp": "2025-09-01T10:11:25.709090"
+    },
+    {
+      "test": "Mobile Responsiveness Integration",
+      "success": true,
+      "message": "Mobile responsiveness integrated successfully",
+      "duration": 0.00261688232421875,
+      "timestamp": "2025-09-01T10:11:25.711741"
+    }
+  ]
+}

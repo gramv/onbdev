@@ -1,0 +1,562 @@
+PDF CONTENT ANALYSIS REPORT
+==================================================
+
+File: health_insurance_test_20250831_172714.pdf
+Size: 310704 bytes
+Pages: 2
+Analyzed: 2025-08-31T17:29:48.408525
+
+PAGE 1
+------------------------------
+
+FORM FIELDS:
+✅ FILLED Text         | Effective Date                 | 08/31/2025
+    Label: 08/31/2025
+
+❌ EMPTY Text         | Deadline to Submit             | 
+    Label: 08/31/2025
+
+❌ EMPTY Text         | Property Name                  | 
+    Label: __________________________________________
+
+❌ EMPTY Text         | Reason for Request check one of the following | 
+    Label: (check one of the following)
+
+❌ EMPTY Text         | New Hire  Date of Hire         | 
+    Label: New Hire – Date of Hire: _____________
+
+❌ EMPTY CheckBox     | Personal Information           | 
+    Label: Property Name:
+
+❌ EMPTY Text         | Open Enrollment                | 
+    Label: Social Security #
+
+❌ EMPTY Text         | Qualifying Event  If so state event  date | 
+    Label: Gender
+
+✅ FILLED Text         | Employees Name Last First MI   | Vemula, Goutham G
+    Label: New Hire – Date of Hire: _____________
+
+✅ FILLED Text         | Social Security                | ***-**-9090
+    Label: City
+
+✅ FILLED Text         | Birth Date                     | 05/18/1998
+    Label: 05/18/1998
+
+✅ FILLED RadioButton  | Gender                         | M
+    Label: M
+
+❌ EMPTY RadioButton  | Gender                         | Off
+    Label: F
+
+✅ FILLED Text         | Employees Address              | 403 - 126 Corbin Ave
+    Label: (deductions below are Bi-Weekly)
+
+✅ FILLED Text         | City                           | jersey city
+    Label: jersey city
+
+✅ FILLED Text         | State                          | ID
+    Label: State
+
+✅ FILLED Text         | Zip                            | 07306
+    Label: 07306
+
+✅ FILLED Text         | Phone Number                   | (347) 263-2091
+    Label: (deductions below are Bi-Weekly)
+
+✅ FILLED Text         | Email Address                  | vgoutamram@gmail.com
+    Label: ID
+
+❌ EMPTY CheckBox     | Employee Only  5991            | 
+    Label: HRA $6K Plan
+
+❌ EMPTY CheckBox     | Employee  Spouse               | 
+    Label: Employee + Spouse
+
+❌ EMPTY CheckBox     | Employee Only  13684           | 
+    Label: HRA $4K Plan
+
+❌ EMPTY CheckBox     | Employee  Spouse 39621         | 
+    Label: $213.76
+
+✅ FILLED CheckBox     | Employee Only                  | On
+    Label: 3
+
+❌ EMPTY CheckBox     | Employee  Spouse_2             | 
+    Label: $213.76
+
+❌ EMPTY CheckBox     | Employee Only_2                | 
+    Label: Employee Only
+
+❌ EMPTY CheckBox     | Employee  Spouse_3             | 
+    Label: Indemnity Plan (Does not meet individual ACA mandate)
+
+❌ EMPTY CheckBox     | Employee Only_3                | 
+    Label: Employee Only
+
+❌ EMPTY CheckBox     | Employee  Spouse_4             | 
+    Label: $19.61
+
+❌ EMPTY CheckBox     | Employee Only_4                | 
+    Label: Employee Only
+
+❌ EMPTY CheckBox     | Employee  Spouse_5             | 
+    Label: $27.37
+
+❌ EMPTY CheckBox     | Employee  Children             | 
+    Label: $319.29
+
+❌ EMPTY CheckBox     | Employee  Children_2           | 
+    Label: $319.29
+
+❌ EMPTY CheckBox     | Employee  Children_3           | 
+    Label: $473.13
+
+❌ EMPTY CheckBox     | Employee  Children_4           | 
+    Label: $17.55
+
+❌ EMPTY CheckBox     | Employee  Children_5           | 
+    Label: $37.24
+
+❌ EMPTY CheckBox     | Employee  Children_6           | 
+    Label: $54.79
+
+❌ EMPTY CheckBox     | Employee  Children_7           | 
+    Label: $27.44
+
+❌ EMPTY CheckBox     | Employee  Family               | 
+    Label: $264.10
+
+❌ EMPTY CheckBox     | Employee  Family_2             | 
+    Label: $341.02
+
+❌ EMPTY CheckBox     | Employee  Family_3             | 
+    Label: $417.95
+
+❌ EMPTY CheckBox     | Employee  Family_4             | 
+    Label: $19.03
+
+❌ EMPTY CheckBox     | Employee  Family_5             | 
+    Label: $31.45
+
+❌ EMPTY CheckBox     | Employee  Family_6             | 
+    Label: $50.48
+
+❌ EMPTY CheckBox     | I Decline Medical Coverage     | 
+    Label: 3
+
+❌ EMPTY CheckBox     | I Decline Medical Coverage_2   | 
+    Label: Dental PPO
+
+❌ EMPTY CheckBox     | Employee Only_5                | 
+    Label: Dental PPO
+
+❌ EMPTY CheckBox     | Employee  Spouse_6             | 
+    Label: $13.45
+
+❌ EMPTY CheckBox     | Employee  Family_7             | 
+    Label: Employee + Family
+
+❌ EMPTY CheckBox     | I Decline Dental Coverage      | 
+    Label: 3
+
+✅ FILLED CheckBox     | Employee Only_6                | On
+    Label: 3
+
+❌ EMPTY CheckBox     | Employee  Spouse_7             | 
+    Label: $13.45
+
+❌ EMPTY CheckBox     | Employee  Children_8           | 
+    Label: $27.44
+
+❌ EMPTY CheckBox     | Employee  Family_8             | 
+    Label: Employee + Family      $8.78
+
+✅ FILLED CheckBox     | I Decline Vision Coverage      | On
+    Label: 3
+
+
+TEXT CONTENT:
+'Plan Year: January 1, 2025 – December 31, 2025' (Font: Arial,Bold, Size: 10.0)
+'Effective Date: ___________________' (Font: Arial,Bold, Size: 11.0)
+'Deadline to Submit: ___________________' (Font: Arial,Bold, Size: 11.0)
+'Property Name:' (Font: Arial,Italic, Size: 10.0)
+'__________________________________________' (Font: Arial,Italic, Size: 8.0)
+'Reason for Request' (Font: Arial,Bold, Size: 12.0)
+'(check one of the following)' (Font: Arial,Italic, Size: 12.0)
+'New Hire – Date of Hire: _____________' (Font: Arial, Size: 8.0)
+'Open Enrollment' (Font: Arial, Size: 8.0)
+'Qualifying Event – If so, state event & date:___________________________' (Font: Arial, Size: 8.0)
+'Personal Information' (Font: Arial,Bold, Size: 12.0)
+'Employee’s Name (Last, First, MI)' (Font: Arial, Size: 8.0)
+'Social Security #' (Font: Arial, Size: 8.0)
+'Birth Date' (Font: Arial, Size: 8.0)
+'Gender' (Font: Arial, Size: 8.0)
+'M' (Font: Arial, Size: 8.0)
+'F' (Font: Arial, Size: 8.0)
+'Employee’s Address' (Font: Arial, Size: 8.0)
+'Zip' (Font: Arial, Size: 8.0)
+'Phone Number' (Font: Arial, Size: 8.0)
+'Email Address' (Font: Arial, Size: 8.0)
+'Coverage Elections' (Font: Arial,Bold, Size: 12.0)
+'(deductions below are Bi-Weekly)' (Font: Arial,Italic, Size: 12.0)
+'Medical:  United Healthcare' (Font: Arial,Bold, Size: 10.0)
+'HRA $6K Plan' (Font: Arial,Bold, Size: 8.0)
+'Employee Only  $59.91' (Font: Arial, Size: 8.0)
+'Employee + Spouse' (Font: Arial, Size: 8.0)
+'$319.29' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)' (Font: Arial, Size: 8.0)
+'$264.10' (Font: Arial, Size: 8.0)
+'Employee + Family $390.25' (Font: Arial, Size: 8.0)
+'HRA $4K Plan' (Font: Arial,Bold, Size: 8.0)
+'Employee Only  $136.84' (Font: Arial, Size: 8.0)
+'Employee + Spouse $396.21' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)' (Font: Arial, Size: 8.0)
+'$341.02' (Font: Arial, Size: 8.0)
+'Employee + Family $467.17' (Font: Arial, Size: 8.0)
+'HRA $2K Plan' (Font: Arial,Bold, Size: 8.0)
+'Employee Only' (Font: Arial, Size: 8.0)
+'$213.76' (Font: Arial, Size: 8.0)
+'Employee + Spouse' (Font: Arial, Size: 8.0)
+'$473.13' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)' (Font: Arial, Size: 8.0)
+'$417.95' (Font: Arial, Size: 8.0)
+'Employee + Family    $544.09' (Font: Arial, Size: 8.0)
+'I Decline Medical Coverage' (Font: Arial,Bold, Size: 8.0)
+'Limited Medical: ACI Benefits' (Font: Arial,Bold, Size: 10.0)
+'Minimum Essential Coverage Plan' (Font: Arial,Bold, Size: 8.0)
+'Employee Only   $7.77' (Font: Arial, Size: 8.0)
+'Employee + Spouse' (Font: Arial, Size: 8.0)
+'$17.55' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)' (Font: Arial, Size: 8.0)
+'$19.03' (Font: Arial, Size: 8.0)
+'Employee + Family $27.61' (Font: Arial, Size: 8.0)
+'Indemnity Plan (Does not meet individual ACA mandate)' (Font: Arial,Bold, Size: 8.0)
+'Employee Only' (Font: Arial, Size: 8.0)
+'$19.61' (Font: Arial, Size: 8.0)
+'Employee + Spouse' (Font: Arial, Size: 8.0)
+'$37.24' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)' (Font: Arial, Size: 8.0)
+'$31.45' (Font: Arial, Size: 8.0)
+'Employee + Family    $49.12' (Font: Arial, Size: 8.0)
+'Minimum Essential Coverage +  Indemnity' (Font: Arial,Bold, Size: 8.0)
+'Employee Only' (Font: Arial, Size: 8.0)
+'$27.37' (Font: Arial, Size: 8.0)
+'Employee + Spouse' (Font: Arial, Size: 8.0)
+'$54.79' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)' (Font: Arial, Size: 8.0)
+'$50.48' (Font: Arial, Size: 8.0)
+'Employee + Family    $76.74' (Font: Arial, Size: 8.0)
+'I Decline Medical Coverage' (Font: Arial,Bold, Size: 8.0)
+'Dental:  United Healthcare' (Font: Arial,Bold, Size: 10.0)
+'Dental PPO' (Font: Arial,Bold, Size: 8.0)
+'Employee Only' (Font: Arial, Size: 8.0)
+'$13.45' (Font: Arial, Size: 8.0)
+'Employee + Spouse' (Font: Arial, Size: 8.0)
+'$27.44' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)       $31.13' (Font: Arial, Size: 8.0)
+'Employee + Family' (Font: Arial, Size: 8.0)
+'$45.63' (Font: Arial, Size: 8.0)
+'I Decline Dental Coverage' (Font: Arial,Bold, Size: 8.0)
+'Vision:  United Healthcare' (Font: Arial,Bold, Size: 10.0)
+'Employee Only             $3.04' (Font: Arial, Size: 8.0)
+'Employee + Spouse        $5.59' (Font: Arial, Size: 8.0)
+'Employee + Child(ren)          $5.86' (Font: Arial, Size: 8.0)
+'Employee + Family      $8.78' (Font: Arial, Size: 8.0)
+'I Decline Vision Coverage' (Font: Arial,Bold, Size: 8.0)
+'Enrollment forms MUST be received by applicable deadline.' (Font: Arial, Size: 8.0)
+'City' (Font: Arial, Size: 8.0)
+'State' (Font: Arial, Size: 8.0)
+'08/31/2025' (Font: Helvetica, Size: 12.55999755859375)
+'Vemula, Goutham G' (Font: Helvetica, Size: 12.79998779296875)
+'***-**-9090' (Font: Helvetica, Size: 12.79998779296875)
+'05/18/1998' (Font: Helvetica, Size: 12.79998779296875)
+'403 - 126 Corbin Ave' (Font: Helvetica, Size: 9.79998779296875)
+'jersey city' (Font: Helvetica, Size: 9.79998779296875)
+'ID' (Font: Helvetica, Size: 9.79998779296875)
+'07306' (Font: Helvetica, Size: 9.79998779296875)
+'(347) 263-2091' (Font: Helvetica, Size: 8.1199951171875)
+'vgoutamram@gmail.com' (Font: Helvetica, Size: 8.1199951171875)
+'3' (Font: ZapfDingbats, Size: 7.67999267578125)
+'3' (Font: ZapfDingbats, Size: 7.679931640625)
+'3' (Font: ZapfDingbats, Size: 7.67999267578125)
+
+==================================================
+
+PAGE 2
+------------------------------
+
+FORM FIELDS:
+❌ EMPTY Text         | Coverage Selection             | 
+    Label: Ø
+
+❌ EMPTY CheckBox     | Enroll                         | 
+    Label: Enroll
+
+❌ EMPTY CheckBox     | Cancel                         | 
+    Label: Cancel
+
+❌ EMPTY CheckBox     | Change                         | 
+    Label: Change
+
+❌ EMPTY Text         | Medical Dental Vision          | 
+    Label: Dental
+
+❌ EMPTY CheckBox     | Medical                        | 
+    Label: Medical
+
+❌ EMPTY CheckBox     | Dental                         | 
+    Label: Dental
+
+❌ EMPTY CheckBox     | Vision                         | 
+    Label: Vision
+
+❌ EMPTY Text         | Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage license | 
+    Label: If spouse last name differs from the Employee, proof of marriage
+
+❌ EMPTY Text         | undefined                      | 
+    Label: M      F
+
+❌ EMPTY Text         | undefined_2                    | 
+    Label: M      F
+
+❌ EMPTY Text         | Date of Birth                  | 
+    Label: Date of Birth
+
+❌ EMPTY Text         | SSN required                   | 
+    Label: (required)
+
+❌ EMPTY CheckBox     | Enroll_2                       | 
+    Label: Enroll
+
+❌ EMPTY CheckBox     | Cancel_2                       | 
+    Label: Cancel
+
+❌ EMPTY CheckBox     | Change_2                       | 
+    Label: Change
+
+❌ EMPTY Text         | Medical Dental Vision_2        | 
+    Label: Dental
+
+❌ EMPTY CheckBox     | Medical_2                      | 
+    Label: Medical
+
+❌ EMPTY CheckBox     | Dental_2                       | 
+    Label: Dental
+
+❌ EMPTY CheckBox     | Vision_2                       | 
+    Label: Vision
+
+❌ EMPTY Text         | undefined_3                    | 
+    Label: M      F
+
+❌ EMPTY Text         | undefined_4                    | 
+    Label: M      F
+
+❌ EMPTY Text         | Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseChild | 
+    Label: If spouse last name differs from the Employee, proof of marriage
+
+❌ EMPTY Text         | Date of Birth_2                | 
+    Label: Date of Birth
+
+❌ EMPTY Text         | SSN required_2                 | 
+    Label: (required)
+
+❌ EMPTY CheckBox     | Enroll_3                       | 
+    Label: Enroll
+
+❌ EMPTY CheckBox     | Cancel_3                       | 
+    Label: Cancel
+
+❌ EMPTY CheckBox     | Change_3                       | 
+    Label: Change
+
+❌ EMPTY CheckBox     | Medical_3                      | 
+    Label: Medical
+
+❌ EMPTY CheckBox     | Dental_3                       | 
+    Label: Dental
+
+❌ EMPTY CheckBox     | Vision_3                       | 
+    Label: Vision
+
+❌ EMPTY Text         | ChildMedical Dental Vision     | 
+    Label: Child
+
+❌ EMPTY Text         | Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseMedical Dental Vision | 
+    Label: No
+
+❌ EMPTY Text         | undefined_5                    | 
+    Label: No    If “yes”, indicate names: _________________________________________________
+
+❌ EMPTY Text         | undefined_6                    | 
+
+❌ EMPTY Text         | Date of Birth_3                | 
+
+❌ EMPTY Text         | SSN required_3                 | 
+    Label: Yes
+
+❌ EMPTY CheckBox     | Enroll_4                       | 
+    Label: Enroll
+
+❌ EMPTY CheckBox     | Cancel_4                       | 
+    Label: Cancel
+
+❌ EMPTY CheckBox     | Change_4                       | 
+    Label: Change
+
+❌ EMPTY CheckBox     | Medical_4                      | 
+    Label: Medical
+
+❌ EMPTY CheckBox     | Dental_4                       | 
+    Label: Dental
+
+❌ EMPTY CheckBox     | Vision_4                       | 
+    Label: Vision
+
+❌ EMPTY Text         | ChildMedical Dental Vision_2   | 
+    Label: Child
+
+❌ EMPTY Text         | Last Name  First  MI  Only add mailing address if different from Employee  If spouse last name differs from the Employee proof of marriage is required ie marriage licenseMedical Dental Vision_2 | 
+    Label: No
+
+❌ EMPTY Text         | undefined_7                    | 
+    Label: No    If “yes”, indicate names: _________________________________________________
+
+❌ EMPTY Text         | undefined_8                    | 
+    Label: No    If “yes”, indicate names: _________________________________________________
+
+❌ EMPTY Text         | Date of Birth_4                | 
+    Label: Yes
+
+❌ EMPTY Text         | SSN required_4                 | 
+    Label: Yes
+
+❌ EMPTY CheckBox     | Yes                            | 
+    Label: Yes
+
+❌ EMPTY RadioButton  | Are they dependent on you for support and maintenance | Off
+    Label: Yes
+
+❌ EMPTY RadioButton  | Are they dependent on you for support and maintenance | Off
+    Label: Yes
+
+❌ EMPTY Text         | If yes indicate names          | 
+    Label: No    If “yes”, indicate names: _________________________________________________
+
+✅ FILLED CheckBox     | No_2                           | On
+    Label: 3
+
+❌ EMPTY RadioButton  | I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable | Off
+    Label: Yes
+
+❌ EMPTY RadioButton  | I affirm that all dependents listed meet the IRS Section 152 definition of dependent so that premiums can be paid with pretax dollars if applicable | Off
+    Label: No
+
+❌ EMPTY Text         | Enrollment Signature of Employee X | 
+    Label: In the event of any discrepancy between this brochure and the certificate of coverage, the terms of the certificate of coverage will
+
+❌ EMPTY Text         | Date                           | 
+    Label: Date
+
+
+TEXT CONTENT:
+'Spouse' (Font: ArialMT, Size: 7.019999980926514)
+'Child' (Font: ArialMT, Size: 7.019999980926514)
+'Child' (Font: ArialMT, Size: 7.019999980926514)
+'Child' (Font: ArialMT, Size: 7.019999980926514)
+'Dependent Information' (Font: Arial,Bold, Size: 12.0)
+'This Section Must Be Completed for All Dependent Coverages' (Font: Arial,BoldItalic, Size: 10.0)
+'Provide the following information for each individual that should be insured for any of the above elections and list mailing address for any dependent that is different' (Font: Arial,Bold, Size: 7.0)
+'from the employee’s as noted on the previous page.' (Font: Arial,Bold, Size: 7.0)
+'Last Name,  First,  MI.' (Font: Arial, Size: 8.0)
+'Check' (Font: Arial, Size: 8.0)
+'Gender' (Font: Arial, Size: 8.0)
+'SSN' (Font: Arial, Size: 8.0)
+'Only add mailing address if different from Employee' (Font: Arial,Italic, Size: 7.5)
+'Appropriate' (Font: Arial, Size: 8.0)
+'Coverage Selection' (Font: Arial, Size: 8.0)
+'Date of Birth' (Font: Arial, Size: 8.0)
+'Ø' (Font: Wingdings, Size: 8.0)
+'If spouse last name differs from the Employee, proof of marriage' (Font: Arial,Italic, Size: 7.5)
+'M      F' (Font: Arial, Size: 8.0)
+'(required)' (Font: Arial, Size: 8.0)
+'Box' (Font: Arial, Size: 8.0)
+'is required (i.e., marriage license)' (Font: Arial,Italic, Size: 7.5)
+'Enroll' (Font: Arial, Size: 7.5)
+'Cancel' (Font: Arial, Size: 7.5)
+'Change' (Font: Arial, Size: 7.5)
+'Enroll' (Font: Arial, Size: 7.5)
+'Cancel' (Font: Arial, Size: 7.5)
+'Change' (Font: Arial, Size: 7.5)
+'Enroll' (Font: Arial, Size: 7.5)
+'Cancel' (Font: Arial, Size: 7.5)
+'Change' (Font: Arial, Size: 7.5)
+'Enroll' (Font: Arial, Size: 7.5)
+'Cancel' (Font: Arial, Size: 7.5)
+'Change' (Font: Arial, Size: 7.5)
+'Have you included stepchildren as dependents?' (Font: Arial, Size: 7.5)
+'Yes' (Font: Arial, Size: 7.5)
+'No    If “yes”, indicate names: _________________________________________________' (Font: Arial, Size: 7.5)
+'Are they dependent on you for support and maintenance?' (Font: Arial, Size: 7.5)
+'Yes' (Font: Arial, Size: 7.5)
+'No' (Font: Arial, Size: 7.5)
+'I affirm that all dependents listed meet the IRS Section 152 definition of “dependent” so that premiums can be paid with pre-tax dollars, if applicable:' (Font: Arial, Size: 7.5)
+'Yes' (Font: Arial, Size: 7.5)
+'No' (Font: Arial, Size: 7.5)
+'Premium Only IRS Code Section 125' (Font: Arial,Bold, Size: 12.0)
+'I understand that if my required contribution to pay premiums for the elected benefits are increased or decreased while this agreement remains in effect, my compensation' (Font: Arial, Size: 7.0)
+'redirection will automatically be adjusted to reflect that increase or decrease.' (Font: Arial, Size: 7.0)
+'I understand that:' (Font: Arial, Size: 7.0)
+'•' (Font: Arial, Size: 7.0)
+'I cannot change or revoke any of my elections or this compensation reduction agreement at any time during the plan year unless I have changes in family status (some' (Font: Arial, Size: 7.0)
+'examples of possible qualifying events include: marriage, divorce, death of a spouse or child, birth or adoption of a child, termination or commencement of employment' (Font: Arial, Size: 7.0)
+'of spouse, change in my spouse’s employment status from full-time to part-time or from part-time to full-time, a substantial change in my family’s health coverage due to' (Font: Arial, Size: 7.0)
+'a change in my spouse’s employer-sponsored health coverage, etc.).  Notification of change must be within 30 days of the qualifying event.  Qualifying events are' (Font: Arial, Size: 7.0)
+'defined in the plan’s Summary Plan Description.' (Font: Arial, Size: 7.0)
+'•' (Font: Arial, Size: 7.0)
+'I may be able to make a change to my elections if I, or my dependents, lose eligibility for coverage under Medicaid or the Children’s Health Insurance Program (CHIP) or' (Font: Arial, Size: 7.0)
+'become eligible for a premium assistance subsidy under Medicaid or CHIP.  Notification of change must be within 60 days of this qualifying event.' (Font: Arial, Size: 7.0)
+'•' (Font: Arial, Size: 7.0)
+'Prior to the first day of each plan year I will be offered the opportunity to change my benefit elections for the following plan year.' (Font: Arial, Size: 7.0)
+'•' (Font: Arial, Size: 7.0)
+'I hereby authorize my employer to reduce my cash compensation by the amount(s) indicated for each pay period during the plan year following the date on which this' (Font: Arial, Size: 7.0)
+'agreement is signed.' (Font: Arial, Size: 7.0)
+'•' (Font: Arial, Size: 7.0)
+'I understand that my election may impact my future Social Security benefits.' (Font: Arial, Size: 7.0)
+'•' (Font: Arial, Size: 7.0)
+'If I do not file a new Agreement to Participate and a new Salary Reduction Agreement with the Plan Administrator before the start of each new plan year, my current' (Font: Arial, Size: 7.0)
+'elections will be continued (to the extent available) until I change my elections, and my salary will be reduced accordingly by my Employer.' (Font: Arial, Size: 7.0)
+'For Coverages Offered UnitedHealthcare:' (Font: Arial,Bold, Size: 7.0)
+'I understand that payment of premium does not ensure my eligibility for coverage. I understand and agree that I must satisfy all' (Font: Arial, Size: 7.0)
+'active work and/or active employment requirements that pertain to the policy to be eligible for coverage. I understand and agree that life insurance coverage for my eligible' (Font: Arial, Size: 7.0)
+'dependent(s) may be delayed if they are confined (at home, in a hospital, or in any other institution or facility) or disabled on the date insurance would otherwise begin, in' (Font: Arial, Size: 7.0)
+'accordance with the terms of the policy.' (Font: Arial, Size: 7.0)
+'ENROLLMENT' (Font: Arial, Size: 8.0)
+'If I have waived any of the above insurance coverages, I understand that if I request coverage for myself and/or my eligible' (Font: Arial, Size: 8.0)
+'WAIVER:' (Font: Arial, Size: 8.0)
+'dependents at a later date, I will be required to furnish, at my own expense, proof of each person’s insurability, and the' (Font: Arial, Size: 8.0)
+'insurance carrier reserves the right to reject my request.' (Font: Arial, Size: 8.0)
+'Coverage summaries provided herein are intended as an outline of coverage only. Participants will receive a certificate of coverage.' (Font: ArialNarrow, Size: 9.0)
+'In the event of any discrepancy between this brochure and the certificate of coverage, the terms of the certificate of coverage will' (Font: ArialNarrow, Size: 9.0)
+'control.' (Font: ArialNarrow, Size: 9.0)
+'Enrollment forms MUST be received by applicable deadline.' (Font: Arial, Size: 8.0)
+'Medical' (Font: Arial, Size: 7.5)
+'Dental' (Font: Arial, Size: 7.5)
+'Vision' (Font: Arial, Size: 7.5)
+'Medical' (Font: Arial, Size: 7.5)
+'Dental' (Font: Arial, Size: 7.5)
+'Vision' (Font: Arial, Size: 7.5)
+'Medical' (Font: Arial, Size: 7.5)
+'Dental' (Font: Arial, Size: 7.5)
+'Vision' (Font: Arial, Size: 7.5)
+'Medical' (Font: Arial, Size: 7.5)
+'Dental' (Font: Arial, Size: 7.5)
+'Vision' (Font: Arial, Size: 7.5)
+'Enrollment Signature of Employee' (Font: Arial, Size: 8.0)
+'X' (Font: RageItalic, Size: 35.5)
+'Date' (Font: Arial, Size: 8.0)
+'3' (Font: ZapfDingbats, Size: 7.079986572265625)
+
+==================================================
+
