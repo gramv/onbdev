@@ -314,7 +314,8 @@ export default function HealthInsuranceStep({
           pdf_data: unsignedPdfBase64,
           signature: signatureDataInput.signature,
           signature_type: 'employee_health_insurance',
-          page_num: 1  // Page 2 (0-indexed)
+          page_num: 1,  // Page 2 (0-indexed)
+          signature_date: signatureDataInput.signedAt || new Date().toISOString()
         })
       })
 
@@ -337,6 +338,14 @@ export default function HealthInsuranceStep({
       }
 
       const signedPdfBase64 = btoa(binaryString)
+
+      // Debug: Validate base64 string
+      console.log('HealthInsuranceStep - Base64 validation:', {
+        length: signedPdfBase64.length,
+        startsWithPDF: signedPdfBase64.startsWith('JVBERi0'), // "%PDF-" in base64
+        isValidBase64: /^[A-Za-z0-9+/]*={0,2}$/.test(signedPdfBase64),
+        first50chars: signedPdfBase64.substring(0, 50)
+      })
 
       // Store the signed PDF and update states (matching W-4 pattern exactly)
       setPdfUrl(signedPdfBase64) // Just base64 string, not data URL
