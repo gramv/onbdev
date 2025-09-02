@@ -414,13 +414,13 @@ export default function PersonalInformationStep({
             <RadioGroup
               value={formData.work_authorized || ''}
               onValueChange={(value) => handleInputChange('work_authorized', value)}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
                 <RadioGroupItem value="yes" id="work_auth_yes" className="flex-shrink-0" />
                 <Label htmlFor="work_auth_yes" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
                 <RadioGroupItem value="no" id="work_auth_no" className="flex-shrink-0" />
                 <Label htmlFor="work_auth_no" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.no')}</Label>
               </div>
@@ -435,13 +435,13 @@ export default function PersonalInformationStep({
             <RadioGroup
               value={formData.sponsorship_required || ''}
               onValueChange={(value) => handleInputChange('sponsorship_required', value)}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
                 <RadioGroupItem value="yes" id="sponsor_yes" className="flex-shrink-0" />
                 <Label htmlFor="sponsor_yes" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
                 <RadioGroupItem value="no" id="sponsor_no" className="flex-shrink-0" />
                 <Label htmlFor="sponsor_no" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.no')}</Label>
               </div>
@@ -456,13 +456,13 @@ export default function PersonalInformationStep({
             <RadioGroup
               value={formData.reliable_transportation || ''}
               onValueChange={(value) => handleInputChange('reliable_transportation', value)}
-              className="space-y-3"
+              className="space-y-2"
             >
-              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
                 <RadioGroupItem value="yes" id="transport_yes" className="flex-shrink-0" />
                 <Label htmlFor="transport_yes" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.yes')}</Label>
               </div>
-              <div className="flex items-center space-x-3 py-2 px-1 rounded-md hover:bg-gray-50 transition-colors">
+              <div className="flex items-center space-x-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
                 <RadioGroupItem value="no" id="transport_no" className="flex-shrink-0" />
                 <Label htmlFor="transport_no" className="font-normal cursor-pointer flex-1 text-sm sm:text-base">{t('common.no')}</Label>
               </div>
